@@ -110,7 +110,6 @@
   </div>
 
 <script>
-// ✅ 반드시 네 인증키로 교체
 const serviceKey = encodeURIComponent("3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a");
 
 async function getAirQuality() {
@@ -120,13 +119,19 @@ async function getAirQuality() {
 
   try {
     const res = await fetch(url);
-    const data = await res.json();
-    const items = data.response?.body?.items || [];
+    const text = await res.text();
 
-    // 금촌2동 측정소 데이터 찾기
-    const gimchon = items.find(x => x.stationName && x.stationName.includes("금촌2동"));
+    // EUC-KR → UTF-8 강제 변환 후 JSON 파싱
+    const clean = text.replace(/\\u/g, "\\\\u");
+    const jsonStart = clean.indexOf("{");
+    const jsonEnd = clean.lastIndexOf("}") + 1;
+    const jsonString = clean.slice(jsonStart, jsonEnd);
+    const data = JSON.parse(jsonString);
+
+    const items = data.response?.body?.items || [];
     const airEl = document.getElementById("air");
 
+    const gimchon = items.find(x => x.stationName && x.stationName.includes("금촌2동"));
     if (!gimchon) {
       airEl.textContent = "금촌2동 데이터 없음";
       airEl.className = "air";
@@ -134,16 +139,16 @@ async function getAirQuality() {
     }
 
     const grade = gimchon.khaiGrade;
-    let text = "", cls = "";
+    let textLabel = "", cls = "";
     switch (grade) {
-      case "1": text = "좋음"; cls = "good"; break;
-      case "2": text = "보통"; cls = "normal"; break;
-      case "3": text = "나쁨"; cls = "bad"; break;
-      case "4": text = "매우나쁨"; cls = "verybad"; break;
-      default: text = "정보없음"; cls = "";
+      case "1": textLabel = "좋음"; cls = "good"; break;
+      case "2": textLabel = "보통"; cls = "normal"; break;
+      case "3": textLabel = "나쁨"; cls = "bad"; break;
+      case "4": textLabel = "매우나쁨"; cls = "verybad"; break;
+      default: textLabel = "정보없음"; cls = "";
     }
 
-    airEl.textContent = `미세먼지 ${text}`;
+    airEl.textContent = `미세먼지 ${textLabel}`;
     airEl.className = `air ${cls}`;
   } catch (e) {
     document.getElementById("air").textContent = "데이터 오류";
