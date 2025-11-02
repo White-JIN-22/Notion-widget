@@ -21,17 +21,19 @@
   .header {
     display: flex;
     align-items: baseline;
-    justify-content: center;
+    justify-content: flex-start; /* 왼쪽 정렬 */
     gap: 10px;
     font-weight: 600;
-    font-size: 1.4rem; /* 날짜·시간 글씨 크기 확대 */
+    font-size: 1.4rem;
     letter-spacing: 0.5px;
     color: #d0d6e0;
-    margin-bottom: 10px; /* 타이머와의 간격 */
+    margin-bottom: 10px;
+    width: 580px; /* 타이머+날씨 전체 폭 기준 정렬 */
+    padding-left: 10px; /* 살짝 들여쓰기 */
   }
 
   .time {
-    color: #5aa4ff; /* 파란색 강조 */
+    color: #5aa4ff;
     font-weight: 700;
   }
 
@@ -132,7 +134,7 @@
 </style>
 </head>
 <body>
-  <!-- 헤더 (한 줄) -->
+  <!-- 헤더 -->
   <div class="header">
     <div class="date" id="date"></div>
     <div class="time" id="time"></div>
