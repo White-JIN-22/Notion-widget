@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar Widget</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #f2f2f2;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    padding: 20px;
+  }
+
+  h2 {
+    margin: 0 0 12px 0;
+    color: #9fb3c8;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    width: 320px;
+    height: 320px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+  }
+
+  .day {
+    text-align: center;
+    font-size: 0.8rem;
+    padding-top: 4px;
+    cursor: pointer;
+    position: relative;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+
+  .day:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  .dots {
+    margin-top: 3px;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 1px;
+  }
+
+  .details {
+    margin-top: 16px;
+    width: 320px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: #cfd8dc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    display: none;
+  }
+
+  .holiday {
+    color: #ff6b6b;
+  }
+
+  .event {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+  }
+
+  .event-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+
+  .red { background: #ff6b6b; }
+  .orange { background: #f7b267; }
+  .blue { background: #6ec1e4; }
+  .green { background: #7ed957; }
+</style>
+</head>
+<body>
+  <h2 id="month-label"></h2>
+  <div class="calendar" id="calendar"></div>
+  <div class="details" id="details"></div>
+
+<script>
+// ------- 설정 영역 -------
+const icsLinks = {
+  red: "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",    // 업무
+  orange: "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강
+  blue: "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",   // 자기계발
+  green: "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"   // 휴식
+};
+
+const recurringHolidays = [
+  "01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"
+];
+
+// ------- 유틸 -------
+function getDateKey(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function formatDateLabel(date) {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  return `${y}년 ${m}월`;
+}
+
+// ------- ics 파서 -------
+async function fetchICS(url) {
+  try {
+    const res = await fetch(url.replace("webcal://", "https://"));
+    return await res.text();
+  } catch {
+    return "";
+  }
+}
+
+function parseICS(icsText, color) {
+  const events = [];
+  const lines = icsText.split(/\r?\n/);
+  let current = {};
+  for (const line of lines) {
+    if (line.startsWith("BEGIN:VEVENT")) current = {};
+    else if (line.startsWith("DTSTART")) {
+      const date = line.match(/\d{8}/)?.[0];
+      if (date) current.date = date;
+    } else if (line.startsWith("SUMMARY")) {
+      current.title = line.replace("SUMMARY:", "").trim();
+    } else if (line.startsWith("END:VEVENT")) {
+      if (current.date && current.title)
+        events.push({ ...current, color });
+    }
+  }
+  return events;
+}
+
+// ------- 달력 렌더 -------
+async function loadCalendar() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  document.getElementById("month-label").textContent = formatDateLabel(now);
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startWeekday = firstDay.getDay();
+
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+
+  const allEvents = [];
+
+  for (const [color, url] of Object.entries(icsLinks)) {
+    if (!url.startsWith("http")) continue;
+    const text = await fetchICS(url);
+    allEvents.push(...parseICS(text, color));
+  }
+
+  for (let i = 0; i < startWeekday; i++) {
+    cal.appendChild(document.createElement("div"));
+  }
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const day = document.createElement("div");
+    day.className = "day";
+    const date = new Date(year, month, d);
+    const dateKey = getDateKey(date);
+    const md = `${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const isHoliday = recurringHolidays.includes(md);
+
+    day.innerHTML = `<div class="${isHoliday ? "holiday" : ""}">${d}</div><div class="dots" id="dots-${d}"></div>`;
+    cal.appendChild(day);
+
+    const dayEvents = allEvents.filter(e => e.date === dateKey.replace(/-/g,""));
+    const dots = day.querySelector(".dots");
+    dayEvents.slice(0,3).forEach(e => {
+      const dot = document.createElement("span");
+      dot.className = `dot ${e.color}`;
+      dots.appendChild(dot);
+    });
+
+    if (dayEvents.length > 0) {
+      day.addEventListener("click", () => showDetails(d, dayEvents, isHoliday));
+    }
+  }
+}
+
+function showDetails(day, events, isHoliday) {
+  const details = document.getElementById("details");
+  details.style.display = "block";
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const weekday = new Date(now.getFullYear(), now.getMonth(), day).toLocaleDateString("ko-KR", { weekday: "short" });
+  details.innerHTML = `<strong>${month}월 ${day}일 (${weekday})</strong><br>`;
+  events.forEach(e => {
+    details.innerHTML += `<div class="event"><span class="event-dot ${e.color}"></span>${e.title}</div>`;
+  });
+  if (isHoliday) details.innerHTML += `<div class="event"><span class="event-dot red"></span>공휴일</div>`;
+}
+
+loadCalendar();
+</script>
+</body>
+</html>
