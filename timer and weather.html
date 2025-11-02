@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pomodoro + Weather Dashboard</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #f2f2f2;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    padding-top: 20px;
+  }
+
+  .header {
+    text-align: left;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+    padding-left: 25px;
+  }
+
+  .date {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #d0d6e0;
+    letter-spacing: 0.4px;
+    transition: color 0.3s ease;
+  }
+
+  .time {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #9fb3c8;
+    letter-spacing: 0.3px;
+  }
+
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  /* Pomodoro */
+  .timer-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+    width: 210px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  h1 {
+    font-size: 2.3rem;
+    margin: 0;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+  }
+
+  .button-group {
+    margin-top: 10px;
+  }
+
+  button {
+    margin: 4px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #42a5f5;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  button:hover { background: #64b5f6; }
+
+  /* Weather */
+  .weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 8px 12px;
+    width: 340px;
+  }
+  .today {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .temp {
+    font-size: 2.1rem; /* 확대 */
+    font-weight: 500;
+  }
+  .desc {
+    font-size: 0.95rem; /* 확대 */
+    color: #b0c4de;
+  }
+  .week {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+  }
+  .day {
+    text-align: center;
+    flex: 1;
+  }
+  .day span {
+    display: block;
+    font-size: 0.8rem; /* 확대 */
+  }
+  .icon {
+    margin: 4px 0;
+    width: 24px;
+    height: 24px;
+    opacity: 0.9;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="date" id="date"></div>
+    <div class="time" id="time"></div>
+  </div>
+
+  <div class="container">
+    <!-- Pomodoro -->
+    <div class="timer-box">
+      <h1 id="timer">Get Ready!</h1>
+      <div class="button-group">
+        <button id="pause">❚❚</button>
+        <button class="set-time" data-minutes="20">20m</button>
+        <button class="set-time" data-minutes="30">30m</button>
+      </div>
+    </div>
+
+    <!-- Weather -->
+    <div class="weather" id="weather">
+      <div class="today">
+        <div>
+          <div class="temp" id="temp">--°C</div>
+          <div class="desc" id="desc">Loading...</div>
+        </div>
+        <div class="desc">Paju</div>
+      </div>
+      <div class="week" id="week"></div>
+    </div>
+  </div>
+
+  <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/water/water_drop_plop.ogg" preload="auto"></audio>
+
+<script>
+function updateHeaderTime() {
+  const dateEl = document.getElementById("date");
+  const timeEl = document.getElementById("time");
+  const now = new Date();
+  const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const weekday = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
+  dateEl.textContent = `${year} / ${month} / ${day} (${weekday})`;
+  const todayKey = `${month}-${day}`;
+  dateEl.style.color = recurringHolidays.includes(todayKey) ? "#5ab0ff" : "#d0d6e0";
+  timeEl.textContent = now.toLocaleTimeString("ko-KR", { hour12: false, hour: "2-digit", minute: "2-digit" });
+}
+updateHeaderTime();
+setInterval(updateHeaderTime, 60000);
+
+let time = 20 * 60;
+let timerInterval;
+let isPaused = false;
+let isRunning = false;
+const display = document.getElementById("timer");
+const timeButtons = document.querySelectorAll(".set-time");
+const pauseBtn = document.getElementById("pause");
+const alarm = document.getElementById("alarm-sound");
+
+function updateDisplay() {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  isRunning = true;
+  timerInterval = setInterval(() => {
+    if (!isPaused && time > 0) {
+      time--;
+      updateDisplay();
+    } else if (time <= 0) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      alarm.play();
+      display.textContent = "Well done, you did it ✦";
+      display.style.color = "#64b5f6";
+      setTimeout(() => {
+        display.style.color = "#f2f2f2";
+      }, 4000);
+    }
+  }, 1000);
+}
+
+pauseBtn.addEventListener("click", function() {
+  if (!isRunning) return;
+  isPaused = !isPaused;
+  pauseBtn.textContent = isPaused ? "▶" : "❚❚";
+});
+
+timeButtons.forEach(btn => {
+  btn.addEventListener("click", function() {
+    clearInterval(timerInterval);
+    time = parseInt(this.dataset.minutes) * 60;
+    isPaused = false;
+    isRunning = false;
+    pauseBtn.textContent = "❚❚";
+    display.style.color = "#f2f2f2";
+    updateDisplay();
+    startTimer();
+  });
+});
+
+/* Weather API */
+async function getWeather() {
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
+  const res = await fetch(url);
+  const data = await res.json();
+  const temp = document.getElementById("temp");
+  const desc = document.getElementById("desc");
+  const week = document.getElementById("week");
+  temp.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+  const icons = {
+    0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
+    1:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/partly-cloudy-day.svg",
+    2:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/cloudy.svg",
+    3:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg",
+    45:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+    48:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+    51:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/drizzle.svg",
+    61:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/rain.svg",
+    71:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/snow.svg",
+    80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
+    95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
+  };
+  const todayCode = data.current_weather.weathercode;
+  desc.innerHTML = `<img src="${icons[todayCode] || icons[1]}" class="icon" alt="weather icon">`;
+  week.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(data.daily.time[i]);
+    const weekday = day.toLocaleDateString("en-US", { weekday: "short" });
+    const code = data.daily.weathercode[i];
+    const icon = icons[code] || icons[1];
+    const max = Math.round(data.daily.temperature_2m_max[i]);
+    const min = Math.round(data.daily.temperature_2m_min[i]);
+    week.innerHTML += `
+      <div class="day">
+        <span>${weekday}</span>
+        <img src="${icon}" class="icon" alt="">
+        <span>${max}/${min}°</span>
+      </div>
+    `;
+  }
+}
+getWeather();
+</script>
+</body>
+</html>
