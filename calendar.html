@@ -16,6 +16,7 @@
     justify-content: center;
     margin: 0;
   }
+
   .calendar-container {
     background: rgba(255,255,255,0.08);
     border-radius: 14px;
@@ -25,12 +26,31 @@
     height: 360px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
+
+  /* 상단 구조 */
+  .top-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .today-btn {
+    background: #5ab0ff;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    cursor: pointer;
+  }
+
   .month {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: #a9c4ff;
   }
   .month button {
@@ -40,20 +60,7 @@
     font-size: 1.2rem;
     cursor: pointer;
   }
-  .month-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .today-btn {
-    background: #3b82f6;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 0.8rem;
-    padding: 2px 8px;
-    cursor: pointer;
-  }
+
   .days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -61,7 +68,7 @@
     height: 280px;
   }
   .day {
-    padding: 8px 0 4px;
+    padding: 8px 0 2px;
     border-radius: 8px;
     transition: background 0.2s;
     position: relative;
@@ -70,27 +77,30 @@
   .today { color: #5ab0ff; font-weight: 700; }
   .holiday { color: #ff7070; }
 
+  /* 점 표시 2x2 정렬 */
   .dots {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     justify-content: center;
-    margin-top: 2px;
+    margin: 2px auto 0;
+    width: 16px;
     row-gap: 2px;
   }
   .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    margin: 1px;
+    margin: auto;
   }
   .dot.red { background: #f44336; }
   .dot.orange { background: #ff9800; }
   .dot.blue { background: #2196f3; }
   .dot.green { background: #4caf50; }
+
   .plus {
     font-size: 0.7rem;
-    margin-left: 2px;
     opacity: 0.8;
+    margin-top: 1px;
   }
 
   .event-list {
@@ -119,12 +129,12 @@
 </head>
 <body>
   <div class="calendar-container">
+    <div class="top-bar">
+      <button id="todayBtn" class="today-btn">TODAY</button>
+    </div>
     <div class="month">
       <button id="prevMonth">❮</button>
-      <div class="month-title">
-        <span id="monthYear"></span>
-        <button id="todayBtn" class="today-btn">TODAY</button>
-      </div>
+      <span id="monthYear"></span>
       <button id="nextMonth">❯</button>
     </div>
     <div class="days" id="days"></div>
@@ -180,9 +190,9 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month+1, 0).getDate();
   const today = new Date();
-  
+
   for (let i=0; i<firstDay; i++) daysContainer.appendChild(document.createElement("div"));
-  
+
   for (let d=1; d<=lastDate; d++) {
     const dateEl = document.createElement("div");
     dateEl.className = "day";
@@ -208,7 +218,7 @@ function renderCalendar() {
       }
       if (evList.length > 4) {
         const plus = document.createElement("span");
-        plus.className = `plus ${evList[0].color}`;
+        plus.className = "plus";
         plus.textContent = `+${evList.length-4}`;
         dots.appendChild(plus);
       }
