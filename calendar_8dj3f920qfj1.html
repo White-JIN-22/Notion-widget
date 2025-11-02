@@ -99,7 +99,10 @@
     }
 
     .day .dots {
-      margin-top: 4px;
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
       display: grid;
       grid-template-columns: repeat(2, 6px);
       grid-template-rows: repeat(2, 6px);
@@ -252,14 +255,6 @@
             dot.className = `dot ${dayEvents[i].color}`;
             dotsDiv.appendChild(dot);
           }
-        } else if (dayEvents.length > 4) {
-          const earliestColor = dayEvents[0].color;
-          const extra = document.createElement("div");
-          extra.textContent = `+${dayEvents.length}`;
-          extra.style.fontSize = "9px";
-          extra.style.color = colorFromName(earliestColor);
-          dotsDiv.innerHTML = "";
-          dotsDiv.appendChild(extra);
         }
 
         const mmdd = `${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
@@ -271,16 +266,6 @@
 
         cell.addEventListener("click", () => showEvents(dateStr));
         calendar.appendChild(cell);
-      }
-    }
-
-    function colorFromName(name) {
-      switch(name){
-        case "red": return "#f35a5a";
-        case "orange": return "#ffb84d";
-        case "blue": return "#64a8ff";
-        case "green": return "#7ed957";
-        default: return "#aaa";
       }
     }
 
