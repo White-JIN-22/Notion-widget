@@ -48,7 +48,7 @@
     justify-content: space-between;
     align-items: center;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     color: #a9c4ff;
   }
   .month button {
@@ -63,26 +63,28 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
-    height: 260px;
   }
   .day {
-    padding: 6px 0 0;
+    padding: 6px 0 2px;
     border-radius: 8px;
     transition: background 0.2s;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   .day:hover { background: rgba(255,255,255,0.1); cursor: pointer; }
   .today { color: #5ab0ff; font-weight: 700; }
   .holiday { color: #ff7070; }
 
+  /* 중앙 정렬된 2x2 점 */
   .dots {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
     justify-content: center;
     align-items: center;
-    margin: 2px auto 0;
-    width: 18px;
-    row-gap: 2px;
+    margin-top: 2px;
   }
   .dot {
     width: 6px;
@@ -101,6 +103,7 @@
     margin-top: 1px;
   }
 
+  /* 일정 리스트 */
   .event-list {
     margin-top: 10px;
     background: rgba(255,255,255,0.08);
@@ -225,7 +228,7 @@ function renderCalendar() {
         eventList.style.display = "block";
         eventList.innerHTML = `<h3>${month+1}월 ${d}일</h3>`;
         for (const ev of evList) {
-          eventList.innerHTML += `<div class="event"><div class="dot small ${ev.color}"></div>${ev.title}</div>`;
+          eventList.innerHTML += `<div class="event"><div class="dot small ${ev.color}"></div><span>${ev.title}</span></div>`;
         }
       });
     }
