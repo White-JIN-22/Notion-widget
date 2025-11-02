@@ -185,7 +185,7 @@
   }
 
   async function getAirQuality() {
-    const serviceKey = "여기에_발급받은_ServiceKey_입력";
+    const serviceKey = "3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a";
     const url = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?serviceKey=${encodeURIComponent(serviceKey)}&numOfRows=1&pageNo=1&stationName=금촌2동&dataTerm=DAILY&ver=1.0&_returnType=json`;
     try {
       const res = await fetch(url);
