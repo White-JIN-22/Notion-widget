@@ -100,11 +100,12 @@
 
     .day .dots {
       margin-top: 4px;
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, 6px);
+      grid-template-rows: repeat(2, 6px);
       justify-content: center;
       align-items: center;
-      gap: 4px;
-      flex-wrap: wrap;
+      gap: 3px;
     }
 
     .dot {
@@ -244,21 +245,20 @@
         dotsDiv.className = "dots";
 
         const dayEvents = (allEvents[dateStr] || []).sort((a,b) => a.time.localeCompare(b.time));
-        const maxDots = 4;
 
-        for (let i = 0; i < Math.min(dayEvents.length, maxDots); i++) {
-          const dot = document.createElement("div");
-          dot.className = `dot ${dayEvents[i].color}`;
-          dotsDiv.appendChild(dot);
-        }
-
-        if (dayEvents.length > maxDots) {
+        if (dayEvents.length > 0 && dayEvents.length <= 4) {
+          for (let i = 0; i < dayEvents.length; i++) {
+            const dot = document.createElement("div");
+            dot.className = `dot ${dayEvents[i].color}`;
+            dotsDiv.appendChild(dot);
+          }
+        } else if (dayEvents.length > 4) {
           const earliestColor = dayEvents[0].color;
           const extra = document.createElement("div");
           extra.textContent = `+${dayEvents.length}`;
           extra.style.fontSize = "9px";
-          extra.style.color = getComputedStyle(document.documentElement)
-            .getPropertyValue(`--${earliestColor}`) || colorFromName(earliestColor);
+          extra.style.color = colorFromName(earliestColor);
+          dotsDiv.innerHTML = "";
           dotsDiv.appendChild(extra);
         }
 
