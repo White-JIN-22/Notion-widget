@@ -49,27 +49,35 @@
   </div>
 
 <script>
+const TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; // 네 개인 토큰
+
 async function getAirQuality() {
   try {
-    const res = await fetch("https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?serviceKey=3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a&returnType=json&numOfRows=100&pageNo=1&sidoName=경기&ver=1.0");
-    const data = await res.json();
-    const item = data.response.body.items.find(i =>
-      i.stationName.includes("금촌") || i.stationName.includes("파주")
-    );
+    // 금촌2동 근처 위도·경도 (파주시청 기준)
+    const lat = 37.7579;
+    const lon = 126.7750;
+    const url = `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${TOKEN}`;
 
+    const res = await fetch(url);
+    const data = await res.json();
     const dustEl = document.getElementById("dust");
 
-    if (!item) {
-      dustEl.textContent = "측정소 정보 없음";
+    if (data.status !== "ok") {
+      dustEl.textContent = "데이터 오류";
       return;
     }
 
-    const grade = item.pm10Grade;
-    const level = {1: "좋음", 2: "보통", 3: "나쁨", 4: "매우나쁨"}[grade] || "정보 없음";
-    const cls = {1: "good", 2: "normal", 3: "bad", 4: "verybad"}[grade] || "";
+    const aqi = data.data.aqi;
+    let level = "", cls = "";
 
-    dustEl.textContent = `미세먼지 ${level}`;
+    if (aqi <= 50) { level = "좋음"; cls = "good"; }
+    else if (aqi <= 100) { level = "보통"; cls = "normal"; }
+    else if (aqi <= 150) { level = "나쁨"; cls = "bad"; }
+    else { level = "매우나쁨"; cls = "verybad"; }
+
+    dustEl.textContent = `미세먼지 ${level} (${aqi})`;
     dustEl.className = cls;
+
   } catch (e) {
     document.getElementById("dust").textContent = "데이터 오류";
   }
