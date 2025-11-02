@@ -114,7 +114,7 @@
 
     .day .dots {
       position: absolute;
-      top: 58%;
+      top: 53%; /* 기존보다 간격 절반으로 줄임 */
       left: 50%;
       transform: translate(-50%, 0);
       display: grid;
@@ -143,6 +143,7 @@
       border-radius: 12px;
       margin-top: 10px;
       padding: 10px 14px;
+      text-align: left; /* 좌측 정렬 복귀 */
     }
 
     .event-list h3 {
@@ -265,14 +266,12 @@
         const dayEvents = (allEvents[dateStr] || []).sort((a,b) => a.time.localeCompare(b.time));
         const maxDots = Math.min(dayEvents.length, 4);
 
-        // 점 표시 (최대 4개)
         for (let i = 0; i < maxDots; i++) {
           const dot = document.createElement("div");
           dot.className = `dot ${dayEvents[i].color}`;
           dotsDiv.appendChild(dot);
         }
 
-        // 점 1개일 때 중앙 정렬 유지
         if (maxDots === 1) {
           dotsDiv.style.gridTemplateColumns = "1fr";
           dotsDiv.style.gridTemplateRows = "1fr";
