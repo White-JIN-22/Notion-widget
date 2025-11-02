@@ -17,20 +17,22 @@
     justify-content: center;
   }
 
-  /* Header (타이머 바로 위, 한 줄로) */
+  /* Header */
   .header {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: center;
     gap: 10px;
     font-weight: 600;
-    font-size: 1.2rem;
-    letter-spacing: 0.4px;
+    font-size: 1.4rem; /* 날짜·시간 글씨 크기 확대 */
+    letter-spacing: 0.5px;
     color: #d0d6e0;
-    margin-bottom: 8px; /* 타이머와 간격 */
+    margin-bottom: 10px; /* 타이머와의 간격 */
   }
 
-  .date, .time {
-    display: inline-block;
+  .time {
+    color: #5aa4ff; /* 파란색 강조 */
+    font-weight: 700;
   }
 
   /* Container */
@@ -59,7 +61,7 @@
   }
 
   h1 {
-    font-size: 2.3rem;
+    font-size: 2.4rem;
     margin: 0;
     letter-spacing: 1px;
     transition: color 0.3s ease;
@@ -130,7 +132,7 @@
 </style>
 </head>
 <body>
-  <!-- 헤더를 타이머 바로 위로 -->
+  <!-- 헤더 (한 줄) -->
   <div class="header">
     <div class="date" id="date"></div>
     <div class="time" id="time"></div>
