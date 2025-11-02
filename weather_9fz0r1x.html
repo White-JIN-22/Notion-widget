@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Weather Widget</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #f2f2f2;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .weather {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 10px 14px;
+    width: 320px;
+  }
+  .today {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .temp { font-size: 2.1rem; font-weight: 500; }
+  .desc { font-size: 0.95rem; color: #b0c4de; }
+  .week { display: flex; justify-content: space-between; width: 100%; gap: 4px; }
+  .day { text-align: center; flex: 1; }
+  .day span { display: block; font-size: 0.8rem; }
+  .icon { width: 24px; height: 24px; opacity: 0.9; margin: 4px 0; }
+</style>
+</head>
+<body>
+  <div class="weather" id="weather">
+    <div class="today">
+      <div>
+        <div class="temp" id="temp">--°C</div>
+        <div class="desc" id="desc">Loading...</div>
+      </div>
+      <div class="desc">Paju</div>
+    </div>
+    <div class="week" id="week"></div>
+  </div>
+
+<script>
+const _privateKey = '9fz0r1x';
+async function getWeather() {
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
+  const res = await fetch(url);
+  const data = await res.json();
+  const temp = document.getElementById("temp");
+  const desc = document.getElementById("desc");
+  const week = document.getElementById("week");
+  temp.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+  const icons = {
+    0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
+    1:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/partly-cloudy-day.svg",
+    2:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/cloudy.svg",
+    3:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg",
+    45:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+    48:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+    51:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/drizzle.svg",
+    61:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/rain.svg",
+    71:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/snow.svg",
+    80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
+    95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
+  };
+  const todayCode = data.current_weather.weathercode;
+  desc.innerHTML = `<img src="${icons[todayCode] || icons[1]}" class="icon" alt="icon">`;
+  week.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(data.daily.time[i]);
+    const weekday = day.toLocaleDateString("en-US", { weekday: "short" });
+    const code = data.daily.weathercode[i];
+    const icon = icons[code] || icons[1];
+    const max = Math.round(data.daily.temperature_2m_max[i]);
+    const min = Math.round(data.daily.temperature_2m_min[i]);
+    week.innerHTML += `
+      <div class="day">
+        <span>${weekday}</span>
+        <img src="${icon}" class="icon" alt="">
+        <span>${max}/${min}°</span>
+      </div>`;
+  }
+}
+getWeather();
+</script>
+</body>
+</html>
