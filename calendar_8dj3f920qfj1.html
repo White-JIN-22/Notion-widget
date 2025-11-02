@@ -17,15 +17,15 @@
       min-height: 100vh;
       margin: 0;
       padding: 20px 0;
-      transform: scale(0.85);
+      transform: scale(0.9);
       transform-origin: top center;
     }
 
     .calendar-container {
       background-color: #242424;
       border-radius: 16px;
-      padding: 16px;
-      width: 280px;
+      padding: 18px;
+      width: 295px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
       display: flex;
       flex-direction: column;
@@ -36,7 +36,7 @@
       position: relative;
       width: 100%;
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .header .today-btn {
@@ -44,10 +44,11 @@
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 5px 12px;
+      padding: 6px 13px;
       font-weight: 600;
       cursor: pointer;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
 
     .month-year {
@@ -57,6 +58,7 @@
       font-weight: 600;
       color: #b8c2ff;
       position: relative;
+      font-size: 15px;
     }
 
     .nav-btn {
@@ -69,20 +71,15 @@
       cursor: pointer;
     }
 
-    #prevMonth {
-      left: 0;
-    }
-
-    #nextMonth {
-      right: 0;
-    }
+    #prevMonth { left: 0; }
+    #nextMonth { right: 0; }
 
     .calendar {
       width: 100%;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 5px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .day {
@@ -91,9 +88,10 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
-      height: 46px;
+      height: 48px;
       border-radius: 6px;
       transition: background-color 0.2s;
+      font-size: 14px;
     }
 
     .day:hover {
@@ -107,14 +105,11 @@
       font-weight: 700;
     }
 
-    .holiday {
-      color: #f35a5a;
-      font-weight: 600;
-    }
+    .holiday { color: #f35a5a; font-weight: 600; }
 
     .day .dots {
       position: absolute;
-      top: 53%; /* 기존보다 간격 절반으로 줄임 */
+      top: 52%;
       left: 50%;
       transform: translate(-50%, 0);
       display: grid;
@@ -138,31 +133,32 @@
     .dot.green { background-color: #7ed957; }
 
     .event-list {
-      width: 280px;
+      width: 295px;
       background-color: #242424;
       border-radius: 12px;
       margin-top: 10px;
-      padding: 10px 14px;
-      text-align: left; /* 좌측 정렬 복귀 */
+      padding: 12px 16px;
+      text-align: left;
     }
 
     .event-list h3 {
-      margin-top: 0;
+      margin: 0 0 6px 0;
       color: #d0d6ff;
-      font-size: 14px;
-      margin-bottom: 6px;
+      font-size: 15px;
+      font-weight: 600;
     }
 
     .event-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      margin: 3px 0;
+      display: block;
+      font-size: 14px; /* 세부 일정 폰트 커짐 */
+      margin: 5px 0;
+      line-height: 1.4;
     }
 
     .event-item .dot {
-      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
     }
   </style>
 </head>
@@ -195,7 +191,6 @@
     ];
 
     const holidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
-
     let currentDate = new Date();
     let allEvents = {};
 
@@ -222,7 +217,6 @@
             const summary = block.match(/SUMMARY:(.*)/);
             let startTime = "0000";
             if (dtStart && dtStart[1].includes("T")) startTime = dtStart[1].split("T")[1].slice(0,4);
-
             if (dtStart && summary) {
               const dateStr = `${dtStart[1].slice(0,4)}-${dtStart[1].slice(4,6)}-${dtStart[1].slice(6,8)}`;
               const text = summary[1].trim();
@@ -248,42 +242,32 @@
       const month = date.getMonth();
       const firstDay = new Date(year, month, 1).getDay();
       const lastDate = new Date(year, month + 1, 0).getDate();
-
       monthYear.textContent = `${month + 1}월 :: ${months[month]}`;
       calendar.innerHTML = "";
-
       for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
-
       for (let day = 1; day <= lastDate; day++) {
         const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
         const cell = document.createElement("div");
         cell.className = "day";
         cell.textContent = day;
-
         const dotsDiv = document.createElement("div");
         dotsDiv.className = "dots";
-
         const dayEvents = (allEvents[dateStr] || []).sort((a,b) => a.time.localeCompare(b.time));
         const maxDots = Math.min(dayEvents.length, 4);
-
         for (let i = 0; i < maxDots; i++) {
           const dot = document.createElement("div");
           dot.className = `dot ${dayEvents[i].color}`;
           dotsDiv.appendChild(dot);
         }
-
         if (maxDots === 1) {
           dotsDiv.style.gridTemplateColumns = "1fr";
           dotsDiv.style.gridTemplateRows = "1fr";
         }
-
         const mmdd = `${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
         if (holidays.includes(mmdd)) cell.classList.add("holiday");
-
         cell.appendChild(dotsDiv);
         if (year === new Date().getFullYear() && month === new Date().getMonth() && day === new Date().getDate())
           cell.classList.add("today");
-
         cell.addEventListener("click", () => showEvents(dateStr));
         calendar.appendChild(cell);
       }
@@ -297,8 +281,7 @@
         dayEvents.forEach(e => {
           eventList.innerHTML += `
             <div class="event-item">
-              <div class="dot ${e.color}"></div>
-              <div>${e.text}</div>
+              <span class="dot ${e.color}"></span>${e.text}
             </div>`;
         });
       }
