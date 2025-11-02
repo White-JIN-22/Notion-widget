@@ -22,6 +22,7 @@
     padding: 20px;
     text-align: center;
     width: 320px;
+    height: 360px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
   .month {
@@ -39,10 +40,15 @@
     font-size: 1.2rem;
     cursor: pointer;
   }
+  .month span {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
   .days {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 6px;
+    height: 280px;
   }
   .day {
     padding: 8px 0;
@@ -68,6 +74,11 @@
   .dot.orange { background: #ff9800; }
   .dot.blue { background: #2196f3; }
   .dot.green { background: #4caf50; }
+  .plus {
+    font-size: 0.7rem;
+    margin-left: 2px;
+    opacity: 0.8;
+  }
 
   .event-list {
     margin-top: 15px;
@@ -97,7 +108,7 @@
   <div class="calendar-container">
     <div class="month">
       <button id="prevMonth">❮</button>
-      <div id="monthYear"></div>
+      <span id="monthYear"></span>
       <button id="nextMonth">❯</button>
     </div>
     <div class="days" id="days"></div>
@@ -146,8 +157,10 @@ function renderCalendar() {
   const daysContainer = document.getElementById("days");
   const eventList = document.getElementById("eventList");
 
-  monthYear.textContent = `${year}년 ${month+1}월`;
+  const monthNames = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+  monthYear.textContent = `${month+1}월 :: ${monthNames[month]}`;
   daysContainer.innerHTML = "";
+
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month+1, 0).getDate();
   const today = new Date();
@@ -170,21 +183,38 @@ function renderCalendar() {
     if (events[dateKey]) {
       const dots = document.createElement("div");
       dots.className = "dots";
-      for (const ev of events[dateKey]) {
+      const evList = events[dateKey];
+      const showCount = Math.min(4, evList.length);
+      for (let i=0; i<showCount; i++) {
         const dot = document.createElement("div");
-        dot.className = `dot ${ev.color}`;
+        dot.className = `dot ${evList[i].color}`;
         dots.appendChild(dot);
+      }
+      if (evList.length > 4) {
+        const plus = document.createElement("span");
+        plus.className = `plus ${evList[0].color}`;
+        plus.textContent = `+${evList.length-4}`;
+        dots.appendChild(plus);
       }
       dateEl.appendChild(dots);
       dateEl.addEventListener("click", () => {
         eventList.style.display = "block";
-        eventList.innerHTML = `<h3>${year}년 ${month+1}월 ${d}일</h3>`;
-        for (const ev of events[dateKey]) {
+        eventList.innerHTML = `<h3>${month+1}월 ${d}일</h3>`;
+        for (const ev of evList) {
           eventList.innerHTML += `<div class="event"><div class="dot small ${ev.color}"></div>${ev.title}</div>`;
         }
       });
     }
     daysContainer.appendChild(dateEl);
+  }
+
+  // 빈 칸 채워서 항상 균형 유지 (정사각형 형태)
+  const totalCells = firstDay + lastDate;
+  const remainder = totalCells % 7;
+  if (remainder !== 0) {
+    for (let i=0; i<7-remainder; i++) {
+      daysContainer.appendChild(document.createElement("div"));
+    }
   }
 }
 
