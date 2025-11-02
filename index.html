@@ -14,18 +14,18 @@
     flex-direction: column;
     align-items: center;
     height: 100vh;
-    padding-top: 20px;
+    overflow: hidden;
   }
 
+  /* Header (타이머 위로 겹치기) */
   .header {
-    text-align: left;
-    margin-bottom: 25px;
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-start;
-    gap: 12px;
-    width: 100%;
-    padding-left: 25px;
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    width: auto;
+    margin-bottom: 0;
   }
 
   .date {
@@ -43,12 +43,14 @@
     letter-spacing: 0.3px;
   }
 
+  /* 메인 컨테이너 */
   .container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
+    margin-top: 70px; /* 날짜 겹침 방지 */
   }
 
   /* Pomodoro */
@@ -109,11 +111,11 @@
     margin-bottom: 8px;
   }
   .temp {
-    font-size: 2.1rem; /* 확대 */
+    font-size: 2.1rem;
     font-weight: 500;
   }
   .desc {
-    font-size: 0.95rem; /* 확대 */
+    font-size: 0.95rem;
     color: #b0c4de;
   }
   .week {
@@ -128,7 +130,7 @@
   }
   .day span {
     display: block;
-    font-size: 0.8rem; /* 확대 */
+    font-size: 0.8rem;
   }
   .icon {
     margin: 4px 0;
