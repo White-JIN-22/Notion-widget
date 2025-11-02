@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Pomodoro Timer</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #f2f2f2;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+  }
+  .timer-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 18px;
+    width: 210px;
+    height: 140px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+  }
+  h1 { font-size: 2.4rem; margin: 0; letter-spacing: 1px; transition: color 0.3s; }
+  .button-group { margin-top: 10px; }
+  button {
+    margin: 4px;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    background: #42a5f5;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  button:hover { background: #64b5f6; }
+</style>
+</head>
+<body>
+  <div class="timer-box">
+    <h1 id="timer">Get Ready!</h1>
+    <div class="button-group">
+      <button id="pause">❚❚</button>
+      <button class="set-time" data-minutes="20">20m</button>
+      <button class="set-time" data-minutes="30">30m</button>
+    </div>
+  </div>
+
+  <audio id="alarm-sound" src="https://actions.google.com/sounds/v1/water/water_drop_plop.ogg" preload="auto"></audio>
+
+<script>
+const _privateKey = '9fz0r1x';
+let time = 20 * 60;
+let timerInterval, isPaused = false, isRunning = false;
+const display = document.getElementById("timer");
+const pauseBtn = document.getElementById("pause");
+const timeButtons = document.querySelectorAll(".set-time");
+const alarm = document.getElementById("alarm-sound");
+
+function updateDisplay() {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  display.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  isRunning = true;
+  timerInterval = setInterval(() => {
+    if (!isPaused && time > 0) {
+      time--; updateDisplay();
+    } else if (time <= 0) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      alarm.play();
+      display.textContent = "Well done ✦";
+      display.style.color = "#64b5f6";
+      setTimeout(() => { display.style.color = "#f2f2f2"; }, 4000);
+    }
+  }, 1000);
+}
+
+pauseBtn.addEventListener("click", () => {
+  if (!isRunning) return;
+  isPaused = !isPaused;
+  pauseBtn.textContent = isPaused ? "▶" : "❚❚";
+});
+
+timeButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    clearInterval(timerInterval);
+    time = parseInt(btn.dataset.minutes) * 60;
+    isPaused = false; isRunning = false;
+    pauseBtn.textContent = "❚❚";
+    display.style.color = "#f2f2f2";
+    updateDisplay(); startTimer();
+  });
+});
+</script>
+</body>
+</html>
