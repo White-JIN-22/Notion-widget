@@ -18,20 +18,52 @@
     height: 100vh;
     flex-direction: column;
   }
+
   .timer-box {
     background: rgba(255,255,255,0.1);
     border-radius: 14px;
-    padding: 18px;
+    padding: 18px 18px 10px; /* 하단 여백 제거 */
     width: 210px;
     height: 140px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
   }
-  h1 { font-size: 2.4rem; margin: 0; letter-spacing: 1px; transition: color 0.3s; }
-  .button-group { margin-top: 10px; }
+
+  /* progress bar */
+  .progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #42a5f5, #64b5f6);
+    transition: width 1s linear;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    margin: 0;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+  }
+
+  .button-group {
+    margin-top: 8px;
+  }
+
   button {
-    margin: 4px;
+    margin: 3px;
     font-size: 0.9rem;
     padding: 6px 12px;
     border: none;
@@ -41,11 +73,15 @@
     cursor: pointer;
     transition: background 0.3s;
   }
+
   button:hover { background: #64b5f6; }
 </style>
 </head>
 <body>
   <div class="timer-box">
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
     <h1 id="timer">Get Ready!</h1>
     <div class="button-group">
       <button id="pause">❚❚</button>
@@ -59,16 +95,21 @@
 <script>
 const _privateKey = '9fz0r1x';
 let time = 20 * 60;
+let initialTime = time;
 let timerInterval, isPaused = false, isRunning = false;
 const display = document.getElementById("timer");
 const pauseBtn = document.getElementById("pause");
 const timeButtons = document.querySelectorAll(".set-time");
 const alarm = document.getElementById("alarm-sound");
+const progressBar = document.getElementById("progressBar");
 
 function updateDisplay() {
   const minutes = Math.floor(time / 60);
   const seconds = time % 60;
-  display.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+  display.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const percent = (time / initialTime) * 100;
+  progressBar.style.width = `${percent}%`;
+  progressBar.style.opacity = Math.max(0.4, percent / 100); // 끝날수록 옅어짐
 }
 
 function startTimer() {
@@ -76,14 +117,18 @@ function startTimer() {
   isRunning = true;
   timerInterval = setInterval(() => {
     if (!isPaused && time > 0) {
-      time--; updateDisplay();
+      time--;
+      updateDisplay();
     } else if (time <= 0) {
       clearInterval(timerInterval);
       isRunning = false;
       alarm.play();
       display.textContent = "Well done ✦";
       display.style.color = "#64b5f6";
-      setTimeout(() => { display.style.color = "#f2f2f2"; }, 4000);
+      progressBar.style.width = "0%";
+      setTimeout(() => {
+        display.style.color = "#f2f2f2";
+      }, 4000);
     }
   }, 1000);
 }
@@ -98,10 +143,12 @@ timeButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     clearInterval(timerInterval);
     time = parseInt(btn.dataset.minutes) * 60;
+    initialTime = time;
     isPaused = false; isRunning = false;
     pauseBtn.textContent = "❚❚";
     display.style.color = "#f2f2f2";
-    updateDisplay(); startTimer();
+    updateDisplay();
+    startTimer();
   });
 });
 </script>
