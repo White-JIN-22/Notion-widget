@@ -40,9 +40,19 @@
     font-size: 1.2rem;
     cursor: pointer;
   }
-  .month span {
-    font-size: 1.1rem;
-    font-weight: 600;
+  .month-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .today-btn {
+    background: #3b82f6;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    cursor: pointer;
   }
   .days {
     display: grid;
@@ -51,7 +61,7 @@
     height: 280px;
   }
   .day {
-    padding: 8px 0;
+    padding: 8px 0 4px;
     border-radius: 8px;
     transition: background 0.2s;
     position: relative;
@@ -59,16 +69,19 @@
   .day:hover { background: rgba(255,255,255,0.1); cursor: pointer; }
   .today { color: #5ab0ff; font-weight: 700; }
   .holiday { color: #ff7070; }
+
   .dots {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     margin-top: 2px;
+    row-gap: 2px;
   }
   .dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    margin: 0 1px;
+    margin: 1px;
   }
   .dot.red { background: #f44336; }
   .dot.orange { background: #ff9800; }
@@ -81,7 +94,7 @@
   }
 
   .event-list {
-    margin-top: 15px;
+    margin-top: 12px;
     background: rgba(255,255,255,0.08);
     border-radius: 10px;
     padding: 12px;
@@ -108,7 +121,10 @@
   <div class="calendar-container">
     <div class="month">
       <button id="prevMonth">❮</button>
-      <span id="monthYear"></span>
+      <div class="month-title">
+        <span id="monthYear"></span>
+        <button id="todayBtn" class="today-btn">TODAY</button>
+      </div>
       <button id="nextMonth">❯</button>
     </div>
     <div class="days" id="days"></div>
@@ -208,7 +224,6 @@ function renderCalendar() {
     daysContainer.appendChild(dateEl);
   }
 
-  // 빈 칸 채워서 항상 균형 유지 (정사각형 형태)
   const totalCells = firstDay + lastDate;
   const remainder = totalCells % 7;
   if (remainder !== 0) {
@@ -224,6 +239,10 @@ document.getElementById("prevMonth").onclick = () => {
 };
 document.getElementById("nextMonth").onclick = () => {
   currentDate.setMonth(currentDate.getMonth()+1);
+  renderCalendar();
+};
+document.getElementById("todayBtn").onclick = () => {
+  currentDate = new Date();
   renderCalendar();
 };
 
