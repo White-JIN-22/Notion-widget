@@ -17,51 +17,99 @@
     align-items: center;
     height: 100vh;
   }
+
   .weather {
     display: flex;
     flex-direction: column;
     align-items: center;
     background: #1a1a1a;
     border-radius: 12px;
-    padding: 10px 14px;
-    width: 320px;
+    padding: 12px 16px;
+    width: 340px;
+    color: #d0d6e0;
   }
+
   .today {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+
+  .current {
+    font-size: 2.1rem;
+    font-weight: 500;
+    color: #ffffff;
+  }
+
+  .summary {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    margin-bottom: 8px;
+    margin-top: 8px;
+    gap: 6px;
   }
-  .temp { font-size: 2.1rem; font-weight: 500; }
-  .desc { font-size: 0.95rem; color: #b0c4de; }
-  .week { display: flex; justify-content: space-between; width: 100%; gap: 4px; }
-  .day { text-align: center; flex: 1; }
-  .day span { display: block; font-size: 0.8rem; }
-  .icon { width: 24px; height: 24px; opacity: 0.9; margin: 4px 0; }
+
+  .period {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+
+  .period span {
+    font-size: 0.85rem;
+    margin-top: 2px;
+  }
+
+  .icon {
+    margin: 3px 0;
+    width: 26px;
+    height: 26px;
+    opacity: 0.9;
+  }
+
+  .week {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .day {
+    text-align: center;
+    flex: 1;
+  }
+
+  .day span {
+    display: block;
+    font-size: 0.8rem;
+  }
 </style>
 </head>
 <body>
   <div class="weather" id="weather">
     <div class="today">
-      <div>
-        <div class="temp" id="temp">--°C</div>
-        <div class="desc" id="desc">Loading...</div>
-      </div>
-      <div class="desc">Paju</div>
+      <div class="current" id="temp">--°C</div>
+      <div class="summary" id="summary"></div>
     </div>
     <div class="week" id="week"></div>
   </div>
 
 <script>
-const _privateKey = '9fz0r1x';
+const _privateKey = 'wthr9fz0r1x';
+
 async function getWeather() {
-  const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
+  const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
   const res = await fetch(url);
   const data = await res.json();
+
   const temp = document.getElementById("temp");
-  const desc = document.getElementById("desc");
+  const summary = document.getElementById("summary");
   const week = document.getElementById("week");
-  temp.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+
   const icons = {
     0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
     1:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/partly-cloudy-day.svg",
@@ -75,8 +123,48 @@ async function getWeather() {
     80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
     95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
   };
-  const todayCode = data.current_weather.weathercode;
-  desc.innerHTML = `<img src="${icons[todayCode] || icons[1]}" class="icon" alt="icon">`;
+
+  /* 현재 기온 */
+  temp.textContent = `${Math.round(data.current_weather.temperature)}°C`;
+
+  /* 시간대별 아이콘 (오전/낮/저녁) */
+  const hours = data.hourly.time.map(t => new Date(t));
+  const now = new Date();
+  const todayHours = hours.filter(t => t.getDate() === now.getDate());
+
+  function getWeatherAtHour(hour) {
+    const idx = todayHours.findIndex(t => t.getHours() === hour);
+    if (idx === -1) return { code: 1, temp: "--" };
+    return {
+      code: data.hourly.weathercode[idx],
+      temp: Math.round(data.hourly.temperature_2m[idx])
+    };
+  }
+
+  const morning = getWeatherAtHour(9);
+  const noon = getWeatherAtHour(13);
+  const evening = getWeatherAtHour(19);
+
+  summary.innerHTML = `
+    <div class="period">
+      <img src="${icons[data.current_weather.weathercode] || icons[1]}" class="icon" alt="">
+      <span>지금</span>
+    </div>
+    <div class="period">
+      <img src="${icons[morning.code] || icons[1]}" class="icon" alt="">
+      <span>오전</span>
+    </div>
+    <div class="period">
+      <img src="${icons[noon.code] || icons[1]}" class="icon" alt="">
+      <span>낮</span>
+    </div>
+    <div class="period">
+      <img src="${icons[evening.code] || icons[1]}" class="icon" alt="">
+      <span>저녁</span>
+    </div>
+  `;
+
+  /* 주간 예보 */
   week.innerHTML = "";
   for (let i = 0; i < 7; i++) {
     const day = new Date(data.daily.time[i]);
@@ -90,7 +178,8 @@ async function getWeather() {
         <span>${weekday}</span>
         <img src="${icon}" class="icon" alt="">
         <span>${max}/${min}°</span>
-      </div>`;
+      </div>
+    `;
   }
 }
 getWeather();
