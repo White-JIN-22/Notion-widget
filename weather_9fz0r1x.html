@@ -110,18 +110,23 @@
   </div>
 
 <script>
-// ✅ 반드시 네가 발급받은 일반 인증키로 교체
+// ✅ Cloudflare Worker Proxy 설정
+const proxy = "https://air.moonkelly601.workers.dev/?url=";
+
+// ✅ 반드시 네 발급받은 일반 인증키로 교체
 const serviceKey = encodeURIComponent("3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a");
 
+// 🌫 미세먼지 (금촌2동 측정소)
 async function getAirQuality() {
-  const url = `https://apis.data.go.kr/B552584/RltmKhaiInfoSvc/getRltmKhaiInfo?serviceKey=${serviceKey}&returnType=json&numOfRows=100&pageNo=1`;
+  const target = `https://apis.data.go.kr/B552584/RltmKhaiInfoSvc/getRltmKhaiInfo?serviceKey=${serviceKey}&returnType=json&numOfRows=100&pageNo=1`;
+  const url = proxy + encodeURIComponent(target);
 
   try {
     const res = await fetch(url);
-    const data = await res.json();
+    const text = await res.text();
+    const data = JSON.parse(text);
     const items = data.response?.body?.items || [];
 
-    // 금촌2동 측정소 데이터 찾기
     const gimchon = items.find(x => x.stationName && x.stationName.includes("금촌2동"));
     const airEl = document.getElementById("air");
 
@@ -131,24 +136,24 @@ async function getAirQuality() {
       return;
     }
 
-    // 통합대기환경지수(CAI) 등급
     const grade = gimchon.khaiGrade;
-    let text = "", cls = "";
+    let textStatus = "", cls = "";
     switch (grade) {
-      case "1": text = "좋음"; cls = "good"; break;
-      case "2": text = "보통"; cls = "normal"; break;
-      case "3": text = "나쁨"; cls = "bad"; break;
-      case "4": text = "매우나쁨"; cls = "verybad"; break;
-      default: text = "정보없음"; cls = "";
+      case "1": textStatus = "좋음"; cls = "good"; break;
+      case "2": textStatus = "보통"; cls = "normal"; break;
+      case "3": textStatus = "나쁨"; cls = "bad"; break;
+      case "4": textStatus = "매우나쁨"; cls = "verybad"; break;
+      default: textStatus = "정보없음"; cls = "";
     }
 
-    airEl.textContent = `미세먼지 ${text}`;
+    airEl.textContent = `미세먼지 ${textStatus}`;
     airEl.className = `air ${cls}`;
   } catch (e) {
     document.getElementById("air").textContent = "데이터 오류";
   }
 }
 
+// ☀️ 날씨
 async function getWeather() {
   const icons = {
     0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
@@ -181,7 +186,6 @@ async function getWeather() {
   document.getElementById("noonIcon").src = getIcon(14);
   document.getElementById("eveningIcon").src = getIcon(19);
 
-  // 주간 날씨
   const week = document.getElementById("week");
   week.innerHTML = "";
   for (let i = 0; i < 7; i++) {
@@ -199,7 +203,7 @@ async function getWeather() {
   }
 }
 
-// 호출
+// 실행
 getAirQuality();
 getWeather();
 </script>
