@@ -292,21 +292,18 @@
     }
 
     function showEvents(dateStr) {
-      const dayEvents = allEvents[dateStr] || [];
-      const [_, m, d] = dateStr.split("-");
-      eventList.innerHTML = `<h3>${parseInt(m)}월 ${parseInt(d)}일</h3>`;
-      if (dayEvents.length === 0) {
-        eventList.innerHTML += `<div class="event-item">이벤트 없음</div>`;
-      } else {
-        dayEvents.forEach(e => {
-          eventList.innerHTML += `
-            <div class="event-item">
-              <div class="dot ${e.color}"></div>
-              <div>${e.text}</div>
-            </div>`;
-        });
-      }
-    }
+  const dayEvents = allEvents[dateStr] || [];
+  const [_, m, d] = dateStr.split("-");
+  eventList.innerHTML = `<h3>${parseInt(m)}월 ${parseInt(d)}일</h3>`;
+  if (dayEvents.length > 0) {
+    dayEvents.forEach(e => {
+      eventList.innerHTML += `
+        <div class="event-item">
+          <div class="dot ${e.color}"></div>
+          <div>${e.text}</div>
+        </div>`;
+    });
+  }
 
     todayBtn.addEventListener("click", () => {
       currentDate = new Date();
