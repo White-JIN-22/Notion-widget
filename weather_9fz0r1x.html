@@ -1,107 +1,94 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="no-referrer">
-<title>Weather & Air Widget</title>
-<style>
-  body {
-    margin: 0;
-    background: #1a1a1a;
-    color: #f2f2f2;
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-
-  .weather {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #1a1a1a;
-    border-radius: 12px;
-    padding: 12px 16px;
-    width: 360px;
-    color: #d0d6e0;
-  }
-
-  .today {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 6px;
-    width: 100%;
-  }
-
-  .current {
-    font-size: 2.2rem;
-    font-weight: 500;
-    color: #ffffff;
-    margin-bottom: 6px;
-  }
-
-  .summary {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 4px;
-    gap: 6px;
-  }
-
-  .period {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-  }
-
-  .period span {
-    font-size: 0.85rem;
-    margin-top: 2px;
-  }
-
-  .icon {
-    margin: 3px 0;
-    width: 26px;
-    height: 26px;
-    opacity: 0.9;
-  }
-
-  .divider {
-    width: 100%;
-    height: 1px;
-    background-color: #aaa;
-    opacity: 0.25;
-    margin: 10px 0 8px;
-  }
-
-  .week {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    gap: 4px;
-  }
-
-  .day {
-    text-align: center;
-    flex: 1;
-  }
-
-  .day span {
-    display: block;
-    font-size: 0.8rem;
-  }
-
-  .air-quality {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 3px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Weather & Air Widget</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      color: #f2f2f2;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .weather {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      width: 360px;
+      color: #d0d6e0;
+    }
+    .today {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+    .air-quality {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+    .current {
+      font-size: 2.2rem;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .summary {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 6px;
+    }
+    .period {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+    .period span {
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+    .icon {
+      margin: 3px 0;
+      width: 26px;
+      height: 26px;
+      opacity: 0.9;
+    }
+    .divider {
+      width: 100%;
+      height: 1px;
+      background-color: #aaa;
+      opacity: 0.25;
+      margin: 10px 0 8px;
+    }
+    .week {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 4px;
+    }
+    .day {
+      text-align: center;
+      flex: 1;
+    }
+    .day span {
+      display: block;
+      font-size: 0.8rem;
+    }
+  </style>
 </head>
 <body>
   <div class="weather" id="weather">
@@ -115,112 +102,117 @@
   </div>
 
 <script>
-const _privateKey = 'wthr9fz0r1x';
+  const _privateKey = 'wthr9fz0r1x';
 
-async function getWeather() {
-  const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
-  const res = await fetch(url);
-  const data = await res.json();
+  async function getWeather() {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=37.75&longitude=126.78&hourly=temperature_2m,weathercode&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&timezone=Asia/Seoul";
+    const res = await fetch(url);
+    const data = await res.json();
 
-  const temp = document.getElementById("temp");
-  const summary = document.getElementById("summary");
-  const week = document.getElementById("week");
+    const tempEl = document.getElementById("temp");
+    const summaryEl = document.getElementById("summary");
+    const weekEl = document.getElementById("week");
 
-  const icons = {
-    0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
-    1:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/partly-cloudy-day.svg",
-    2:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/cloudy.svg",
-    3:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg",
-    45:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
-    48:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
-    51:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/drizzle.svg",
-    61:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/rain.svg",
-    71:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/snow.svg",
-    80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
-    95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
-  };
-
-  /* 현재 기온 */
-  temp.textContent = `${Math.round(data.current_weather.temperature)}°C`;
-
-  /* 시간대별 아이콘 */
-  const hours = data.hourly.time.map(t => new Date(t));
-  const now = new Date();
-  const todayHours = hours.filter(t => t.getDate() === now.getDate());
-
-  function getWeatherAtHour(hour) {
-    const idx = todayHours.findIndex(t => t.getHours() === hour);
-    if (idx === -1) return { code: 1, temp: "--" };
-    return {
-      code: data.hourly.weathercode[idx],
-      temp: Math.round(data.hourly.temperature_2m[idx])
+    const icons = {
+      0:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/clear-day.svg",
+      1:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/partly-cloudy-day.svg",
+      2:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/cloudy.svg",
+      3:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg",
+      45:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+      48:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
+      51:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/drizzle.svg",
+      61:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/rain.svg",
+      71:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/snow.svg",
+      80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
+      95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
     };
-  }
 
-  const morning = getWeatherAtHour(9);
-  const noon = getWeatherAtHour(13);
-  const evening = getWeatherAtHour(19);
+    // 현재 기온 업데이트
+    tempEl.textContent = `${Math.round(data.current_weather.temperature)}°C`;
 
-  summary.innerHTML = `
-    <div class="period">
-      <img src="${icons[data.current_weather.weathercode] || icons[1]}" class="icon" alt="">
-      <span>지금</span>
-    </div>
-    <div class="period">
-      <img src="${icons[morning.code] || icons[1]}" class="icon" alt="">
-      <span>오전</span>
-    </div>
-    <div class="period">
-      <img src="${icons[noon.code] || icons[1]}" class="icon" alt="">
-      <span>낮</span>
-    </div>
-    <div class="period">
-      <img src="${icons[evening.code] || icons[1]}" class="icon" alt="">
-      <span>저녁</span>
-    </div>
-  `;
+    const hours = data.hourly.time.map(t => new Date(t));
+    const now = new Date();
+    const todayHours = hours.filter(t => t.getDate() === now.getDate());
 
-  /* 주간 예보 */
-  week.innerHTML = "";
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(data.daily.time[i]);
-    const weekday = day.toLocaleDateString("en-US", { weekday: "short" });
-    const code = data.daily.weathercode[i];
-    const icon = icons[code] || icons[1];
-    const max = Math.round(data.daily.temperature_2m_max[i]);
-    const min = Math.round(data.daily.temperature_2m_min[i]);
-    week.innerHTML += `
-      <div class="day">
-        <span>${weekday}</span>
-        <img src="${icon}" class="icon" alt="">
-        <span>${max}/${min}°</span>
+    function getWeatherAtHour(hour) {
+      const idx = todayHours.findIndex(t => t.getHours() === hour);
+      if (idx === -1) return { code: 1, temp: "--" };
+      return {
+        code: data.hourly.weathercode[idx],
+        temp: Math.round(data.hourly.temperature_2m[idx])
+      };
+    }
+
+    const morning = getWeatherAtHour(9);
+    const noon = getWeatherAtHour(13);
+    const evening = getWeatherAtHour(19);
+
+    summaryEl.innerHTML = `
+      <div class="period">
+        <img src="${icons[data.current_weather.weathercode] || icons[1]}" class="icon" alt="">
+        <span>지금</span>
+      </div>
+      <div class="period">
+        <img src="${icons[morning.code] || icons[1]}" class="icon" alt="">
+        <span>오전</span>
+      </div>
+      <div class="period">
+        <img src="${icons[noon.code] || icons[1]}" class="icon" alt="">
+        <span>낮</span>
+      </div>
+      <div class="period">
+        <img src="${icons[evening.code] || icons[1]}" class="icon" alt="">
+        <span>저녁</span>
       </div>
     `;
+
+    weekEl.innerHTML = "";
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(data.daily.time[i]);
+      const weekday = day.toLocaleDateString("en-US", { weekday: "short" });
+      const code = data.daily.weathercode[i];
+      const icon = icons[code] || icons[1];
+      const max = Math.round(data.daily.temperature_2m_max[i]);
+      const min = Math.round(data.daily.temperature_2m_min[i]);
+      weekEl.innerHTML += `
+        <div class="day">
+          <span>${weekday}</span>
+          <img src="${icon}" class="icon" alt="">
+          <span>${max}/${min}°</span>
+        </div>
+      `;
+    }
   }
-}
 
-/* 미세먼지 */
-async function getAirQuality() {
-  const url = "https://api.waqi.info/feed/geo:37.75;126.78/?token=demo"; // 실제 사용시 demo→API토큰
-  const res = await fetch(url);
-  const data = await res.json();
-  const air = document.getElementById("air");
-  if (!data || !data.data) {
-    air.textContent = "미세먼지: 정보없음";
-    return;
+  async function getAirQuality() {
+    const serviceKey = "여기에_발급받은_ServiceKey_입력";
+    const url = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?serviceKey=${encodeURIComponent(serviceKey)}&numOfRows=1&pageNo=1&stationName=금촌2동&dataTerm=DAILY&ver=1.0&_returnType=json`;
+    try {
+      const res = await fetch(url);
+      const obj = await res.json();
+      const items = obj.response.body.items;
+      const airEl = document.getElementById("air");
+      if (!items || items.length === 0) {
+        airEl.textContent = "미세먼지: 정보없음";
+        return;
+      }
+      const aqi = Number(items[0].khaiValue);  // 통합대기환경지수 CAI
+      let level, color;
+      if (aqi <= 50)      { level = "좋음";      color = "#5aa4ff"; }
+      else if (aqi <= 100){ level = "보통";      color = "#76d275"; }
+      else if (aqi <= 250){ level = "나쁨";      color = "#f44336"; }
+      else                 { level = "매우나쁨";  color = "#b71c1c"; }
+
+      airEl.innerHTML = `미세먼지: <span style="color:${color}; font-weight:700;">${level}</span>`;
+    } catch (e) {
+      console.error("Air Quality API error:", e);
+    }
   }
-  const aqi = data.data.aqi;
-  let level, color;
-  if (aqi <= 50) { level = "좋음"; color = "#5aa4ff"; }
-  else if (aqi <= 100) { level = "보통"; color = "#76d275"; }
-  else if (aqi <= 150) { level = "나쁨"; color = "#f44336"; }
-  else { level = "매우나쁨"; color = "#b71c1c"; }
 
-  air.innerHTML = `미세먼지: <span style="color:${color}; font-weight:700;">${level}</span>`;
-}
-
-getAirQuality();
-getWeather();
+  getAirQuality();
+  getWeather();
+  setInterval(getAirQuality, 60 * 60 * 1000); // 1시간마다 갱신
+  setInterval(getWeather, 30 * 60 * 1000);     // 30분마다 갱신
 </script>
 </body>
 </html>
