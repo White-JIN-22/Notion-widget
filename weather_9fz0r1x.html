@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Weather + Air Quality Widget</title>
+<title>Weather + Air Quality Widget (금촌2동)</title>
 <style>
   body {
     margin: 0;
@@ -77,7 +77,7 @@
     display: flex;
     justify-content: space-between;
     width: 100%;
-    gap: 2px; /* 간격 20% 축소 */
+    gap: 2px;
   }
   .day {
     text-align: center;
@@ -110,23 +110,43 @@
   </div>
 
 <script>
+// ✅ 반드시 네가 발급받은 일반 인증키로 교체
+const serviceKey = encodeURIComponent("3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a");
+
 async function getAirQuality() {
-  const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=37.75&longitude=126.78&hourly=pm10,pm2_5&timezone=Asia/Seoul";
-  const res = await fetch(url);
-  const data = await res.json();
-  const pm10 = data.hourly.pm10[0];
-  const pm25 = data.hourly.pm2_5[0];
-  const airEl = document.getElementById("air");
-  let grade, cls;
+  const url = `https://apis.data.go.kr/B552584/RltmKhaiInfoSvc/getRltmKhaiInfo?serviceKey=${serviceKey}&returnType=json&numOfRows=100&pageNo=1`;
 
-  // 대한민국 환경부 기준
-  if (pm10 <= 30 && pm25 <= 15) { grade = "좋음"; cls = "good"; }
-  else if (pm10 <= 80 && pm25 <= 35) { grade = "보통"; cls = "normal"; }
-  else if (pm10 <= 150 && pm25 <= 75) { grade = "나쁨"; cls = "bad"; }
-  else { grade = "매우나쁨"; cls = "verybad"; }
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const items = data.response?.body?.items || [];
 
-  airEl.textContent = `미세먼지 ${grade}`;
-  airEl.className = `air ${cls}`;
+    // 금촌2동 측정소 데이터 찾기
+    const gimchon = items.find(x => x.stationName && x.stationName.includes("금촌2동"));
+    const airEl = document.getElementById("air");
+
+    if (!gimchon) {
+      airEl.textContent = "금촌2동 데이터 없음";
+      airEl.className = "air";
+      return;
+    }
+
+    // 통합대기환경지수(CAI) 등급
+    const grade = gimchon.khaiGrade;
+    let text = "", cls = "";
+    switch (grade) {
+      case "1": text = "좋음"; cls = "good"; break;
+      case "2": text = "보통"; cls = "normal"; break;
+      case "3": text = "나쁨"; cls = "bad"; break;
+      case "4": text = "매우나쁨"; cls = "verybad"; break;
+      default: text = "정보없음"; cls = "";
+    }
+
+    airEl.textContent = `미세먼지 ${text}`;
+    airEl.className = `air ${cls}`;
+  } catch (e) {
+    document.getElementById("air").textContent = "데이터 오류";
+  }
 }
 
 async function getWeather() {
@@ -179,6 +199,7 @@ async function getWeather() {
   }
 }
 
+// 호출
 getAirQuality();
 getWeather();
 </script>
