@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>금촌2동 대기질 위젯</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #widget1 {
+      width: 100%;
+      max-width: 360px;
+    }
+  </style>
+</head>
+<body>
+  <div id="widget1"></div>
+  <script src="https://aqicn.org/widgets/js/waqi-feed.v1.js"></script>
+  <script>
+    _waqiFeed({
+      size: "large",
+      station: "Paju, Gyeonggi%south%20korea",  // 이 부분은 측정소명 또는 도시명으로 바꿀 수 있어
+      lang: "kr",
+      target: "widget1"
+    });
+  </script>
+</body>
+</html>
