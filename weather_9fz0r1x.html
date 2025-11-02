@@ -22,8 +22,8 @@
     background: #242424;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-    padding: 12px 18px 18px;
-    width: 520px;
+    padding: 12px 16px 16px;
+    width: 440px; /* 가로 폭 20% 축소 */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -32,9 +32,9 @@
   .weather-bar {
     display: flex;
     align-items: center;
-    justify-content: space-evenly;
-    width: 100%;
-    gap: 8px;
+    justify-content: center;
+    gap: 6px; /* 간격 20% 수준으로 축소 */
+    flex-wrap: nowrap;
     margin-bottom: 6px;
   }
 
@@ -61,8 +61,8 @@
     color: #cfd2d6;
   }
   .icon-block img {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     margin-bottom: 3px;
   }
 
@@ -70,14 +70,14 @@
     width: 100%;
     border: none;
     border-top: 1px solid #ddd;
-    margin: 6px 0 10px;
+    margin: 5px 0 9px;
   }
 
   .week {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    gap: 4px;
+    gap: 3px;
   }
   .day {
     text-align: center;
@@ -88,9 +88,9 @@
     font-size: 0.8rem;
   }
   .icon {
-    margin: 3px 0;
-    width: 22px;
-    height: 22px;
+    margin: 2px 0;
+    width: 20px;
+    height: 20px;
     opacity: 0.9;
   }
 </style>
@@ -110,7 +110,7 @@
   </div>
 
 <script>
-const serviceKey = "3c85c571c5d7ec71beb5cf7af70fdae04c1f6e281cfac671a4604aedb9f7781a"; // 발급받은 인증키
+const serviceKey = encodeURIComponent("여기에_일반_인증키_붙여넣기"); // 반드시 encodeURIComponent 사용!
 
 async function getAirQuality() {
   try {
