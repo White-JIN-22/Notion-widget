@@ -136,7 +136,6 @@
     .event-item .dot {
       flex-shrink: 0;
     }
-
   </style>
 </head>
 <body>
@@ -167,18 +166,56 @@
       "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
     ];
 
-    const events = {
-      "2025-10-10": [
-        { color: "orange", text: "심리상담 @연신내역" },
-        { color: "orange", text: "정신과 (메모)" }
-      ],
-      "2025-08-08": [
-        { color: "blue", text: "프리즘 2회기 B팀" },
-        { color: "orange", text: "정신과" }
-      ]
+    let currentDate = new Date();
+    let allEvents = {};
+
+    const icalUrls = [
+      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무(빨강)
+      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강(주황)
+      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발(파랑)
+      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식(초록)
+    ];
+
+    const colorMap = {
+      0: "red",
+      1: "orange",
+      2: "blue",
+      3: "green"
     };
 
-    let currentDate = new Date();
+    async function fetchAllEvents() {
+      const combined = {};
+      for (let i = 0; i < icalUrls.length; i++) {
+        const url = icalUrls[i];
+        const proxied = `https://ical-proxy.moonkelly601.workers.dev/?url=${encodeURIComponent(url)}`;
+        try {
+          const res = await fetch(proxied);
+          const icsText = await res.text();
+          const eventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/g;
+          let match;
+          while ((match = eventRegex.exec(icsText)) !== null) {
+            const block = match[1];
+            const dtStart = block.match(/DTSTART.*:(\d{8})/);
+            const summary = block.match(/SUMMARY:(.*)/);
+            if (dtStart && summary) {
+              const dateStr = `${dtStart[1].slice(0,4)}-${dtStart[1].slice(4,6)}-${dtStart[1].slice(6,8)}`;
+              const text = summary[1].trim();
+              if (!combined[dateStr]) combined[dateStr] = [];
+              combined[dateStr].push({ color: colorMap[i], text });
+            }
+          }
+        } catch (e) {
+          console.error("Fetch error:", e);
+        }
+      }
+      allEvents = combined;
+      renderCalendar(currentDate);
+      showEvents(formatDate(currentDate));
+    }
+
+    function formatDate(date) {
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    }
 
     function renderCalendar(date) {
       const year = date.getFullYear();
@@ -189,13 +226,10 @@
       monthYear.textContent = `${month + 1}월 :: ${months[month]}`;
       calendar.innerHTML = "";
 
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        calendar.appendChild(empty);
-      }
+      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
 
       for (let day = 1; day <= lastDate; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
         const cell = document.createElement("div");
         cell.className = "day";
         cell.textContent = day;
@@ -203,33 +237,28 @@
         const dotsDiv = document.createElement("div");
         dotsDiv.className = "dots";
 
-        const dayEvents = events[dateStr] || [];
-        const maxDots = Math.min(dayEvents.length, 4);
+        const events = allEvents[dateStr] || [];
+        const maxDots = Math.min(events.length, 4);
         const grid = Math.ceil(maxDots / 2);
-
         dotsDiv.style.gridTemplateRows = `repeat(${grid}, 6px)`;
 
         for (let i = 0; i < maxDots; i++) {
           const dot = document.createElement("div");
-          dot.className = `dot ${dayEvents[i].color}`;
+          dot.className = `dot ${events[i].color}`;
           dotsDiv.appendChild(dot);
         }
 
-        if (dayEvents.length > 4) {
+        if (events.length > 4) {
           const extra = document.createElement("div");
-          extra.textContent = `+${dayEvents.length - 4}`;
+          extra.textContent = `+${events.length - 4}`;
           extra.style.fontSize = "9px";
-          extra.style.color = `var(--${dayEvents[0].color})`;
+          extra.style.color = "#aaa";
           dotsDiv.appendChild(extra);
         }
 
         cell.appendChild(dotsDiv);
 
-        if (
-          date.getFullYear() === new Date().getFullYear() &&
-          date.getMonth() === new Date().getMonth() &&
-          day === new Date().getDate()
-        ) {
+        if (year === new Date().getFullYear() && month === new Date().getMonth() && day === new Date().getDate()) {
           cell.classList.add("today");
         }
 
@@ -239,8 +268,9 @@
     }
 
     function showEvents(dateStr) {
-      const dayEvents = events[dateStr] || [];
-      eventList.innerHTML = `<h3>${parseInt(dateStr.split("-")[1])}월 ${parseInt(dateStr.split("-")[2])}일</h3>`;
+      const dayEvents = allEvents[dateStr] || [];
+      const [_, m, d] = dateStr.split("-");
+      eventList.innerHTML = `<h3>${parseInt(m)}월 ${parseInt(d)}일</h3>`;
       if (dayEvents.length === 0) {
         eventList.innerHTML += `<div class="event-item">이벤트 없음</div>`;
       } else {
@@ -254,12 +284,6 @@
       }
     }
 
-    todayBtn.addEventListener("click", () => {
-      currentDate = new Date();
-      renderCalendar(currentDate);
-      showEvents(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`);
-    });
-
     document.getElementById("prevMonth").addEventListener("click", () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       renderCalendar(currentDate);
@@ -270,8 +294,13 @@
       renderCalendar(currentDate);
     });
 
-    renderCalendar(currentDate);
-    showEvents(`${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(currentDate.getDate()).padStart(2, "0")}`);
+    todayBtn.addEventListener("click", () => {
+      currentDate = new Date();
+      renderCalendar(currentDate);
+      showEvents(formatDate(currentDate));
+    });
+
+    fetchAllEvents();
   </script>
 </body>
 </html>
