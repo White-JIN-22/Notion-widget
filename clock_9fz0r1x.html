@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Clock Widget</title>
+<style>
+  body {
+    margin: 0;
+    background: #1a1a1a;
+    color: #d0d6e0;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: 0.6px;
+  }
+  .time { color: #5aa4ff; font-weight: 700; margin-left: 8px; }
+</style>
+</head>
+<body>
+  <div id="date"></div><div class="time" id="time"></div>
+
+<script>
+const _privateKey = '9fz0r1x';
+function updateHeaderTime() {
+  const dateEl = document.getElementById("date");
+  const timeEl = document.getElementById("time");
+  const now = new Date();
+  const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const weekday = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
+  const todayKey = `${month}-${day}`;
+  dateEl.textContent = `${year} / ${month} / ${day} (${weekday})`;
+  dateEl.style.color = recurringHolidays.includes(todayKey) ? "#5ab0ff" : "#d0d6e0";
+  timeEl.textContent = now.toLocaleTimeString("ko-KR", { hour12: false, hour: "2-digit", minute: "2-digit" });
+}
+updateHeaderTime();
+setInterval(updateHeaderTime, 60000);
+</script>
+</body>
+</html>
