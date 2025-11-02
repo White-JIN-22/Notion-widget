@@ -178,12 +178,12 @@
     let currentDate = new Date();
     let allEvents = {};
 
-    const icalUrls = [
-      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무(빨강)
-      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강(주황)
-      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발(파랑)
-      "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식(초록)
-    ];
+   const icalUrls = [
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무(빨강)
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강(주황)
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발(파랑)
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식(초록)
+];
 
     const colorMap = {
       0: "red",
