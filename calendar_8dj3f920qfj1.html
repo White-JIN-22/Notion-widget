@@ -170,35 +170,46 @@
       "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
       "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
     ];
-
-    const holidays = [
-      "01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"
-    ];
+    const holidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
     let currentDate = new Date();
     let allEvents = {};
 
-   const icalUrls = [
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무(빨강)
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강(주황)
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발(파랑)
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식(초록)
-];
+    const icalUrls = [
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
+    ];
 
-    const colorMap = {
-      0: "red",
-      1: "orange",
-      2: "blue",
-      3: "green"
-    };
+    const colorMap = { 0: "red", 1: "orange", 2: "blue", 3: "green" };
+
+    // 오류 표시용 박스
+    const errorBox = document.createElement("div");
+    errorBox.style.position = "fixed";
+    errorBox.style.bottom = "10px";
+    errorBox.style.left = "50%";
+    errorBox.style.transform = "translateX(-50%)";
+    errorBox.style.background = "#3a0e0e";
+    errorBox.style.color = "#ffbaba";
+    errorBox.style.padding = "8px 14px";
+    errorBox.style.borderRadius = "8px";
+    errorBox.style.fontSize = "13px";
+    errorBox.style.display = "none";
+    document.body.appendChild(errorBox);
+
+    function showError(msg) {
+      errorBox.textContent = "⚠️ " + msg;
+      errorBox.style.display = "block";
+    }
 
     async function fetchAllEvents() {
       const combined = {};
       for (let i = 0; i < icalUrls.length; i++) {
         const url = icalUrls[i];
-        const proxied = `https://ical-proxy.moonkelly601.workers.dev/?url=${encodeURIComponent(url)}`;
         try {
-          const res = await fetch(proxied);
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const icsText = await res.text();
           const eventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/g;
           let match;
@@ -214,7 +225,7 @@
             }
           }
         } catch (e) {
-          console.error("Fetch error:", e);
+          showError(`캘린더 ${i+1} 불러오기 실패: ${e.message}`);
         }
       }
       allEvents = combined;
@@ -235,9 +246,7 @@
       monthYear.textContent = `${month + 1}월 :: ${months[month]}`;
       calendar.innerHTML = "";
 
-      for (let i = 0; i < firstDay; i++) {
-        calendar.appendChild(document.createElement("div"));
-      }
+      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
 
       for (let day = 1; day <= lastDate; day++) {
         const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
@@ -268,19 +277,11 @@
         }
 
         const mmdd = `${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-        if (holidays.includes(mmdd)) {
-          cell.classList.add("holiday");
-        }
+        if (holidays.includes(mmdd)) cell.classList.add("holiday");
 
         cell.appendChild(dotsDiv);
-
-        if (
-          year === new Date().getFullYear() &&
-          month === new Date().getMonth() &&
-          day === new Date().getDate()
-        ) {
+        if (year === new Date().getFullYear() && month === new Date().getMonth() && day === new Date().getDate())
           cell.classList.add("today");
-        }
 
         cell.addEventListener("click", () => showEvents(dateStr));
         calendar.appendChild(cell);
