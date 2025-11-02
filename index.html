@@ -17,40 +17,32 @@
     overflow: hidden;
   }
 
-  /* Header (타이머 위로 겹치기) */
+  /* Header (타이머 바로 위에, 한 줄 정렬) */
   .header {
     position: absolute;
-    top: 25px;
+    top: 90px; /* 타이머 바로 위에 맞춤 */
     left: 50%;
     transform: translateX(-50%);
-    text-align: center;
-    width: auto;
-    margin-bottom: 0;
-  }
-
-  .date {
-    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-weight: 600;
-    color: #d0d6e0;
+    font-size: 1.2rem;
     letter-spacing: 0.4px;
-    transition: color 0.3s ease;
+    color: #d0d6e0;
   }
 
-  .time {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #9fb3c8;
-    letter-spacing: 0.3px;
+  .date, .time {
+    display: inline-block;
   }
 
-  /* 메인 컨테이너 */
   .container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
-    margin-top: 70px; /* 날짜 겹침 방지 */
+    margin-top: 120px; /* 헤더와 거리 맞춤 */
   }
 
   /* Pomodoro */
@@ -260,32 +252,4 @@ async function getWeather() {
     3:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/overcast.svg",
     45:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
     48:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/fog.svg",
-    51:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/drizzle.svg",
-    61:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/rain.svg",
-    71:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/snow.svg",
-    80:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/showers.svg",
-    95:"https://raw.githubusercontent.com/basmilius/weather-icons/dev/production/fill/svg/thunderstorms.svg"
-  };
-  const todayCode = data.current_weather.weathercode;
-  desc.innerHTML = `<img src="${icons[todayCode] || icons[1]}" class="icon" alt="weather icon">`;
-  week.innerHTML = "";
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(data.daily.time[i]);
-    const weekday = day.toLocaleDateString("en-US", { weekday: "short" });
-    const code = data.daily.weathercode[i];
-    const icon = icons[code] || icons[1];
-    const max = Math.round(data.daily.temperature_2m_max[i]);
-    const min = Math.round(data.daily.temperature_2m_min[i]);
-    week.innerHTML += `
-      <div class="day">
-        <span>${weekday}</span>
-        <img src="${icon}" class="icon" alt="">
-        <span>${max}/${min}°</span>
-      </div>
-    `;
-  }
-}
-getWeather();
-</script>
-</body>
-</html>
+    51:"https://
