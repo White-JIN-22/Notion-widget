@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v21)</title>
+<title>Weekly Timetable (Glass v22)</title>
 <style>
   body {
     background-color: #0f0f0f;
@@ -138,7 +138,7 @@ function parseICS(color, text) {
         e = new Date(s.getTime() + 60 * 60 * 1000);
       }
 
-      // 00:00 넘어가면 24시 처리
+      // 00:00 넘어가면 같은 날 24시 처리
       if (e.getDate() !== s.getDate()) e = new Date(`${s.getFullYear()}-${s.getMonth()+1}-${s.getDate()}T24:00:00+09:00`);
 
       allEvents.push({ start: s, end: e, title: ev.title, color });
@@ -165,6 +165,10 @@ function renderTimetable() {
   for (let i = 0; i < 7; i++) {
     const dayDate = new Date(weekStart);
     dayDate.setDate(weekStart.getDate() + i);
+    const dayStart = new Date(dayDate);
+    dayStart.setHours(0,0,0,0);
+    const dayEnd = new Date(dayDate);
+    dayEnd.setHours(23,59,59,999);
 
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
@@ -179,10 +183,9 @@ function renderTimetable() {
     weekdayDiv.textContent = ["MON","TUE","WED","THU","FRI","SAT","SUN"][i];
     dayDiv.append(dateDiv, weekdayDiv);
 
+    // ✅ 날짜 포함 범위로 변경
     const events = allEvents.filter(ev =>
-      ev.start.getFullYear() === dayDate.getFullYear() &&
-      ev.start.getMonth() === dayDate.getMonth() &&
-      (ev.start.getDate() === dayDate.getDate() || ev.end.getDate() === dayDate.getDate())
+      ev.end > dayStart && ev.start < dayEnd
     );
 
     events.forEach((ev, idx) => {
