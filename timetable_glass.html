@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v42)</title>
+<title>Weekly Timetable (Glass v43)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -17,7 +17,7 @@
   }
 
   .this-week {
-    margin-top: 6px;
+    margin-top: 8px;
     background: rgba(255,255,255,0.08);
     border: none;
     border-radius: 10px;
@@ -55,11 +55,12 @@
     color: #e4e4e4;
     backdrop-filter: blur(6px);
     font-size: 0.75rem;
+    margin-top: 4px;
   }
 
   .timetable {
     display: grid;
-    grid-template-columns: 30px repeat(7, 1fr);
+    grid-template-columns: 45px repeat(7, 1fr);
     grid-template-rows: 35px repeat(19, 1fr);
     width: 45vw;
     max-width: 450px;
@@ -82,6 +83,13 @@
     background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%);
     border-radius: 6px;
     padding-top: 4px;
+  }
+
+  .day-header.today {
+    background: rgba(255,255,255,0.25);
+    color: #000;
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(255,255,255,0.4);
   }
 
   .time-label {
@@ -107,8 +115,6 @@
 
   .event {
     position: absolute;
-    left: calc(30px + (var(--day-index) * (100% / 8)));
-    width: calc((100% - 30px) / 8 - 4px);
     border-radius: 6px;
     background: var(--event-color, rgba(120,160,255,0.4));
     backdrop-filter: blur(8px);
@@ -160,7 +166,7 @@ const icalUrls = [
 const categoryColors = {
   "업무": "rgba(61,84,127,0.6)",
   "건강": "rgba(178,192,210,0.5)",
-  "자기계발": "rgba(206,203,211,0.5)",
+  "자기계발": "rgba(178,192,255,0.55)", // 연파랑으로 수정
   "휴식": "rgba(243,241,235,0.5)"
 };
 
@@ -176,7 +182,6 @@ function renderWeek(monday){
   const today=new Date();
   const todayIndex=(today.getDay()+6)%7;
 
-  // --- 헤더
   timetable.appendChild(document.createElement("div"));
   days.forEach((d,i)=>{
     const head=document.createElement("div");
@@ -186,12 +191,11 @@ function renderWeek(monday){
     const dateStr=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
     const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
     if(recurringHolidays.includes(monthDayKey))head.style.color="rgba(255,150,120,0.9)";
-    if(i===todayIndex)head.style.boxShadow="inset 0 0 8px rgba(255,255,255,0.3)";
+    if(date.toDateString()===today.toDateString())head.classList.add("today");
     head.textContent=`${dateStr}\n${d}`;
     timetable.appendChild(head);
   });
 
-  // --- 시간 라인
   const mainHours=[6,12,18,24];
   for(let h=6;h<=24;h++){
     if(mainHours.includes(h)){
@@ -234,30 +238,31 @@ function parseICS(ics,monday,sunday){
     const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
+    const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
-    if(s<monday||s>sunday)return;
 
-    const dayIndex=(s.getDay()+6)%7;
+    const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
+    if(s<monday||s>sunday)if(!repeat)return;
+
+    const targetDate=repeat?getRepeatedDate(s,monday):s;
+    const dayIndex=(targetDate.getDay()+6)%7;
     const startHour=s.getHours()+s.getMinutes()/60;
     let endHour=e.getHours()+e.getMinutes()/60;
     if(endHour===0&&e.getDate()>s.getDate())endHour=24;
-    if(endHour<=6&&e.getDate()===s.getDate())return;
 
-    const top=((startHour-6)/(24-6))*100;
-    const height=((endHour-startHour)/(24-6))*100;
+    const top=((startHour-6)/(24-6))*timetable.offsetHeight;
+    const height=((endHour-startHour)/(24-6))*timetable.offsetHeight;
+    const left=45+(dayIndex*((timetable.offsetWidth-45)/7));
+    const width=(timetable.offsetWidth-45)/7-6;
+
     const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,0.4)";
-
     const block=document.createElement("div");
     block.className="event";
-    block.style.setProperty("--day-index",dayIndex);
-    block.style.top=`${top}%`;
-    block.style.height=`${height}%`;
-    block.style.setProperty("--event-color",color);
-
+    block.style=`top:${top}px;left:${left}px;height:${height}px;width:${width}px;--event-color:${color}`;
     const tooltip=document.createElement("div");
     tooltip.className="tooltip";
     tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")} ~ ${e.getHours().toString().padStart(2,"0")}:${e.getMinutes().toString().padStart(2,"0")}  ${summary}`;
@@ -275,6 +280,17 @@ function parseDate(str){
     return new Date(year,month,day,hour,min);
   }
   return null;
+}
+
+function isRepeatThisWeek(rrule,start,monday,sunday){
+  if(!rrule)return false;
+  return rrule.includes("WEEKLY")&&start<=sunday;
+}
+function getRepeatedDate(start,monday){
+  const dayDiff=(start.getDay()+6)%7;
+  const target=new Date(monday);
+  target.setDate(monday.getDate()+dayDiff);
+  return target;
 }
 
 document.getElementById("prevWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()-7);renderWeek(currentMonday);}
