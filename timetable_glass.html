@@ -1,160 +1,177 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="robots" content="noindex, nofollow" />
-<meta name="referrer" content="no-referrer" />
-<title>Weekly Timetable (v24)</title>
-
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Timetable (Glass v25)</title>
 <style>
   body {
-    background-color: #0e0e10;
-    font-family: "Pretendard", sans-serif;
+    background: #0d0d0d;
+    color: #fff;
+    font-family: "Inter", "Pretendard", sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
-    color: #f5f5f5;
+    overflow: hidden;
   }
+
   .timetable {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(20px);
-    border-radius: 18px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
-    padding: 18px 22px;
-    width: 340px;
-  }
-  .header {
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.05rem;
-    color: #c9d8ff;
-  }
-  #calendarEvents {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.9rem;
-  }
-  .event-item {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 6px 10px;
-    position: relative;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    grid-template-rows: 50px repeat(19, 1fr);
+    width: 85vw;
+    height: 85vh;
+    border-radius: 25px;
+    background: rgba(30, 30, 30, 0.4);
     backdrop-filter: blur(25px);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    position: relative;
   }
-  .event-item:hover {
-    background: rgba(180,200,255,0.2);
-    transform: translateY(-2px);
+
+  /* 헤더 영역 */
+  .day-header {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 50px;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
   }
+
+  .day-header.today {
+    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.25) inset;
+  }
+
+  /* 시간 라벨 */
+  .time-label {
+    text-align: right;
+    padding-right: 6px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .time-label.bold {
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* 라인 구분 */
+  .grid-line {
+    grid-column: 2 / span 7;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .grid-line.bold {
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* 일정 블록 */
+  .event {
+    position: absolute;
+    left: calc(40px + (var(--day-index) * (100% / 8)));
+    width: calc((100% - 40px) / 8 - 6px);
+    border-radius: 8px;
+    background: var(--event-color, rgba(120, 160, 255, 0.4));
+    backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+  }
+
+  .event:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+  }
+
+  /* 툴팁 */
   .tooltip {
     position: absolute;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0, 0, 0, 0.8);
     color: #fff;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-    border-radius: 8px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
     white-space: nowrap;
-    pointer-events: none;
+    transform: translate(-50%, -110%);
     opacity: 0;
-    transition: opacity 0.2s ease;
-    z-index: 10;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+
+  .event:hover .tooltip {
+    opacity: 1;
   }
 </style>
 </head>
 <body>
-  <div class="timetable">
-    <div class="header">오늘 · 내일 일정</div>
-    <div id="calendarEvents"></div>
-  </div>
-  <div id="tooltip" class="tooltip"></div>
+  <div class="timetable" id="timetable"></div>
 
 <script>
-const proxy = "https://ical-proxy.moonkelly601.workers.dev/";
+const timetable = document.getElementById("timetable");
+const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+const now = new Date();
+const todayIndex = (now.getDay() + 6) % 7; // 월=0 기준
 
-const icalUrls = [
-  "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무
-  "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발
-  "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강
-  "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식
+// 헤더
+timetable.appendChild(document.createElement("div")); // 왼쪽 상단 빈칸
+days.forEach((d, i) => {
+  const head = document.createElement("div");
+  head.className = "day-header" + (i === todayIndex ? " today" : "");
+  const date = new Date();
+  date.setDate(now.getDate() - todayIndex + i);
+  const dateStr = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
+  head.textContent = `${dateStr} ${d}`;
+  timetable.appendChild(head);
+});
+
+// 시간 라벨과 라인
+for (let h = 6; h <= 24; h++) {
+  const label = document.createElement("div");
+  label.className = "time-label" + ((h===6||h===12||h===18||h===24) ? " bold" : "");
+  label.textContent = String(h).padStart(2,"0");
+  timetable.appendChild(label);
+
+  const line = document.createElement("div");
+  line.className = "grid-line" + ((h===6||h===12||h===18||h===24) ? " bold" : "");
+  timetable.appendChild(line);
+}
+
+// 예시 이벤트 (실제 iCloud fetch로 대체됨)
+const sampleEvents = [
+  { title: "자기계발입니다", start: "2025-12-02T11:00:00+09:00", end: "2025-12-02T12:00:00+09:00", color: "rgba(160,180,255,0.5)" },
+  { title: "심리상담", start: "2025-12-02T14:00:00+09:00", end: "2025-12-02T15:00:00+09:00", color: "rgba(255,180,150,0.45)" },
+  { title: "업무입니다", start: "2025-12-02T16:20:00+09:00", end: "2025-12-02T17:20:00+09:00", color: "rgba(150,200,255,0.45)" },
+  { title: "휴식", start: "2025-12-03T23:00:00+09:00", end: "2025-12-03T23:55:00+09:00", color: "rgba(180,255,180,0.4)" }
 ];
 
-function parseICSTime(icsTime) {
-  const y = icsTime.slice(0, 4);
-  const m = icsTime.slice(4, 6);
-  const d = icsTime.slice(6, 8);
-  const h = icsTime.slice(9, 11) || "00";
-  const min = icsTime.slice(11, 13) || "00";
-  return new Date(`${y}-${m}-${d}T${h}:${min}:00+09:00`);
-}
+// 이벤트 렌더
+sampleEvents.forEach(ev => {
+  const s = new Date(ev.start);
+  const e = new Date(ev.end);
+  const dayIndex = (s.getDay() + 6) % 7;
+  const startHour = s.getHours() + s.getMinutes()/60;
+  const endHour = e.getHours() + e.getMinutes()/60;
+  const top = ((startHour - 6) / 18) * 100;
+  const height = ((endHour - startHour) / 18) * 100;
 
-async function loadICS(urls) {
-  const events = [];
-  const now = new Date();
-  const tomorrow = new Date();
-  tomorrow.setDate(now.getDate() + 1);
+  const block = document.createElement("div");
+  block.className = "event";
+  block.style.setProperty("--day-index", dayIndex);
+  block.style.top = `${top}%`;
+  block.style.height = `${height}%`;
+  block.style.setProperty("--event-color", ev.color);
 
-  for (const url of urls) {
-    const res = await fetch(`${proxy}?url=${encodeURIComponent(url)}`);
-    const text = await res.text();
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip";
+  tooltip.textContent = `${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")} ~ ${e.getHours().toString().padStart(2,"0")}:${e.getMinutes().toString().padStart(2,"0")}  ${ev.title}`;
+  block.appendChild(tooltip);
 
-    const vevents = text.split("BEGIN:VEVENT").slice(1);
-    for (const v of vevents) {
-      if (v.includes("VTODO")) continue; // 미리알림 제외
-
-      const summary = (v.match(/SUMMARY:(.+)/) || [])[1]?.trim() || "";
-      const dtStart = (v.match(/DTSTART(?:;TZID=[^:]+)?:([0-9TZ]+)/) || [])[1];
-      const dtEnd = (v.match(/DTEND(?:;TZID=[^:]+)?:([0-9TZ]+)/) || [])[1];
-      const recurrenceId = (v.match(/RECURRENCE-ID[^:]*:([0-9TZ]+)/) || [])[1];
-      if (!summary || (!dtStart && !recurrenceId)) continue;
-
-      const start = dtStart ? parseICSTime(dtStart) : parseICSTime(recurrenceId);
-      const end = dtEnd ? parseICSTime(dtEnd) : new Date(start.getTime() + 3600000);
-
-      if (end >= now && start <= tomorrow) {
-        events.push({ summary, start, end });
-      }
-    }
-  }
-
-  renderEvents(events);
-}
-
-function renderEvents(events) {
-  const container = document.getElementById("calendarEvents");
-  const tooltip = document.getElementById("tooltip");
-  container.innerHTML = "";
-
-  events.sort((a, b) => a.start - b.start);
-  for (const ev of events) {
-    const div = document.createElement("div");
-    div.className = "event-item";
-    div.textContent = `${String(ev.start.getHours()).padStart(2,"0")}:${String(ev.start.getMinutes()).padStart(2,"0")} ${ev.summary}`;
-    
-    div.addEventListener("mouseenter", e => {
-      tooltip.style.opacity = 1;
-      tooltip.innerHTML = `${ev.summary}<br>${ev.start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${ev.end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-      tooltip.style.left = e.pageX + 10 + "px";
-      tooltip.style.top = e.pageY - 20 + "px";
-    });
-    div.addEventListener("mousemove", e => {
-      tooltip.style.left = e.pageX + 10 + "px";
-      tooltip.style.top = e.pageY - 20 + "px";
-    });
-    div.addEventListener("mouseleave", () => tooltip.style.opacity = 0);
-
-    container.appendChild(div);
-  }
-}
-
-loadICS(icalUrls);
+  timetable.appendChild(block);
+});
 </script>
 </body>
 </html>
