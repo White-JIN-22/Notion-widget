@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v46)</title>
+<title>Weekly Timetable (Glass v47)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -117,7 +117,7 @@
   .event {
     position: absolute;
     border-radius: 6px;
-    background: var(--event-color, rgba(120,160,255,0.4));
+    overflow: hidden; /* tooltip 제한 */
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
     box-shadow: 0 3px 6px rgba(0,0,0,0.4);
@@ -127,19 +127,20 @@
 
   .tooltip {
     position: absolute;
-    background: rgba(0,0,0,0.85);
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
     color: #fff;
     font-size: 9px;
     padding: 3px 6px;
     border-radius: 4px;
-    white-space: pre-line; /* 줄바꿈 허용 */
-    transform: translate(-50%, -110%);
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
+    white-space: pre-line;
+    text-align: center;
+    line-height: 1.3;
+    word-break: keep-all;
+    max-width: 100%;
   }
-
-  .event:hover .tooltip { opacity: 1; }
 </style>
 </head>
 <body>
@@ -165,10 +166,10 @@ const icalUrls = [
 ];
 
 const categoryColors = {
-  "업무": "rgba(61,84,127,0.6)",
-  "건강": "rgba(178,192,210,0.5)",
-  "자기계발": "rgba(155,205,255,0.55)", // 하늘색
-  "휴식": "rgba(250,250,245,0.55)"     // 밝은 아이보리
+  "업무": "rgba(61,84,127,1)",
+  "건강": "rgba(178,192,210,1)",
+  "자기계발": "rgba(155,205,255,1)",
+  "휴식": "rgba(250,250,245,1)"
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -230,6 +231,7 @@ async function loadICS(urls,monday,today){
 }
 
 function parseICS(ics,monday,sunday,today){
+  const rowHeight=timetable.offsetHeight/(24-6);
   const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
   events.forEach(ev=>{
     if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
@@ -239,13 +241,19 @@ function parseICS(ics,monday,sunday,today){
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
     const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
+    const untilMatch=rrule?.match(/UNTIL=(\d{8})/);
+    const untilDate=untilMatch?new Date(untilMatch[1].slice(0,4),untilMatch[1].slice(4,6)-1,untilMatch[1].slice(6,8)):null;
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
 
-    if(e.getHours()===0 && e.getDate()>s.getDate()) e.setHours(24,0,0,0); // 23~00 일정 포함
+    // 지나간 반복 일정 완전 제외
+    if(untilDate && untilDate < monday)return;
+    if(s < monday && !rrule)return;
+
+    if(e.getHours()===0 && e.getDate()>s.getDate()) e.setHours(24,0,0,0);
 
     const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
     const targetDate=repeat?getRepeatedDate(s,monday):s;
@@ -254,20 +262,26 @@ function parseICS(ics,monday,sunday,today){
     const dayIndex=(targetDate.getDay()+6)%7;
     const startHour=s.getHours()+s.getMinutes()/60;
     let endHour=e.getHours()+e.getMinutes()/60;
-    if(endHour>24)endHour=24;
-    if(endHour<=6)return;
+    if(endHour===0 && e.getDate()>s.getDate()) endHour=24;
+    if(endHour<=6 && e.getDate()===s.getDate())return;
 
-    const top=Math.round(((startHour-6)/(24-6))*timetable.offsetHeight);
-    const height=Math.round(((endHour-startHour)/(24-6))*timetable.offsetHeight);
+    const top=Math.round((startHour-6)*rowHeight);
+    const height=Math.round((endHour-startHour)*rowHeight);
     const left=35+(dayIndex*((timetable.offsetWidth-35)/7));
     const width=(timetable.offsetWidth-35)/7-6;
 
-    const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,0.4)";
+    const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,1)";
     const opacity=(targetDate.toDateString()===today.toDateString())?1.0:0.5;
 
     const block=document.createElement("div");
     block.className="event";
-    block.style=`top:${top}px;left:${left}px;height:${height}px;width:${width}px;--event-color:${color};opacity:${opacity}`;
+    block.style.backgroundColor=color;
+    block.style.opacity=opacity;
+    block.style.top=`${top}px`;
+    block.style.left=`${left}px`;
+    block.style.height=`${height}px`;
+    block.style.width=`${width}px`;
+
     const tooltip=document.createElement("div");
     tooltip.className="tooltip";
     tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
