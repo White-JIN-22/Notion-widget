@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
-  <meta name="referrer" content="no-referrer" />
-  <title>Weekly Timetable (Glass v17)</title>
+  <title>Weekly Timetable (Glass v18)</title>
   <style>
     body {
       background-color: #0f0f0f;
@@ -26,7 +24,7 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       padding: 10px 14px;
       align-items: flex-start;
-      transform: scale(0.85);
+      transform: scale(0.9);
     }
     .time-column {
       display: flex;
@@ -35,18 +33,18 @@
       justify-content: flex-start;
       margin-right: 8px;
       padding-top: 28px;
-      height: 150px;
+      height: 720px; /* ← 전체 18시간 */
     }
     .time {
       font-size: 10px;
       color: #aaa;
       opacity: 0.8;
-      margin-top: 13px;
+      height: 40px; /* 각 시간 간격당 40px */
     }
     .day {
       position: relative;
-      width: 42px;
-      height: 150px;
+      width: 46px;
+      height: 720px; /* 18시간 기준 */
       border-radius: 14px;
       background: rgba(255, 255, 255, 0.07);
       display: flex;
@@ -88,11 +86,10 @@
       red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
       blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU"
     };
-    const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb"];
+    const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb", "#f2b179", "#a4e38f"];
 
-    // 3시간 단위 라벨
     const timeLabels = document.getElementById("timeLabels");
-    for (let h = 6; h <= 24; h += 3) {
+    for (let h = 6; h <= 24; h++) {
       const t = document.createElement("div");
       t.className = "time";
       t.textContent = String(h).padStart(2, "0");
@@ -120,7 +117,6 @@
           if (line.includes("VALUE=DATE")) {
             event.allday = true;
           } else {
-            // TZID=Asia/Seoul 형태도 잡음
             const match = line.match(/(\d{8}T\d{6})/);
             if (match) event.start = match[1];
           }
@@ -227,8 +223,8 @@
           const block = document.createElement("div");
           block.className = "block";
           block.style.background = colors[idx % colors.length];
-          block.style.top = `${(startHour - 6) * 4 + 36}px`;
-          block.style.height = `${duration * 4}px`;
+          block.style.top = `${(startHour - 6) * 40 + 35}px`; // 한 시간당 40px 비율
+          block.style.height = `${duration * 40}px`;
           dayDiv.appendChild(block);
         });
 
