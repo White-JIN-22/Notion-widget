@@ -1,56 +1,63 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Weekly Timetable (Glass v37)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Timetable (Glass v39)</title>
 <style>
   body {
     margin: 0;
-    height: 100vh;
-    font-family: 'Pretendard', sans-serif;
-    color: #f5f5f5;
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
+    color: #f2f2f2;
+    font-family: 'Pretendard', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
+    height: 100vh;
     overflow: hidden;
+  }
+
+  .this-week {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.08);
+    border: none;
+    border-radius: 14px;
+    color: #eee;
+    padding: 8px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: background 0.2s ease;
+  }
+  .this-week:hover {
+    background: rgba(255,255,255,0.15);
   }
 
   .top-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 16px;
+    margin-top: 10px;
     gap: 10px;
   }
 
-  .nav-btn, .this-week {
-    background: rgba(255, 255, 255, 0.08);
+  .nav-btn {
+    background: rgba(255,255,255,0.08);
     border: none;
-    border-radius: 14px;
-    color: #e0e0e0;
-    padding: 8px 16px;
+    border-radius: 10px;
+    color: #ccc;
+    padding: 6px 12px;
     cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-  }
-
-  .nav-btn:hover, .this-week:hover {
-    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
   }
 
   .week-label {
-    font-size: 17px;
-    font-weight: 500;
-    background: rgba(255, 255, 255, 0.07);
-    padding: 6px 18px;
+    background: rgba(255,255,255,0.07);
     border-radius: 14px;
-    backdrop-filter: blur(6px);
-  }
-
-  .this-week {
-    margin-top: 10px;
+    padding: 6px 18px;
+    font-weight: 500;
+    color: #e4e4e4;
+    backdrop-filter: blur(8px);
   }
 
   .timetable {
@@ -59,10 +66,10 @@
     max-width: 850px;
     height: 80vh;
     margin-top: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 28px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 26px;
     overflow: hidden;
-    box-shadow: inset 0 0 20px rgba(255,255,255,0.05);
+    box-shadow: inset 0 0 20px rgba(255,255,255,0.04);
   }
 
   .day-header {
@@ -72,10 +79,10 @@
     text-align: center;
     font-weight: 600;
     padding: 10px 0;
-    background: rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.07);
     border-radius: 14px;
     backdrop-filter: blur(8px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     white-space: pre-line;
   }
 
@@ -85,7 +92,6 @@
     width: 100%;
     border-top: 1px solid rgba(255,255,255,0.08);
   }
-
   .major-line {
     border-top: 2px solid rgba(255,255,255,0.25);
   }
@@ -93,7 +99,7 @@
   .hour-label {
     position: absolute;
     left: 10px;
-    font-size: 14px;
+    font-size: 13px;
     color: #aaa;
     font-weight: 500;
     writing-mode: vertical-rl;
@@ -107,14 +113,11 @@
     opacity: 0.9;
     transition: transform 0.15s ease;
   }
-
-  .event-block:hover {
-    transform: scale(1.05);
-  }
+  .event-block:hover { transform: scale(1.05); }
 
   .tooltip {
     position: absolute;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0,0,0,0.85);
     padding: 6px 10px;
     border-radius: 8px;
     font-size: 12px;
@@ -139,7 +142,7 @@
 
 <script>
 const timetable = document.getElementById("timetable");
-const headerHeight = 60; // 요일 헤더 높이
+const headerHeight = 60;
 let currentMonday = getMonday(new Date());
 const icalUrls = [
   "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
@@ -161,18 +164,8 @@ function getWeekNumber(d) {
   return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
 }
 
-function getFixedKoreanHolidays(year) {
-  return {
-    [`${year}-01-01`]: "신정",
-    [`${year}-03-01`]: "삼일절",
-    [`${year}-05-05`]: "어린이날",
-    [`${year}-06-06`]: "현충일",
-    [`${year}-08-15`]: "광복절",
-    [`${year}-10-03`]: "개천절",
-    [`${year}-10-09`]: "한글날",
-    [`${year}-12-25`]: "크리스마스"
-  };
-}
+// 🟥 공휴일 매년 인식
+const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 function renderWeek(monday) {
   timetable.innerHTML = "";
@@ -180,10 +173,10 @@ function renderWeek(monday) {
   const weekNum = getWeekNumber(monday);
   weekLabel.textContent = `${monday.getFullYear()}년 ${weekNum}주차 / 52주`;
 
-  const holidays = getFixedKoreanHolidays(monday.getFullYear());
-  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 
-  for (let i = 0; i < 7; i++) {
+  // 요일 헤더
+  for (let i=0; i<7; i++) {
     const head = document.createElement("div");
     head.className = "day-header";
     const date = new Date(monday);
@@ -191,25 +184,25 @@ function renderWeek(monday) {
     head.style.left = `${(i * 100 / 7)}%`;
     head.style.width = `calc(100% / 7 - 8px)`;
     head.style.margin = "4px";
-    head.textContent = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}\n${days[i]}`;
-    const dateKey = date.toISOString().split("T")[0];
-    if (holidays[dateKey]) {
+    head.textContent = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${days[i]}`;
+    const monthDayKey = `${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    if (recurringHolidays.includes(monthDayKey)) {
       head.style.color = "rgba(255,150,120,0.9)";
       head.style.textShadow = "0 0 6px rgba(255,150,120,0.3)";
-    } else if (i === 6) head.style.color = "#fff";
+    } else if (i===6) head.style.color = "#fff";
     timetable.appendChild(head);
   }
 
-  for (let h = 6; h <= 24; h++) {
+  // 시간 라인
+  for (let h=6; h<=24; h++) {
     const line = document.createElement("div");
     line.className = "hour-line" + ((h % 6 === 0) ? " major-line" : "");
-    line.style.top = `calc(${headerHeight}px + ${((h - 6) / 18) * 100}%)`;
+    line.style.top = `calc(${headerHeight}px + ${((h-6)/18)*100}%)`;
     timetable.appendChild(line);
-
     if (h % 6 === 0) {
       const label = document.createElement("div");
       label.className = "hour-label";
-      label.style.top = `calc(${headerHeight}px + ${((h - 6) / 18) * 100}%)`;
+      label.style.top = `calc(${headerHeight}px + ${((h-6)/18)*100}%)`;
       label.textContent = h;
       timetable.appendChild(label);
     }
@@ -217,77 +210,80 @@ function renderWeek(monday) {
 
   const weekStart = new Date(monday);
   const weekEnd = new Date(monday);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  weekEnd.setHours(23, 59, 59, 999);
+  weekEnd.setDate(weekEnd.getDate()+6);
+  weekEnd.setHours(23,59,59,999);
 
   const weekEvents = allEvents.filter(ev => ev.start >= weekStart && ev.start <= weekEnd);
 
-  weekEvents.forEach(ev => {
+  weekEvents.forEach(ev=>{
     const block = document.createElement("div");
     block.className = "event-block";
     block.style.background = ev.color;
-    const dayIndex = (ev.start.getDay() + 6) % 7;
-    block.style.left = `calc(${dayIndex * (100 / 7)}% + 4px)`;
-    block.style.width = `calc(100% / 7 - 8px)`;
-    block.style.top = `calc(${headerHeight}px + ${((ev.start.getHours() - 6) / 18) * 100}%)`;
-    block.style.height = `${((ev.end - ev.start) / 3600000 / 18) * 100}%`;
+    const dayIndex = (ev.start.getDay()+6)%7;
+    block.style.left = `calc(${dayIndex*(100/7)}% + 4px)`;
+    block.style.width = `calc(100%/7 - 8px)`;
+    block.style.top = `calc(${headerHeight}px + ${((ev.start.getHours()-6)/18)*100}%)`;
+    block.style.height = `${((ev.end-ev.start)/3600000/18)*100}%`;
 
     const tooltip = document.createElement("div");
     tooltip.className = "tooltip";
     tooltip.textContent = `${ev.start.getHours()}:00 ~ ${ev.end.getHours()}:00 ${ev.title}`;
     block.appendChild(tooltip);
-    block.addEventListener("mouseenter", () => tooltip.style.display = "block");
-    block.addEventListener("mouseleave", () => tooltip.style.display = "none");
+    block.addEventListener("mouseenter",()=>tooltip.style.display="block");
+    block.addEventListener("mouseleave",()=>tooltip.style.display="none");
     timetable.appendChild(block);
   });
 }
 
-async function loadICS() {
-  for (const url of icalUrls) {
-    const res = await fetch("https://ical-proxy.moonkelly601.workers.dev/?url=" + encodeURIComponent(url));
+async function loadICS(){
+  for(const url of icalUrls){
+    const res = await fetch("https://ical-proxy.moonkelly601.workers.dev/?url="+encodeURIComponent(url));
     const text = await res.text();
-    parseICS(text);
+    parseICS(text,url);
   }
   renderWeek(currentMonday);
 }
 
-function parseICS(data) {
-  const lines = data.split(/\r?\n/);
-  let event = null;
-  lines.forEach(line => {
-    if (line.startsWith("BEGIN:VEVENT")) event = {};
-    else if (line.startsWith("END:VEVENT")) {
-      if (event.start && event.end && event.title) allEvents.push(event);
-      event = null;
-    } else if (event) {
-      if (line.startsWith("DTSTART")) event.start = parseDate(line.split(":")[1]);
-      else if (line.startsWith("DTEND")) event.end = parseDate(line.split(":")[1]);
-      else if (line.startsWith("SUMMARY")) event.title = line.replace("SUMMARY:", "").trim();
+function parseICS(data,url){
+  const colorMap={
+    "Inlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM":"#3d547f", // 업무
+    "IlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8":"#b2c0d2", // 자기계발
+    "ImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU":"#cecbd3", // 심리상담
+    "Iks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I":"#f3f1eb"  // 휴식
+  };
+  const colorKey=url.split("Ilx")[1]?.slice(0,30)||"";
+  const color=colorMap[colorKey]||"#888";
+  const lines=data.split(/\r?\n/);
+  let event=null;
+  for(const line of lines){
+    if(line.startsWith("BEGIN:VEVENT"))event={};
+    else if(line.startsWith("END:VEVENT")){
+      if(event.start&&event.end&&event.title){
+        event.color=color;
+        allEvents.push(event);
+      }
+      event=null;
+    }else if(event){
+      if(line.startsWith("DTSTART"))event.start=parseDate(line.split(":")[1]);
+      else if(line.startsWith("DTEND"))event.end=parseDate(line.split(":")[1]);
+      else if(line.startsWith("SUMMARY"))event.title=line.replace("SUMMARY:","").trim();
     }
-  });
+  }
 }
 
-function parseDate(str) {
-  const y = parseInt(str.slice(0, 4));
-  const m = parseInt(str.slice(4, 6)) - 1;
-  const d = parseInt(str.slice(6, 8));
-  const h = parseInt(str.slice(9, 11) || "0");
-  const min = parseInt(str.slice(11, 13) || "0");
-  return new Date(y, m, d, h, min);
+function parseDate(str){
+  const y=parseInt(str.slice(0,4));
+  const m=parseInt(str.slice(4,6))-1;
+  const d=parseInt(str.slice(6,8));
+  const h=parseInt(str.slice(9,11)||"0");
+  const min=parseInt(str.slice(11,13)||"0");
+  const local=new Date(Date.UTC(y,m,d,h,min));
+  return new Date(local.getTime()+32400000); // KST 보정 (+9시간)
 }
 
-document.getElementById("prevWeek").addEventListener("click", () => {
-  currentMonday.setDate(currentMonday.getDate() - 7);
-  renderWeek(currentMonday);
-});
-document.getElementById("nextWeek").addEventListener("click", () => {
-  currentMonday.setDate(currentMonday.getDate() + 7);
-  renderWeek(currentMonday);
-});
-document.getElementById("thisWeek").addEventListener("click", () => {
-  currentMonday = getMonday(new Date());
-  renderWeek(currentMonday);
-});
+document.getElementById("prevWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()-7);renderWeek(currentMonday);}
+document.getElementById("nextWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()+7);renderWeek(currentMonday);}
+document.getElementById("thisWeek").onclick=()=>{currentMonday=getMonday(new Date());renderWeek(currentMonday);}
 
 loadICS();
 </script>
