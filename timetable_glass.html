@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v29)</title>
+<title>Weekly Timetable (Glass v30)</title>
 <style>
   body {
     background: #0d0d0d;
@@ -19,8 +19,8 @@
 
   .timetable {
     display: grid;
-    grid-template-columns: 40px repeat(7, 1fr);
-    grid-template-rows: 50px repeat(19, 1fr);
+    grid-template-columns: 45px repeat(7, 1fr);
+    grid-template-rows: 65px repeat(18, 1fr);
     width: 85vw;
     height: 85vh;
     border-radius: 25px;
@@ -33,17 +33,22 @@
 
   .day-header {
     text-align: center;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    line-height: 50px;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
+    line-height: 1.3;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+    white-space: pre-line;
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
   }
 
+  .day-header:first-child { border-top-left-radius: 25px; }
+  .day-header:last-child { border-top-right-radius: 25px; }
+
   .day-header.today {
-    background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 100%);
     color: #fff;
-    box-shadow: 0 0 10px rgba(255,255,255,0.25) inset;
+    box-shadow: 0 0 10px rgba(255,255,255,0.3) inset;
   }
 
   .time-label {
@@ -54,6 +59,7 @@
   }
 
   .time-label.bold {
+    font-size: 13px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
   }
@@ -69,8 +75,8 @@
 
   .event {
     position: absolute;
-    left: calc(40px + (var(--day-index) * (100% / 8)));
-    width: calc((100% - 40px) / 8 - 6px);
+    left: calc(45px + (var(--day-index) * (100% / 8)));
+    width: calc((100% - 45px) / 8 - 7px);
     border-radius: 8px;
     background: var(--event-color, rgba(120, 160, 255, 0.4));
     backdrop-filter: blur(10px);
@@ -126,15 +132,15 @@ days.forEach((d, i) => {
   head.className = "day-header" + (i === todayIndex ? " today" : "");
   const date = new Date(monday);
   date.setDate(monday.getDate() + i);
-  const dateStr = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
-  head.textContent = `${dateStr} ${d}`;
+  const dateStr = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
+  head.textContent = dateStr;
   timetable.appendChild(head);
 });
 
 for (let h = 6; h <= 24; h++) {
   const label = document.createElement("div");
-  label.className = "time-label" + ((h===6||h===12||h===18||h===24) ? " bold" : "");
-  label.textContent = String(h).padStart(2,"0");
+  label.className = "time-label" + ((h===6||h===12||h===18) ? " bold" : "");
+  label.textContent = (h===6||h===12||h===18) ? String(h).padStart(2,"0") : "";
   timetable.appendChild(label);
 
   const line = document.createElement("div");
@@ -151,10 +157,10 @@ const icalUrls = [
 ];
 
 const categoryColors = {
-  "업무": "rgba(140,190,255,0.45)",
-  "건강": "rgba(255,220,120,0.45)",
-  "자기계발": "rgba(160,180,255,0.5)",
-  "휴식": "rgba(180,255,180,0.4)"
+  "업무": "rgba(70, 90, 160, 0.55)",
+  "건강": "rgba(255, 230, 150, 0.45)",
+  "자기계발": "rgba(180, 160, 255, 0.5)",
+  "휴식": "rgba(140, 255, 210, 0.4)"
 };
 
 async function loadICS(urls) {
@@ -183,17 +189,18 @@ function parseICS(ics) {
     const s = parseDate(start);
     const e = parseDate(end);
     if (!s || !e) return;
-
-    // ✅ 이번 주만 표시
     if (s < monday || s > sunday) return;
 
     const dayIndex = (s.getDay() + 6) % 7;
-    const startHour = s.getHours() + s.getMinutes()/60;
+    let startHour = s.getHours() + s.getMinutes()/60;
     let endHour = e.getHours() + e.getMinutes()/60;
-
-    // ✅ 00:00 일정 포함되도록 보정
     if (endHour === 0 && e.getDate() > s.getDate()) endHour = 24;
+
+    // 30분 단위 반올림
+    startHour = Math.floor(startHour);
+    endHour = Math.ceil(endHour);
     if (endHour <= 6 && e.getDate() === s.getDate()) return;
+    if (endHour > 24) endHour = 24;
 
     const top = ((startHour - 6) / 18) * 100;
     const height = ((endHour - startHour) / 18) * 100;
