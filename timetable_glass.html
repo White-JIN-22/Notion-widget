@@ -3,70 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v55)</title>
+<title>Weekly Timetable (Glass v56)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
     color: #fff;
     font-family: "Inter", "Pretendard", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
+    display: flex; flex-direction: column; align-items: center;
+    height: 100vh; overflow: hidden;
   }
   .this-week, .nav-btn {
     background: rgba(255,255,255,0.08);
-    border: none;
-    border-radius: 8px;
-    color: #eee;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    font-size: 0.75rem;
+    border: none; border-radius: 8px;
+    color: #eee; cursor: pointer;
+    backdrop-filter: blur(10px); font-size: 0.75rem;
   }
-  .this-week {margin-top:8px;padding:4px 10px;}
-  .nav-btn {padding:3px 8px;}
+  .this-week { margin-top:8px; padding:4px 10px; }
+  .nav-btn { padding:3px 8px; }
   .top-controls {
-    display: flex;align-items: center;justify-content: center;margin-top:6px;gap:6px;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:6px; gap:6px;
   }
   .week-label {
     background: rgba(255,255,255,0.07);
-    border-radius: 10px;padding:4px 10px;color:#e4e4e4;font-size:0.75rem;
+    border-radius:10px; padding:4px 10px;
+    color:#e4e4e4; font-size:0.75rem;
   }
   .timetable {
-    position: relative;
-    width: 45vw;max-width: 450px;height: 55vh;
-    margin-top:8px;border-radius:18px;
-    background: rgba(255,255,255,0.03);backdrop-filter: blur(18px);
-    overflow: hidden;
+    position:relative;
+    width:45vw; max-width:450px; height:55vh;
+    margin-top:8px; border-radius:18px;
+    background:rgba(255,255,255,0.03); backdrop-filter:blur(18px);
+    overflow:hidden;
   }
   .day-header {
-    position: absolute;text-align:center;font-size:10px;font-weight:600;line-height:1.3;
-    white-space: pre-line;border-radius:6px;padding-top:4px;
-    width: calc((100% - 35px) / 7);height:36px;
-    color: rgba(255,255,255,0.6);
+    position:absolute; text-align:center; font-size:10px;
+    font-weight:600; line-height:1.3;
+    white-space:pre-line; border-radius:6px; padding-top:4px;
+    width:calc((100% - 35px)/7); height:36px;
+    color:rgba(255,255,255,0.6);
   }
-  .day-header.today {background: rgba(255,255,255,0.3);color:#fff;font-weight:700;}
+  .day-header.today { background:rgba(255,255,255,0.3); color:#fff; font-weight:700; }
   .time-label {
-    position:absolute;left:0;width:35px;text-align:center;font-size:9px;color:rgba(255,255,255,0.6);
+    position:absolute; left:0; width:35px;
+    text-align:center; font-size:9px; color:rgba(255,255,255,0.6);
   }
   .grid-line {
-    position:absolute;left:35px;width:calc(100% - 35px);
+    position:absolute; left:35px; width:calc(100% - 35px);
     border-top:1px solid rgba(255,255,255,0.05);
   }
-  .grid-line.bold {border-top:1px solid rgba(255,255,255,0.15);}
+  .grid-line.bold { border-top:1px solid rgba(255,255,255,0.15); }
   .event {
-    position: absolute;border-radius:6px;box-shadow:0 3px 6px rgba(0,0,0,0.4);
-    backdrop-filter: blur(8px);cursor:pointer;transition: all 0.2s ease;
+    position:absolute; border-radius:6px;
+    box-shadow:0 3px 6px rgba(0,0,0,0.4);
+    backdrop-filter:blur(8px); cursor:pointer;
+    transition:all 0.2s ease;
   }
   .tooltip {
-    position: absolute;background: rgba(0,0,0,0.85);
-    color: #fff;font-size: 10px;padding:5px 8px;border-radius:6px;
-    white-space: pre-line;line-height:1.4;z-index:10;
-    opacity:0;transform: scale(0.95);transition: all 0.15s ease;
+    position:absolute; background:rgba(0,0,0,0.85);
+    color:#fff; font-size:10px; padding:5px 8px;
+    border-radius:6px; white-space:pre-line; line-height:1.4;
+    z-index:10; opacity:0; transform:scale(0.95);
+    transition:all 0.15s ease;
   }
-  .tooltip.active {opacity:1;transform: scale(1);}
-  .dot {display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
+  .tooltip.active { opacity:1; transform:scale(1); }
+  .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; }
 </style>
 </head>
 <body>
@@ -82,7 +83,7 @@
 const timetable = document.getElementById("timetable");
 const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday = getMonday(new Date());
-const headerHeight = 36; // ✅ 헤더 높이 넓힘
+const headerHeight = 36;
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
@@ -91,7 +92,6 @@ const icalUrls = [
   "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
   "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
 ];
-
 const icalColorMap = {
   0: "rgba(160,210,255,1)",
   1: "rgba(200,180,255,1)",
@@ -116,10 +116,8 @@ function renderWeek(monday){
     const header=document.createElement("div");
     header.className="day-header";
     header.style.left=`${35 + i*colWidth}px`;
-
-    const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-    if(recurringHolidays.includes(monthDayKey)) header.style.color="rgba(255,150,120,0.9)";
-
+    const mdKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    if(recurringHolidays.includes(mdKey)) header.style.color="rgba(255,150,120,0.9)";
     header.textContent=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
     if(date.toDateString()===today.toDateString()) header.classList.add("today");
     timetable.appendChild(header);
@@ -132,8 +130,7 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    if(h===24) label.style.top=`${y-7}px`; // ✅ 24 숫자 약간 위로
-    else label.style.top=`${y-5}px`;
+    label.style.top=`${y-5-(h===24?2:0)}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
@@ -171,13 +168,14 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
     if(!baseStart||!baseEnd)return;
 
     const instances=[];
+    const now=new Date();
     if(rrule && rrule.includes("FREQ=WEEKLY")){
-      // ✅ 반복일정도 이번 주차만 slice
-      const recurStart=new Date(baseStart);
-      while(recurStart<=sunday){
-        if(recurStart>=monday && recurStart<=sunday){
+      // ✅ 이번 주 이후 일정만 표시 (과거 주차 제외)
+      let recurStart=new Date(baseStart);
+      while(recurStart<new Date(monday.getFullYear()+1,0,1)){ // 최대 1년까지만
+        if(recurStart>=monday || recurStart>=now){ 
           const recurEnd=new Date(recurStart.getTime()+(baseEnd-baseStart));
-          instances.push({s:recurStart,e:recurEnd});
+          if(recurStart<=sunday) instances.push({s:recurStart,e:recurEnd});
         }
         recurStart.setDate(recurStart.getDate()+7);
       }
