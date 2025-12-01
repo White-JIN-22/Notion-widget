@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v5)</title>
+    <title>Weekly Timetable (Glass v6)</title>
 
     <style>
       body {
@@ -19,27 +19,35 @@
       }
 
       .container {
-        display: flex;
-        gap: 6px;
-        padding: 12px;
+        display: grid;
+        grid-template-columns: 40px repeat(7, 1fr);
+        gap: 4px;
         background: rgba(255, 255, 255, 0.04);
-        backdrop-filter: blur(18px);
+        backdrop-filter: blur(20px);
         border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        padding: 12px;
+      }
+
+      .time {
+        font-size: 10px;
+        color: #ccc;
+        height: 24px;
+        text-align: right;
+        padding-right: 6px;
+        opacity: 0.7;
       }
 
       .day {
-        width: 65px;
-        height: 120px;
+        position: relative;
+        width: 70px;
+        height: 460px; /* 세로 길이 압축 (적당히 보기 좋게) */
         border-radius: 14px;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.07);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
         padding-top: 6px;
-        position: relative;
-        transition: all 0.3s ease;
       }
 
       .day.today {
@@ -55,7 +63,7 @@
       .weekday {
         font-size: 12px;
         font-weight: 600;
-        margin-top: 4px;
+        margin-bottom: 6px;
       }
 
       .holiday {
@@ -64,8 +72,8 @@
 
       .block {
         position: absolute;
-        width: 50%;
-        left: 25%;
+        left: 15%;
+        width: 70%;
         border-radius: 6px;
         opacity: 0.85;
       }
@@ -82,17 +90,10 @@
         "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I",
       ];
 
-      // 🎌 2025~2027 한국 법정 공휴일
       const holidays = [
-        "2025-01-01", "2025-02-28", "2025-03-01", "2025-05-05",
-        "2025-06-06", "2025-08-15", "2025-09-07", "2025-09-08",
-        "2025-09-09", "2025-10-03", "2025-10-09", "2025-12-25",
-        "2026-01-01", "2026-02-17", "2026-03-01", "2026-05-05",
-        "2026-06-06", "2026-08-15", "2026-09-24", "2026-09-25",
-        "2026-09-26", "2026-10-03", "2026-10-09", "2026-12-25",
-        "2027-01-01", "2027-02-07", "2027-03-01", "2027-05-05",
-        "2027-06-06", "2027-08-15", "2027-09-15", "2027-09-16",
-        "2027-09-17", "2027-10-03", "2027-10-09", "2027-12-25",
+        "2025-01-01","2025-02-28","2025-03-01","2025-05-05","2025-06-06","2025-08-15","2025-09-07","2025-09-08","2025-09-09","2025-10-03","2025-10-09","2025-12-25",
+        "2026-01-01","2026-02-17","2026-03-01","2026-05-05","2026-06-06","2026-08-15","2026-09-24","2026-09-25","2026-09-26","2026-10-03","2026-10-09","2026-12-25",
+        "2027-01-01","2027-02-07","2027-03-01","2027-05-05","2027-06-06","2027-08-15","2027-09-15","2027-09-16","2027-09-17","2027-10-03","2027-10-09","2027-12-25",
       ];
 
       const priorities = ["업무", "건강", "자기계발", "휴식"];
@@ -105,18 +106,11 @@
           try {
             const res = await fetch(icalUrls[i]);
             const text = await res.text();
-            const regex =
-              /DTSTART:(\d{8}T\d{6})Z[\\s\\S]*?DTEND:(\d{8}T\d{6})Z[\\s\\S]*?SUMMARY:(.*?)\\n/g;
+            const regex = /DTSTART:(\d{8}T\d{6})Z[\s\S]*?DTEND:(\d{8}T\d{6})Z[\s\S]*?SUMMARY:(.*?)\n/g;
             let match;
             while ((match = regex.exec(text)) !== null) {
-              const start = new Date(match[1].replace(
-                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
-                "$1-$2-$3T$4:$5:$6Z"
-              ));
-              const end = new Date(match[2].replace(
-                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
-                "$1-$2-$3T$4:$5:$6Z"
-              ));
+              const start = new Date(match[1].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
+              const end = new Date(match[2].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
               events.push({
                 startDate: new Date(start.getTime() + 9 * 60 * 60 * 1000),
                 endDate: new Date(end.getTime() + 9 * 60 * 60 * 1000),
@@ -129,9 +123,7 @@
           }
         }
 
-        const now = new Date(
-          new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })
-        );
+        const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
         const weekStart = new Date(now);
         weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
         const weekEnd = new Date(weekStart);
@@ -140,6 +132,14 @@
         const container = document.getElementById("timetable");
         container.innerHTML = "";
 
+        // 왼쪽 시간 표시
+        for (let h = 6; h < 25; h++) {
+          const timeDiv = document.createElement("div");
+          timeDiv.className = "time";
+          timeDiv.textContent = `${String(h).padStart(2, "0")}:00`;
+          container.appendChild(timeDiv);
+        }
+
         for (let i = 0; i < 7; i++) {
           const dayDate = new Date(weekStart);
           dayDate.setDate(weekStart.getDate() + i);
@@ -147,17 +147,14 @@
           const dateStr = dayDate.toISOString().split("T")[0];
           const isHoliday = holidays.includes(dateStr);
           const dayName = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i];
+
           const dayDiv = document.createElement("div");
           dayDiv.className = "day";
-          if (now.toDateString() === dayDate.toDateString())
-            dayDiv.classList.add("today");
+          if (now.toDateString() === dayDate.toDateString()) dayDiv.classList.add("today");
 
           const dateDiv = document.createElement("div");
           dateDiv.className = "date";
-          dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(
-            2,
-            "0"
-          )}/${String(dayDate.getDate()).padStart(2, "0")}`;
+          dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(2, "0")}/${String(dayDate.getDate()).padStart(2, "0")}`;
           if (isHoliday) dateDiv.classList.add("holiday");
 
           const weekdayDiv = document.createElement("div");
@@ -166,27 +163,26 @@
 
           dayDiv.append(dateDiv, weekdayDiv);
 
+          // 일정 표시
           const dayEvents = events.filter(
             (e) => e.startDate >= weekStart && e.startDate < weekEnd
           );
+          const sameDayEvents = dayEvents.filter(
+            (e) =>
+              e.startDate.getDate() === dayDate.getDate() &&
+              e.startDate.getMonth() === dayDate.getMonth()
+          );
 
-          if (dayEvents.length > 0) {
-            const event = dayEvents.find(
-              (e) =>
-                e.startDate.getDate() === dayDate.getDate() &&
-                e.startDate.getMonth() === dayDate.getMonth()
-            );
-            if (event) {
-              const block = document.createElement("div");
-              block.className = "block";
-              block.style.background = colors[event.priority];
-              const duration =
-                (event.endDate - event.startDate) / (1000 * 60 * 60);
-              block.style.height = `${Math.min(duration * 10, 80)}px`;
-              block.style.top = "35px";
-              dayDiv.appendChild(block);
-            }
-          }
+          sameDayEvents.forEach((event) => {
+            const startHour = event.startDate.getHours();
+            const duration = (event.endDate - event.startDate) / (1000 * 60 * 60);
+            const block = document.createElement("div");
+            block.className = "block";
+            block.style.background = colors[event.priority];
+            block.style.top = `${(startHour - 6) * 22 + 36}px`;
+            block.style.height = `${duration * 18}px`;
+            dayDiv.appendChild(block);
+          });
 
           container.appendChild(dayDiv);
         }
