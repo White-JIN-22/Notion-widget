@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v52 Full Stable)</title>
+<title>Weekly Timetable (Glass v53)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -15,153 +15,66 @@
     height: 100vh;
     overflow: hidden;
   }
-
-  .this-week {
-    margin-top: 8px;
-    background: rgba(255,255,255,0.08);
-    border: none;
-    border-radius: 10px;
-    color: #eee;
-    padding: 4px 10px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-  }
-
-  .top-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 6px;
-    gap: 6px;
-  }
-
-  .nav-btn {
+  .this-week, .nav-btn {
     background: rgba(255,255,255,0.08);
     border: none;
     border-radius: 8px;
-    color: #ccc;
-    padding: 3px 8px;
+    color: #eee;
     cursor: pointer;
     backdrop-filter: blur(10px);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
-
+  .this-week {margin-top:8px;padding:4px 10px;}
+  .nav-btn {padding:3px 8px;}
+  .top-controls {
+    display: flex;align-items: center;justify-content: center;margin-top:6px;gap:6px;
+  }
   .week-label {
     background: rgba(255,255,255,0.07);
-    border-radius: 10px;
-    padding: 4px 10px;
-    font-weight: 500;
-    color: #e4e4e4;
-    backdrop-filter: blur(6px);
-    font-size: 0.75rem;
-    margin-top: 4px;
+    border-radius: 10px;padding:4px 10px;color:#e4e4e4;font-size:0.75rem;
   }
-
   .timetable {
-    display: grid;
-    grid-template-columns: 35px repeat(7, 1fr);
-    grid-template-rows: 35px repeat(19, 1fr);
-    width: 45vw;
-    max-width: 450px;
-    height: 53vh;
-    margin-top: 8px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(18px);
-    box-shadow: inset 0 0 10px rgba(255,255,255,0.05);
     position: relative;
+    width: 45vw;max-width: 450px;height: 55vh;
+    margin-top:8px;border-radius:18px;
+    background: rgba(255,255,255,0.03);backdrop-filter: blur(18px);
     overflow: hidden;
   }
-
   .day-header {
-    text-align: center;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1.3;
-    white-space: pre-line;
-    border-right: 1px solid rgba(255,255,255,0.08);
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%);
-    border-radius: 6px;
-    padding-top: 4px;
-    color: rgba(255,255,255,0.6);
+    position: absolute;text-align:center;font-size:10px;font-weight:600;line-height:1.3;
+    white-space: pre-line;border-radius:6px;padding-top:4px;color:rgba(255,255,255,0.6);
+    width: calc((100% - 35px) / 7);height:28px;
   }
-
-  .day-header.today {
-    background: rgba(255,255,255,0.3);
-    color: #fff;
-    font-weight: 700;
-    box-shadow: 0 0 10px rgba(255,255,255,0.4);
-  }
-
+  .day-header.today {background: rgba(255,255,255,0.3);color:#fff;font-weight:700;}
   .time-label {
-    text-align: center;
-    font-size: 9px;
-    color: rgba(255,255,255,0.6);
+    position:absolute;left:0;width:35px;text-align:center;font-size:9px;color:rgba(255,255,255,0.6);
   }
-
-  .time-label.bold {
-    font-weight: 700;
-    color: rgba(255,255,255,0.9);
-  }
-
   .grid-line {
-    grid-column: 2 / span 7;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    position:absolute;left:35px;width:calc(100% - 35px);
+    border-top:1px solid rgba(255,255,255,0.05);
   }
-
-  .grid-line.bold {
-    border-top: 1px solid rgba(255,255,255,0.15);
-  }
-
+  .grid-line.bold {border-top:1px solid rgba(255,255,255,0.15);}
   .event {
-    position: absolute;
-    border-radius: 6px;
-    overflow: hidden;
-    backdrop-filter: blur(8px);
-    transition: all 0.2s ease;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.4);
-    cursor: pointer;
+    position: absolute;border-radius:6px;box-shadow:0 3px 6px rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);cursor:pointer;transition: all 0.2s ease;
   }
-
   .tooltip {
-    position: absolute;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    font-size: 10px;
-    padding: 5px 8px;
-    border-radius: 6px;
-    white-space: pre-line;
-    line-height: 1.4;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transform: scale(0.95);
-    transition: all 0.15s ease;
+    position: absolute;background: rgba(0,0,0,0.85);
+    color: #fff;font-size: 10px;padding:5px 8px;border-radius:6px;
+    white-space: pre-line;line-height:1.4;z-index:10;
+    opacity:0;transform: scale(0.95);transition: all 0.15s ease;
   }
-
-  .tooltip.active {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-right: 4px;
-  }
+  .tooltip.active {opacity:1;transform: scale(1);}
+  .dot {display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;}
 </style>
 </head>
 <body>
 <button class="this-week" id="thisWeek">THIS WEEK</button>
 <div class="top-controls">
   <button class="nav-btn" id="prevWeek">←</button>
-  <div class="week-label" id="weekLabel">2025 : 49 / 52W</div>
+  <div class="week-label" id="weekLabel"></div>
   <button class="nav-btn" id="nextWeek">→</button>
 </div>
-
 <div class="timetable" id="timetable"></div>
 
 <script>
@@ -178,10 +91,10 @@ const icalUrls = [
 ];
 
 const icalColorMap = {
-  0: "rgba(160,210,255,1)", // 자기계발
-  1: "rgba(200,180,255,1)", // 건강
-  2: "rgba(61,84,127,1)",   // 업무
-  3: "rgba(255,255,245,1)"  // 휴식
+  0: "rgba(160,210,255,1)",
+  1: "rgba(200,180,255,1)",
+  2: "rgba(61,84,127,1)",
+  3: "rgba(255,255,245,1)"
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -194,34 +107,30 @@ function renderWeek(monday){
   weekLabel.textContent=`${monday.getFullYear()} : ${weekNum} / 52W`;
 
   const today=new Date();
+  const colWidth=(timetable.offsetWidth-35)/7;
   days.forEach((d,i)=>{
-    const head=document.createElement("div");
-    head.className="day-header";
     const date=new Date(monday);
     date.setDate(monday.getDate()+i);
-    const dateStr=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
-    const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-    if(recurringHolidays.includes(monthDayKey))head.style.color="rgba(255,150,120,0.9)";
-    if(date.toDateString()===today.toDateString())head.classList.add("today");
-    if(date.toDateString()!==today.toDateString())head.style.opacity="0.6";
-    head.textContent=`${dateStr}\n${d}`;
-    timetable.appendChild(head);
+    const header=document.createElement("div");
+    header.className="day-header";
+    header.style.left=`${35 + i*colWidth}px`;
+    header.textContent=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
+    if(date.toDateString()===today.toDateString()) header.classList.add("today");
+    timetable.appendChild(header);
   });
 
   const mainHours=[6,12,18,24];
+  const rowHeight=timetable.offsetHeight/(24-6);
   for(let h=6;h<=24;h++){
+    const y=(h-6)*rowHeight;
     const label=document.createElement("div");
+    label.className="time-label";
+    label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
+    label.style.top=`${y-5}px`;
     const line=document.createElement("div");
-    if(mainHours.includes(h)){
-      label.className="time-label bold";
-      label.textContent=String(h).padStart(2,"0");
-      line.className="grid-line bold";
-    } else {
-      label.className="time-label";
-      line.className="grid-line";
-    }
-    timetable.appendChild(label);
-    timetable.appendChild(line);
+    line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
+    line.style.top=`${y}px`;
+    timetable.append(label,line);
   }
 
   loadICS(icalUrls,monday,today);
@@ -240,84 +149,57 @@ async function loadICS(urls,monday,today){
   }
 }
 
-function parseICS(ics, monday, sunday, today, color) {
-  const rowHeight = timetable.offsetHeight / (24 - 6);
-  const columnWidth = (timetable.offsetWidth - 35) / 7;
-  const events = ics.split("BEGIN:VEVENT").slice(1).map(e => "BEGIN:VEVENT" + e);
+function parseICS(ics,monday,sunday,today,color){
+  const rowHeight=timetable.offsetHeight/(24-6);
+  const columnWidth=(timetable.offsetWidth-35)/7;
+  const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
 
-  events.forEach(ev => {
-    if (ev.includes("VTODO") || ev.includes("VEVENT;VALUE=DATE")) return;
-    if (ev.includes("미리 알림") || ev.includes("이동시간")) return;
+  events.forEach(ev=>{
+    if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
+    if(ev.includes("미리 알림")||ev.includes("이동시간"))return;
+    const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
+    const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
+    const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
+    if(!start||!end)return;
+    const s=parseDate(start), e=parseDate(end);
+    if(!s||!e)return;
 
-    const summary = (ev.match(/SUMMARY:(.+)/) || [])[1]?.trim() || "";
-    const start = (ev.match(/DTSTART[^:]*:(.+)/) || [])[1];
-    const end = (ev.match(/DTEND[^:]*:(.+)/) || [])[1];
-    const rrule = (ev.match(/RRULE:(.+)/) || [])[1];
-    if (!start || !end) return;
+    // 주차 필터: 해당 주차 범위만
+    if(s < monday || s > sunday) return;
 
-    const baseStart = parseDate(start);
-    const baseEnd = parseDate(end);
-    if (!baseStart || !baseEnd) return;
+    const dayIndex=(s.getDay()+6)%7;
+    const startHour=s.getHours()+s.getMinutes()/60;
+    const endHour=e.getHours()+e.getMinutes()/60||24;
+    const top=(startHour-6)*rowHeight;
+    const height=(endHour-startHour)*rowHeight;
+    const left=35+dayIndex*columnWidth;
+    const width=columnWidth-6;
+    const opacity=(s.toDateString()===today.toDateString())?1:0.5;
 
-    const eventInstances = [];
-    if (rrule && rrule.includes("FREQ=WEEKLY")) {
-      for (let i = -4; i <= 52; i++) {
-        const recurStart = new Date(baseStart.getTime() + i * 7 * 86400000);
-        const recurEnd = new Date(baseEnd.getTime() + i * 7 * 86400000);
-        if (recurStart >= monday && recurStart <= sunday) {
-          eventInstances.push({ s: recurStart, e: recurEnd });
-        }
-      }
-    } else {
-      if (baseStart >= monday && baseStart <= sunday)
-        eventInstances.push({ s: baseStart, e: baseEnd });
-    }
+    const block=document.createElement("div");
+    block.className="event";
+    block.style.backgroundColor=color;
+    block.style.opacity=opacity;
+    block.style.top=`${top}px`;
+    block.style.left=`${left}px`;
+    block.style.height=`${height}px`;
+    block.style.width=`${width}px`;
 
-    eventInstances.forEach(({ s, e }) => {
-      const dayIndex = (s.getDay() + 6) % 7;
-      const startHour = s.getHours() + s.getMinutes() / 60;
-      const endHour = e.getHours() + e.getMinutes() / 60 || 24;
-
-      const top = Math.round((startHour - 6) * rowHeight + 0.5);
-      const height = Math.round((endHour - startHour) * rowHeight);
-      const left = Math.round(35 + (dayIndex * columnWidth) + 0.5);
-      const width = Math.round(columnWidth - 6);
-      const opacity = s < today ? 0.4 : (s.toDateString() === today.toDateString() ? 1.0 : 0.7);
-
-      const block = document.createElement("div");
-      block.className = "event";
-      block.style.backgroundColor = color;
-      block.style.opacity = opacity;
-      block.style.top = `${top}px`;
-      block.style.left = `${left}px`;
-      block.style.height = `${height}px`;
-      block.style.width = `${width}px`;
-
-      block.addEventListener("click", e => {
-        e.stopPropagation();
-        document.querySelectorAll(".tooltip.active").forEach(t => t.remove());
-        const tooltip = document.createElement("div");
-        tooltip.className = "tooltip active";
-        tooltip.innerHTML = `<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
-        timetable.appendChild(tooltip);
-
-        const rect = block.getBoundingClientRect();
-        const parentRect = timetable.getBoundingClientRect();
-        let tooltipX = (dayIndex === 6)
-          ? rect.left - parentRect.left - tooltip.offsetWidth - 8
-          : rect.right - parentRect.left + 8;
-        let tooltipY = rect.top - parentRect.top + rect.height / 2 - tooltip.offsetHeight / 2;
-
-        if (tooltipY + tooltip.offsetHeight > timetable.offsetHeight - 4)
-          tooltipY = timetable.offsetHeight - tooltip.offsetHeight - 4;
-        if (tooltipY < 0) tooltipY = 0;
-
-        tooltip.style.left = `${tooltipX}px`;
-        tooltip.style.top = `${tooltipY}px`;
-      });
-
-      timetable.appendChild(block);
+    block.addEventListener("click",e=>{
+      e.stopPropagation();
+      document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
+      const tooltip=document.createElement("div");
+      tooltip.className="tooltip active";
+      tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
+      timetable.appendChild(tooltip);
+      const rect=block.getBoundingClientRect(), parentRect=timetable.getBoundingClientRect();
+      let tooltipX=(dayIndex===6)?rect.left-parentRect.left-tooltip.offsetWidth-8:rect.right-parentRect.left+8;
+      let tooltipY=rect.top-parentRect.top+rect.height/2-tooltip.offsetHeight/2;
+      if(tooltipY+tooltip.offsetHeight>timetable.offsetHeight-4)tooltipY=timetable.offsetHeight-tooltip.offsetHeight-4;
+      if(tooltipY<0)tooltipY=0;
+      tooltip.style.left=`${tooltipX}px`;tooltip.style.top=`${tooltipY}px`;
     });
+    timetable.appendChild(block);
   });
 
   document.addEventListener("click",()=>document.querySelectorAll(".tooltip.active").forEach(t=>t.remove()));
@@ -326,7 +208,7 @@ function parseICS(ics, monday, sunday, today, color) {
 function parseDate(str){
   if(!str)return null;
   if(str.includes("T")){
-    const[date,time]=str.split("T");
+    const [date,time]=str.split("T");
     const year=date.slice(0,4),month=date.slice(4,6)-1,day=date.slice(6,8);
     const hour=parseInt(time.slice(0,2)),min=parseInt(time.slice(2,4));
     return new Date(year,month,day,hour,min);
