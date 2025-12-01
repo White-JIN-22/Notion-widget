@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="referrer" content="no-referrer" />
+  <title>Weekly Timetable (Glass Mini Secure)</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      gap: 3px;
+      padding: 10px;
+      border-radius: 18px;
+      backdrop-filter: blur(25px) saturate(180%);
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .day {
+      width: 30px;
+      height: 80px;
+      border-radius: 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding: 5px 2px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day strong {
+      font-size: 8px;
+      display: block;
+      opacity: 0.8;
+    }
+
+    .day span {
+      font-size: 10px;
+      margin-top: 3px;
+      display: block;
+    }
+
+    .day.today {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .holiday {
+      color: #ff8b8b;
+    }
+
+    .block {
+      position: absolute;
+      left: 2px;
+      width: calc(100% - 4px);
+      border-radius: 6px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="timetable"></div>
+
+  <script>
+    const icalUrls = [
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
+      "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
+    ];
+
+    const priorityMap = { 업무: 1, 건강: 2, 자기계발: 3, 휴식: 4 };
+
+    async function fetchICS(url) {
+      const res = await fetch(url);
+      return res.ok ? await res.text() : '';
+    }
+
+    function parseICS(data) {
+      const events = [];
+      const blocks = data.split('BEGIN:VEVENT');
+      for (const block of blocks) {
+        const start = /DTSTART.*:(\d+)/.exec(block)?.[1];
+        const end = /DTEND.*:(\d+)/.exec(block)?.[1];
+        const summary = /SUMMARY:(.+)/.exec(block)?.[1];
+        if (start && end) {
+          const startDate = new Date(
+            start.slice(0,4), start.slice(4,6)-1, start.slice(6,8),
+            start.slice(9,11), start.slice(11,13)
+          );
+          const endDate = new Date(
+            end.slice(0,4), end.slice(4,6)-1, end.slice(6,8),
+            end.slice(9,11), end.slice(11,13)
+          );
+          events.push({
+            start: startDate,
+            end: endDate,
+            summary,
+            priority: Object.keys(priorityMap).find(k => summary.includes(k)) 
+                      ? priorityMap[Object.keys(priorityMap).find(k => summary.includes(k))] : 5
+          });
+        }
+      }
+      return events;
+    }
+
+    async function loadEvents() {
+      const now = new Date();
+      const monday = new Date(now.setDate(now.getDate() - ((now.getDay()+6)%7)));
+      const days = Array.from({length: 7}, (_, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        return d;
+      });
+
+      const container = document.getElementById('timetable');
+      container.innerHTML = '';
+
+      const allEvents = (await Promise.all(icalUrls.map(fetchICS)))
+        .map(parseICS)
+        .flat();
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      grid.style.display = 'flex';
+      grid.style.gap = '3px';
+
+      for (const d of days) {
+        const day = document.createElement('div');
+        day.className = 'day';
+        if (d.toDateString() === new Date().toDateString()) day.classList.add('today');
+
+        const month = String(d.getMonth()+1).padStart(2,'0');
+        const date = String(d.getDate()).padStart(2,'0');
+        const isSunday = d.getDay() === 0;
+        const isHoliday = isSunday;
+
+        day.innerHTML = `<strong class="${isHoliday ? 'holiday' : ''}">${month}/${date}</strong>
+                         <span>${['MON','TUE','WED','THU','FRI','SAT','SUN'][d.getDay()]}</span>`;
+
+        const dayEvents = allEvents.filter(e =>
+          e.start.toDateString() === d.toDateString()
+        ).sort((a,b) => a.priority - b.priority || a.start - b.start);
+
+        if (dayEvents.length) {
+          const e = dayEvents[0];
+          const duration = (e.end - e.start)/3600000;
+          const startHour = e.start.getHours();
+          const block = document.createElement('div');
+          block.className = 'block';
+          block.style.background = `rgba(178,192,210,${0.3 + (1/duration)})`;
+          block.style.top = `${Math.min((startHour/24)*100, 90)}%`;
+          block.style.height = `${Math.min((duration/24)*100, 100)}%`;
+          day.appendChild(block);
+        }
+        grid.appendChild(day);
+      }
+
+      container.appendChild(grid);
+    }
+
+    loadEvents();
+  </script>
+</body>
+</html>
