@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
-  <title>Weekly Timetable (Glass v16)</title>
+  <title>Weekly Timetable (Glass v17)</title>
   <style>
     body {
       background-color: #0f0f0f;
@@ -90,7 +90,7 @@
     };
     const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb"];
 
-    // 시간 라벨 (3시간 단위)
+    // 3시간 단위 라벨
     const timeLabels = document.getElementById("timeLabels");
     for (let h = 6; h <= 24; h += 3) {
       const t = document.createElement("div");
@@ -118,8 +118,9 @@
         if (line.startsWith("BEGIN:VEVENT")) event = {};
         else if (line.startsWith("DTSTART")) {
           if (line.includes("VALUE=DATE")) {
-            event.allday = true; // 하루종일 일정은 나중에 무시
+            event.allday = true;
           } else {
+            // TZID=Asia/Seoul 형태도 잡음
             const match = line.match(/(\d{8}T\d{6})/);
             if (match) event.start = match[1];
           }
@@ -133,12 +134,11 @@
           line.startsWith("X-APPLE-TRAVEL-DURATION") ||
           line.startsWith("TRIGGER")
         ) {
-          event.ignore = true; // 이동시간 무시
+          event.ignore = true;
         } else if (line.startsWith("END:VEVENT")) {
           if (!event.start || event.ignore || event.allday) continue;
 
           if (!event.end) {
-            // 종료시간이 없으면 1시간짜리로 간주
             const tmp = event.start;
             const endHour = String(Number(tmp.substring(9, 11)) + 1).padStart(2, "0");
             event.end = tmp.substring(0, 9) + endHour + tmp.substring(11);
