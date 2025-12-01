@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v14)</title>
+    <title>Weekly Timetable (Glass v15)</title>
     <style>
       body {
         background-color: #0f0f0f;
@@ -15,6 +15,7 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
+        margin: 0;
       }
 
       .container {
@@ -48,7 +49,7 @@
 
       .day {
         position: relative;
-        width: 50px;
+        width: 42px;
         height: 150px;
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
@@ -110,8 +111,9 @@
 
       async function fetchCalendar(color, url) {
         try {
-          // 🚀 캐시 완전 차단 (fetch가 항상 최신 데이터 받게)
-          const response = await fetch(`${proxy}?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+          const response = await fetch(`${proxy}?url=${encodeURIComponent(url)}`, {
+            cache: "no-store"
+          });
           const text = await response.text();
           parseICS(color, text);
         } catch (err) {
@@ -120,32 +122,52 @@
       }
 
       function parseICS(color, text) {
-        const lines = text.split("\n");
+        const lines = text.replace(/\r\n|\r/g, "\n").split("\n").map(l => l.trim());
         let event = {};
         for (const line of lines) {
           if (line.startsWith("BEGIN:VEVENT")) event = {};
-          else if (line.startsWith("DTSTART")) event.start = line.split(":")[1];
-          else if (line.startsWith("DTEND")) event.end = line.split(":")[1];
-          else if (line.startsWith("SUMMARY")) event.title = line.split(":")[1];
-          else if (line.startsWith("END:VEVENT")) {
+          else if (line.startsWith("DTSTART")) {
+            const match = line.match(/(\d{8}T\d{6})/);
+            if (match) event.start = match[1];
+          } else if (line.startsWith("DTEND")) {
+            const match = line.match(/(\d{8}T\d{6})/);
+            if (match) event.end = match[1];
+          } else if (line.startsWith("SUMMARY")) {
+            event.title = line.split(":").slice(1).join(":");
+          } else if (line.startsWith("END:VEVENT")) {
             if (event.start && event.end) {
-              // ⏰ UTC → KST 변환 시점 조정
-              const start = new Date(event.start);
-              const end = new Date(event.end);
-              start.setHours(start.getHours() + 9);
-              end.setHours(end.getHours() + 9);
-              allEvents.push({
-                start,
-                end,
-                title: event.title,
-                color
-              });
+              const start = new Date(
+                event.start.substring(0, 4) +
+                  "-" +
+                  event.start.substring(4, 6) +
+                  "-" +
+                  event.start.substring(6, 8) +
+                  "T" +
+                  event.start.substring(9, 11) +
+                  ":" +
+                  event.start.substring(11, 13) +
+                  ":00+09:00"
+              );
+              const end = new Date(
+                event.end.substring(0, 4) +
+                  "-" +
+                  event.end.substring(4, 6) +
+                  "-" +
+                  event.end.substring(6, 8) +
+                  "T" +
+                  event.end.substring(9, 11) +
+                  ":" +
+                  event.end.substring(11, 13) +
+                  ":00+09:00"
+              );
+              allEvents.push({ start, end, title: event.title, color });
             }
           }
         }
       }
 
       async function loadEvents() {
+        allEvents = [];
         for (const [color, url] of Object.entries(calendars)) {
           await fetchCalendar(color, url);
         }
@@ -158,7 +180,6 @@
 
         const now = new Date();
         const localNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
-
         const weekStart = new Date(localNow);
         weekStart.setDate(localNow.getDate() - ((localNow.getDay() + 6) % 7));
 
@@ -168,11 +189,15 @@
 
           const dayDiv = document.createElement("div");
           dayDiv.className = "day";
-          if (dayDate.toDateString() === localNow.toDateString()) dayDiv.classList.add("today");
+          if (dayDate.toDateString() === localNow.toDateString())
+            dayDiv.classList.add("today");
 
           const dateDiv = document.createElement("div");
           dateDiv.className = "date";
-          dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(2, "0")}/${String(dayDate.getDate()).padStart(2, "0")}`;
+          dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}/${String(dayDate.getDate()).padStart(2, "0")}`;
 
           const weekdayDiv = document.createElement("div");
           weekdayDiv.className = "weekday";
@@ -180,9 +205,10 @@
 
           dayDiv.append(dateDiv, weekdayDiv);
 
-          // 오늘과 같은 날짜의 일정만 필터
           const sameDay = allEvents.filter(ev =>
-            ev.start.toDateString() === dayDate.toDateString()
+            ev.start.getFullYear() === dayDate.getFullYear() &&
+            ev.start.getMonth() === dayDate.getMonth() &&
+            ev.start.getDate() === dayDate.getDate()
           );
 
           sameDay.forEach((ev, idx) => {
