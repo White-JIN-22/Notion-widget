@@ -5,68 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Weekly Timetable Widget</title>
+<title>Weekly Timetable</title>
 <style>
   body {
     margin: 0;
     background: #1a1a1a;
-    font-family: 'Inter', sans-serif;
-    color: #f2f2f2;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    font-family: 'Inter', sans-serif;
   }
 
   .widget {
-    backdrop-filter: blur(15px);
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 12px;
-    width: 640px;
-    box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+    backdrop-filter: blur(25px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 16px;
+    width: 460px;
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.35);
   }
 
   .grid {
     display: grid;
-    grid-template-columns: 70px repeat(7, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 6px;
   }
 
   .header {
     text-align: center;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    color: #f3f3f3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+  }
+
+  .header .date {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #d0d0d0;
+  }
+
+  .header.current {
+    color: #fff;
+    font-weight: 700;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
   }
 
   .cell {
-    height: 80px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.05);
-    overflow: hidden;
+    height: 120px;
     position: relative;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+  }
+
+  .cell:hover {
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .block {
     position: absolute;
-    left: 0; right: 0;
-    border-radius: 6px;
+    left: 10%;
+    width: 80%;
+    border-radius: 8px;
     opacity: 0.95;
-    transition: transform 0.2s ease;
-  }
-  .block:hover { transform: scale(1.02); }
-
-  .morning { background: rgba(136,183,227,0.6); }
-  .afternoon { background: rgba(32,58,89,0.8); }
-  .evening { background: rgba(199,201,217,0.5); }
-
-  .label {
-    text-align: right;
-    font-weight: 500;
-    font-size: 0.8rem;
-    color: #ccc;
-    padding-right: 4px;
+    transition: all 0.3s ease;
   }
 
   .holiday { color: #ff5c5c; }
@@ -89,10 +101,10 @@
 
   const colors = ["#203A59", "#88B7E3", "#C7C9D9", "#F5F5EF"];
   const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
-  const startOfWeek = new Date();
-  const day = startOfWeek.getDay();
-  const diff = (day === 0 ? -6 : 1) - day; 
-  startOfWeek.setDate(startOfWeek.getDate() + diff);
+  const today = new Date();
+  const monday = new Date(today);
+  const day = today.getDay();
+  monday.setDate(today.getDate() - ((day + 6) % 7));
 
   const icsData = await Promise.all(icalUrls.map(u => fetch(u).then(r=>r.text()).catch(()=>null)));
 
@@ -108,51 +120,54 @@
   });
 
   const container = document.getElementById("timetableWidget");
-  container.innerHTML = `<div class="grid"></div>`;
-  const grid = container.querySelector(".grid");
+  const grid = document.createElement("div");
+  grid.className = "grid";
+
   const weekdays = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+  
+  weekdays.forEach((d, i) => {
+    const date = new Date(monday);
+    date.setDate(date.getDate() + i);
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const dateKey = `${mm}-${dd}`;
+    const isHoliday = recurringHolidays.includes(dateKey);
+    const isToday = date.toDateString() === today.toDateString();
 
-  // header row
-  grid.innerHTML = `<div></div>` + weekdays.map(d => `<div class="header">${d}</div>`).join('');
+    const header = document.createElement("div");
+    header.className = "header" + (isToday ? " current" : "");
+    header.innerHTML = `<div class="date" style="color:${isHoliday ? '#ff5c5c' : '#d0d0d0'}">${mm}/${dd}</div>${d}`;
+    grid.appendChild(header);
+  });
 
-  // 3 time sections
-  const sections = [
-    { label: "오전", start: 6, end: 12 },
-    { label: "오후", start: 12, end: 18 },
-    { label: "저녁", start: 18, end: 24 },
-  ];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(monday);
+    date.setDate(date.getDate() + i);
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
-  for (const s of sections) {
-    grid.innerHTML += `<div class="label">${s.label}</div>`;
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(date.getDate() + i);
-      const dateKey = `${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      if (recurringHolidays.includes(dateKey)) {
-        cell.innerHTML = `<div style="position:absolute;top:4px;right:6px;font-size:0.7rem;color:#ff5c5c">${date.getDate()}</div>`;
-      } else {
-        cell.innerHTML = `<div style="position:absolute;top:4px;right:6px;font-size:0.7rem;">${date.getDate()}</div>`;
-      }
-      const dayEvents = events
-        .filter(e => e.start.toDateString() === date.toDateString() && e.start.getHours() < s.end && e.end.getHours() > s.start)
-        .sort((a,b) => a.priority - b.priority || a.start - b.start);
-      if (dayEvents.length > 0) {
-        const topEvent = dayEvents[0];
-        const duration = Math.min((topEvent.end - topEvent.start)/3600000, s.end - s.start);
-        const height = (duration / (s.end - s.start)) * 100;
-        const offset = ((Math.max(topEvent.start.getHours(), s.start) - s.start) / (s.end - s.start)) * 100;
-        const block = document.createElement("div");
-        block.className = "block";
-        block.style.background = topEvent.color;
-        block.style.top = `${offset}%`;
-        block.style.height = `${height}%`;
-        cell.appendChild(block);
-      }
-      grid.appendChild(cell);
+    const dayEvents = events
+      .filter(e => e.start.toDateString() === date.toDateString())
+      .sort((a,b) => a.priority - b.priority || a.start - b.start);
+
+    if (dayEvents.length > 0) {
+      const topEvent = dayEvents[0];
+      const startH = topEvent.start.getHours();
+      const endH = topEvent.end.getHours();
+      const duration = Math.max(endH - startH, 1);
+      const block = document.createElement("div");
+      block.className = "block";
+      block.style.top = `${(startH - 6) / 18 * 100}%`;
+      block.style.height = `${(duration / 18) * 100}%`;
+      block.style.background = topEvent.color;
+      cell.appendChild(block);
     }
+
+    grid.appendChild(cell);
   }
+
+  container.innerHTML = "";
+  container.appendChild(grid);
 })();
 </script>
 </body>
