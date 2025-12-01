@@ -1,89 +1,108 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weekly Timetable</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600&display=swap');
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
+<title>Weekly Timetable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600&display=swap');
 
-    body {
-      background: #0d0d0d;
-      font-family: 'Pretendard', sans-serif;
-      color: #f3f1eb;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
+  body {
+    background: #0d0d0d;
+    font-family: 'Pretendard', sans-serif;
+    color: #f3f1eb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
 
-    .container {
-      display: flex;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      padding: 20px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    }
+  .container {
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
 
-    .day {
-      width: 90px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 10px 8px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      position: relative;
-    }
+  .day {
+    width: 90px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+  }
 
-    .day-header {
-      font-size: 12px;
-      font-weight: 600;
-      opacity: 0.8;
-      margin-bottom: 4px;
-    }
+  .day-header {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
 
-    .date {
-      font-size: 11px;
-      opacity: 0.6;
-      margin-bottom: 8px;
-    }
+  .date {
+    font-size: 11px;
+    opacity: 0.6;
+    margin-bottom: 8px;
+  }
 
-    .day.current {
-      background: rgba(243, 241, 235, 0.1);
-      box-shadow: 0 0 12px rgba(243, 241, 235, 0.2);
-    }
+  .day.current {
+    background: rgba(243, 241, 235, 0.1);
+    box-shadow: 0 0 12px rgba(243, 241, 235, 0.2);
+  }
 
-    .block {
-      border-radius: 10px;
-      margin: 2px 0;
-      height: 12px;
-    }
+  .block {
+    border-radius: 10px;
+    margin: 2px 0;
+    height: 12px;
+  }
 
-    /* 색상 팔레트 (업무/건강/자기계발/휴식) */
-    .work { background: #3d547f; }        /* 네이비 */
-    .health { background: #b2c0d2; }      /* 연파랑 */
-    .self { background: #cecbd3; }        /* 라벤더 그레이 */
-    .rest { background: #f3f1eb; }        /* 아이보리 */
-  </style>
+  /* 색상 팔레트 (업무/건강/자기계발/휴식) */
+  .work { background: #3d547f; }        /* 네이비 */
+  .health { background: #b2c0d2; }      /* 연파랑 */
+  .self { background: #cecbd3; }        /* 라벤더 그레이 */
+  .rest { background: #f3f1eb; }        /* 아이보리 */
+</style>
 </head>
 <body>
   <div class="container" id="timetable"></div>
 
   <script>
+    // ✅ iCloud 캘린더 주소 (Worker proxy 통해 접근)
     const icalUrls = [
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
     ];
-
     const colors = ["work", "health", "self", "rest"];
     const container = document.getElementById("timetable");
+
+    // ✅ 공휴일 데이터 가져오기
+    async function fetchHolidays(year, month) {
+      const url = `https://ical-proxy.moonkelly601.workers.dev/?url=${encodeURIComponent(
+        `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${month.toString().padStart(2,"0")}&_type=json`
+      )}`;
+      try {
+        const res = await fetch(url);
+        const text = await res.text();
+        const json = JSON.parse(text);
+        const items = json?.response?.body?.items?.item || [];
+        return items.map(i => i.locdate?.toString());
+      } catch (err) {
+        console.error("공휴일 데이터 오류:", err);
+        return [];
+      }
+    }
 
     async function fetchIcal(url) {
       const res = await fetch(url);
@@ -94,7 +113,6 @@
       const events = [];
       const lines = ics.split("\n");
       let event = null;
-
       for (const line of lines) {
         if (line.startsWith("BEGIN:VEVENT")) event = {};
         else if (line.startsWith("END:VEVENT")) {
@@ -123,17 +141,26 @@
       const monday = new Date(now);
       monday.setDate(now.getDate() - ((today + 6) % 7));
 
+      // ✅ 공휴일 데이터 불러오기
+      const holidays = await fetchHolidays(now.getFullYear(), now.getMonth() + 1);
+
       for (let i = 0; i < 7; i++) {
         const day = new Date(monday);
         day.setDate(monday.getDate() + i);
+        const dateKey = day.toISOString().slice(0,10).replace(/-/g,"");
+        const isHoliday = holidays.includes(dateKey);
 
         const dayDiv = document.createElement("div");
         dayDiv.className = "day";
 
         const dateStr = day.toISOString().slice(5, 10).replace("-", "/");
         const dayName = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i];
+        const colorStyle = isHoliday ? 'style="color:#ff6b6b;font-weight:600;"' : "";
 
-        dayDiv.innerHTML = `<div class="date">${dateStr}</div><div class="day-header">${dayName}</div>`;
+        dayDiv.innerHTML = `
+          <div class="date" ${colorStyle}>${dateStr}</div>
+          <div class="day-header">${dayName}</div>
+        `;
 
         if (i === (today + 6) % 7) dayDiv.classList.add("current");
 
@@ -146,7 +173,6 @@
           .filter(e => {
             if (!e.start || !e.end) return false;
             const s = new Date(e.start.slice(0, 4) + "-" + e.start.slice(4, 6) + "-" + e.start.slice(6, 8) + "T" + e.start.slice(9, 15));
-            const eTime = new Date(e.end.slice(0, 4) + "-" + e.end.slice(4, 6) + "-" + e.end.slice(6, 8) + "T" + e.end.slice(9, 15));
             return s >= dayStart && s <= dayEnd;
           })
           .sort((a, b) => a.priority - b.priority);
