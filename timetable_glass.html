@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v10)</title>
+    <title>Weekly Timetable (Glass v11)</title>
 
     <style>
       body {
@@ -33,22 +33,23 @@
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        justify-content: space-between;
-        height: 180px;
+        justify-content: flex-start;
         margin-right: 8px;
-        padding-top: 10px;
+        padding-top: 48px; /* ⬅️ 요일 아래에서 시작되게 */
+        height: 160px;
       }
 
       .time {
         font-size: 10px;
         color: #aaa;
         opacity: 0.8;
+        margin-top: 14px; /* 라벨 간격 균등 */
       }
 
       .day {
         position: relative;
-        width: 60px;
-        height: 180px;
+        width: 52px; /* ⬅️ 가로 폭 15% 축소 */
+        height: 160px;
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
         display: flex;
@@ -70,7 +71,7 @@
       .weekday {
         font-size: 11px;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
       }
 
       .holiday {
@@ -106,9 +107,9 @@
       const priorities = ["업무", "건강", "자기계발", "휴식"];
       const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb"];
 
-      // 시간 라벨 (짝수 시간만)
+      // 3시간 단위 시간 라벨
       const timeLabels = document.getElementById("timeLabels");
-      for (let h = 6; h <= 24; h += 2) {
+      for (let h = 6; h <= 24; h += 3) {
         const t = document.createElement("div");
         t.className = "time";
         t.textContent = String(h).padStart(2, "0");
@@ -177,7 +178,7 @@
 
           dayDiv.append(dateDiv, weekdayDiv);
 
-          // 이번 주 해당 일정만 표시
+          // 이번 주 해당 일정 표시
           const sameDayEvents = events.filter(
             (e) =>
               e.startDate >= weekStart &&
@@ -191,8 +192,8 @@
             const block = document.createElement("div");
             block.className = "block";
             block.style.background = colors[event.priority];
-            block.style.top = `${(startHour - 6) * 6 + 36}px`; // 세로 압축 반영
-            block.style.height = `${duration * 6}px`;
+            block.style.top = `${(startHour - 6) * 5 + 36}px`;
+            block.style.height = `${duration * 5}px`;
             dayDiv.appendChild(block);
           });
 
