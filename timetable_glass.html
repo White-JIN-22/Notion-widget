@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v56)</title>
+<title>Weekly Timetable (Glass v57)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -40,7 +40,7 @@
     position:absolute; text-align:center; font-size:10px;
     font-weight:600; line-height:1.3;
     white-space:pre-line; border-radius:6px; padding-top:4px;
-    width:calc((100% - 35px)/7); height:36px;
+    width:calc((100% - 35px)/7); height:34px;
     color:rgba(255,255,255,0.6);
   }
   .day-header.today { background:rgba(255,255,255,0.3); color:#fff; font-weight:700; }
@@ -52,7 +52,7 @@
     position:absolute; left:35px; width:calc(100% - 35px);
     border-top:1px solid rgba(255,255,255,0.05);
   }
-  .grid-line.bold { border-top:1px solid rgba(255,255,255,0.15); }
+  .grid-line.bold { border-top:1.5px solid rgba(255,255,255,0.35); } /* ✅ 1.5배 두껍게 */
   .event {
     position:absolute; border-radius:6px;
     box-shadow:0 3px 6px rgba(0,0,0,0.4);
@@ -83,7 +83,7 @@
 const timetable = document.getElementById("timetable");
 const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday = getMonday(new Date());
-const headerHeight = 36;
+const headerHeight = 38; // 살짝 확대 (06 라인 밑에 닿지 않게)
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
@@ -130,7 +130,8 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    label.style.top=`${y-5-(h===24?2:0)}px`;
+    if(h===24) label.style.top=`${y-9}px`; // 24 숫자 위로 살짝 더
+    else label.style.top=`${y-5}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
@@ -168,16 +169,14 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
     if(!baseStart||!baseEnd)return;
 
     const instances=[];
-    const now=new Date();
     if(rrule && rrule.includes("FREQ=WEEKLY")){
-      // ✅ 이번 주 이후 일정만 표시 (과거 주차 제외)
-      let recurStart=new Date(baseStart);
-      while(recurStart<new Date(monday.getFullYear()+1,0,1)){ // 최대 1년까지만
-        if(recurStart>=monday || recurStart>=now){ 
-          const recurEnd=new Date(recurStart.getTime()+(baseEnd-baseStart));
-          if(recurStart<=sunday) instances.push({s:recurStart,e:recurEnd});
+      // ✅ "이번 주에 해당하는 반복일정"만 표시
+      for(let i=-52;i<=52;i++){
+        const recurStart=new Date(baseStart.getTime()+i*7*86400000);
+        const recurEnd=new Date(baseEnd.getTime()+i*7*86400000);
+        if(recurStart>=monday && recurStart<=sunday){
+          instances.push({s:recurStart,e:recurEnd});
         }
-        recurStart.setDate(recurStart.getDate()+7);
       }
     } else {
       if(baseStart>=monday && baseStart<=sunday) instances.push({s:baseStart,e:baseEnd});
