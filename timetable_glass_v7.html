@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v6)</title>
+    <title>Weekly Timetable (Glass v7)</title>
 
     <style>
       body {
@@ -41,7 +41,7 @@
       .day {
         position: relative;
         width: 70px;
-        height: 460px; /* 세로 길이 압축 (적당히 보기 좋게) */
+        height: 460px;
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
         display: flex;
@@ -111,9 +111,23 @@
             while ((match = regex.exec(text)) !== null) {
               const start = new Date(match[1].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
               const end = new Date(match[2].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
+              
+              // ⏰ 30분 단위 보정
+              let startHour = start.getUTCHours() + 9;
+              let startMin = start.getUTCMinutes();
+              let endHour = end.getUTCHours() + 9;
+              let endMin = end.getUTCMinutes();
+
+              // 30분 전후 라운드업/다운
+              if (startMin > 0) startHour = Math.floor(startHour);
+              if (endMin > 0) endHour = Math.ceil(endHour);
+
+              const startDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), startHour - 9));
+              const endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), endHour - 9));
+
               events.push({
-                startDate: new Date(start.getTime() + 9 * 60 * 60 * 1000),
-                endDate: new Date(end.getTime() + 9 * 60 * 60 * 1000),
+                startDate: new Date(startDate.getTime() + 9 * 60 * 60 * 1000),
+                endDate: new Date(endDate.getTime() + 9 * 60 * 60 * 1000),
                 summary: match[3],
                 priority: i,
               });
@@ -164,10 +178,7 @@
           dayDiv.append(dateDiv, weekdayDiv);
 
           // 일정 표시
-          const dayEvents = events.filter(
-            (e) => e.startDate >= weekStart && e.startDate < weekEnd
-          );
-          const sameDayEvents = dayEvents.filter(
+          const sameDayEvents = events.filter(
             (e) =>
               e.startDate.getDate() === dayDate.getDate() &&
               e.startDate.getMonth() === dayDate.getMonth()
