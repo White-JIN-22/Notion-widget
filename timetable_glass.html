@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v47)</title>
+<title>Weekly Timetable (Glass v48)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -64,8 +64,8 @@
     grid-template-rows: 35px repeat(19, 1fr);
     width: 45vw;
     max-width: 450px;
-    height: 44vh;
-    margin-top: 6px;
+    height: 48vh;
+    margin-top: 8px;
     border-radius: 18px;
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(18px);
@@ -117,29 +117,32 @@
   .event {
     position: absolute;
     border-radius: 6px;
-    overflow: hidden; /* tooltip 제한 */
+    overflow: hidden;
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
     box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    cursor: pointer;
   }
-
-  .event:hover { transform: translateY(-2px); }
 
   .tooltip {
     position: absolute;
-    bottom: 2px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
+    background: rgba(0,0,0,0.8);
     color: #fff;
-    font-size: 9px;
-    padding: 3px 6px;
-    border-radius: 4px;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
     white-space: pre-line;
-    text-align: center;
     line-height: 1.3;
-    word-break: keep-all;
-    max-width: 100%;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.15s ease;
+  }
+
+  .tooltip.active {
+    opacity: 1;
+    transform: scale(1);
   }
 </style>
 </head>
@@ -168,8 +171,8 @@ const icalUrls = [
 const categoryColors = {
   "업무": "rgba(61,84,127,1)",
   "건강": "rgba(178,192,210,1)",
-  "자기계발": "rgba(155,205,255,1)",
-  "휴식": "rgba(250,250,245,1)"
+  "자기계발": "rgba(160,210,255,1)",
+  "휴식": "rgba(255,255,250,1)"
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -199,19 +202,19 @@ function renderWeek(monday){
 
   const mainHours=[6,12,18,24];
   for(let h=6;h<=24;h++){
+    const label=document.createElement("div");
+    const line=document.createElement("div");
     if(mainHours.includes(h)){
-      const label=document.createElement("div");
       label.className="time-label bold";
       label.textContent=String(h).padStart(2,"0");
-      timetable.appendChild(label);
-      const line=document.createElement("div");
       line.className="grid-line bold";
-      timetable.appendChild(line);
     } else {
-      const line=document.createElement("div");
+      label.className="time-label";
+      label.textContent="";
       line.className="grid-line";
-      timetable.appendChild(line);
     }
+    timetable.appendChild(label);
+    timetable.appendChild(line);
   }
 
   loadICS(icalUrls,monday,today);
@@ -240,38 +243,28 @@ function parseICS(ics,monday,sunday,today){
     const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
-    const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
-    const untilMatch=rrule?.match(/UNTIL=(\d{8})/);
-    const untilDate=untilMatch?new Date(untilMatch[1].slice(0,4),untilMatch[1].slice(4,6)-1,untilMatch[1].slice(6,8)):null;
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
-
-    // 지나간 반복 일정 완전 제외
-    if(untilDate && untilDate < monday)return;
-    if(s < monday && !rrule)return;
+    if(s < monday || s > sunday)return;
 
     if(e.getHours()===0 && e.getDate()>s.getDate()) e.setHours(24,0,0,0);
 
-    const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
-    const targetDate=repeat?getRepeatedDate(s,monday):s;
-    if(targetDate<monday||targetDate>sunday)return;
-
-    const dayIndex=(targetDate.getDay()+6)%7;
+    const dayIndex=(s.getDay()+6)%7;
     const startHour=s.getHours()+s.getMinutes()/60;
     let endHour=e.getHours()+e.getMinutes()/60;
     if(endHour===0 && e.getDate()>s.getDate()) endHour=24;
     if(endHour<=6 && e.getDate()===s.getDate())return;
 
-    const top=Math.round((startHour-6)*rowHeight);
-    const height=Math.round((endHour-startHour)*rowHeight);
+    const top=(startHour-6)*rowHeight;
+    const height=Math.min((endHour-startHour)*rowHeight, timetable.offsetHeight-top);
     const left=35+(dayIndex*((timetable.offsetWidth-35)/7));
     const width=(timetable.offsetWidth-35)/7-6;
 
     const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,1)";
-    const opacity=(targetDate.toDateString()===today.toDateString())?1.0:0.5;
+    const opacity=(s.toDateString()===today.toDateString())?1.0:0.5;
 
     const block=document.createElement("div");
     block.className="event";
@@ -282,12 +275,28 @@ function parseICS(ics,monday,sunday,today){
     block.style.height=`${height}px`;
     block.style.width=`${width}px`;
 
-    const tooltip=document.createElement("div");
-    tooltip.className="tooltip";
-    tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
-    block.appendChild(tooltip);
+    block.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
+      const tooltip=document.createElement("div");
+      tooltip.className="tooltip active";
+      tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
+      timetable.appendChild(tooltip);
+
+      const rect=block.getBoundingClientRect();
+      const parentRect=timetable.getBoundingClientRect();
+      const tooltipX=(dayIndex===6)
+        ? rect.left-parentRect.left-tooltip.offsetWidth-8
+        : rect.right-parentRect.left+8;
+      const tooltipY=rect.top-parentRect.top+rect.height/2-10;
+      tooltip.style.left=`${tooltipX}px`;
+      tooltip.style.top=`${tooltipY}px`;
+    });
+
     timetable.appendChild(block);
   });
+
+  document.addEventListener("click",()=>document.querySelectorAll(".tooltip.active").forEach(t=>t.remove()));
 }
 
 function parseDate(str){
@@ -299,17 +308,6 @@ function parseDate(str){
     return new Date(year,month,day,hour,min);
   }
   return null;
-}
-
-function isRepeatThisWeek(rrule,start,monday,sunday){
-  if(!rrule)return false;
-  return rrule.includes("WEEKLY")&&start<=sunday;
-}
-function getRepeatedDate(start,monday){
-  const dayDiff=(start.getDay()+6)%7;
-  const target=new Date(monday);
-  target.setDate(monday.getDate()+dayDiff);
-  return target;
 }
 
 document.getElementById("prevWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()-7);renderWeek(currentMonday);}
