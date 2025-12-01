@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v58)</title>
+<title>Weekly Timetable (Glass v59)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -18,7 +18,7 @@
     color: #eee; cursor: pointer;
     backdrop-filter: blur(10px); font-size: 0.75rem;
   }
-  .this-week { margin-top:10px; padding:4px 10px; } /* 상단 약간 여백 */
+  .this-week { margin-top:10px; padding:4px 10px; }
   .nav-btn { padding:3px 8px; }
   .top-controls {
     display:flex; align-items:center; justify-content:center;
@@ -31,7 +31,7 @@
   }
   .timetable {
     position:relative;
-    width:45vw; max-width:450px; height:55vh;
+    width:45vw; max-width:450px; height:56vh; /* ✅ 24라인 아래 여백 확보 */
     margin-top:10px; border-radius:18px;
     background:rgba(255,255,255,0.03); backdrop-filter:blur(18px);
     overflow:hidden;
@@ -40,22 +40,25 @@
     position:absolute; text-align:center; font-size:10px;
     font-weight:600; line-height:1.3;
     white-space:pre-line; border-radius:6px;
-    width:calc((100% - 35px)/7); height:34px;
+    width:calc((100% - 28px)/7); height:34px;
     color:rgba(255,255,255,0.6);
-    top:3px; /* 상단 여백 약간 추가 */
-    padding-top:2px; /* 글자 중앙 정렬 */
+    top:12px; /* ✅ 살짝 아래로 내려서 중앙감 */
+    padding-top:2px;
   }
   .day-header.today {
-    background:rgba(255,255,255,0.3);
+    background:rgba(255,255,255,0.2); /* ✅ 불투명도 20% */
     color:#fff; font-weight:700;
-    height:32px; padding-top:3px; /* 중심 정렬 */
+    height:calc(100% - 50px); /* ✅ 06시~24시 영역 전체 덮기 */
+    top:40px;
+    padding-top:0;
   }
   .time-label {
-    position:absolute; left:0; width:35px;
+    position:absolute; left:4px; /* ✅ 왼쪽 여백 줄이기 */
+    width:28px;
     text-align:center; font-size:9px; color:rgba(255,255,255,0.6);
   }
   .grid-line {
-    position:absolute; left:35px; width:calc(100% - 35px);
+    position:absolute; left:32px; width:calc(100% - 32px);
     border-top:1px solid rgba(255,255,255,0.05);
   }
   .grid-line.bold { border-top:1.5px solid rgba(255,255,255,0.35); }
@@ -89,7 +92,7 @@
 const timetable=document.getElementById("timetable");
 const days=["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday=getMonday(new Date());
-const headerHeight=40;
+const headerHeight=42;
 const recurringHolidays=["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 const icalUrls=[
   "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
@@ -109,13 +112,13 @@ function renderWeek(monday){
   weekLabel.textContent=`${monday.getFullYear()} : ${weekNum} / 52W`;
 
   const today=new Date();
-  const colWidth=(timetable.offsetWidth-35)/7;
+  const colWidth=(timetable.offsetWidth-32)/7;
   days.forEach((d,i)=>{
     const date=new Date(monday);
     date.setDate(monday.getDate()+i);
     const header=document.createElement("div");
     header.className="day-header";
-    header.style.left=`${35 + i*colWidth}px`;
+    header.style.left=`${32 + i*colWidth}px`;
     const mdKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
     if(recurringHolidays.includes(mdKey)) header.style.color="rgba(255,150,120,0.9)";
     header.textContent=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
@@ -130,7 +133,7 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    if(h===24) label.style.top=`${y-8}px`; else label.style.top=`${y-5}px`;
+    if(h===24) label.style.top=`${y-7}px`; else label.style.top=`${y-5}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
@@ -173,7 +176,7 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
       for(let i=-52;i<=52;i++){
         const recurStart=new Date(baseStart.getTime()+i*7*86400000);
         const recurEnd=new Date(baseEnd.getTime()+i*7*86400000);
-        if(untilDate && recurStart>untilDate) break; // ✅ UNTIL 이후 중단
+        if(untilDate && recurStart>untilDate) break;
         if(recurStart>=monday && recurStart<=sunday){
           instances.push({s:recurStart,e:recurEnd});
         }
@@ -188,7 +191,7 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
       const endHour=e.getHours()+e.getMinutes()/60||24;
       const top=headerHeight+(startHour-6)*rowHeight;
       const height=(endHour-startHour)*rowHeight;
-      const left=35+(dayIndex*colWidth);
+      const left=32+(dayIndex*colWidth);
       const width=colWidth-6;
       const opacity=(s.toDateString()===today.toDateString())?1:0.5;
 
@@ -209,7 +212,7 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
         tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
         timetable.appendChild(tooltip);
         const rect=block.getBoundingClientRect(),parent=timetable.getBoundingClientRect();
-        const forceLeft=(dayIndex>=5); // ✅ 토·일 왼쪽 표시
+        const forceLeft=(dayIndex>=5);
         let x=forceLeft?rect.left-parent.left-tooltip.offsetWidth-8:rect.right-parent.left+8;
         let y=rect.top-parent.top+rect.height/2-tooltip.offsetHeight/2;
         if(y+tooltip.offsetHeight>timetable.offsetHeight-4)y=timetable.offsetHeight-tooltip.offsetHeight-4;
