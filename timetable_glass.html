@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v49)</title>
+<title>Weekly Timetable (Glass v50 Stable)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -171,17 +171,17 @@ let currentMonday = getMonday(new Date());
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 자기계발
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강/일상
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 업무
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식
 ];
 
-const categoryColors = {
-  "업무": "rgba(61,84,127,1)",
-  "건강": "rgba(178,192,210,1)",
-  "자기계발": "rgba(160,210,255,1)",
-  "휴식": "rgba(255,255,250,1)"
+const icalColorMap = {
+  0: "rgba(160,210,255,1)", // 자기계발 연파랑
+  1: "rgba(200,180,255,1)", // 건강 라벤더
+  2: "rgba(61,84,127,1)",   // 업무 네이비
+  3: "rgba(255,255,245,1)"  // 휴식 아이보리
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -233,18 +233,20 @@ async function loadICS(urls,monday,today){
   const sunday=new Date(monday);
   sunday.setDate(monday.getDate()+6);
   sunday.setHours(23,59,59,999);
-  for(const url of urls){
+  for(const [idx,url] of urls.entries()){
     try{
       const res=await fetch(url);
       const text=await res.text();
-      parseICS(text,monday,sunday,today);
+      parseICS(text,monday,sunday,today,icalColorMap[idx]);
     }catch(err){console.error("ICS fetch error",err);}
   }
 }
 
-function parseICS(ics,monday,sunday,today){
+function parseICS(ics,monday,sunday,today,color){
   const rowHeight=timetable.offsetHeight/(24-6);
+  const columnWidth=(timetable.offsetWidth-35)/7;
   const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
+
   events.forEach(ev=>{
     if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
     if(ev.includes("미리 알림")||ev.includes("이동시간"))return;
@@ -263,16 +265,12 @@ function parseICS(ics,monday,sunday,today){
 
     const dayIndex=(s.getDay()+6)%7;
     const startHour=s.getHours()+s.getMinutes()/60;
-    let endHour=e.getHours()+e.getMinutes()/60;
-    if(endHour===0 && e.getDate()>s.getDate()) endHour=24;
-    if(endHour<=6 && e.getDate()===s.getDate())return;
+    const endHour=e.getHours()+e.getMinutes()/60;
 
-    const top=Math.max(0,Math.floor((startHour-6)*rowHeight));
-    const height=Math.min(Math.floor((endHour-startHour)*rowHeight), timetable.offsetHeight-top);
-    const left=35+(dayIndex*((timetable.offsetWidth-35)/7));
-    const width=(timetable.offsetWidth-35)/7-6;
-
-    const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,1)";
+    const top=Math.max(0,Math.round((startHour-6)*rowHeight));
+    const height=Math.min(Math.round((endHour-startHour)*rowHeight), timetable.offsetHeight-top);
+    const left=Math.round(35+(dayIndex*columnWidth));
+    const width=Math.round(columnWidth-6);
     const opacity=(s.toDateString()===today.toDateString())?1.0:0.5;
 
     const block=document.createElement("div");
