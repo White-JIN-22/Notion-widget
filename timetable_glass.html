@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v59)</title>
+<title>Weekly Timetable (Glass v60)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -18,7 +18,7 @@
     color: #eee; cursor: pointer;
     backdrop-filter: blur(10px); font-size: 0.75rem;
   }
-  .this-week { margin-top:10px; padding:4px 10px; }
+  .this-week { margin-top:8px; padding:4px 10px; }
   .nav-btn { padding:3px 8px; }
   .top-controls {
     display:flex; align-items:center; justify-content:center;
@@ -31,8 +31,8 @@
   }
   .timetable {
     position:relative;
-    width:45vw; max-width:450px; height:56vh; /* ✅ 24라인 아래 여백 확보 */
-    margin-top:10px; border-radius:18px;
+    width:45vw; max-width:450px; height:56vh;
+    margin-top:6px; border-radius:18px;
     background:rgba(255,255,255,0.03); backdrop-filter:blur(18px);
     overflow:hidden;
   }
@@ -42,20 +42,20 @@
     white-space:pre-line; border-radius:6px;
     width:calc((100% - 28px)/7); height:34px;
     color:rgba(255,255,255,0.6);
-    top:12px; /* ✅ 살짝 아래로 내려서 중앙감 */
+    top:6px; /* ✅ 위 여백 줄임 */
     padding-top:2px;
   }
   .day-header.today {
-    background:rgba(255,255,255,0.2); /* ✅ 불투명도 20% */
+    background:rgba(255,255,255,0.1); /* ✅ 불투명도 10% */
     color:#fff; font-weight:700;
-    height:calc(100% - 50px); /* ✅ 06시~24시 영역 전체 덮기 */
-    top:40px;
-    padding-top:0;
+    height:100%; /* ✅ 위아래 뚫림 */
+    top:0;
+    border-radius:0; /* ✅ 전체 세로 하이라이트 */
   }
   .time-label {
-    position:absolute; left:4px; /* ✅ 왼쪽 여백 줄이기 */
-    width:28px;
-    text-align:center; font-size:9px; color:rgba(255,255,255,0.6);
+    position:absolute; left:4px;
+    width:28px; text-align:center;
+    font-size:9px; color:rgba(255,255,255,0.6);
   }
   .grid-line {
     position:absolute; left:32px; width:calc(100% - 32px);
@@ -64,9 +64,10 @@
   .grid-line.bold { border-top:1.5px solid rgba(255,255,255,0.35); }
   .event {
     position:absolute; border-radius:6px;
-    box-shadow:0 3px 6px rgba(0,0,0,0.4);
-    backdrop-filter:blur(8px); cursor:pointer;
+    backdrop-filter:blur(8px);
+    cursor:pointer;
     transition:all 0.2s ease;
+    box-shadow:none; /* ✅ 그림자 제거 */
   }
   .tooltip {
     position:absolute; background:rgba(0,0,0,0.85);
@@ -133,7 +134,7 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    if(h===24) label.style.top=`${y-7}px`; else label.style.top=`${y-5}px`;
+    if(h===24) label.style.top=`${y-5}px`; else label.style.top=`${y-5}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
