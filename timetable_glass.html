@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v60)</title>
+<title>Weekly Timetable (Glass v61)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -31,30 +31,27 @@
   }
   .timetable {
     position:relative;
-    width:45vw; max-width:450px; height:56vh;
+    width:45vw; max-width:450px; height:58vh; /* ✅ 하단 여백 증가 */
     margin-top:6px; border-radius:18px;
     background:rgba(255,255,255,0.03); backdrop-filter:blur(18px);
-    overflow:hidden;
+    overflow:hidden; padding-bottom:16px; /* ✅ 24라인 밑 공간 */
   }
   .day-header {
     position:absolute; text-align:center; font-size:10px;
     font-weight:600; line-height:1.3;
     white-space:pre-line; border-radius:6px;
-    width:calc((100% - 28px)/7); height:34px;
+    width:calc((100% - 32px)/7); height:34px;
     color:rgba(255,255,255,0.6);
-    top:6px; /* ✅ 위 여백 줄임 */
-    padding-top:2px;
+    top:8px; /* ✅ 다른 요일과 동일 높이 */
   }
   .day-header.today {
-    background:rgba(255,255,255,0.1); /* ✅ 불투명도 10% */
+    background:rgba(255,255,255,0.1);
     color:#fff; font-weight:700;
-    height:100%; /* ✅ 위아래 뚫림 */
-    top:0;
-    border-radius:0; /* ✅ 전체 세로 하이라이트 */
+    height:100%; top:0; border-radius:0;
   }
   .time-label {
-    position:absolute; left:4px;
-    width:28px; text-align:center;
+    position:absolute; left:6px;
+    width:26px; text-align:center;
     font-size:9px; color:rgba(255,255,255,0.6);
   }
   .grid-line {
@@ -64,10 +61,8 @@
   .grid-line.bold { border-top:1.5px solid rgba(255,255,255,0.35); }
   .event {
     position:absolute; border-radius:6px;
-    backdrop-filter:blur(8px);
-    cursor:pointer;
-    transition:all 0.2s ease;
-    box-shadow:none; /* ✅ 그림자 제거 */
+    backdrop-filter:blur(8px); cursor:pointer;
+    transition:all 0.2s ease; box-shadow:none;
   }
   .tooltip {
     position:absolute; background:rgba(0,0,0,0.85);
@@ -93,7 +88,7 @@
 const timetable=document.getElementById("timetable");
 const days=["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday=getMonday(new Date());
-const headerHeight=42;
+const headerHeight=40;
 const recurringHolidays=["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 const icalUrls=[
   "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
@@ -134,7 +129,7 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    if(h===24) label.style.top=`${y-5}px`; else label.style.top=`${y-5}px`;
+    if(h===24) label.style.top=`${y-3}px`; else label.style.top=`${y-5}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
@@ -192,8 +187,8 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
       const endHour=e.getHours()+e.getMinutes()/60||24;
       const top=headerHeight+(startHour-6)*rowHeight;
       const height=(endHour-startHour)*rowHeight;
-      const left=32+(dayIndex*colWidth);
-      const width=colWidth-6;
+      const left=32+(dayIndex*colWidth)+2; /* ✅ 왼쪽 쏠림 보정 */
+      const width=colWidth-8; /* ✅ 폭 살짝 늘림 */
       const opacity=(s.toDateString()===today.toDateString())?1:0.5;
 
       const block=document.createElement("div");
