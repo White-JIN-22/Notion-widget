@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v20)</title>
+<title>Weekly Timetable (Glass v21)</title>
 <style>
   body {
     background-color: #0f0f0f;
@@ -119,11 +119,11 @@ function parseICS(color, text) {
     else if (line.startsWith("DTSTART")) {
       if (line.includes("VALUE=DATE")) ev.allday = true;
       else {
-        const m = line.match(/(\d{8}T\d{6})/);
+        const m = line.match(/(?:DTSTART(?:;TZID=[^:]+)?:(\d{8}T\d{6}))/);
         if (m) ev.start = m[1];
       }
     } else if (line.startsWith("DTEND")) {
-      const m = line.match(/(\d{8}T\d{6})/);
+      const m = line.match(/(?:DTEND(?:;TZID=[^:]+)?:(\d{8}T\d{6}))/);
       if (m) ev.end = m[1];
     } else if (line.startsWith("SUMMARY")) ev.title = line.split(":").slice(1).join(":");
     else if (line.startsWith("TRAVELTIME") || line.startsWith("TRIGGER")) ev.ignore = true;
@@ -131,9 +131,14 @@ function parseICS(color, text) {
       if (!ev.start || ev.allday || ev.ignore) continue;
 
       const s = new Date(`${ev.start.slice(0,4)}-${ev.start.slice(4,6)}-${ev.start.slice(6,8)}T${ev.start.slice(9,11)}:${ev.start.slice(11,13)}:00+09:00`);
-      let e = new Date(`${ev.end.slice(0,4)}-${ev.end.slice(4,6)}-${ev.end.slice(6,8)}T${ev.end.slice(9,11)}:${ev.end.slice(11,13)}:00+09:00`);
+      let e;
+      if (ev.end) {
+        e = new Date(`${ev.end.slice(0,4)}-${ev.end.slice(4,6)}-${ev.end.slice(6,8)}T${ev.end.slice(9,11)}:${ev.end.slice(11,13)}:00+09:00`);
+      } else {
+        e = new Date(s.getTime() + 60 * 60 * 1000);
+      }
 
-      // 날짜 넘어가면 같은 날 24:00으로 처리
+      // 00:00 넘어가면 24시 처리
       if (e.getDate() !== s.getDate()) e = new Date(`${s.getFullYear()}-${s.getMonth()+1}-${s.getDate()}T24:00:00+09:00`);
 
       allEvents.push({ start: s, end: e, title: ev.title, color });
