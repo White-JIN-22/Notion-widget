@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v7)</title>
+    <title>Weekly Timetable (Glass v8)</title>
 
     <style>
       body {
@@ -32,7 +32,7 @@
       .time {
         font-size: 10px;
         color: #ccc;
-        height: 24px;
+        height: 14px;
         text-align: right;
         padding-right: 6px;
         opacity: 0.7;
@@ -41,7 +41,7 @@
       .day {
         position: relative;
         width: 70px;
-        height: 460px;
+        height: 280px; /* 👈 세로 길이 40% 단축 */
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
         display: flex;
@@ -112,22 +112,17 @@
               const start = new Date(match[1].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
               const end = new Date(match[2].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
               
-              // ⏰ 30분 단위 보정
+              // 30분 단위 보정
               let startHour = start.getUTCHours() + 9;
-              let startMin = start.getUTCMinutes();
               let endHour = end.getUTCHours() + 9;
+              let startMin = start.getUTCMinutes();
               let endMin = end.getUTCMinutes();
-
-              // 30분 전후 라운드업/다운
               if (startMin > 0) startHour = Math.floor(startHour);
               if (endMin > 0) endHour = Math.ceil(endHour);
 
-              const startDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), startHour - 9));
-              const endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), endHour - 9));
-
               events.push({
-                startDate: new Date(startDate.getTime() + 9 * 60 * 60 * 1000),
-                endDate: new Date(endDate.getTime() + 9 * 60 * 60 * 1000),
+                startDate: new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), startHour - 9)),
+                endDate: new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), endHour - 9)),
                 summary: match[3],
                 priority: i,
               });
@@ -140,17 +135,15 @@
         const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
         const weekStart = new Date(now);
         weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekStart.getDate() + 7);
 
         const container = document.getElementById("timetable");
         container.innerHTML = "";
 
-        // 왼쪽 시간 표시
+        // 왼쪽 시간대 표시
         for (let h = 6; h < 25; h++) {
           const timeDiv = document.createElement("div");
           timeDiv.className = "time";
-          timeDiv.textContent = `${String(h).padStart(2, "0")}:00`;
+          timeDiv.textContent = `${String(h).padStart(2, "0")}`;
           container.appendChild(timeDiv);
         }
 
@@ -177,7 +170,6 @@
 
           dayDiv.append(dateDiv, weekdayDiv);
 
-          // 일정 표시
           const sameDayEvents = events.filter(
             (e) =>
               e.startDate.getDate() === dayDate.getDate() &&
@@ -190,8 +182,8 @@
             const block = document.createElement("div");
             block.className = "block";
             block.style.background = colors[event.priority];
-            block.style.top = `${(startHour - 6) * 22 + 36}px`;
-            block.style.height = `${duration * 18}px`;
+            block.style.top = `${(startHour - 6) * 14 + 36}px`; // 세로 압축 반영
+            block.style.height = `${duration * 12}px`;
             dayDiv.appendChild(block);
           });
 
