@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v11)</title>
+    <title>Weekly Timetable (Glass v12)</title>
 
     <style>
       body {
@@ -27,6 +27,7 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         padding: 10px 14px;
         align-items: flex-start;
+        transform: scale(0.85); /* 가로 전체 15% 축소 */
       }
 
       .time-column {
@@ -35,7 +36,7 @@
         align-items: flex-end;
         justify-content: flex-start;
         margin-right: 8px;
-        padding-top: 48px; /* ⬅️ 요일 아래에서 시작되게 */
+        padding-top: 32px; /* ⬅️ 상단 여백 조정 */
         height: 160px;
       }
 
@@ -43,12 +44,12 @@
         font-size: 10px;
         color: #aaa;
         opacity: 0.8;
-        margin-top: 14px; /* 라벨 간격 균등 */
+        margin-top: 12px; /* 세로 간격 재조정 */
       }
 
       .day {
         position: relative;
-        width: 52px; /* ⬅️ 가로 폭 15% 축소 */
+        width: 50px; /* ⬅️ 폭 살짝 줄임 */
         height: 160px;
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
@@ -71,7 +72,7 @@
       .weekday {
         font-size: 11px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 3px;
       }
 
       .holiday {
@@ -177,25 +178,6 @@
           weekdayDiv.textContent = dayName;
 
           dayDiv.append(dateDiv, weekdayDiv);
-
-          // 이번 주 해당 일정 표시
-          const sameDayEvents = events.filter(
-            (e) =>
-              e.startDate >= weekStart &&
-              e.startDate < weekEnd &&
-              e.startDate.getDate() === dayDate.getDate()
-          );
-
-          sameDayEvents.forEach((event) => {
-            const startHour = event.startDate.getHours();
-            const duration = (event.endDate - event.startDate) / (1000 * 60 * 60);
-            const block = document.createElement("div");
-            block.className = "block";
-            block.style.background = colors[event.priority];
-            block.style.top = `${(startHour - 6) * 5 + 36}px`;
-            block.style.height = `${duration * 5}px`;
-            dayDiv.appendChild(block);
-          });
 
           timetable.appendChild(dayDiv);
         }
