@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v39)</title>
+<title>Weekly Timetable (Glass v40)</title>
 <style>
   body {
     margin: 0;
@@ -18,58 +18,58 @@
   }
 
   .this-week {
-    margin-top: 10px;
+    margin-top: 6px;
     background: rgba(255,255,255,0.08);
     border: none;
-    border-radius: 14px;
+    border-radius: 10px;
     color: #eee;
-    padding: 8px 16px;
-    font-weight: 600;
+    padding: 4px 10px;
+    font-size: 0.7rem;
     cursor: pointer;
     backdrop-filter: blur(10px);
     transition: background 0.2s ease;
   }
-  .this-week:hover {
-    background: rgba(255,255,255,0.15);
-  }
+  .this-week:hover { background: rgba(255,255,255,0.15); }
 
   .top-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 10px;
-    gap: 10px;
+    margin-top: 6px;
+    gap: 6px;
   }
 
   .nav-btn {
     background: rgba(255,255,255,0.08);
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     color: #ccc;
-    padding: 6px 12px;
+    padding: 3px 8px;
     cursor: pointer;
     backdrop-filter: blur(10px);
+    font-size: 0.7rem;
   }
 
   .week-label {
     background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 6px 18px;
+    border-radius: 10px;
+    padding: 4px 10px;
     font-weight: 500;
     color: #e4e4e4;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
+    font-size: 0.75rem;
   }
 
   .timetable {
     position: relative;
-    width: 80vw;
-    max-width: 850px;
-    height: 80vh;
-    margin-top: 10px;
+    width: 45vw;
+    max-width: 450px;
+    height: 40vh;
+    margin-top: 6px;
     background: rgba(255,255,255,0.03);
-    border-radius: 26px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: inset 0 0 20px rgba(255,255,255,0.04);
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.04);
   }
 
   .day-header {
@@ -78,11 +78,12 @@
     width: calc(100% / 7);
     text-align: center;
     font-weight: 600;
-    padding: 10px 0;
+    font-size: 0.7rem;
+    padding: 4px 0;
     background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     white-space: pre-line;
   }
 
@@ -98,17 +99,15 @@
 
   .hour-label {
     position: absolute;
-    left: 10px;
-    font-size: 13px;
+    left: 2px;
+    font-size: 0.65rem;
     color: #aaa;
     font-weight: 500;
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
   }
 
   .event-block {
     position: absolute;
-    border-radius: 12px;
+    border-radius: 8px;
     backdrop-filter: blur(6px);
     opacity: 0.9;
     transition: transform 0.15s ease;
@@ -118,9 +117,9 @@
   .tooltip {
     position: absolute;
     background: rgba(0,0,0,0.85);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.6rem;
     pointer-events: none;
     color: #fff;
     transform: translate(-50%, -110%);
@@ -134,7 +133,7 @@
 <button class="this-week" id="thisWeek">THIS WEEK</button>
 <div class="top-controls">
   <button class="nav-btn" id="prevWeek">←</button>
-  <div class="week-label" id="weekLabel">2025년 49주차 / 52주</div>
+  <div class="week-label" id="weekLabel">2025 : 49 / 52W</div>
   <button class="nav-btn" id="nextWeek">→</button>
 </div>
 
@@ -142,7 +141,7 @@
 
 <script>
 const timetable = document.getElementById("timetable");
-const headerHeight = 60;
+const headerHeight = 35;
 let currentMonday = getMonday(new Date());
 const icalUrls = [
   "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
@@ -152,82 +151,66 @@ const icalUrls = [
 ];
 let allEvents = [];
 
-function getMonday(d) {
-  d = new Date(d);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff));
-}
+function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
+function getWeekNumber(d){const oneJan=new Date(d.getFullYear(),0,1);return Math.ceil((((d-oneJan)/86400000)+oneJan.getDay()+1)/7);}
+const recurringHolidays=["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
-function getWeekNumber(d) {
-  const oneJan = new Date(d.getFullYear(), 0, 1);
-  return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
-}
+function renderWeek(monday){
+  timetable.innerHTML="";
+  const weekLabel=document.getElementById("weekLabel");
+  const weekNum=getWeekNumber(monday);
+  weekLabel.textContent=`${monday.getFullYear()} : ${weekNum} / 52W`;
 
-// 🟥 공휴일 매년 인식
-const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
-
-function renderWeek(monday) {
-  timetable.innerHTML = "";
-  const weekLabel = document.getElementById("weekLabel");
-  const weekNum = getWeekNumber(monday);
-  weekLabel.textContent = `${monday.getFullYear()}년 ${weekNum}주차 / 52주`;
-
-  const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
-
-  // 요일 헤더
-  for (let i=0; i<7; i++) {
-    const head = document.createElement("div");
-    head.className = "day-header";
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    head.style.left = `${(i * 100 / 7)}%`;
-    head.style.width = `calc(100% / 7 - 8px)`;
-    head.style.margin = "4px";
-    head.textContent = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${days[i]}`;
-    const monthDayKey = `${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-    if (recurringHolidays.includes(monthDayKey)) {
-      head.style.color = "rgba(255,150,120,0.9)";
-      head.style.textShadow = "0 0 6px rgba(255,150,120,0.3)";
-    } else if (i===6) head.style.color = "#fff";
+  const days=["MON","TUE","WED","THU","FRI","SAT","SUN"];
+  for(let i=0;i<7;i++){
+    const head=document.createElement("div");
+    head.className="day-header";
+    const date=new Date(monday);
+    date.setDate(monday.getDate()+i);
+    head.style.left=`${(i*100/7)}%`;
+    head.style.width=`calc(100%/7 - 4px)`;
+    head.style.margin="2px";
+    head.textContent=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${days[i]}`;
+    const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    if(recurringHolidays.includes(monthDayKey)){
+      head.style.color="rgba(255,150,120,0.9)";
+      head.style.textShadow="0 0 6px rgba(255,150,120,0.3)";
+    }else if(i===6)head.style.color="#fff";
     timetable.appendChild(head);
   }
 
   // 시간 라인
-  for (let h=6; h<=24; h++) {
-    const line = document.createElement("div");
-    line.className = "hour-line" + ((h % 6 === 0) ? " major-line" : "");
-    line.style.top = `calc(${headerHeight}px + ${((h-6)/18)*100}%)`;
+  for(let h=6;h<=24;h++){
+    const line=document.createElement("div");
+    line.className="hour-line"+((h%6===0)?" major-line":"");
+    line.style.top=`calc(${headerHeight}px + ${((h-6)/18)*100}%)`;
     timetable.appendChild(line);
-    if (h % 6 === 0) {
-      const label = document.createElement("div");
-      label.className = "hour-label";
-      label.style.top = `calc(${headerHeight}px + ${((h-6)/18)*100}%)`;
-      label.textContent = h;
+    if(h%6===0){
+      const label=document.createElement("div");
+      label.className="hour-label";
+      label.style.top=`calc(${headerHeight-10}px + ${((h-6)/18)*100}%)`;
+      label.textContent=h;
       timetable.appendChild(label);
     }
   }
 
-  const weekStart = new Date(monday);
-  const weekEnd = new Date(monday);
+  const weekStart=new Date(monday);
+  const weekEnd=new Date(monday);
   weekEnd.setDate(weekEnd.getDate()+6);
   weekEnd.setHours(23,59,59,999);
-
-  const weekEvents = allEvents.filter(ev => ev.start >= weekStart && ev.start <= weekEnd);
-
+  const weekEvents=allEvents.filter(ev=>ev.start>=weekStart&&ev.start<=weekEnd);
   weekEvents.forEach(ev=>{
-    const block = document.createElement("div");
-    block.className = "event-block";
-    block.style.background = ev.color;
-    const dayIndex = (ev.start.getDay()+6)%7;
-    block.style.left = `calc(${dayIndex*(100/7)}% + 4px)`;
-    block.style.width = `calc(100%/7 - 8px)`;
-    block.style.top = `calc(${headerHeight}px + ${((ev.start.getHours()-6)/18)*100}%)`;
-    block.style.height = `${((ev.end-ev.start)/3600000/18)*100}%`;
-
-    const tooltip = document.createElement("div");
-    tooltip.className = "tooltip";
-    tooltip.textContent = `${ev.start.getHours()}:00 ~ ${ev.end.getHours()}:00 ${ev.title}`;
+    const block=document.createElement("div");
+    block.className="event-block";
+    block.style.background=ev.color;
+    const dayIndex=(ev.start.getDay()+6)%7;
+    block.style.left=`calc(${dayIndex*(100/7)}% + 2px)`;
+    block.style.width=`calc(100%/7 - 4px)`;
+    block.style.top=`calc(${headerHeight}px + ${((ev.start.getHours()-6)/18)*100}%)`;
+    block.style.height=`${((ev.end-ev.start)/3600000/18)*100}%`;
+    const tooltip=document.createElement("div");
+    tooltip.className="tooltip";
+    tooltip.textContent=`${ev.start.getHours()}:00 ~ ${ev.end.getHours()}:00 ${ev.title}`;
     block.appendChild(tooltip);
     block.addEventListener("mouseenter",()=>tooltip.style.display="block");
     block.addEventListener("mouseleave",()=>tooltip.style.display="none");
@@ -237,8 +220,8 @@ function renderWeek(monday) {
 
 async function loadICS(){
   for(const url of icalUrls){
-    const res = await fetch("https://ical-proxy.moonkelly601.workers.dev/?url="+encodeURIComponent(url));
-    const text = await res.text();
+    const res=await fetch("https://ical-proxy.moonkelly601.workers.dev/?url="+encodeURIComponent(url));
+    const text=await res.text();
     parseICS(text,url);
   }
   renderWeek(currentMonday);
@@ -246,10 +229,10 @@ async function loadICS(){
 
 function parseICS(data,url){
   const colorMap={
-    "Inlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM":"#3d547f", // 업무
-    "IlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8":"#b2c0d2", // 자기계발
-    "ImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU":"#cecbd3", // 심리상담
-    "Iks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I":"#f3f1eb"  // 휴식
+    "Inlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM":"#3d547f",
+    "IlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8":"#b2c0d2",
+    "ImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU":"#cecbd3",
+    "Iks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I":"#f3f1eb"
   };
   const colorKey=url.split("Ilx")[1]?.slice(0,30)||"";
   const color=colorMap[colorKey]||"#888";
@@ -278,13 +261,12 @@ function parseDate(str){
   const h=parseInt(str.slice(9,11)||"0");
   const min=parseInt(str.slice(11,13)||"0");
   const local=new Date(Date.UTC(y,m,d,h,min));
-  return new Date(local.getTime()+32400000); // KST 보정 (+9시간)
+  return new Date(local.getTime()+32400000);
 }
 
 document.getElementById("prevWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()-7);renderWeek(currentMonday);}
 document.getElementById("nextWeek").onclick=()=>{currentMonday.setDate(currentMonday.getDate()+7);renderWeek(currentMonday);}
 document.getElementById("thisWeek").onclick=()=>{currentMonday=getMonday(new Date());renderWeek(currentMonday);}
-
 loadICS();
 </script>
 </body>
