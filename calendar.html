@@ -3,197 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>Calendar Widget</title>
+  <title>Weekly Timetable</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600&display=swap');
+
     body {
-      background-color: #1b1b1b;
-      color: #eaeaea;
-      font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: #0d0d0d;
+      font-family: 'Pretendard', sans-serif;
+      color: #f3f1eb;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px 0;
-      transform: scale(0.9);
-      transform-origin: top center;
-    }
-
-    .calendar-container {
-      background-color: #242424;
-      border-radius: 16px;
-      padding: 18px;
-      width: 295px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .header {
-      position: relative;
-      width: 100%;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .header .today-btn {
-      background-color: #4a8cff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 6px 13px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .month-year {
-      display: flex;
-      align-items: center;
       justify-content: center;
-      font-weight: 600;
-      color: #b8c2ff;
-      position: relative;
-      font-size: 15px;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
 
-    .nav-btn {
-      position: absolute;
-      top: 0;
-      background: none;
-      border: none;
-      color: #b8c2ff;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #prevMonth { left: 0; }
-    #nextMonth { right: 0; }
-
-    .calendar {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin-bottom: 10px;
+    .container {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
 
     .day {
-      position: relative;
+      width: 90px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 8px;
+      text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      align-items: center;
-      height: 48px;
-      border-radius: 6px;
-      transition: background-color 0.2s;
-      font-size: 14px;
+      position: relative;
     }
 
-    .day:hover {
-      background-color: #2f2f2f;
-      cursor: pointer;
-    }
-
-    .day.today {
-      background-color: #333c56;
-      color: #4a8cff;
-      font-weight: 700;
-    }
-
-    .holiday { color: #f35a5a; font-weight: 600; }
-
-    .day .dots {
-      position: absolute;
-      top: 52%;
-      left: 50%;
-      transform: translate(-50%, 0);
-      display: grid;
-      grid-template-columns: repeat(2, 6px);
-      grid-template-rows: repeat(2, 6px);
-      justify-content: center;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin: 0 auto;
-    }
-
-    .dot.red { background-color: #f35a5a; }
-    .dot.orange { background-color: #ffb84d; }
-    .dot.blue { background-color: #64a8ff; }
-    .dot.green { background-color: #7ed957; }
-
-    .event-list {
-      width: 295px;
-      background-color: #242424;
-      border-radius: 12px;
-      margin-top: 10px;
-      padding: 12px 16px;
-      text-align: left;
-    }
-
-    .event-list h3 {
-      margin: 0 0 6px 0;
-      color: #d0d6ff;
-      font-size: 15px;
+    .day-header {
+      font-size: 12px;
       font-weight: 600;
+      opacity: 0.8;
+      margin-bottom: 4px;
     }
 
-    .event-item {
-      display: block;
-      font-size: 14px; /* 세부 일정 폰트 커짐 */
-      margin: 5px 0;
-      line-height: 1.4;
+    .date {
+      font-size: 11px;
+      opacity: 0.6;
+      margin-bottom: 8px;
     }
 
-    .event-item .dot {
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 6px;
+    .day.current {
+      background: rgba(243, 241, 235, 0.1);
+      box-shadow: 0 0 12px rgba(243, 241, 235, 0.2);
     }
+
+    .block {
+      border-radius: 10px;
+      margin: 2px 0;
+      height: 12px;
+    }
+
+    /* 색상 팔레트 (업무/건강/자기계발/휴식) */
+    .work { background: #3d547f; }        /* 네이비 */
+    .health { background: #b2c0d2; }      /* 연파랑 */
+    .self { background: #cecbd3; }        /* 라벤더 그레이 */
+    .rest { background: #f3f1eb; }        /* 아이보리 */
   </style>
 </head>
 <body>
-  <div class="calendar-container">
-    <div class="header">
-      <button class="today-btn" id="todayBtn">TODAY</button>
-      <div class="month-year">
-        <button class="nav-btn" id="prevMonth">&#10094;</button>
-        <span id="monthYear"></span>
-        <button class="nav-btn" id="nextMonth">&#10095;</button>
-      </div>
-    </div>
-    <div class="calendar" id="calendar"></div>
-  </div>
-
-  <div class="event-list" id="eventList">
-    <h3>이벤트 없음</h3>
-  </div>
+  <div class="container" id="timetable"></div>
 
   <script>
-    const calendar = document.getElementById("calendar");
-    const monthYear = document.getElementById("monthYear");
-    const todayBtn = document.getElementById("todayBtn");
-    const eventList = document.getElementById("eventList");
-
-    const months = [
-      "JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE",
-      "JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"
-    ];
-
-    const holidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
-    let currentDate = new Date();
-    let allEvents = {};
-
     const icalUrls = [
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
@@ -201,109 +82,87 @@
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
     ];
 
-    const colorMap = { 0: "red", 1: "orange", 2: "blue", 3: "green" };
+    const colors = ["work", "health", "self", "rest"];
+    const container = document.getElementById("timetable");
 
-    async function fetchAllEvents() {
-      const combined = {};
+    async function fetchIcal(url) {
+      const res = await fetch(url);
+      return res.text();
+    }
+
+    function parseICS(ics, index) {
+      const events = [];
+      const lines = ics.split("\n");
+      let event = null;
+
+      for (const line of lines) {
+        if (line.startsWith("BEGIN:VEVENT")) event = {};
+        else if (line.startsWith("END:VEVENT")) {
+          event.priority = index;
+          events.push(event);
+          event = null;
+        } else if (event) {
+          if (line.startsWith("DTSTART")) event.start = line.split(":")[1];
+          else if (line.startsWith("DTEND")) event.end = line.split(":")[1];
+        }
+      }
+      return events;
+    }
+
+    async function loadEvents() {
+      const allEvents = [];
+
       for (let i = 0; i < icalUrls.length; i++) {
-        try {
-          const res = await fetch(icalUrls[i]);
-          const icsText = await res.text();
-          const eventRegex = /BEGIN:VEVENT([\s\S]*?)END:VEVENT/g;
-          let match;
-          while ((match = eventRegex.exec(icsText)) !== null) {
-            const block = match[1];
-            const dtStart = block.match(/DTSTART.*:(\d{8}T?\d{0,6})/);
-            const summary = block.match(/SUMMARY:(.*)/);
-            let startTime = "0000";
-            if (dtStart && dtStart[1].includes("T")) startTime = dtStart[1].split("T")[1].slice(0,4);
-            if (dtStart && summary) {
-              const dateStr = `${dtStart[1].slice(0,4)}-${dtStart[1].slice(4,6)}-${dtStart[1].slice(6,8)}`;
-              const text = summary[1].trim();
-              if (!combined[dateStr]) combined[dateStr] = [];
-              combined[dateStr].push({ color: colorMap[i], text, time: startTime });
-            }
-          }
-        } catch (e) {
-          console.error(`캘린더 ${i+1} 불러오기 실패:`, e);
-        }
+        const data = await fetchIcal(icalUrls[i]);
+        const events = parseICS(data, i);
+        allEvents.push(...events);
       }
-      allEvents = combined;
-      renderCalendar(currentDate);
-      showEvents(formatDate(currentDate));
-    }
 
-    function formatDate(date) {
-      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
-    }
+      const now = new Date();
+      const today = now.getDay();
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - ((today + 6) % 7));
 
-    function renderCalendar(date) {
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const firstDay = new Date(year, month, 1).getDay();
-      const lastDate = new Date(year, month + 1, 0).getDate();
-      monthYear.textContent = `${month + 1}월 :: ${months[month]}`;
-      calendar.innerHTML = "";
-      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
-      for (let day = 1; day <= lastDate; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-        const cell = document.createElement("div");
-        cell.className = "day";
-        cell.textContent = day;
-        const dotsDiv = document.createElement("div");
-        dotsDiv.className = "dots";
-        const dayEvents = (allEvents[dateStr] || []).sort((a,b) => a.time.localeCompare(b.time));
-        const maxDots = Math.min(dayEvents.length, 4);
-        for (let i = 0; i < maxDots; i++) {
-          const dot = document.createElement("div");
-          dot.className = `dot ${dayEvents[i].color}`;
-          dotsDiv.appendChild(dot);
-        }
-        if (maxDots === 1) {
-          dotsDiv.style.gridTemplateColumns = "1fr";
-          dotsDiv.style.gridTemplateRows = "1fr";
-        }
-        const mmdd = `${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-        if (holidays.includes(mmdd)) cell.classList.add("holiday");
-        cell.appendChild(dotsDiv);
-        if (year === new Date().getFullYear() && month === new Date().getMonth() && day === new Date().getDate())
-          cell.classList.add("today");
-        cell.addEventListener("click", () => showEvents(dateStr));
-        calendar.appendChild(cell);
-      }
-    }
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(monday);
+        day.setDate(monday.getDate() + i);
 
-    function showEvents(dateStr) {
-      const dayEvents = (allEvents[dateStr] || []).sort((a,b) => a.time.localeCompare(b.time));
-      const [_, m, d] = dateStr.split("-");
-      eventList.innerHTML = `<h3>${parseInt(m)}월 ${parseInt(d)}일</h3>`;
-      if (dayEvents.length > 0) {
-        dayEvents.forEach(e => {
-          eventList.innerHTML += `
-            <div class="event-item">
-              <span class="dot ${e.color}"></span>${e.text}
-            </div>`;
+        const dayDiv = document.createElement("div");
+        dayDiv.className = "day";
+
+        const dateStr = day.toISOString().slice(5, 10).replace("-", "/");
+        const dayName = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i];
+
+        dayDiv.innerHTML = `<div class="date">${dateStr}</div><div class="day-header">${dayName}</div>`;
+
+        if (i === (today + 6) % 7) dayDiv.classList.add("current");
+
+        const dayStart = new Date(day);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(day);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const dayEvents = allEvents
+          .filter(e => {
+            if (!e.start || !e.end) return false;
+            const s = new Date(e.start.slice(0, 4) + "-" + e.start.slice(4, 6) + "-" + e.start.slice(6, 8) + "T" + e.start.slice(9, 15));
+            const eTime = new Date(e.end.slice(0, 4) + "-" + e.end.slice(4, 6) + "-" + e.end.slice(6, 8) + "T" + e.end.slice(9, 15));
+            return s >= dayStart && s <= dayEnd;
+          })
+          .sort((a, b) => a.priority - b.priority);
+
+        dayEvents.forEach(ev => {
+          const color = colors[ev.priority] || "rest";
+          const block = document.createElement("div");
+          block.className = `block ${color}`;
+          dayDiv.appendChild(block);
         });
+
+        container.appendChild(dayDiv);
       }
     }
 
-    todayBtn.addEventListener("click", () => {
-      currentDate = new Date();
-      renderCalendar(currentDate);
-      showEvents(formatDate(currentDate));
-    });
-
-    document.getElementById("prevMonth").addEventListener("click", () => {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar(currentDate);
-    });
-
-    document.getElementById("nextMonth").addEventListener("click", () => {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar(currentDate);
-    });
-
-    fetchAllEvents();
+    loadEvents();
   </script>
 </body>
 </html>
