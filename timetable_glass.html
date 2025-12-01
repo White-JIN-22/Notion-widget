@@ -179,15 +179,47 @@ function renderWeek() {
 
   timetable.appendChild(document.createElement("div"));
   days.forEach((d,i)=>{
-    const head=document.createElement("div");
-    head.className="day-header"+(i===todayIndex?" today":"");
-    const date=new Date(monday);
-    date.setDate(monday.getDate()+i);
-    const dateStr=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
-    head.textContent=dateStr;
-    timetable.appendChild(head);
-  });
+  // ---- 고정 공휴일 함수 ----
+function getFixedKoreanHolidays(year) {
+  return {
+    [`${year}-01-01`]: "신정",
+    [`${year}-03-01`]: "삼일절",
+    [`${year}-05-05`]: "어린이날",
+    [`${year}-06-06`]: "현충일",
+    [`${year}-08-15`]: "광복절",
+    [`${year}-09-28`]: "추석(예시)", // 제외 가능
+    [`${year}-10-03`]: "개천절",
+    [`${year}-10-09`]: "한글날",
+    [`${year}-12-25`]: "크리스마스",
+  };
+}
 
+// ---- 요일 렌더링 부분 ----
+days.forEach((d, i) => {
+  const head = document.createElement("div");
+  head.className = "day-header" + (i === todayIndex ? " today" : "");
+
+  const date = new Date(monday);
+  date.setDate(monday.getDate() + i);
+  const dateStr = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}\n${d}`;
+  head.textContent = dateStr;
+
+  // ---- 공휴일 / 일요일 색상 처리 ----
+  const holidays = getFixedKoreanHolidays(date.getFullYear());
+  const dateKey = date.toISOString().split("T")[0];
+  const isSunday = i === 6; // 일요일
+  const isHoliday = holidays[dateKey] !== undefined;
+
+  if (isHoliday) {
+    head.style.color = "rgba(255, 150, 120, 0.9)";
+    head.style.textShadow = "0 0 6px rgba(255, 150, 120, 0.3)";
+  } else if (isSunday) {
+    head.style.color = "#ffffff"; // 일요일은 흰색
+    head.style.textShadow = "none";
+  }
+
+  timetable.appendChild(head);
+});
   for(let h=6;h<=24;h++){
     const label=document.createElement("div");
     label.className="time-label"+((h===6||h===9||h===12||h===24)?" bold":"");
