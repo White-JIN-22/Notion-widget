@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
-  <title>Weekly Timetable (Glass Mini Secure)</title>
+  <title>Weekly Timetable (Glass Mini Secure v3.1)</title>
   <style>
     body {
       background-color: #111;
@@ -19,23 +19,23 @@
 
     .container {
       display: flex;
-      gap: 3px;
-      padding: 10px;
-      border-radius: 18px;
+      gap: 4px;
+      padding: 12px;
+      border-radius: 20px;
       backdrop-filter: blur(25px) saturate(180%);
       background: rgba(255, 255, 255, 0.05);
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     .day {
-      width: 30px;
-      height: 80px;
-      border-radius: 12px;
+      width: 40px;
+      height: 100px;
+      border-radius: 14px;
       text-align: center;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      padding: 5px 2px;
+      padding: 6px 3px;
       background: rgba(255, 255, 255, 0.06);
       box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
       position: relative;
@@ -43,13 +43,13 @@
     }
 
     .day strong {
-      font-size: 8px;
+      font-size: 9px;
       display: block;
       opacity: 0.8;
     }
 
     .day span {
-      font-size: 10px;
+      font-size: 11px;
       margin-top: 3px;
       display: block;
     }
@@ -65,8 +65,8 @@
 
     .block {
       position: absolute;
-      left: 2px;
-      width: calc(100% - 4px);
+      left: 3px;
+      width: calc(100% - 6px);
       border-radius: 6px;
       opacity: 0.9;
     }
@@ -98,19 +98,19 @@
         const end = /DTEND.*:(\d+)/.exec(block)?.[1];
         const summary = /SUMMARY:(.+)/.exec(block)?.[1];
         if (start && end) {
-          const startDate = new Date(
+          const startDate = new Date(Date.UTC(
             start.slice(0,4), start.slice(4,6)-1, start.slice(6,8),
             start.slice(9,11), start.slice(11,13)
-          );
-          const endDate = new Date(
+          ));
+          const endDate = new Date(Date.UTC(
             end.slice(0,4), end.slice(4,6)-1, end.slice(6,8),
             end.slice(9,11), end.slice(11,13)
-          );
+          ));
           events.push({
             start: startDate,
             end: endDate,
             summary,
-            priority: Object.keys(priorityMap).find(k => summary.includes(k)) 
+            priority: Object.keys(priorityMap).find(k => summary?.includes(k)) 
                       ? priorityMap[Object.keys(priorityMap).find(k => summary.includes(k))] : 5
           });
         }
@@ -135,9 +135,8 @@
         .flat();
 
       const grid = document.createElement('div');
-      grid.className = 'grid';
       grid.style.display = 'flex';
-      grid.style.gap = '3px';
+      grid.style.gap = '4px';
 
       for (const d of days) {
         const day = document.createElement('div');
@@ -152,8 +151,10 @@
         day.innerHTML = `<strong class="${isHoliday ? 'holiday' : ''}">${month}/${date}</strong>
                          <span>${['MON','TUE','WED','THU','FRI','SAT','SUN'][d.getDay()]}</span>`;
 
+        const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
+        const dayEnd = new Date(d); dayEnd.setHours(23,59,59,999);
         const dayEvents = allEvents.filter(e =>
-          e.start.toDateString() === d.toDateString()
+          e.start < dayEnd && e.end > dayStart
         ).sort((a,b) => a.priority - b.priority || a.start - b.start);
 
         if (dayEvents.length) {
