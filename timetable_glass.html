@@ -1,9 +1,9 @@
-const timetable<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v51 Stable)</title>
+<title>Weekly Timetable (Glass v52 Full Stable)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -218,7 +218,6 @@ function renderWeek(monday){
       line.className="grid-line bold";
     } else {
       label.className="time-label";
-      label.textContent="";
       line.className="grid-line";
     }
     timetable.appendChild(label);
@@ -241,86 +240,87 @@ async function loadICS(urls,monday,today){
   }
 }
 
-function parseICS(ics,monday,sunday,today,color){
-  const rowHeight=timetable.offsetHeight/(24-6-0.001); // 미세 오차 방지
-  const columnWidth=(timetable.offsetWidth-35)/7;
-  const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
+function parseICS(ics, monday, sunday, today, color) {
+  const rowHeight = timetable.offsetHeight / (24 - 6);
+  const columnWidth = (timetable.offsetWidth - 35) / 7;
+  const events = ics.split("BEGIN:VEVENT").slice(1).map(e => "BEGIN:VEVENT" + e);
 
-  events.forEach(ev=>{
-    if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
-    if(ev.includes("미리 알림")||ev.includes("이동시간"))return;
+  events.forEach(ev => {
+    if (ev.includes("VTODO") || ev.includes("VEVENT;VALUE=DATE")) return;
+    if (ev.includes("미리 알림") || ev.includes("이동시간")) return;
 
-    const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
-    const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
-    const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
-    const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
-    if(!start||!end)return;
+    const summary = (ev.match(/SUMMARY:(.+)/) || [])[1]?.trim() || "";
+    const start = (ev.match(/DTSTART[^:]*:(.+)/) || [])[1];
+    const end = (ev.match(/DTEND[^:]*:(.+)/) || [])[1];
+    const rrule = (ev.match(/RRULE:(.+)/) || [])[1];
+    if (!start || !end) return;
 
-    const s=parseDate(start);
-    const e=parseDate(end);
-    if(!s||!e)return;
+    const baseStart = parseDate(start);
+    const baseEnd = parseDate(end);
+    if (!baseStart || !baseEnd) return;
 
-    // 반복 일정이면 해당 주차에 해당하는 날짜로 복제
-    if(rrule && rrule.includes("FREQ=WEEKLY")){
-      for(let i=0;i<52;i++){
-        const recur=new Date(s);
-        recur.setDate(s.getDate()+7*i);
-        if(recur>=monday && recur<=sunday){
-          drawEvent(recur,new Date(recur.getTime()+(e-s)),today,color,summary,columnWidth,rowHeight);
+    const eventInstances = [];
+    if (rrule && rrule.includes("FREQ=WEEKLY")) {
+      for (let i = -4; i <= 52; i++) {
+        const recurStart = new Date(baseStart.getTime() + i * 7 * 86400000);
+        const recurEnd = new Date(baseEnd.getTime() + i * 7 * 86400000);
+        if (recurStart >= monday && recurStart <= sunday) {
+          eventInstances.push({ s: recurStart, e: recurEnd });
         }
       }
     } else {
-      if(s < monday || s > sunday)return;
-      drawEvent(s,e,today,color,summary,columnWidth,rowHeight);
+      if (baseStart >= monday && baseStart <= sunday)
+        eventInstances.push({ s: baseStart, e: baseEnd });
     }
+
+    eventInstances.forEach(({ s, e }) => {
+      const dayIndex = (s.getDay() + 6) % 7;
+      const startHour = s.getHours() + s.getMinutes() / 60;
+      const endHour = e.getHours() + e.getMinutes() / 60 || 24;
+
+      const top = Math.round((startHour - 6) * rowHeight + 0.5);
+      const height = Math.round((endHour - startHour) * rowHeight);
+      const left = Math.round(35 + (dayIndex * columnWidth) + 0.5);
+      const width = Math.round(columnWidth - 6);
+      const opacity = s < today ? 0.4 : (s.toDateString() === today.toDateString() ? 1.0 : 0.7);
+
+      const block = document.createElement("div");
+      block.className = "event";
+      block.style.backgroundColor = color;
+      block.style.opacity = opacity;
+      block.style.top = `${top}px`;
+      block.style.left = `${left}px`;
+      block.style.height = `${height}px`;
+      block.style.width = `${width}px`;
+
+      block.addEventListener("click", e => {
+        e.stopPropagation();
+        document.querySelectorAll(".tooltip.active").forEach(t => t.remove());
+        const tooltip = document.createElement("div");
+        tooltip.className = "tooltip active";
+        tooltip.innerHTML = `<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
+        timetable.appendChild(tooltip);
+
+        const rect = block.getBoundingClientRect();
+        const parentRect = timetable.getBoundingClientRect();
+        let tooltipX = (dayIndex === 6)
+          ? rect.left - parentRect.left - tooltip.offsetWidth - 8
+          : rect.right - parentRect.left + 8;
+        let tooltipY = rect.top - parentRect.top + rect.height / 2 - tooltip.offsetHeight / 2;
+
+        if (tooltipY + tooltip.offsetHeight > timetable.offsetHeight - 4)
+          tooltipY = timetable.offsetHeight - tooltip.offsetHeight - 4;
+        if (tooltipY < 0) tooltipY = 0;
+
+        tooltip.style.left = `${tooltipX}px`;
+        tooltip.style.top = `${tooltipY}px`;
+      });
+
+      timetable.appendChild(block);
+    });
   });
 
   document.addEventListener("click",()=>document.querySelectorAll(".tooltip.active").forEach(t=>t.remove()));
-}
-
-function drawEvent(s,e,today,color,summary,columnWidth,rowHeight){
-  const dayIndex=(s.getDay()+6)%7;
-  const startHour=s.getHours()+s.getMinutes()/60;
-  const endHour=e.getHours()+e.getMinutes()/60 || 24;
-  const top=Math.round((startHour-6)*rowHeight);
-  const height=Math.round((endHour-startHour)*rowHeight);
-  const left=Math.round(35+(dayIndex*columnWidth));
-  const width=Math.round(columnWidth-6);
-  const opacity=(s.toDateString()===today.toDateString())?1.0:0.5;
-
-  const block=document.createElement("div");
-  block.className="event";
-  block.style.backgroundColor=color;
-  block.style.opacity=opacity;
-  block.style.top=`${top}px`;
-  block.style.left=`${left}px`;
-  block.style.height=`${height}px`;
-  block.style.width=`${width}px`;
-
-  block.addEventListener("click",(e)=>{
-    e.stopPropagation();
-    document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
-    const tooltip=document.createElement("div");
-    tooltip.className="tooltip active";
-    tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
-    timetable.appendChild(tooltip);
-
-    const rect=block.getBoundingClientRect();
-    const parentRect=timetable.getBoundingClientRect();
-    let tooltipX=(dayIndex===6)
-      ? rect.left-parentRect.left-tooltip.offsetWidth-8
-      : rect.right-parentRect.left+8;
-    let tooltipY=rect.top-parentRect.top+rect.height/2-tooltip.offsetHeight/2;
-
-    if(tooltipY+tooltip.offsetHeight>timetable.offsetHeight-4)
-      tooltipY=timetable.offsetHeight-tooltip.offsetHeight-4;
-    if(tooltipY<0) tooltipY=0;
-
-    tooltip.style.left=`${tooltipX}px`;
-    tooltip.style.top=`${tooltipY}px`;
-  });
-
-  timetable.appendChild(block);
 }
 
 function parseDate(str){
