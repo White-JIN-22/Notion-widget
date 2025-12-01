@@ -1,185 +1,151 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="robots" content="noindex, nofollow">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v31)</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Weekly Timetable (Glass v34)</title>
 <style>
   body {
-    background: #0d0d0d;
-    color: #fff;
-    font-family: "Inter", "Pretendard", sans-serif;
+    background: #0e0e0e;
+    font-family: 'Pretendard', sans-serif;
+    color: #f0f0f0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
     height: 100vh;
-    overflow: hidden;
+    margin: 0;
   }
 
-  /* 상단 주차 이동 바 */
-  .week-nav {
+  .top-bar {
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 30px;
-    margin: 10px 0 15px;
-    color: rgba(255,255,255,0.7);
-    font-size: 14px;
-    user-select: none;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
   }
-  .week-nav button {
-    background: none;
+
+  .nav-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ddd;
     border: none;
-    color: rgba(255,255,255,0.6);
-    font-size: 18px;
+    padding: 8px 14px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: color 0.2s;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
   }
-  .week-nav button:hover {
-    color: rgba(255,255,255,0.9);
+
+  .nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .week-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: #ccc;
+    background: rgba(255,255,255,0.08);
+    padding: 6px 18px;
+    border-radius: 14px;
+    backdrop-filter: blur(6px);
   }
 
   .timetable {
     display: grid;
-    grid-template-columns: 45px repeat(7, 1fr);
-    grid-template-rows: 65px repeat(18, 1fr);
-    width: 85vw;
-    height: 80vh;
-    border-radius: 25px;
-    background: rgba(30, 30, 30, 0.4);
-    backdrop-filter: blur(25px);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    grid-template-columns: repeat(7, 1fr);
     position: relative;
+    width: 80vw;
+    max-width: 850px;
+    height: 84vh;
+    margin-top: 24px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
     overflow: hidden;
+    backdrop-filter: blur(20px);
   }
 
   .day-header {
     text-align: center;
-    font-size: 12px;
+    padding: 12px 0;
     font-weight: 600;
-    line-height: 1.2;
-    padding-top: 10px;
-    border-right: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     white-space: pre-line;
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-    border-radius: 8px;
   }
 
-  .day-header.today {
-    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%);
-    box-shadow: inset 0 0 8px rgba(255,255,255,0.25);
-  }
-
-  .time-label {
-    text-align: right;
-    padding-right: 6px;
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .time-label.bold {
-    font-size: 13px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .grid-line {
-    grid-column: 2 / span 7;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-  }
-  .grid-line.bold {
-    border-top: 1.5px solid rgba(255, 255, 255, 0.15);
-  }
-  .grid-line.strong {
-    border-top: 2.5px solid rgba(255,255,255,0.25);
-  }
-
-  .event {
+  .hour-line {
     position: absolute;
-    left: calc(45px + (var(--day-index) * (100% / 8)));
-    width: calc((100% - 45px) / 8 - 7px);
-    border-radius: 10px;
-    background: var(--event-color, rgba(120, 160, 255, 0.4));
-    backdrop-filter: blur(10px);
-    transition: all 0.2s ease;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    left: 0;
+    width: 100%;
+    border-top: 1px solid rgba(255,255,255,0.06);
   }
-  .event:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+
+  .hour-label {
+    position: absolute;
+    left: -38px;
+    font-size: 14px;
+    color: #aaa;
+  }
+
+  .major-line {
+    border-top: 2px solid rgba(255,255,255,0.15);
+  }
+
+  .event-block {
+    position: absolute;
+    width: calc(100% / 7 - 8px);
+    margin-left: 4px;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    opacity: 0.9;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4px;
+    transition: transform 0.15s ease;
+  }
+
+  .event-block:hover {
+    transform: scale(1.05);
   }
 
   .tooltip {
     position: absolute;
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    white-space: nowrap;
-    transform: translate(-50%, -110%);
-    opacity: 0;
-    transition: opacity 0.2s;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
     pointer-events: none;
-  }
-  .event:hover .tooltip {
-    opacity: 1;
+    color: white;
+    transform: translate(-50%, -110%);
   }
 </style>
 </head>
 <body>
-  <div class="week-nav">
-    <button id="prevWeek">←</button>
-    <span id="weekRange"></span>
-    <button id="nextWeek">→</button>
-  </div>
 
-  <div class="timetable" id="timetable"></div>
+<div class="top-bar">
+  <button class="nav-btn" id="prevWeek">←</button>
+  <div class="week-label" id="weekLabel">Dec 1 - 7</div>
+  <button class="nav-btn" id="nextWeek">→</button>
+  <button class="nav-btn" id="thisWeek">THIS WEEK</button>
+</div>
+
+<div class="timetable" id="timetable"></div>
 
 <script>
 const timetable = document.getElementById("timetable");
-const weekRange = document.getElementById("weekRange");
-let baseDate = new Date();
+let currentMonday = getMonday(new Date());
 
-const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
-const categoryColors = {
-  "업무": "rgba(61, 84, 127, 0.85)",     // 네이비 (#3d547f)
-  "건강": "rgba(178, 192, 210, 0.85)",   // 연파랑 (#b2c0d2)
-  "자기계발": "rgba(206, 203, 211, 0.85)", // 라벤더그레이 (#cecbd3)
-  "휴식": "rgba(243, 241, 235, 0.85)"    // 아이보리 (#f3f1eb)
-};
-const icalUrls = [
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
-];
-
-document.getElementById("prevWeek").onclick = () => changeWeek(-7);
-document.getElementById("nextWeek").onclick = () => changeWeek(7);
-
-function changeWeek(diff) {
-  baseDate.setDate(baseDate.getDate() + diff);
-  renderWeek();
+function getMonday(d) {
+  d = new Date(d);
+  const day = d.getDay(),
+        diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff));
 }
 
-function renderWeek() {
-  timetable.innerHTML = "";
-  const todayIndex = (baseDate.getDay() + 6) % 7;
-  const monday = new Date(baseDate);
-  monday.setDate(baseDate.getDate() - todayIndex);
-  monday.setHours(0,0,0,0);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  sunday.setHours(23,59,59,999);
-
-  const rangeText = `${monday.toLocaleString('en-US',{month:'short'})} ${monday.getDate()} - ${sunday.getDate()}`;
-  weekRange.textContent = rangeText;
-
-  timetable.appendChild(document.createElement("div"));
-  days.forEach((d,i)=>{
-  // ---- 고정 공휴일 함수 ----
 function getFixedKoreanHolidays(year) {
   return {
     [`${year}-01-01`]: "신정",
@@ -187,110 +153,96 @@ function getFixedKoreanHolidays(year) {
     [`${year}-05-05`]: "어린이날",
     [`${year}-06-06`]: "현충일",
     [`${year}-08-15`]: "광복절",
-    [`${year}-09-28`]: "추석(예시)", // 제외 가능
     [`${year}-10-03`]: "개천절",
     [`${year}-10-09`]: "한글날",
     [`${year}-12-25`]: "크리스마스",
   };
 }
 
-// ---- 요일 렌더링 부분 ----
-days.forEach((d, i) => {
-  const head = document.createElement("div");
-  head.className = "day-header" + (i === todayIndex ? " today" : "");
+function renderWeek(monday) {
+  timetable.innerHTML = "";
+  const weekLabel = document.getElementById("weekLabel");
+  const start = new Date(monday);
+  const end = new Date(monday);
+  end.setDate(end.getDate() + 6);
+  weekLabel.textContent = `${start.toLocaleString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleString('en-US', { month: 'short', day: 'numeric' })}`;
 
-  const date = new Date(monday);
-  date.setDate(monday.getDate() + i);
-  const dateStr = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}\n${d}`;
-  head.textContent = dateStr;
+  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  const today = new Date();
+  const todayIndex = (today.getDay() + 6) % 7;
+  const holidays = getFixedKoreanHolidays(monday.getFullYear());
 
-  // ---- 공휴일 / 일요일 색상 처리 ----
-  const holidays = getFixedKoreanHolidays(date.getFullYear());
-  const dateKey = date.toISOString().split("T")[0];
-  const isSunday = i === 6; // 일요일
-  const isHoliday = holidays[dateKey] !== undefined;
+  days.forEach((d, i) => {
+    const head = document.createElement("div");
+    head.className = "day-header" + (i === todayIndex ? " today" : "");
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    const dateStr = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
+    head.textContent = dateStr;
 
-  if (isHoliday) {
-    head.style.color = "rgba(255, 150, 120, 0.9)";
-    head.style.textShadow = "0 0 6px rgba(255, 150, 120, 0.3)";
-  } else if (isSunday) {
-    head.style.color = "#ffffff"; // 일요일은 흰색
-    head.style.textShadow = "none";
-  }
+    const dateKey = date.toISOString().split("T")[0];
+    const isSunday = i === 6;
+    const isHoliday = holidays[dateKey];
 
-  timetable.appendChild(head);
-});
-  for(let h=6;h<=24;h++){
-    const label=document.createElement("div");
-    label.className="time-label"+((h===6||h===9||h===12||h===24)?" bold":"");
-    label.textContent=(h===6||h===9||h===12||h===24)?String(h).padStart(2,"0"):"";
-    timetable.appendChild(label);
-    const line=document.createElement("div");
-    line.className="grid-line"+((h===6||h===9||h===12||h===24)?" strong":"");
-    timetable.appendChild(line);
-  }
-
-  loadICS(icalUrls, monday, sunday);
-}
-
-async function loadICS(urls, monday, sunday){
-  for(const url of urls){
-    try{
-      const res=await fetch(url);
-      const text=await res.text();
-      parseICS(text,monday,sunday);
-    }catch(err){console.error("ICS fetch error",err);}
-  }
-}
-
-function parseICS(ics,monday,sunday){
-  const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
-  events.forEach(ev=>{
-    if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
-    if(ev.includes("미리 알림")||ev.includes("이동시간"))return;
-    const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
-    const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
-    const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
-    if(!start||!end)return;
-    const s=parseDate(start),e=parseDate(end);
-    if(!s||!e)return;
-    if(s<sunday&&s>=monday){
-      const dayIndex=(s.getDay()+6)%7;
-      let startHour=s.getHours()+s.getMinutes()/60;
-      let endHour=e.getHours()+e.getMinutes()/60;
-      if(endHour===0&&e.getDate()>s.getDate())endHour=24;
-      if(endHour>24)endHour=24;
-
-      const top=((startHour-6)/18)*100;
-      const height=((endHour-startHour)/18)*100;
-      const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,0.4)";
-      const block=document.createElement("div");
-      block.className="event";
-      block.style.setProperty("--day-index",dayIndex);
-      block.style.top=`${top}%`;
-      block.style.height=`${height}%`;
-      block.style.setProperty("--event-color",color);
-      const tooltip=document.createElement("div");
-      tooltip.className="tooltip";
-      tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")} ~ ${e.getHours().toString().padStart(2,"0")}:${e.getMinutes().toString().padStart(2,"0")}  ${summary}`;
-      block.appendChild(tooltip);
-      timetable.appendChild(block);
+    if (isHoliday) {
+      head.style.color = "rgba(255,150,120,0.9)";
+      head.style.textShadow = "0 0 6px rgba(255,150,120,0.3)";
+    } else if (isSunday) {
+      head.style.color = "#ffffff";
     }
+
+    timetable.appendChild(head);
+  });
+
+  // 시간 라인 (06~24 동일 간격)
+  for (let h = 6; h <= 24; h++) {
+    const line = document.createElement("div");
+    line.className = "hour-line" + ((h % 6 === 0) ? " major-line" : "");
+    line.style.top = `${((h - 6) / 18) * 100}%`;
+    timetable.appendChild(line);
+
+    const label = document.createElement("div");
+    label.className = "hour-label";
+    label.style.top = `${((h - 6) / 18) * 100}%`;
+    label.textContent = h.toString().padStart(2,"0");
+    timetable.appendChild(label);
+  }
+
+  // 테스트용 블록 (실제엔 iCal 데이터로 대체)
+  const sampleEvents = [
+    { title: "자기계발이다!", start: 11, end: 12, day: 1, color: "#b2c0d2" },
+    { title: "심리상담", start: 14, end: 15, day: 1, color: "#cecbd3" },
+    { title: "업무", start: 16, end: 17, day: 1, color: "#3d547f" },
+    { title: "휴식", start: 23, end: 24, day: 1, color: "#f3f1eb" },
+  ];
+
+  sampleEvents.forEach(ev => {
+    const block = document.createElement("div");
+    block.className = "event-block";
+    block.style.background = ev.color;
+    block.style.left = `calc(${(ev.day) * (100 / 7)}% + 4px)`;
+    block.style.top = `${((ev.start - 6) / 18) * 100}%`;
+    block.style.height = `${((ev.end - ev.start) / 18) * 100}%`;
+    block.textContent = ev.title;
+    timetable.appendChild(block);
   });
 }
 
-function parseDate(str){
-  if(!str)return null;
-  if(str.includes("T")){
-    const [date,time]=str.split("T");
-    const year=date.slice(0,4),month=date.slice(4,6)-1,day=date.slice(6,8);
-    const hour=parseInt(time.slice(0,2)),min=parseInt(time.slice(2,4));
-    return new Date(year,month,day,hour,min);
-  }
-  return null;
-}
+// 버튼 동작
+document.getElementById("prevWeek").addEventListener("click", () => {
+  currentMonday.setDate(currentMonday.getDate() - 7);
+  renderWeek(currentMonday);
+});
+document.getElementById("nextWeek").addEventListener("click", () => {
+  currentMonday.setDate(currentMonday.getDate() + 7);
+  renderWeek(currentMonday);
+});
+document.getElementById("thisWeek").addEventListener("click", () => {
+  currentMonday = getMonday(new Date());
+  renderWeek(currentMonday);
+});
 
-renderWeek();
+renderWeek(currentMonday);
 </script>
 </body>
 </html>
