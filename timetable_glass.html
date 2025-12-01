@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Weekly Timetable (Glass v8)</title>
+    <title>Weekly Timetable (Glass v9)</title>
 
     <style>
       body {
@@ -19,35 +19,42 @@
       }
 
       .container {
-        display: grid;
-        grid-template-columns: 40px repeat(7, 1fr);
-        gap: 4px;
+        display: flex;
+        gap: 6px;
         background: rgba(255, 255, 255, 0.04);
         backdrop-filter: blur(20px);
         border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        padding: 12px;
+        padding: 10px 14px;
+        align-items: flex-start;
+      }
+
+      .time-column {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 180px; /* 👈 세로 길이 확 줄임 */
+        margin-right: 8px;
       }
 
       .time {
         font-size: 10px;
         color: #ccc;
+        opacity: 0.8;
         height: 14px;
-        text-align: right;
-        padding-right: 6px;
-        opacity: 0.7;
       }
 
       .day {
         position: relative;
-        width: 70px;
-        height: 280px; /* 👈 세로 길이 40% 단축 */
+        width: 60px;
+        height: 180px;
         border-radius: 14px;
         background: rgba(255, 255, 255, 0.07);
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding-top: 6px;
+        padding-top: 4px;
       }
 
       .day.today {
@@ -56,14 +63,14 @@
       }
 
       .date {
-        font-size: 11px;
+        font-size: 10px;
         opacity: 0.9;
       }
 
       .weekday {
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 600;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
 
       .holiday {
@@ -80,14 +87,14 @@
     </style>
   </head>
   <body>
-    <div class="container" id="timetable"></div>
+    <div class="container">
+      <div class="time-column" id="timeLabels"></div>
+      <div id="timetable" style="display: flex; gap: 4px"></div>
+    </div>
 
     <script>
       const icalUrls = [
         "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
-        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
-        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
-        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I",
       ];
 
       const holidays = [
@@ -98,6 +105,15 @@
 
       const priorities = ["업무", "건강", "자기계발", "휴식"];
       const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb"];
+
+      // ⏰ 왼쪽 시간 라벨
+      const timeLabels = document.getElementById("timeLabels");
+      for (let h = 6; h <= 24; h++) {
+        const t = document.createElement("div");
+        t.className = "time";
+        t.textContent = String(h).padStart(2, "0");
+        timeLabels.appendChild(t);
+      }
 
       async function loadEvents() {
         let events = [];
@@ -111,15 +127,10 @@
             while ((match = regex.exec(text)) !== null) {
               const start = new Date(match[1].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
               const end = new Date(match[2].replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6Z"));
-              
-              // 30분 단위 보정
               let startHour = start.getUTCHours() + 9;
               let endHour = end.getUTCHours() + 9;
-              let startMin = start.getUTCMinutes();
-              let endMin = end.getUTCMinutes();
-              if (startMin > 0) startHour = Math.floor(startHour);
-              if (endMin > 0) endHour = Math.ceil(endHour);
-
+              if (start.getUTCMinutes() > 0) startHour = Math.floor(startHour);
+              if (end.getUTCMinutes() > 0) endHour = Math.ceil(endHour);
               events.push({
                 startDate: new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), startHour - 9)),
                 endDate: new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), endHour - 9)),
@@ -135,22 +146,12 @@
         const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
         const weekStart = new Date(now);
         weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-
-        const container = document.getElementById("timetable");
-        container.innerHTML = "";
-
-        // 왼쪽 시간대 표시
-        for (let h = 6; h < 25; h++) {
-          const timeDiv = document.createElement("div");
-          timeDiv.className = "time";
-          timeDiv.textContent = `${String(h).padStart(2, "0")}`;
-          container.appendChild(timeDiv);
-        }
+        const timetable = document.getElementById("timetable");
+        timetable.innerHTML = "";
 
         for (let i = 0; i < 7; i++) {
           const dayDate = new Date(weekStart);
           dayDate.setDate(weekStart.getDate() + i);
-
           const dateStr = dayDate.toISOString().split("T")[0];
           const isHoliday = holidays.includes(dateStr);
           const dayName = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i];
@@ -170,24 +171,7 @@
 
           dayDiv.append(dateDiv, weekdayDiv);
 
-          const sameDayEvents = events.filter(
-            (e) =>
-              e.startDate.getDate() === dayDate.getDate() &&
-              e.startDate.getMonth() === dayDate.getMonth()
-          );
-
-          sameDayEvents.forEach((event) => {
-            const startHour = event.startDate.getHours();
-            const duration = (event.endDate - event.startDate) / (1000 * 60 * 60);
-            const block = document.createElement("div");
-            block.className = "block";
-            block.style.background = colors[event.priority];
-            block.style.top = `${(startHour - 6) * 14 + 36}px`; // 세로 압축 반영
-            block.style.height = `${duration * 12}px`;
-            dayDiv.appendChild(block);
-          });
-
-          container.appendChild(dayDiv);
+          timetable.appendChild(dayDiv);
         }
       }
 
