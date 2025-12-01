@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v28)</title>
+<title>Weekly Timetable (Glass v29)</title>
 <style>
   body {
     background: #0d0d0d;
@@ -189,8 +189,11 @@ function parseICS(ics) {
 
     const dayIndex = (s.getDay() + 6) % 7;
     const startHour = s.getHours() + s.getMinutes()/60;
-    const endHour = e.getHours() + e.getMinutes()/60;
-    if (endHour <= 6 || startHour >= 24) return;
+    let endHour = e.getHours() + e.getMinutes()/60;
+
+    // ✅ 00:00 일정 포함되도록 보정
+    if (endHour === 0 && e.getDate() > s.getDate()) endHour = 24;
+    if (endHour <= 6 && e.getDate() === s.getDate()) return;
 
     const top = ((startHour - 6) / 18) * 100;
     const height = ((endHour - startHour) / 18) * 100;
