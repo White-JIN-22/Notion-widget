@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v26)</title>
+<title>Weekly Timetable (Glass v27)</title>
 <style>
   body {
     background: #0d0d0d;
@@ -111,7 +111,7 @@ const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const now = new Date();
 const todayIndex = (now.getDay() + 6) % 7;
 
-// -------------------- UI BUILD --------------------
+// -------------------- UI --------------------
 timetable.appendChild(document.createElement("div"));
 days.forEach((d, i) => {
   const head = document.createElement("div");
@@ -134,51 +134,58 @@ for (let h = 6; h <= 24; h++) {
   timetable.appendChild(line);
 }
 
-// -------------------- ics FETCH --------------------
+// -------------------- iCloud 캘린더 --------------------
 const icalUrls = [
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p49-caldav.icloud.com/published/2/xxxxxx_your_calendar_url_xxxxxx"
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 업무
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 자기계발
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식
 ];
 
-// 색상 팔레트 (카테고리별 톤 지정)
 const categoryColors = {
+  "업무": "rgba(140,190,255,0.45)",
+  "건강": "rgba(255,220,120,0.45)",
   "자기계발": "rgba(160,180,255,0.5)",
-  "심리상담": "rgba(255,180,150,0.45)",
-  "업무": "rgba(150,200,255,0.45)",
-  "건강": "rgba(255,200,120,0.45)",
   "휴식": "rgba(180,255,180,0.4)"
 };
 
 async function loadICS(urls) {
   for (const url of urls) {
-    const res = await fetch(url);
-    const text = await res.text();
-    parseICS(text);
+    try {
+      const res = await fetch(url);
+      const text = await res.text();
+      parseICS(text);
+    } catch (err) {
+      console.error("ICS fetch error", err);
+    }
   }
 }
 
 function parseICS(ics) {
   const events = ics.split("BEGIN:VEVENT").slice(1).map(e => "BEGIN:VEVENT" + e);
   events.forEach(ev => {
-    if (ev.includes("X-APPLE-TRAVEL-DURATION") || ev.includes("VTODO") || ev.includes("VEVENT;VALUE=DATE")) return;
+    if (ev.includes("VTODO") || ev.includes("VEVENT;VALUE=DATE")) return;
+    if (ev.includes("미리 알림") || ev.includes("이동시간")) return;
 
     const summary = (ev.match(/SUMMARY:(.+)/) || [])[1]?.trim() || "";
     const start = (ev.match(/DTSTART[^:]*:(.+)/) || [])[1];
     const end = (ev.match(/DTEND[^:]*:(.+)/) || [])[1];
-
-    if (!start || !end || summary.includes("미리 알림")) return;
+    if (!start || !end) return;
 
     const s = parseDate(start);
     const e = parseDate(end);
-
-    if (!s || !e || s.getHours() < 6 || s.getHours() > 24) return;
+    if (!s || !e) return;
 
     const dayIndex = (s.getDay() + 6) % 7;
     const startHour = s.getHours() + s.getMinutes()/60;
     const endHour = e.getHours() + e.getMinutes()/60;
+    if (endHour <= 6 || startHour >= 24) return;
+
     const top = ((startHour - 6) / 18) * 100;
     const height = ((endHour - startHour) / 18) * 100;
 
-    const color = Object.entries(categoryColors).find(([k]) => summary.includes(k))?.[1]
+    const color = Object.entries(categoryColors)
+      .find(([k]) => summary.includes(k))?.[1]
       || "rgba(200,200,255,0.4)";
 
     const block = document.createElement("div");
