@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v53)</title>
+<title>Weekly Timetable (Glass v54)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -81,6 +81,7 @@
 const timetable = document.getElementById("timetable");
 const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday = getMonday(new Date());
+const headerHeight = 28; // ✅ 헤더 높이
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
@@ -120,9 +121,9 @@ function renderWeek(monday){
   });
 
   const mainHours=[6,12,18,24];
-  const rowHeight=timetable.offsetHeight/(24-6);
+  const rowHeight=(timetable.offsetHeight-headerHeight)/(24-6);
   for(let h=6;h<=24;h++){
-    const y=(h-6)*rowHeight;
+    const y=headerHeight+(h-6)*rowHeight;
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
@@ -133,10 +134,10 @@ function renderWeek(monday){
     timetable.append(label,line);
   }
 
-  loadICS(icalUrls,monday,today);
+  loadICS(icalUrls,monday,today,rowHeight,colWidth);
 }
 
-async function loadICS(urls,monday,today){
+async function loadICS(urls,monday,today,rowHeight,colWidth){
   const sunday=new Date(monday);
   sunday.setDate(monday.getDate()+6);
   sunday.setHours(23,59,59,999);
@@ -144,64 +145,75 @@ async function loadICS(urls,monday,today){
     try{
       const res=await fetch(url);
       const text=await res.text();
-      parseICS(text,monday,sunday,today,icalColorMap[idx]);
+      parseICS(text,monday,sunday,today,icalColorMap[idx],rowHeight,colWidth);
     }catch(err){console.error("ICS fetch error",err);}
   }
 }
 
-function parseICS(ics,monday,sunday,today,color){
-  const rowHeight=timetable.offsetHeight/(24-6);
-  const columnWidth=(timetable.offsetWidth-35)/7;
+function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
   const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
-
   events.forEach(ev=>{
     if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
     if(ev.includes("미리 알림")||ev.includes("이동시간"))return;
     const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
+    const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
     if(!start||!end)return;
-    const s=parseDate(start), e=parseDate(end);
-    if(!s||!e)return;
 
-    // 주차 필터: 해당 주차 범위만
-    if(s < monday || s > sunday) return;
+    const baseStart=parseDate(start), baseEnd=parseDate(end);
+    if(!baseStart||!baseEnd)return;
 
-    const dayIndex=(s.getDay()+6)%7;
-    const startHour=s.getHours()+s.getMinutes()/60;
-    const endHour=e.getHours()+e.getMinutes()/60||24;
-    const top=(startHour-6)*rowHeight;
-    const height=(endHour-startHour)*rowHeight;
-    const left=35+dayIndex*columnWidth;
-    const width=columnWidth-6;
-    const opacity=(s.toDateString()===today.toDateString())?1:0.5;
+    const instances=[];
+    if(rrule && rrule.includes("FREQ=WEEKLY")){
+      for(let i=-4;i<=52;i++){
+        const recurStart=new Date(baseStart.getTime()+i*7*86400000);
+        const recurEnd=new Date(baseEnd.getTime()+i*7*86400000);
+        // ✅ 주차 내 일정만 표시
+        if(recurStart>=monday && recurStart<=sunday){
+          instances.push({s:recurStart,e:recurEnd});
+        }
+      }
+    } else {
+      if(baseStart>=monday && baseStart<=sunday) instances.push({s:baseStart,e:baseEnd});
+    }
 
-    const block=document.createElement("div");
-    block.className="event";
-    block.style.backgroundColor=color;
-    block.style.opacity=opacity;
-    block.style.top=`${top}px`;
-    block.style.left=`${left}px`;
-    block.style.height=`${height}px`;
-    block.style.width=`${width}px`;
+    instances.forEach(({s,e})=>{
+      const dayIndex=(s.getDay()+6)%7;
+      const startHour=s.getHours()+s.getMinutes()/60;
+      const endHour=e.getHours()+e.getMinutes()/60||24;
+      const top=headerHeight+(startHour-6)*rowHeight; // ✅ 헤더 높이 보정
+      const height=(endHour-startHour)*rowHeight;
+      const left=35+dayIndex*colWidth;
+      const width=colWidth-6;
+      const opacity=(s.toDateString()===today.toDateString())?1:0.5;
 
-    block.addEventListener("click",e=>{
-      e.stopPropagation();
-      document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
-      const tooltip=document.createElement("div");
-      tooltip.className="tooltip active";
-      tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
-      timetable.appendChild(tooltip);
-      const rect=block.getBoundingClientRect(), parentRect=timetable.getBoundingClientRect();
-      let tooltipX=(dayIndex===6)?rect.left-parentRect.left-tooltip.offsetWidth-8:rect.right-parentRect.left+8;
-      let tooltipY=rect.top-parentRect.top+rect.height/2-tooltip.offsetHeight/2;
-      if(tooltipY+tooltip.offsetHeight>timetable.offsetHeight-4)tooltipY=timetable.offsetHeight-tooltip.offsetHeight-4;
-      if(tooltipY<0)tooltipY=0;
-      tooltip.style.left=`${tooltipX}px`;tooltip.style.top=`${tooltipY}px`;
+      const block=document.createElement("div");
+      block.className="event";
+      block.style.backgroundColor=color;
+      block.style.opacity=opacity;
+      block.style.top=`${top}px`;
+      block.style.left=`${left}px`;
+      block.style.height=`${height}px`;
+      block.style.width=`${width}px`;
+
+      block.addEventListener("click",e=>{
+        e.stopPropagation();
+        document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
+        const tooltip=document.createElement("div");
+        tooltip.className="tooltip active";
+        tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
+        timetable.appendChild(tooltip);
+        const rect=block.getBoundingClientRect(),parent=timetable.getBoundingClientRect();
+        let x=(dayIndex===6)?rect.left-parent.left-tooltip.offsetWidth-8:rect.right-parent.left+8;
+        let y=rect.top-parent.top+rect.height/2-tooltip.offsetHeight/2;
+        if(y+tooltip.offsetHeight>timetable.offsetHeight-4)y=timetable.offsetHeight-tooltip.offsetHeight-4;
+        if(y<0)y=0;
+        tooltip.style.left=`${x}px`;tooltip.style.top=`${y}px`;
+      });
+      timetable.appendChild(block);
     });
-    timetable.appendChild(block);
   });
-
   document.addEventListener("click",()=>document.querySelectorAll(".tooltip.active").forEach(t=>t.remove()));
 }
 
