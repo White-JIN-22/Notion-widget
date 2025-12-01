@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Weekly Timetable (Glass v5)</title>
+
+    <style>
+      body {
+        background-color: #0f0f0f;
+        color: #f3f1eb;
+        font-family: "Pretendard", sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        gap: 6px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(18px);
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      .day {
+        width: 65px;
+        height: 120px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding-top: 6px;
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .day.today {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+      }
+
+      .date {
+        font-size: 11px;
+        opacity: 0.9;
+      }
+
+      .weekday {
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      .holiday {
+        color: #ff6b6b;
+      }
+
+      .block {
+        position: absolute;
+        width: 50%;
+        left: 25%;
+        border-radius: 6px;
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="timetable"></div>
+
+    <script>
+      const icalUrls = [
+        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
+        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
+        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
+        "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I",
+      ];
+
+      // 🎌 2025~2027 한국 법정 공휴일
+      const holidays = [
+        "2025-01-01", "2025-02-28", "2025-03-01", "2025-05-05",
+        "2025-06-06", "2025-08-15", "2025-09-07", "2025-09-08",
+        "2025-09-09", "2025-10-03", "2025-10-09", "2025-12-25",
+        "2026-01-01", "2026-02-17", "2026-03-01", "2026-05-05",
+        "2026-06-06", "2026-08-15", "2026-09-24", "2026-09-25",
+        "2026-09-26", "2026-10-03", "2026-10-09", "2026-12-25",
+        "2027-01-01", "2027-02-07", "2027-03-01", "2027-05-05",
+        "2027-06-06", "2027-08-15", "2027-09-15", "2027-09-16",
+        "2027-09-17", "2027-10-03", "2027-10-09", "2027-12-25",
+      ];
+
+      const priorities = ["업무", "건강", "자기계발", "휴식"];
+      const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb"];
+
+      async function loadEvents() {
+        let events = [];
+
+        for (let i = 0; i < icalUrls.length; i++) {
+          try {
+            const res = await fetch(icalUrls[i]);
+            const text = await res.text();
+            const regex =
+              /DTSTART:(\d{8}T\d{6})Z[\\s\\S]*?DTEND:(\d{8}T\d{6})Z[\\s\\S]*?SUMMARY:(.*?)\\n/g;
+            let match;
+            while ((match = regex.exec(text)) !== null) {
+              const start = new Date(match[1].replace(
+                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
+                "$1-$2-$3T$4:$5:$6Z"
+              ));
+              const end = new Date(match[2].replace(
+                /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
+                "$1-$2-$3T$4:$5:$6Z"
+              ));
+              events.push({
+                startDate: new Date(start.getTime() + 9 * 60 * 60 * 1000),
+                endDate: new Date(end.getTime() + 9 * 60 * 60 * 1000),
+                summary: match[3],
+                priority: i,
+              });
+            }
+          } catch (e) {
+            console.error("캘린더 불러오기 실패:", e);
+          }
+        }
+
+        const now = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" })
+        );
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        const container = document.getElementById("timetable");
+        container.innerHTML = "";
+
+        for (let i = 0; i < 7; i++) {
+          const dayDate = new Date(weekStart);
+          dayDate.setDate(weekStart.getDate() + i);
+
+          const dateStr = dayDate.toISOString().split("T")[0];
+          const isHoliday = holidays.includes(dateStr);
+          const dayName = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"][i];
+          const dayDiv = document.createElement("div");
+          dayDiv.className = "day";
+          if (now.toDateString() === dayDate.toDateString())
+            dayDiv.classList.add("today");
+
+          const dateDiv = document.createElement("div");
+          dateDiv.className = "date";
+          dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(
+            2,
+            "0"
+          )}/${String(dayDate.getDate()).padStart(2, "0")}`;
+          if (isHoliday) dateDiv.classList.add("holiday");
+
+          const weekdayDiv = document.createElement("div");
+          weekdayDiv.className = "weekday";
+          weekdayDiv.textContent = dayName;
+
+          dayDiv.append(dateDiv, weekdayDiv);
+
+          const dayEvents = events.filter(
+            (e) => e.startDate >= weekStart && e.startDate < weekEnd
+          );
+
+          if (dayEvents.length > 0) {
+            const event = dayEvents.find(
+              (e) =>
+                e.startDate.getDate() === dayDate.getDate() &&
+                e.startDate.getMonth() === dayDate.getMonth()
+            );
+            if (event) {
+              const block = document.createElement("div");
+              block.className = "block";
+              block.style.background = colors[event.priority];
+              const duration =
+                (event.endDate - event.startDate) / (1000 * 60 * 60);
+              block.style.height = `${Math.min(duration * 10, 80)}px`;
+              block.style.top = "35px";
+              dayDiv.appendChild(block);
+            }
+          }
+
+          container.appendChild(dayDiv);
+        }
+      }
+
+      loadEvents();
+    </script>
+  </body>
+</html>
