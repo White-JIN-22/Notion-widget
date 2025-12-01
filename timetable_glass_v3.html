@@ -5,77 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="referrer" content="no-referrer" />
-  <title>Weekly Timetable (Glass Compact v3.2)</title>
+  <title>Weekly Timetable (Glass + Holidays 2025-2027)</title>
   <style>
     body {
-      background-color: #111;
-      color: #fff;
-      font-family: 'Inter', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      background-color:#111;
+      color:#fff;
+      font-family:'Inter',sans-serif;
+      display:flex;justify-content:center;align-items:center;
+      height:100vh;
     }
-
     .container {
-      display: flex;
-      gap: 4px;
-      padding: 12px;
-      border-radius: 20px;
-      backdrop-filter: blur(25px) saturate(180%);
-      background: rgba(255, 255, 255, 0.05);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      display:flex;gap:4px;padding:12px;
+      border-radius:20px;
+      backdrop-filter:blur(25px)saturate(180%);
+      background:rgba(255,255,255,0.05);
+      box-shadow:0 4px 15px rgba(0,0,0,0.3);
     }
-
     .day {
-      width: 36px; /* 10% 감소 */
-      height: 115px; /* 15% 증가 */
-      border-radius: 14px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 6px 3px;
-      background: rgba(255, 255, 255, 0.06);
-      box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
-      position: relative;
-      overflow: hidden;
+      width:36px;height:115px;
+      border-radius:14px;text-align:center;
+      display:flex;flex-direction:column;justify-content:flex-start;
+      padding:6px 3px;
+      background:rgba(255,255,255,0.06);
+      box-shadow:inset 0 1px 2px rgba(255,255,255,0.05);
+      position:relative;overflow:hidden;
     }
-
-    .day strong {
-      font-size: 9px;
-      display: block;
-      opacity: 0.8;
-    }
-
-    .day span {
-      font-size: 11px;
-      margin-top: 3px;
-      display: block;
-    }
-
-    .day.today {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-
-    .holiday {
-      color: #ff8b8b;
-    }
-
-    .block {
-      position: absolute;
-      left: 3px;
-      width: calc(100% - 6px);
-      border-radius: 6px;
-      opacity: 0.9;
-    }
+    .day strong{font-size:9px;display:block;opacity:.8;}
+    .day span{font-size:11px;margin-top:3px;display:block;}
+    .day.today{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);}
+    .holiday{color:#ff8b8b;}
+    .block{position:absolute;left:3px;width:calc(100% - 6px);border-radius:6px;opacity:.9;}
   </style>
 </head>
 <body>
   <div class="container" id="timetable"></div>
 
   <script>
+    const holidays = [
+      // === 2025 ===
+      "2025-01-01","2025-01-27","2025-01-28","2025-01-29",
+      "2025-03-01","2025-05-05","2025-06-06",
+      "2025-08-15","2025-09-07","2025-09-08","2025-09-09",
+      "2025-10-03","2025-10-09","2025-12-25",
+      // === 2026 ===
+      "2026-01-01","2026-02-16","2026-02-17","2026-02-18",
+      "2026-03-01","2026-05-05","2026-06-06",
+      "2026-08-15","2026-09-24","2026-09-25","2026-09-26",
+      "2026-10-03","2026-10-09","2026-12-25",
+      // === 2027 ===
+      "2027-01-01","2027-02-06","2027-02-07","2027-02-08",
+      "2027-03-01","2027-05-05","2027-06-06",
+      "2027-08-15","2027-09-15","2027-09-16","2027-09-17",
+      "2027-10-03","2027-10-09","2027-12-25"
+    ];
+
     const icalUrls = [
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
@@ -83,107 +66,62 @@
       "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
     ];
 
-    const priorityMap = { 업무: 1, 건강: 2, 자기계발: 3, 휴식: 4 };
+    const priorityMap={업무:1,건강:2,자기계발:3,휴식:4};
 
-    async function fetchICS(url) {
-      const res = await fetch(url);
-      return res.ok ? await res.text() : '';
-    }
-
-    function parseICS(data) {
-      const events = [];
-      const blocks = data.split('BEGIN:VEVENT');
-      for (const block of blocks) {
-        const start = /DTSTART.*:(\d+)/.exec(block)?.[1];
-        const end = /DTEND.*:(\d+)/.exec(block)?.[1];
-        const summary = /SUMMARY:(.+)/.exec(block)?.[1];
-        if (start && end) {
-          // 로컬 시간 기준으로 직접 생성
-          const startDate = new Date(
-            start.slice(0,4), start.slice(4,6)-1, start.slice(6,8),
-            start.slice(9,11), start.slice(11,13)
-          );
-          const endDate = new Date(
-            end.slice(0,4), end.slice(4,6)-1, end.slice(6,8),
-            end.slice(9,11), end.slice(11,13)
-          );
-
-          events.push({
-            start: startDate,
-            end: endDate,
-            summary,
-            priority: Object.keys(priorityMap).find(k => summary?.includes(k)) 
-                      ? priorityMap[Object.keys(priorityMap).find(k => summary.includes(k))] : 5
-          });
+    async function fetchICS(u){const r=await fetch(u);return r.ok?await r.text():''}
+    function parseICS(d){
+      const e=[];for(const b of d.split('BEGIN:VEVENT')){
+        const s=/DTSTART.*:(\d+)/.exec(b)?.[1];
+        const f=/DTEND.*:(\d+)/.exec(b)?.[1];
+        const t=/SUMMARY:(.+)/.exec(b)?.[1];
+        if(s&&f){
+          const S=new Date(s.slice(0,4),s.slice(4,6)-1,s.slice(6,8),s.slice(9,11),s.slice(11,13));
+          const F=new Date(f.slice(0,4),f.slice(4,6)-1,f.slice(6,8),f.slice(9,11),f.slice(11,13));
+          e.push({start:S,end:F,summary:t,priority:Object.keys(priorityMap).find(k=>t?.includes(k))?priorityMap[Object.keys(priorityMap).find(k=>t.includes(k))]:5})
         }
-      }
-      return events;
+      }return e
     }
 
-    async function loadEvents() {
-      const now = new Date();
+    async function loadEvents(){
+      const now=new Date();
+      const monday=new Date(now);
+      monday.setDate(now.getDate()-((now.getDay()+6)%7));
+      monday.setHours(0,0,0,0);
 
-      // 월요일 시작 주 계산
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-      monday.setHours(0, 0, 0, 0);
+      const days=Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d});
+      const c=document.getElementById('timetable');c.innerHTML='';
 
-      const days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
-        return d;
-      });
+      const allEvents=(await Promise.all(icalUrls.map(fetchICS))).map(parseICS).flat();
+      const grid=document.createElement('div');grid.style.display='flex';grid.style.gap='4px';
 
-      const container = document.getElementById('timetable');
-      container.innerHTML = '';
+      for(const d of days){
+        const el=document.createElement('div');el.className='day';
+        if(d.toDateString()===now.toDateString())el.classList.add('today');
+        const m=String(d.getMonth()+1).padStart(2,'0'),dt=String(d.getDate()).padStart(2,'0');
+        const y=d.getFullYear();
+        const dateStr=`${y}-${m}-${dt}`;
+        const isHoliday=holidays.includes(dateStr);
 
-      const allEvents = (await Promise.all(icalUrls.map(fetchICS)))
-        .map(parseICS)
-        .flat();
+        el.innerHTML=`<strong class="${isHoliday?'holiday':''}">${m}/${dt}</strong>
+                      <span>${['MON','TUE','WED','THU','FRI','SAT','SUN'][d.getDay()]}</span>`;
 
-      const grid = document.createElement('div');
-      grid.style.display = 'flex';
-      grid.style.gap = '4px';
+        const s=new Date(d);s.setHours(0,0,0,0);
+        const e=new Date(d);e.setHours(23,59,59,999);
+        const dayEvents=allEvents.filter(ev=>ev.start<e&&ev.end>s)
+          .sort((a,b)=>a.priority-b.priority||a.start-b.start);
 
-      for (const d of days) {
-        const day = document.createElement('div');
-        day.className = 'day';
-
-        // 오늘 강조 (로컬 기준)
-        if (d.toDateString() === now.toDateString()) day.classList.add('today');
-
-        const month = String(d.getMonth()+1).padStart(2,'0');
-        const date = String(d.getDate()).padStart(2,'0');
-        const isSunday = d.getDay() === 0;
-        const isHoliday = isSunday;
-
-        day.innerHTML = `<strong class="${isHoliday ? 'holiday' : ''}">${month}/${date}</strong>
-                         <span>${['MON','TUE','WED','THU','FRI','SAT','SUN'][d.getDay()]}</span>`;
-
-        const dayStart = new Date(d); dayStart.setHours(0,0,0,0);
-        const dayEnd = new Date(d); dayEnd.setHours(23,59,59,999);
-
-        const dayEvents = allEvents.filter(e =>
-          e.start < dayEnd && e.end > dayStart
-        ).sort((a,b) => a.priority - b.priority || a.start - b.start);
-
-        if (dayEvents.length) {
-          const e = dayEvents[0];
-          const duration = (e.end - e.start)/3600000;
-          const startHour = e.start.getHours();
-          const block = document.createElement('div');
-          block.className = 'block';
-          block.style.background = `rgba(178,192,210,${0.3 + (1/duration)})`;
-          block.style.top = `${Math.min((startHour/24)*100, 90)}%`;
-          block.style.height = `${Math.min((duration/24)*100, 100)}%`;
-          day.appendChild(block);
+        if(dayEvents.length){
+          const ev=dayEvents[0],du=(ev.end-ev.start)/36e5,sh=ev.start.getHours();
+          const b=document.createElement('div');b.className='block';
+          b.style.background=`rgba(178,192,210,${0.3+(1/du)})`;
+          b.style.top=`${Math.min((sh/24)*100,90)}%`;
+          b.style.height=`${Math.min((du/24)*100,100)}%`;
+          el.appendChild(b);
         }
-        grid.appendChild(day);
+        grid.appendChild(el);
       }
-
-      container.appendChild(grid);
+      c.appendChild(grid);
     }
-
     loadEvents();
   </script>
 </body>
