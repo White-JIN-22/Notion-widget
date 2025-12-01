@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v45)</title>
+<title>Weekly Timetable (Glass v46)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -132,7 +132,7 @@
     font-size: 9px;
     padding: 3px 6px;
     border-radius: 4px;
-    white-space: nowrap;
+    white-space: pre-line; /* 줄바꿈 허용 */
     transform: translate(-50%, -110%);
     opacity: 0;
     transition: opacity 0.2s;
@@ -167,8 +167,8 @@ const icalUrls = [
 const categoryColors = {
   "업무": "rgba(61,84,127,0.6)",
   "건강": "rgba(178,192,210,0.5)",
-  "자기계발": "rgba(155,205,255,0.55)", // 하늘색 계열로 수정
-  "휴식": "rgba(250,250,245,0.55)"     // 더 하얗게 수정
+  "자기계발": "rgba(155,205,255,0.55)", // 하늘색
+  "휴식": "rgba(250,250,245,0.55)"     // 밝은 아이보리
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -239,15 +239,13 @@ function parseICS(ics,monday,sunday,today){
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
     const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
-    const untilMatch=rrule?.match(/UNTIL=(\d{8})/);
-    const untilDate=untilMatch?new Date(untilMatch[1].slice(0,4),untilMatch[1].slice(4,6)-1,untilMatch[1].slice(6,8)):null;
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
 
-    if(untilDate && untilDate < monday)return; // 과거 반복 종료된 일정 무시
+    if(e.getHours()===0 && e.getDate()>s.getDate()) e.setHours(24,0,0,0); // 23~00 일정 포함
 
     const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
     const targetDate=repeat?getRepeatedDate(s,monday):s;
@@ -259,8 +257,8 @@ function parseICS(ics,monday,sunday,today){
     if(endHour>24)endHour=24;
     if(endHour<=6)return;
 
-    const top=((startHour-6)/(24-6))*timetable.offsetHeight;
-    const height=Math.min(((endHour-startHour)/(24-6))*timetable.offsetHeight,timetable.offsetHeight-top);
+    const top=Math.round(((startHour-6)/(24-6))*timetable.offsetHeight);
+    const height=Math.round(((endHour-startHour)/(24-6))*timetable.offsetHeight);
     const left=35+(dayIndex*((timetable.offsetWidth-35)/7));
     const width=(timetable.offsetWidth-35)/7-6;
 
@@ -272,7 +270,7 @@ function parseICS(ics,monday,sunday,today){
     block.style=`top:${top}px;left:${left}px;height:${height}px;width:${width}px;--event-color:${color};opacity:${opacity}`;
     const tooltip=document.createElement("div");
     tooltip.className="tooltip";
-    tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")} ~ ${e.getHours().toString().padStart(2,"0")}:${e.getMinutes().toString().padStart(2,"0")}  ${summary}`;
+    tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
     block.appendChild(tooltip);
     timetable.appendChild(block);
   });
