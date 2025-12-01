@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+const timetable<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -171,17 +171,17 @@ let currentMonday = getMonday(new Date());
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM", // 자기계발
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // 건강/일상
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU", // 업무
-  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"  // 휴식
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
+  "https://ical-proxy.moonkelly601.workers.dev/?url=https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
 ];
 
 const icalColorMap = {
-  0: "rgba(160,210,255,1)", // 자기계발 연파랑
-  1: "rgba(200,180,255,1)", // 건강 라벤더
-  2: "rgba(61,84,127,1)",   // 업무 네이비
-  3: "rgba(255,255,245,1)"  // 휴식 아이보리
+  0: "rgba(160,210,255,1)", // 자기계발
+  1: "rgba(200,180,255,1)", // 건강
+  2: "rgba(61,84,127,1)",   // 업무
+  3: "rgba(255,255,245,1)"  // 휴식
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -194,7 +194,6 @@ function renderWeek(monday){
   weekLabel.textContent=`${monday.getFullYear()} : ${weekNum} / 52W`;
 
   const today=new Date();
-  timetable.appendChild(document.createElement("div"));
   days.forEach((d,i)=>{
     const head=document.createElement("div");
     head.className="day-header";
@@ -243,7 +242,7 @@ async function loadICS(urls,monday,today){
 }
 
 function parseICS(ics,monday,sunday,today,color){
-  const rowHeight=timetable.offsetHeight/(24-6);
+  const rowHeight=timetable.offsetHeight/(24-6-0.001); // 미세 오차 방지
   const columnWidth=(timetable.offsetWidth-35)/7;
   const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
 
@@ -254,61 +253,74 @@ function parseICS(ics,monday,sunday,today,color){
     const summary=(ev.match(/SUMMARY:(.+)/)||[])[1]?.trim()||"";
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
+    const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
-    if(s < monday || s > sunday)return;
 
-    if(e.getHours()===0 && e.getDate()>s.getDate()) e.setHours(24,0,0,0);
-
-    const dayIndex=(s.getDay()+6)%7;
-    const startHour=s.getHours()+s.getMinutes()/60;
-    const endHour=e.getHours()+e.getMinutes()/60;
-
-    const top=Math.max(0,Math.round((startHour-6)*rowHeight));
-    const height=Math.min(Math.round((endHour-startHour)*rowHeight), timetable.offsetHeight-top);
-    const left=Math.round(35+(dayIndex*columnWidth));
-    const width=Math.round(columnWidth-6);
-    const opacity=(s.toDateString()===today.toDateString())?1.0:0.5;
-
-    const block=document.createElement("div");
-    block.className="event";
-    block.style.backgroundColor=color;
-    block.style.opacity=opacity;
-    block.style.top=`${top}px`;
-    block.style.left=`${left}px`;
-    block.style.height=`${height}px`;
-    block.style.width=`${width}px`;
-
-    block.addEventListener("click",(e)=>{
-      e.stopPropagation();
-      document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
-      const tooltip=document.createElement("div");
-      tooltip.className="tooltip active";
-      tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
-      timetable.appendChild(tooltip);
-
-      const rect=block.getBoundingClientRect();
-      const parentRect=timetable.getBoundingClientRect();
-      let tooltipX=(dayIndex===6)
-        ? rect.left-parentRect.left-tooltip.offsetWidth-8
-        : rect.right-parentRect.left+8;
-      let tooltipY=rect.top-parentRect.top+rect.height/2-tooltip.offsetHeight/2;
-
-      if(tooltipY+tooltip.offsetHeight>timetable.offsetHeight-4)
-        tooltipY=timetable.offsetHeight-tooltip.offsetHeight-4;
-      if(tooltipY<0) tooltipY=0;
-
-      tooltip.style.left=`${tooltipX}px`;
-      tooltip.style.top=`${tooltipY}px`;
-    });
-
-    timetable.appendChild(block);
+    // 반복 일정이면 해당 주차에 해당하는 날짜로 복제
+    if(rrule && rrule.includes("FREQ=WEEKLY")){
+      for(let i=0;i<52;i++){
+        const recur=new Date(s);
+        recur.setDate(s.getDate()+7*i);
+        if(recur>=monday && recur<=sunday){
+          drawEvent(recur,new Date(recur.getTime()+(e-s)),today,color,summary,columnWidth,rowHeight);
+        }
+      }
+    } else {
+      if(s < monday || s > sunday)return;
+      drawEvent(s,e,today,color,summary,columnWidth,rowHeight);
+    }
   });
 
   document.addEventListener("click",()=>document.querySelectorAll(".tooltip.active").forEach(t=>t.remove()));
+}
+
+function drawEvent(s,e,today,color,summary,columnWidth,rowHeight){
+  const dayIndex=(s.getDay()+6)%7;
+  const startHour=s.getHours()+s.getMinutes()/60;
+  const endHour=e.getHours()+e.getMinutes()/60 || 24;
+  const top=Math.round((startHour-6)*rowHeight);
+  const height=Math.round((endHour-startHour)*rowHeight);
+  const left=Math.round(35+(dayIndex*columnWidth));
+  const width=Math.round(columnWidth-6);
+  const opacity=(s.toDateString()===today.toDateString())?1.0:0.5;
+
+  const block=document.createElement("div");
+  block.className="event";
+  block.style.backgroundColor=color;
+  block.style.opacity=opacity;
+  block.style.top=`${top}px`;
+  block.style.left=`${left}px`;
+  block.style.height=`${height}px`;
+  block.style.width=`${width}px`;
+
+  block.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    document.querySelectorAll(".tooltip.active").forEach(t=>t.remove());
+    const tooltip=document.createElement("div");
+    tooltip.className="tooltip active";
+    tooltip.innerHTML=`<span class='dot' style='background:${color}'></span>${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")}\n${summary}`;
+    timetable.appendChild(tooltip);
+
+    const rect=block.getBoundingClientRect();
+    const parentRect=timetable.getBoundingClientRect();
+    let tooltipX=(dayIndex===6)
+      ? rect.left-parentRect.left-tooltip.offsetWidth-8
+      : rect.right-parentRect.left+8;
+    let tooltipY=rect.top-parentRect.top+rect.height/2-tooltip.offsetHeight/2;
+
+    if(tooltipY+tooltip.offsetHeight>timetable.offsetHeight-4)
+      tooltipY=timetable.offsetHeight-tooltip.offsetHeight-4;
+    if(tooltipY<0) tooltipY=0;
+
+    tooltip.style.left=`${tooltipX}px`;
+    tooltip.style.top=`${tooltipY}px`;
+  });
+
+  timetable.appendChild(block);
 }
 
 function parseDate(str){
