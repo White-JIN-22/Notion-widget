@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v44)</title>
+<title>Weekly Timetable (Glass v45)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -65,6 +65,7 @@
     width: 45vw;
     max-width: 450px;
     height: 44vh;
+    margin-top: 6px;
     border-radius: 18px;
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(18px);
@@ -83,6 +84,7 @@
     background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.03) 100%);
     border-radius: 6px;
     padding-top: 4px;
+    color: rgba(255,255,255,0.6);
   }
 
   .day-header.today {
@@ -165,8 +167,8 @@ const icalUrls = [
 const categoryColors = {
   "업무": "rgba(61,84,127,0.6)",
   "건강": "rgba(178,192,210,0.5)",
-  "자기계발": "rgba(165,185,255,0.55)", // 더 쨍한 연파랑
-  "휴식": "rgba(250,250,245,0.55)"     // 밝은 아이보리
+  "자기계발": "rgba(155,205,255,0.55)", // 하늘색 계열로 수정
+  "휴식": "rgba(250,250,245,0.55)"     // 더 하얗게 수정
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -189,6 +191,7 @@ function renderWeek(monday){
     const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
     if(recurringHolidays.includes(monthDayKey))head.style.color="rgba(255,150,120,0.9)";
     if(date.toDateString()===today.toDateString())head.classList.add("today");
+    if(date.toDateString()!==today.toDateString())head.style.opacity="0.6";
     head.textContent=`${dateStr}\n${d}`;
     timetable.appendChild(head);
   });
@@ -210,10 +213,10 @@ function renderWeek(monday){
     }
   }
 
-  loadICS(icalUrls,monday);
+  loadICS(icalUrls,monday,today);
 }
 
-async function loadICS(urls,monday){
+async function loadICS(urls,monday,today){
   const sunday=new Date(monday);
   sunday.setDate(monday.getDate()+6);
   sunday.setHours(23,59,59,999);
@@ -221,12 +224,12 @@ async function loadICS(urls,monday){
     try{
       const res=await fetch(url);
       const text=await res.text();
-      parseICS(text,monday,sunday);
+      parseICS(text,monday,sunday,today);
     }catch(err){console.error("ICS fetch error",err);}
   }
 }
 
-function parseICS(ics,monday,sunday){
+function parseICS(ics,monday,sunday,today){
   const events=ics.split("BEGIN:VEVENT").slice(1).map(e=>"BEGIN:VEVENT"+e);
   events.forEach(ev=>{
     if(ev.includes("VTODO")||ev.includes("VEVENT;VALUE=DATE"))return;
@@ -236,11 +239,15 @@ function parseICS(ics,monday,sunday){
     const start=(ev.match(/DTSTART[^:]*:(.+)/)||[])[1];
     const end=(ev.match(/DTEND[^:]*:(.+)/)||[])[1];
     const rrule=(ev.match(/RRULE:(.+)/)||[])[1];
+    const untilMatch=rrule?.match(/UNTIL=(\d{8})/);
+    const untilDate=untilMatch?new Date(untilMatch[1].slice(0,4),untilMatch[1].slice(4,6)-1,untilMatch[1].slice(6,8)):null;
     if(!start||!end)return;
 
     const s=parseDate(start);
     const e=parseDate(end);
     if(!s||!e)return;
+
+    if(untilDate && untilDate < monday)return; // 과거 반복 종료된 일정 무시
 
     const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
     const targetDate=repeat?getRepeatedDate(s,monday):s;
@@ -258,9 +265,11 @@ function parseICS(ics,monday,sunday){
     const width=(timetable.offsetWidth-35)/7-6;
 
     const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,0.4)";
+    const opacity=(targetDate.toDateString()===today.toDateString())?1.0:0.5;
+
     const block=document.createElement("div");
     block.className="event";
-    block.style=`top:${top}px;left:${left}px;height:${height}px;width:${width}px;--event-color:${color}`;
+    block.style=`top:${top}px;left:${left}px;height:${height}px;width:${width}px;--event-color:${color};opacity:${opacity}`;
     const tooltip=document.createElement("div");
     tooltip.className="tooltip";
     tooltip.textContent=`${s.getHours().toString().padStart(2,"0")}:${s.getMinutes().toString().padStart(2,"0")} ~ ${e.getHours().toString().padStart(2,"0")}:${e.getMinutes().toString().padStart(2,"0")}  ${summary}`;
