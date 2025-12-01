@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v43)</title>
+<title>Weekly Timetable (Glass v44)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -60,11 +60,11 @@
 
   .timetable {
     display: grid;
-    grid-template-columns: 45px repeat(7, 1fr);
+    grid-template-columns: 35px repeat(7, 1fr);
     grid-template-rows: 35px repeat(19, 1fr);
     width: 45vw;
     max-width: 450px;
-    height: 40vh;
+    height: 44vh;
     border-radius: 18px;
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(18px);
@@ -86,15 +86,14 @@
   }
 
   .day-header.today {
-    background: rgba(255,255,255,0.25);
-    color: #000;
+    background: rgba(255,255,255,0.3);
+    color: #fff;
     font-weight: 700;
     box-shadow: 0 0 10px rgba(255,255,255,0.4);
   }
 
   .time-label {
-    text-align: right;
-    padding-right: 4px;
+    text-align: center;
     font-size: 9px;
     color: rgba(255,255,255,0.6);
   }
@@ -166,8 +165,8 @@ const icalUrls = [
 const categoryColors = {
   "업무": "rgba(61,84,127,0.6)",
   "건강": "rgba(178,192,210,0.5)",
-  "자기계발": "rgba(178,192,255,0.55)", // 연파랑으로 수정
-  "휴식": "rgba(243,241,235,0.5)"
+  "자기계발": "rgba(165,185,255,0.55)", // 더 쨍한 연파랑
+  "휴식": "rgba(250,250,245,0.55)"     // 밝은 아이보리
 };
 
 function getMonday(d){d=new Date(d);const day=d.getDay();const diff=d.getDate()-day+(day===0?-6:1);return new Date(d.setDate(diff));}
@@ -180,8 +179,6 @@ function renderWeek(monday){
   weekLabel.textContent=`${monday.getFullYear()} : ${weekNum} / 52W`;
 
   const today=new Date();
-  const todayIndex=(today.getDay()+6)%7;
-
   timetable.appendChild(document.createElement("div"));
   days.forEach((d,i)=>{
     const head=document.createElement("div");
@@ -246,18 +243,19 @@ function parseICS(ics,monday,sunday){
     if(!s||!e)return;
 
     const repeat=isRepeatThisWeek(rrule,s,monday,sunday);
-    if(s<monday||s>sunday)if(!repeat)return;
-
     const targetDate=repeat?getRepeatedDate(s,monday):s;
+    if(targetDate<monday||targetDate>sunday)return;
+
     const dayIndex=(targetDate.getDay()+6)%7;
     const startHour=s.getHours()+s.getMinutes()/60;
     let endHour=e.getHours()+e.getMinutes()/60;
-    if(endHour===0&&e.getDate()>s.getDate())endHour=24;
+    if(endHour>24)endHour=24;
+    if(endHour<=6)return;
 
     const top=((startHour-6)/(24-6))*timetable.offsetHeight;
-    const height=((endHour-startHour)/(24-6))*timetable.offsetHeight;
-    const left=45+(dayIndex*((timetable.offsetWidth-45)/7));
-    const width=(timetable.offsetWidth-45)/7-6;
+    const height=Math.min(((endHour-startHour)/(24-6))*timetable.offsetHeight,timetable.offsetHeight-top);
+    const left=35+(dayIndex*((timetable.offsetWidth-35)/7));
+    const width=(timetable.offsetWidth-35)/7-6;
 
     const color=Object.entries(categoryColors).find(([k])=>summary.includes(k))?.[1]||"rgba(200,200,255,0.4)";
     const block=document.createElement("div");
