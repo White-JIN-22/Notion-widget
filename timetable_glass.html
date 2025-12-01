@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v27)</title>
+<title>Weekly Timetable (Glass v28)</title>
 <style>
   body {
     background: #0d0d0d;
@@ -111,13 +111,21 @@ const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 const now = new Date();
 const todayIndex = (now.getDay() + 6) % 7;
 
+// 이번 주의 월~일 계산
+const monday = new Date(now);
+monday.setDate(now.getDate() - todayIndex);
+monday.setHours(0,0,0,0);
+const sunday = new Date(monday);
+sunday.setDate(monday.getDate() + 6);
+sunday.setHours(23,59,59,999);
+
 // -------------------- UI --------------------
 timetable.appendChild(document.createElement("div"));
 days.forEach((d, i) => {
   const head = document.createElement("div");
   head.className = "day-header" + (i === todayIndex ? " today" : "");
-  const date = new Date();
-  date.setDate(now.getDate() - todayIndex + i);
+  const date = new Date(monday);
+  date.setDate(monday.getDate() + i);
   const dateStr = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
   head.textContent = `${dateStr} ${d}`;
   timetable.appendChild(head);
@@ -175,6 +183,9 @@ function parseICS(ics) {
     const s = parseDate(start);
     const e = parseDate(end);
     if (!s || !e) return;
+
+    // ✅ 이번 주만 표시
+    if (s < monday || s > sunday) return;
 
     const dayIndex = (s.getDay() + 6) % 7;
     const startHour = s.getHours() + s.getMinutes()/60;
