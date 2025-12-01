@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>금촌2동 미세먼지 현황</title>
+<title>부천 중동 미세먼지 현황</title>
 <style>
   body {
     background-color: #1a1a1a;
@@ -44,18 +44,18 @@
 </head>
 <body>
   <div class="air-box">
-    <h2>🌫️ 금촌2동 미세먼지 현황</h2>
+    <h2>🌫️ 부천 중동 미세먼지 현황</h2>
     <div id="dust">불러오는 중...</div>
   </div>
 
 <script>
-const TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; // 네 개인 토큰
+const TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; // 네 AQICN 토큰
 
 async function getAirQuality() {
   try {
-    // 금촌2동 근처 위도·경도 (파주시청 기준)
-    const lat = 37.7579;
-    const lon = 126.7750;
+    // 부천 중동로 244 기준 위도·경도
+    const lat = 37.5015609;
+    const lon = 126.7690559;
     const url = `https://api.waqi.info/feed/geo:${lat};${lon}/?token=${TOKEN}`;
 
     const res = await fetch(url);
