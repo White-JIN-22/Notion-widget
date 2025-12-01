@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v19)</title>
+<title>Weekly Timetable (Glass v20)</title>
 <style>
   body {
     background-color: #0f0f0f;
@@ -64,10 +64,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
   }
-  .block:hover {
-    transform: scale(1.1);
-    opacity: 1;
-  }
+  .block:hover { transform: scale(1.1); opacity: 1; }
   .tooltip {
     position: absolute;
     background: rgba(0,0,0,0.8);
@@ -96,13 +93,13 @@ const calendars = {
   red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
   blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU"
 };
-const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f3f1eb", "#f2b179", "#a4e38f"];
-const timeLabels = document.getElementById("timeLabels");
+const colors = ["#3d547f", "#b2c0d2", "#cecbd3", "#f2b179", "#a4e38f", "#f07c82"];
 
+const timeLabels = document.getElementById("timeLabels");
 for (let h = 6; h <= 24; h++) {
   const t = document.createElement("div");
   t.className = "time";
-  t.textContent = String(h).padStart(2,"0");
+  t.textContent = String(h).padStart(2, "0");
   timeLabels.appendChild(t);
 }
 
@@ -115,7 +112,7 @@ async function fetchCalendar(color, url) {
 }
 
 function parseICS(color, text) {
-  const lines = text.replace(/\r\n|\r/g,"\n").split("\n").map(l=>l.trim());
+  const lines = text.replace(/\r\n|\r/g, "\n").split("\n").map(l => l.trim());
   let ev = {};
   for (const line of lines) {
     if (line.startsWith("BEGIN:VEVENT")) ev = {};
@@ -134,15 +131,19 @@ function parseICS(color, text) {
       if (!ev.start || ev.allday || ev.ignore) continue;
 
       const s = new Date(`${ev.start.slice(0,4)}-${ev.start.slice(4,6)}-${ev.start.slice(6,8)}T${ev.start.slice(9,11)}:${ev.start.slice(11,13)}:00+09:00`);
-      const e = new Date(`${ev.end.slice(0,4)}-${ev.end.slice(4,6)}-${ev.end.slice(6,8)}T${ev.end.slice(9,11)}:${ev.end.slice(11,13)}:00+09:00`);
-      allEvents.push({ start:s, end:e, title:ev.title, color });
+      let e = new Date(`${ev.end.slice(0,4)}-${ev.end.slice(4,6)}-${ev.end.slice(6,8)}T${ev.end.slice(9,11)}:${ev.end.slice(11,13)}:00+09:00`);
+
+      // 날짜 넘어가면 같은 날 24:00으로 처리
+      if (e.getDate() !== s.getDate()) e = new Date(`${s.getFullYear()}-${s.getMonth()+1}-${s.getDate()}T24:00:00+09:00`);
+
+      allEvents.push({ start: s, end: e, title: ev.title, color });
     }
   }
 }
 
 async function loadEvents() {
   allEvents = [];
-  for (const [c,u] of Object.entries(calendars)) await fetchCalendar(c,u);
+  for (const [c, u] of Object.entries(calendars)) await fetchCalendar(c, u);
   renderTimetable();
 }
 
@@ -152,54 +153,55 @@ function renderTimetable() {
   const tooltip = document.getElementById("tooltip");
 
   const now = new Date();
-  const localNow = new Date(now.toLocaleString("en-US",{timeZone:"Asia/Seoul"}));
+  const localNow = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
   const weekStart = new Date(localNow);
-  weekStart.setDate(localNow.getDate() - ((localNow.getDay()+6)%7));
+  weekStart.setDate(localNow.getDate() - ((localNow.getDay() + 6) % 7));
 
-  for (let i=0;i<7;i++) {
+  for (let i = 0; i < 7; i++) {
     const dayDate = new Date(weekStart);
-    dayDate.setDate(weekStart.getDate()+i);
+    dayDate.setDate(weekStart.getDate() + i);
 
     const dayDiv = document.createElement("div");
     dayDiv.className = "day";
-    if (dayDate.toDateString()===localNow.toDateString()) dayDiv.classList.add("today");
+    if (dayDate.toDateString() === localNow.toDateString())
+      dayDiv.classList.add("today");
 
     const dateDiv = document.createElement("div");
-    dateDiv.className="date";
-    dateDiv.textContent=`${String(dayDate.getMonth()+1).padStart(2,"0")}/${String(dayDate.getDate()).padStart(2,"0")}`;
+    dateDiv.className = "date";
+    dateDiv.textContent = `${String(dayDate.getMonth() + 1).padStart(2, "0")}/${String(dayDate.getDate()).padStart(2, "0")}`;
     const weekdayDiv = document.createElement("div");
-    weekdayDiv.className="weekday";
-    weekdayDiv.textContent=["MON","TUE","WED","THU","FRI","SAT","SUN"][i];
-    dayDiv.append(dateDiv,weekdayDiv);
+    weekdayDiv.className = "weekday";
+    weekdayDiv.textContent = ["MON","TUE","WED","THU","FRI","SAT","SUN"][i];
+    dayDiv.append(dateDiv, weekdayDiv);
 
     const events = allEvents.filter(ev =>
-      ev.start.getFullYear()===dayDate.getFullYear() &&
-      ev.start.getMonth()===dayDate.getMonth() &&
-      ev.start.getDate()===dayDate.getDate()
+      ev.start.getFullYear() === dayDate.getFullYear() &&
+      ev.start.getMonth() === dayDate.getMonth() &&
+      (ev.start.getDate() === dayDate.getDate() || ev.end.getDate() === dayDate.getDate())
     );
 
-    events.forEach((ev, idx)=>{
-      const startHour = ev.start.getHours() + ev.start.getMinutes()/60;
-      const endHour = ev.end.getHours() + ev.end.getMinutes()/60;
+    events.forEach((ev, idx) => {
+      const startHour = ev.start.getHours() + ev.start.getMinutes() / 60;
+      const endHour = ev.end.getHours() + ev.end.getMinutes() / 60;
       const duration = Math.max(0.5, endHour - startHour);
 
       const block = document.createElement("div");
-      block.className="block";
-      block.style.background=colors[idx % colors.length];
-      block.style.top=`${(startHour-6)*40+35}px`;
-      block.style.height=`${duration*40}px`;
+      block.className = "block";
+      block.style.background = colors[idx % colors.length];
+      block.style.top = `${(startHour - 6) * 40 + 35}px`;
+      block.style.height = `${duration * 40}px`;
 
-      block.addEventListener("mouseenter",e=>{
-        tooltip.style.opacity=1;
-        tooltip.innerHTML=`${String(ev.start.getHours()).padStart(2,"0")}:${String(ev.start.getMinutes()).padStart(2,"0")} ~ ${String(ev.end.getHours()).padStart(2,"0")}:${String(ev.end.getMinutes()).padStart(2,"0")}<br>${ev.title}`;
-        tooltip.style.left=e.pageX+10+"px";
-        tooltip.style.top=e.pageY-20+"px";
+      block.addEventListener("mouseenter", e => {
+        tooltip.style.opacity = 1;
+        tooltip.innerHTML = `${String(ev.start.getHours()).padStart(2,"0")}:${String(ev.start.getMinutes()).padStart(2,"0")} ~ ${String(ev.end.getHours()).padStart(2,"0")}:${String(ev.end.getMinutes()).padStart(2,"0")}<br>${ev.title}`;
+        tooltip.style.left = e.pageX + 10 + "px";
+        tooltip.style.top = e.pageY - 20 + "px";
       });
-      block.addEventListener("mousemove",e=>{
-        tooltip.style.left=e.pageX+10+"px";
-        tooltip.style.top=e.pageY-20+"px";
+      block.addEventListener("mousemove", e => {
+        tooltip.style.left = e.pageX + 10 + "px";
+        tooltip.style.top = e.pageY - 20 + "px";
       });
-      block.addEventListener("mouseleave",()=>tooltip.style.opacity=0);
+      block.addEventListener("mouseleave", () => (tooltip.style.opacity = 0));
 
       dayDiv.appendChild(block);
     });
