@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Timetable (Glass v54)</title>
+<title>Weekly Timetable (Glass v55)</title>
 <style>
   body {
     background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
@@ -42,8 +42,9 @@
   }
   .day-header {
     position: absolute;text-align:center;font-size:10px;font-weight:600;line-height:1.3;
-    white-space: pre-line;border-radius:6px;padding-top:4px;color:rgba(255,255,255,0.6);
-    width: calc((100% - 35px) / 7);height:28px;
+    white-space: pre-line;border-radius:6px;padding-top:4px;
+    width: calc((100% - 35px) / 7);height:36px;
+    color: rgba(255,255,255,0.6);
   }
   .day-header.today {background: rgba(255,255,255,0.3);color:#fff;font-weight:700;}
   .time-label {
@@ -81,7 +82,7 @@
 const timetable = document.getElementById("timetable");
 const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
 let currentMonday = getMonday(new Date());
-const headerHeight = 28; // ✅ 헤더 높이
+const headerHeight = 36; // ✅ 헤더 높이 넓힘
 const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
 const icalUrls = [
@@ -115,6 +116,10 @@ function renderWeek(monday){
     const header=document.createElement("div");
     header.className="day-header";
     header.style.left=`${35 + i*colWidth}px`;
+
+    const monthDayKey=`${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+    if(recurringHolidays.includes(monthDayKey)) header.style.color="rgba(255,150,120,0.9)";
+
     header.textContent=`${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${d}`;
     if(date.toDateString()===today.toDateString()) header.classList.add("today");
     timetable.appendChild(header);
@@ -127,7 +132,8 @@ function renderWeek(monday){
     const label=document.createElement("div");
     label.className="time-label";
     label.textContent=mainHours.includes(h)?String(h).padStart(2,"0"):"";
-    label.style.top=`${y-5}px`;
+    if(h===24) label.style.top=`${y-7}px`; // ✅ 24 숫자 약간 위로
+    else label.style.top=`${y-5}px`;
     const line=document.createElement("div");
     line.className=mainHours.includes(h)?"grid-line bold":"grid-line";
     line.style.top=`${y}px`;
@@ -166,13 +172,14 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
 
     const instances=[];
     if(rrule && rrule.includes("FREQ=WEEKLY")){
-      for(let i=-4;i<=52;i++){
-        const recurStart=new Date(baseStart.getTime()+i*7*86400000);
-        const recurEnd=new Date(baseEnd.getTime()+i*7*86400000);
-        // ✅ 주차 내 일정만 표시
+      // ✅ 반복일정도 이번 주차만 slice
+      const recurStart=new Date(baseStart);
+      while(recurStart<=sunday){
         if(recurStart>=monday && recurStart<=sunday){
+          const recurEnd=new Date(recurStart.getTime()+(baseEnd-baseStart));
           instances.push({s:recurStart,e:recurEnd});
         }
+        recurStart.setDate(recurStart.getDate()+7);
       }
     } else {
       if(baseStart>=monday && baseStart<=sunday) instances.push({s:baseStart,e:baseEnd});
@@ -182,9 +189,9 @@ function parseICS(ics,monday,sunday,today,color,rowHeight,colWidth){
       const dayIndex=(s.getDay()+6)%7;
       const startHour=s.getHours()+s.getMinutes()/60;
       const endHour=e.getHours()+e.getMinutes()/60||24;
-      const top=headerHeight+(startHour-6)*rowHeight; // ✅ 헤더 높이 보정
+      const top=headerHeight+(startHour-6)*rowHeight;
       const height=(endHour-startHour)*rowHeight;
-      const left=35+dayIndex*colWidth;
+      const left=35+(dayIndex*colWidth);
       const width=colWidth-6;
       const opacity=(s.toDateString()===today.toDateString())?1:0.5;
 
