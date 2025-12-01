@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Weekly Timetable (Glass v36)</title>
+<title>Weekly Timetable (Glass v37)</title>
 <style>
   body {
     margin: 0;
     height: 100vh;
     font-family: 'Pretendard', sans-serif;
     color: #f5f5f5;
-    background: linear-gradient(180deg, #0f1117 0%, #171b22 100%);
+    background: linear-gradient(180deg, #0b0b0d 0%, #141418 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow: hidden;
   }
 
-  /* 상단 버튼 */
   .top-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
+    margin-top: 16px;
     gap: 10px;
   }
 
@@ -35,6 +35,7 @@
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
   }
+
   .nav-btn:hover, .this-week:hover {
     background: rgba(255, 255, 255, 0.15);
   }
@@ -52,13 +53,12 @@
     margin-top: 10px;
   }
 
-  /* 타임테이블 */
   .timetable {
     position: relative;
     width: 80vw;
     max-width: 850px;
     height: 80vh;
-    margin-top: 15px;
+    margin-top: 10px;
     background: rgba(255, 255, 255, 0.04);
     border-radius: 28px;
     overflow: hidden;
@@ -92,7 +92,7 @@
 
   .hour-label {
     position: absolute;
-    left: 14px;
+    left: 10px;
     font-size: 14px;
     color: #aaa;
     font-weight: 500;
@@ -107,6 +107,7 @@
     opacity: 0.9;
     transition: transform 0.15s ease;
   }
+
   .event-block:hover {
     transform: scale(1.05);
   }
@@ -138,6 +139,7 @@
 
 <script>
 const timetable = document.getElementById("timetable");
+const headerHeight = 60; // 요일 헤더 높이
 let currentMonday = getMonday(new Date());
 const icalUrls = [
   "webcal://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
@@ -155,8 +157,8 @@ function getMonday(d) {
 }
 
 function getWeekNumber(d) {
-  const oneJan = new Date(d.getFullYear(),0,1);
-  return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay()+1)/7);
+  const oneJan = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
 }
 
 function getFixedKoreanHolidays(year) {
@@ -168,7 +170,7 @@ function getFixedKoreanHolidays(year) {
     [`${year}-08-15`]: "광복절",
     [`${year}-10-03`]: "개천절",
     [`${year}-10-09`]: "한글날",
-    [`${year}-12-25`]: "크리스마스",
+    [`${year}-12-25`]: "크리스마스"
   };
 }
 
@@ -179,9 +181,8 @@ function renderWeek(monday) {
   weekLabel.textContent = `${monday.getFullYear()}년 ${weekNum}주차 / 52주`;
 
   const holidays = getFixedKoreanHolidays(monday.getFullYear());
-  const days = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+  const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-  // 날짜 헤더
   for (let i = 0; i < 7; i++) {
     const head = document.createElement("div");
     head.className = "day-header";
@@ -190,7 +191,7 @@ function renderWeek(monday) {
     head.style.left = `${(i * 100 / 7)}%`;
     head.style.width = `calc(100% / 7 - 8px)`;
     head.style.margin = "4px";
-    head.textContent = `${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}\n${days[i]}`;
+    head.textContent = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}\n${days[i]}`;
     const dateKey = date.toISOString().split("T")[0];
     if (holidays[dateKey]) {
       head.style.color = "rgba(255,150,120,0.9)";
@@ -199,26 +200,25 @@ function renderWeek(monday) {
     timetable.appendChild(head);
   }
 
-  // 시간 라인
   for (let h = 6; h <= 24; h++) {
     const line = document.createElement("div");
     line.className = "hour-line" + ((h % 6 === 0) ? " major-line" : "");
-    line.style.top = `${((h - 6) / 18) * 100}%`;
+    line.style.top = `calc(${headerHeight}px + ${((h - 6) / 18) * 100}%)`;
     timetable.appendChild(line);
 
     if (h % 6 === 0) {
       const label = document.createElement("div");
       label.className = "hour-label";
-      label.style.top = `${((h - 6) / 18) * 100}%`;
+      label.style.top = `calc(${headerHeight}px + ${((h - 6) / 18) * 100}%)`;
       label.textContent = h;
       timetable.appendChild(label);
     }
   }
 
-  // 주간 범위 필터링
   const weekStart = new Date(monday);
   const weekEnd = new Date(monday);
   weekEnd.setDate(weekEnd.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
 
   const weekEvents = allEvents.filter(ev => ev.start >= weekStart && ev.start <= weekEnd);
 
@@ -229,21 +229,19 @@ function renderWeek(monday) {
     const dayIndex = (ev.start.getDay() + 6) % 7;
     block.style.left = `calc(${dayIndex * (100 / 7)}% + 4px)`;
     block.style.width = `calc(100% / 7 - 8px)`;
-    block.style.top = `${((ev.start.getHours() - 6) / 18) * 100}%`;
+    block.style.top = `calc(${headerHeight}px + ${((ev.start.getHours() - 6) / 18) * 100}%)`;
     block.style.height = `${((ev.end - ev.start) / 3600000 / 18) * 100}%`;
 
     const tooltip = document.createElement("div");
     tooltip.className = "tooltip";
     tooltip.textContent = `${ev.start.getHours()}:00 ~ ${ev.end.getHours()}:00 ${ev.title}`;
     block.appendChild(tooltip);
-
     block.addEventListener("mouseenter", () => tooltip.style.display = "block");
     block.addEventListener("mouseleave", () => tooltip.style.display = "none");
     timetable.appendChild(block);
   });
 }
 
-// 🔹 iCal 로드
 async function loadICS() {
   for (const url of icalUrls) {
     const res = await fetch("https://ical-proxy.moonkelly601.workers.dev/?url=" + encodeURIComponent(url));
@@ -270,15 +268,14 @@ function parseICS(data) {
 }
 
 function parseDate(str) {
-  const y = parseInt(str.slice(0,4));
-  const m = parseInt(str.slice(4,6))-1;
-  const d = parseInt(str.slice(6,8));
-  const h = parseInt(str.slice(9,11) || "0");
-  const min = parseInt(str.slice(11,13) || "0");
+  const y = parseInt(str.slice(0, 4));
+  const m = parseInt(str.slice(4, 6)) - 1;
+  const d = parseInt(str.slice(6, 8));
+  const h = parseInt(str.slice(9, 11) || "0");
+  const min = parseInt(str.slice(11, 13) || "0");
   return new Date(y, m, d, h, min);
 }
 
-// 네비게이션
 document.getElementById("prevWeek").addEventListener("click", () => {
   currentMonday.setDate(currentMonday.getDate() - 7);
   renderWeek(currentMonday);
