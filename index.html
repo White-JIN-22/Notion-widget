@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jinsol Ethereal Focus Widget</title>
+    <title>Jinsol Blue-Tone Focus Widget</title>
     
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
@@ -44,10 +44,7 @@
             width: 340px;
             height: 200px;
             border-radius: 28px;
-            /* 1. 전환 애니메이션을 부드럽게 (opacity, filter 추가) */
             transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease, filter 0.6s ease;
-            
-            /* 유리 질감 테두리 */
             box-shadow: 0 10px 40px -10px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.4);
             display: flex;
             flex-direction: row;
@@ -72,7 +69,7 @@
             z-index: 20;
             transform: translate(14px, 14px) scale(0.96);
             opacity: 0.4;
-            filter: blur(2px); /* 깊이감 */
+            filter: blur(2px);
         }
 
         /* 대기 카드 2 */
@@ -83,20 +80,19 @@
             filter: blur(4px);
         }
 
-        /* ✨ 2. 수정된 전환 애니메이션: 은은하게 사라짐 */
+        /* 카드 퇴장 애니메이션 */
         .card.exit {
             z-index: 40;
-            /* 너무 멀리 보내지 않고 살짝만 이동 */
             transform: translate(-40px, -10px) scale(0.98); 
-            opacity: 0; /* 투명하게 */
-            filter: blur(12px); /* 흐리게 */
+            opacity: 0; 
+            filter: blur(12px); 
             pointer-events: none;
         }
 
-        /* 완료 카드 스타일 */
+        /* ✨ 완료 카드 전용 스타일 (블루 톤) */
         .card.success-card {
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 20px 60px -15px rgba(139, 92, 246, 0.3), inset 0 0 20px rgba(255,255,255,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.7); /* 흰색 테두리 강조 */
+            box-shadow: 0 20px 60px -15px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(255,255,255,0.3);
         }
     </style>
 </head>
@@ -115,38 +111,36 @@
         const IconCheck = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
         const IconRefresh = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
 
-        // 🎨 색상 팔레트 통일 (채도와 명도를 맞춤)
-        // 텍스트 색상을 #334155 (Slate-700)로 통일하여 안정감 부여
-        const UNIFIED_TEXT_COLOR = "text-[#334155]"; 
+        const UNIFIED_TEXT_COLOR = "text-[#334155]"; // Slate-700
 
         const PHASES = {
             START: {
                 id: 'start',
-                duration: 10, 
-                // 연한 라벤더 -> 연한 블루 (채도 낮춤)
-                bgClass: 'bg-gradient-to-br from-[#E9D5FF] to-[#D8B4FE]', 
+                duration: 10, // 테스트용 10초
+                // 🎨 1단계: 차분한 남색/인디고 (Soft Indigo/Blue)
+                bgClass: 'bg-gradient-to-br from-[#C7D2FE] to-[#A5B4FC]', 
                 textClass: UNIFIED_TEXT_COLOR,
-                accentClass: 'bg-[#9333EA] text-white', // 포인트: 퍼플
+                accentClass: 'bg-[#4F46E5] text-white', // Indigo-600
                 title: 'Focus',
                 icon: <IconZap />
             },
             EXTENSION: {
                 id: 'extension',
                 duration: 10, 
-                // 연한 블루 -> 연한 민트
-                bgClass: 'bg-gradient-to-br from-[#BAE6FD] to-[#A5F3FC]', 
+                // 🎨 2단계: 청량한 스카이블루 (Sky Blue)
+                bgClass: 'bg-gradient-to-br from-[#BAE6FD] to-[#7DD3FC]', 
                 textClass: UNIFIED_TEXT_COLOR,
-                accentClass: 'bg-[#0EA5E9] text-white', // 포인트: 스카이 블루
-                title: 'Extend?',
+                accentClass: 'bg-[#0284C7] text-white', // Sky-600
+                title: 'Extend!', // 문구 수정 (!)
                 icon: <IconArrowUp />
             },
             TRANSITION: {
                 id: 'transition',
                 duration: 10, 
-                // 연한 그레이 -> 화이트
-                bgClass: 'bg-gradient-to-br from-[#F1F5F9] to-[#E2E8F0]', 
+                // 🎨 3단계: 따뜻한 아이보리 (Ivory/Cream)
+                bgClass: 'bg-gradient-to-br from-[#FEF9C3] to-[#FFF7ED]', 
                 textClass: UNIFIED_TEXT_COLOR,
-                accentClass: 'bg-[#64748B] text-white', // 포인트: 그레이
+                accentClass: 'bg-[#D97706] text-white', // Amber-600
                 title: 'Rest',
                 icon: <IconCoffee />
             }
@@ -223,7 +217,6 @@
 
             const animateTransition = (nextPhaseKey) => {
                 setExitingPhase(currentPhase);
-                // 애니메이션 시간 약간 늘림 (부드럽게)
                 setTimeout(() => {
                     setCurrentPhase(nextPhaseKey);
                     setTimeLeft(PHASES[nextPhaseKey.toUpperCase()].duration);
@@ -271,11 +264,11 @@
 
                 return (
                     <div key={phaseKey} className={`card ${data.bgClass} ${data.textClass} ${statusClass}`}>
-                        {/* 🔥 1. 카운트 불꽃 아이콘: 흰색으로 변경 */}
+                        {/* 🔥 카운트 아이콘: 흰색 변경 */}
                         {phaseKey === 'start' && (
-                            <div className="absolute top-4 right-5 flex items-center gap-1 opacity-70 bg-white/30 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm border border-white/20">
-                                <span className="text-white/90"><IconFlame /></span>
-                                <span className="text-xs font-bold tabular-nums text-[#334155]">{sparkCount}</span>
+                            <div className="absolute top-4 right-5 flex items-center gap-1 opacity-80 bg-white/20 px-2 py-0.5 rounded-full backdrop-blur-md shadow-sm border border-white/30">
+                                <span className="text-white"><IconFlame /></span>
+                                <span className="text-xs font-bold tabular-nums text-[#1E293B]">{sparkCount}</span>
                             </div>
                         )}
 
@@ -333,14 +326,14 @@
                             {PHASE_ORDER.slice().reverse().map(phase => renderCard(phase))}
                         </>
                     ) : (
-                        // 완료 화면: 부드러운 홀로그램 그라데이션
-                        <div className="card active success-card bg-gradient-to-br from-[#E9D5FF] via-[#DDD6FE] to-[#BAE6FD] p-6 flex flex-col items-center justify-center text-[#334155]">
-                            <div className="w-16 h-16 bg-white/40 text-[#8B5CF6] rounded-full flex items-center justify-center mb-4 shadow-lg backdrop-blur-md">
+                        // ✨ 완료 화면: 파랑 계열 그라데이션 + 흰색 테두리
+                        <div className="card active success-card bg-gradient-to-br from-[#BFDBFE] via-[#93C5FD] to-[#60A5FA] p-6 flex flex-col items-center justify-center text-[#1E3A8A]">
+                            <div className="w-16 h-16 bg-white/40 text-[#1D4ED8] rounded-full flex items-center justify-center mb-4 shadow-lg backdrop-blur-md">
                                 <IconCheck />
                             </div>
                             <h2 className="text-2xl font-bold mb-1 tracking-tight">Session Complete</h2>
-                            <p className="text-[#334155] text-sm opacity-70 mb-6 font-medium">Refreshed & Ready!</p>
-                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-full text-sm font-bold shadow-xl transition-all active:scale-95">
+                            <p className="text-[#1E3A8A] text-sm opacity-80 mb-6 font-medium">Refreshed & Ready!</p>
+                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-full text-sm font-bold shadow-xl transition-all active:scale-95">
                                 <IconRefresh /> Reset Widget
                             </button>
                         </div>
