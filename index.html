@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jinsol Pastel Focus Widget</title>
+    <title>Jinsol Pastel Focus Widget (Final Revised)</title>
     
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
@@ -24,32 +24,24 @@
             align-items: center;
             min-height: 100vh;
             color: white;
-            overflow: hidden; /* 스크롤 방지 */
+            overflow: hidden;
         }
 
-        /* 숫자 흔들림 방지 */
-        .tabular-nums {
-            font-feature-settings: "tnum";
-            font-variant-numeric: tabular-nums;
-        }
+        .tabular-nums { font-variant-numeric: tabular-nums; }
+        .timer-circle { transition: stroke-dashoffset 1s linear; }
 
-        /* 원형 타이머 부드러운 전환 */
-        .timer-circle {
-            transition: stroke-dashoffset 1s linear;
-        }
-
-        /* 카드 컨테이너 (적층 효과를 위해 여유 공간 확보) */
+        /* 카드 컨테이너 */
         .card-container {
             position: relative;
-            width: 380px;  /* 너비 살짝 늘림 */
-            height: 240px; /* 높이 살짝 늘림 */
+            width: 380px;
+            height: 240px;
         }
 
         .card {
             position: absolute;
             top: 0;
             left: 0;
-            width: 340px; /* 실제 카드 크기 */
+            width: 340px;
             height: 200px;
             border-radius: 28px;
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -63,28 +55,30 @@
             transform-origin: center center;
         }
 
-        /* 1. 활성 카드 (가장 앞) */
+        /* 1. 활성 카드 */
         .card.active {
             z-index: 30;
             transform: translate(0, 0) scale(1);
             opacity: 1;
         }
 
-        /* 2. 대기 카드 1 (바로 뒤 - 우측 하단) */
+        /* 2. 대기 카드 1 (은은하게) */
         .card.next-1 {
             z-index: 20;
             transform: translate(14px, 14px) scale(0.96);
-            opacity: 0.7;
+            opacity: 0.5; /* 불투명도 낮춤 */
+            filter: blur(1px); /* 살짝 흐리게 */
         }
 
-        /* 3. 대기 카드 2 (그 뒤 - 우측 하단 더 멀리) */
+        /* 3. 대기 카드 2 (더 은은하게) */
         .card.next-2 {
             z-index: 10;
             transform: translate(28px, 28px) scale(0.92);
-            opacity: 0.4;
+            opacity: 0.25; /* 불투명도 더 낮춤 */
+            filter: blur(2px); /* 더 흐리게 */
         }
 
-        /* 4. 완료되어 사라지는 카드 (왼쪽 위로 슝) */
+        /* 4. 완료 카드 (왼쪽 위로) */
         .card.exit {
             z-index: 40;
             transform: translate(-150%, -20%) rotate(-10deg);
@@ -100,42 +94,42 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // 아이콘 (Lucide 스타일)
+        // 아이콘 (조금 더 두껍게 수정)
         const IconZap = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
         const IconArrowUp = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>;
         const IconCoffee = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>;
         const IconCheck = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
         const IconRefresh = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
 
-        // 🎨 디자인 설정 (요청하신 컬러: 남색, 라벤더, 하늘색, 아이보리)
+        // 🎨 디자인 설정 (파스텔 그라데이션 + 남색 포인트)
         const PHASES = {
             START: {
                 id: 'start',
-                duration: 30, // 30초 (테스트용)
-                // 라벤더 (배경) + 남색 (텍스트)
-                bgClass: 'bg-gradient-to-br from-[#E3E8FA] to-[#C4D0F5]', 
-                textClass: 'text-[#1E293B]', // Slate-800 (Soft Navy 느낌)
-                accentClass: 'bg-[#312E81] text-white', // 버튼: 진한 남색
+                duration: 30, 
+                // 라벤더 -> 블루 그라데이션
+                bgClass: 'bg-gradient-to-br from-[#DCE3FD] to-[#BCCAF5]', 
+                textClass: 'text-[#1E293B]', // Slate-800 (부드러운 남색)
+                accentClass: 'bg-[#312E81] text-white', // 버튼: 딥 네이비
                 title: 'Focus',
                 icon: <IconZap />
             },
             EXTENSION: {
                 id: 'extension',
-                duration: 30, // 30초
-                // 하늘색 (배경) + 남색 (텍스트)
-                bgClass: 'bg-gradient-to-br from-[#E0F2FE] to-[#BAE6FD]', 
-                textClass: 'text-[#0C4A6E]', // Sky-900
-                accentClass: 'bg-[#0284C7] text-white', // 버튼: 진한 하늘색
+                duration: 30, 
+                // 핑크 -> 피치 그라데이션
+                bgClass: 'bg-gradient-to-br from-[#FEE2E2] to-[#FFDAC1]', 
+                textClass: 'text-[#881337]', // Rose-900 (따뜻한 남색 계열)
+                accentClass: 'bg-[#BE123C] text-white', // 버튼: 딥 로즈
                 title: 'Extend?',
                 icon: <IconArrowUp />
             },
             TRANSITION: {
                 id: 'transition',
-                duration: 30, // 30초
-                // 아이보리 (배경) + 남색 (텍스트)
-                bgClass: 'bg-gradient-to-br from-[#FFFFF0] to-[#FDF4CD]', 
-                textClass: 'text-[#422006]', // Warm Dark Brown/Navy mix
-                accentClass: 'bg-[#A16207] text-white', 
+                duration: 30, 
+                // 민트 -> 옐로우 그라데이션
+                bgClass: 'bg-gradient-to-br from-[#ECFDF5] to-[#FEF3C7]', 
+                textClass: 'text-[#064E3B]', // Emerald-900 (차가운 남색 계열)
+                accentClass: 'bg-[#059669] text-white', // 버튼: 딥 에메랄드
                 title: 'Rest',
                 icon: <IconCoffee />
             }
@@ -145,12 +139,12 @@
 
         const playSound = (type) => {
             try {
-                // click: 물방울 / finish: 감성적인 피아노 딩~ (Soft Piano Notification)
+                // click: 물방울 / finish: 은은한 윈드 차임 (Dreamy Wind Chime)
                 const src = type === 'click' 
                     ? 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' 
-                    : 'https://assets.mixkit.co/active_storage/sfx/2342/2342-preview.mp3'; // Soft Piano Bell
+                    : 'https://assets.mixkit.co/active_storage/sfx/2336/2336-preview.mp3'; // Dreamy Magic Chime
                 const audio = new Audio(src);
-                audio.volume = type === 'click' ? 0.3 : 0.5;
+                audio.volume = type === 'click' ? 0.3 : 0.4; // 볼륨 조절
                 audio.play().catch(() => {});
             } catch (e) {}
         };
@@ -189,7 +183,6 @@
 
             const animateTransition = (nextPhaseKey) => {
                 setExitingPhase(currentPhase);
-                
                 setTimeout(() => {
                     setCurrentPhase(nextPhaseKey);
                     setTimeLeft(PHASES[nextPhaseKey.toUpperCase()].duration);
@@ -197,7 +190,7 @@
                     setShowExtensionChoice(false);
                     setExitingPhase(null);
                     playSound('click');
-                }, 500); // CSS transition 시간과 일치
+                }, 500);
             };
 
             const resetAll = () => {
@@ -215,29 +208,20 @@
                 return `${m}:${s}`;
             };
 
-            // 렌더링 로직
             const renderCard = (phaseKey) => {
                 const data = PHASES[phaseKey.toUpperCase()];
                 const currentIndex = PHASE_ORDER.indexOf(currentPhase);
                 const phaseIndex = PHASE_ORDER.indexOf(phaseKey);
 
-                // 카드 상태 클래스 계산 (Active, Next-1, Next-2, Exit)
                 let statusClass = '';
-                
-                if (exitingPhase === phaseKey) {
-                    statusClass = 'exit'; 
-                } else if (currentPhase === phaseKey && !exitingPhase) {
-                    statusClass = 'active'; 
-                } else if (phaseIndex > currentIndex) {
-                    // 현재 단계보다 뒤에 있는 단계들 (적층 효과)
-                    const offset = phaseIndex - currentIndex;
-                    statusClass = `next-${offset}`; // next-1, next-2
-                } else {
-                    return null; // 이미 지나간 단계는 렌더링 X
-                }
+                if (exitingPhase === phaseKey) statusClass = 'exit'; 
+                else if (currentPhase === phaseKey && !exitingPhase) statusClass = 'active'; 
+                else if (phaseIndex > currentIndex) statusClass = `next-${phaseIndex - currentIndex}`;
+                else return null;
 
-                // 타이머 계산
-                const radius = 32; 
+                // 타이머 크기 및 굵기 조절
+                const radius = 36; // 크기 확대 (기존 32)
+                const strokeWidth = 10; // 굵기 확대 (기존 6)
                 const circumference = 2 * Math.PI * radius;
                 const maxDuration = data.duration;
                 const progress = timeLeft / maxDuration;
@@ -246,21 +230,19 @@
                 return (
                     <div key={phaseKey} className={`card ${data.bgClass} ${data.textClass} ${statusClass}`}>
                         
-                        {/* 왼쪽: 선명한 원형 타이머 */}
-                        <div className="relative w-20 h-20 flex-shrink-0 mr-5">
+                        {/* 왼쪽: 더 크고 굵은 원형 타이머 */}
+                        <div className="relative w-24 h-24 flex-shrink-0 mr-5">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                {/* 배경 원: 흰색 반투명 (은은하게) */}
                                 <circle 
-                                    className="text-white opacity-40" 
-                                    strokeWidth="6" 
+                                    className="text-white opacity-30" 
+                                    strokeWidth={strokeWidth} 
                                     stroke="currentColor" 
                                     fill="transparent" 
                                     r={radius} cx="50" cy="50" 
                                 />
-                                {/* 진행 원: 쨍한 흰색 (선명하게!) */}
                                 <circle 
                                     className="text-white timer-circle drop-shadow-md" 
-                                    strokeWidth="6" 
+                                    strokeWidth={strokeWidth} 
                                     strokeDasharray={circumference} 
                                     strokeDashoffset={dashoffset} 
                                     strokeLinecap="round" 
@@ -280,12 +262,10 @@
                                 </div>
                             </div>
                             
-                            {/* 시간 표시 */}
                             <div className="text-5xl font-bold tracking-tight leading-none tabular-nums mb-4 drop-shadow-sm">
                                 {formatTime(timeLeft)}
                             </div>
 
-                            {/* 버튼 영역 */}
                             <div className="w-full h-10"> 
                                 {!showExtensionChoice ? (
                                     phaseKey === 'transition' ? (
@@ -324,18 +304,17 @@
                 <div className="card-container">
                     {!isFinished ? (
                         <>
-                            {/* 역순 렌더링 (뒤에 있는 카드가 먼저 그려지게) */}
                             {PHASE_ORDER.slice().reverse().map(phase => renderCard(phase))}
                         </>
                     ) : (
-                        // 완료 카드 (깔끔한 화이트/그레이 톤 + 남색 포인트)
+                        // 완료 카드 (남색 테마)
                         <div className="card active bg-[#1E293B] border border-slate-700 p-6 flex flex-col items-center justify-center text-white">
-                            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                            <div className="w-14 h-14 bg-[#312E81] text-blue-200 rounded-full flex items-center justify-center mb-4 shadow-inner">
                                 <IconCheck />
                             </div>
                             <h2 className="text-xl font-bold mb-1">Session Complete</h2>
                             <p className="text-slate-400 text-sm mb-6">Refreshed & Ready!</p>
-                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#312E81] hover:bg-[#3730a3] text-white rounded-full text-sm font-bold shadow-lg transition-all active:scale-95">
+                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#0284C7] hover:bg-[#0369a1] text-white rounded-full text-sm font-bold shadow-lg transition-all active:scale-95">
                                 <IconRefresh /> Reset Widget
                             </button>
                         </div>
