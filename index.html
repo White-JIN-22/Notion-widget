@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jinsol Glassy Focus Widget</title>
+    <title>Jinsol Focus Widget (Test Mode)</title>
     
     <meta name="robots" content="noindex, nofollow">
     <meta name="googlebot" content="noindex, nofollow">
@@ -43,10 +43,10 @@
             left: 0;
             width: 340px;
             height: 200px;
-            border-radius: 28px; /* 둥근 모서리 */
+            border-radius: 28px;
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            /* 부드러운 그림자 + 유리 질감 테두리 */
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.2);
+            /* 기본 유리 질감 테두리 */
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.3);
             display: flex;
             flex-direction: row;
             align-items: center;
@@ -54,7 +54,7 @@
             padding: 24px;
             box-sizing: border-box;
             transform-origin: center center;
-            backdrop-filter: blur(10px); /* 유리 질감 */
+            backdrop-filter: blur(12px);
         }
 
         /* 1. 활성 카드 */
@@ -64,28 +64,34 @@
             opacity: 1;
         }
 
-        /* 2. 대기 카드 1 (투명도 대폭 낮춤: 30% 수준) */
+        /* 2. 대기 카드 1 */
         .card.next-1 {
             z-index: 20;
             transform: translate(14px, 14px) scale(0.96);
-            opacity: 0.35; /* 기존 0.5 -> 0.35 */
+            opacity: 0.35;
             filter: blur(1px);
         }
 
-        /* 3. 대기 카드 2 (투명도 대폭 낮춤: 10% 수준) */
+        /* 3. 대기 카드 2 */
         .card.next-2 {
             z-index: 10;
             transform: translate(28px, 28px) scale(0.92);
-            opacity: 0.15; /* 기존 0.25 -> 0.15 */
+            opacity: 0.15;
             filter: blur(2px);
         }
 
-        /* 4. 완료 카드 (왼쪽 위로) */
+        /* 4. 카드 퇴장 애니메이션 */
         .card.exit {
             z-index: 40;
             transform: translate(-120%, -20%) rotate(-10deg);
             opacity: 0;
             pointer-events: none;
+        }
+
+        /* ✨ 완료 카드 전용 스타일 (반짝이는 테두리) */
+        .card.success-card {
+            border: 4px solid rgba(255, 255, 255, 0.6); /* 두꺼운 흰색 테두리 */
+            box-shadow: 0 20px 50px -12px rgba(100, 200, 255, 0.4), inset 0 0 20px rgba(255,255,255,0.4);
         }
     </style>
 </head>
@@ -100,38 +106,35 @@
         const IconZap = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
         const IconArrowUp = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>;
         const IconCoffee = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>;
-        const IconCheck = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconCheck = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
         const IconRefresh = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
 
-        // 🎨 디자인 설정 (사진 3번 스타일: 영롱한 파스텔 그라데이션)
+        // ⏱️ 설정값: 테스트를 위해 모든 시간을 10초로 설정
         const PHASES = {
             START: {
                 id: 'start',
-                duration: 5 * 60, // 5분
-                // Capi Creative 스타일: 블루-퍼플 그라데이션 (몽환적)
+                duration: 10, // 테스트용 10초
                 bgClass: 'bg-gradient-to-br from-[#8EC5FC] to-[#E0C3FC]', 
-                textClass: 'text-[#312E81]', // 깊은 남색 (가독성)
-                accentClass: 'bg-[#6366F1] text-white', // 버튼: 인디고
+                textClass: 'text-[#312E81]', 
+                accentClass: 'bg-[#6366F1] text-white', 
                 title: 'Focus',
                 icon: <IconZap />
             },
             EXTENSION: {
                 id: 'extension',
-                duration: 5 * 60, // 5분
-                // 청량한 스카이-민트 그라데이션
+                duration: 10, // 테스트용 10초
                 bgClass: 'bg-gradient-to-br from-[#89f7fe] to-[#66a6ff]', 
-                textClass: 'text-[#0c4a6e]', // 짙은 바다색
-                accentClass: 'bg-[#0284c7] text-white', // 버튼: 스카이 블루
+                textClass: 'text-[#0c4a6e]', 
+                accentClass: 'bg-[#0284c7] text-white', 
                 title: 'Extend?',
                 icon: <IconArrowUp />
             },
             TRANSITION: {
                 id: 'transition',
-                duration: 10 * 60, // 10분
-                // 깔끔한 화이트-실버 그라데이션 (휴식)
+                duration: 10, // 테스트용 10초
                 bgClass: 'bg-gradient-to-br from-[#ffffff] to-[#dde1e7]', 
-                textClass: 'text-[#334155]', // 슬레이트 그레이
-                accentClass: 'bg-[#475569] text-white', // 버튼: 차분한 그레이
+                textClass: 'text-[#334155]', 
+                accentClass: 'bg-[#475569] text-white', 
                 title: 'Rest',
                 icon: <IconCoffee />
             }
@@ -141,11 +144,9 @@
 
         const playSound = (type) => {
             try {
-                // click: 가벼운 물방울
-                // finish: 물방울 도로롱~ (Bubbles/Liquid sound)
                 const src = type === 'click' 
                     ? 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' 
-                    : 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3'; // Liquid bubbles
+                    : 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3'; 
                 const audio = new Audio(src);
                 audio.volume = type === 'click' ? 0.3 : 0.6; 
                 audio.play().catch(() => {});
@@ -157,7 +158,7 @@
             const [timeLeft, setTimeLeft] = useState(PHASES.START.duration);
             const [isActive, setIsActive] = useState(false);
             const [showExtensionChoice, setShowExtensionChoice] = useState(false);
-            const [showTransitionButton, setShowTransitionButton] = useState(false); // 수동 전환 버튼용 상태
+            const [showTransitionButton, setShowTransitionButton] = useState(false);
             const [isFinished, setIsFinished] = useState(false);
             const [exitingPhase, setExitingPhase] = useState(null);
 
@@ -179,7 +180,6 @@
                 if (currentPhase === 'start') {
                     setShowExtensionChoice(true);
                 } else if (currentPhase === 'extension') {
-                    // [수정됨] 자동으로 넘어가지 않고 버튼 보여주기
                     setShowTransitionButton(true);
                 } else if (currentPhase === 'transition') {
                     setIsFinished(true);
@@ -191,7 +191,7 @@
                 setTimeout(() => {
                     setCurrentPhase(nextPhaseKey);
                     setTimeLeft(PHASES[nextPhaseKey.toUpperCase()].duration);
-                    setIsActive(true); // 다음 단계 자동 시작 원하시면 true, 아니면 false
+                    setIsActive(true);
                     setShowExtensionChoice(false);
                     setShowTransitionButton(false);
                     setExitingPhase(null);
@@ -226,7 +226,6 @@
                 else if (phaseIndex > currentIndex) statusClass = `next-${phaseIndex - currentIndex}`;
                 else return null;
 
-                // 타이머 시각화
                 const radius = 36;
                 const strokeWidth = 10;
                 const circumference = 2 * Math.PI * radius;
@@ -236,82 +235,42 @@
 
                 return (
                     <div key={phaseKey} className={`card ${data.bgClass} ${data.textClass} ${statusClass}`}>
-                        
-                        {/* 왼쪽: 타이머 */}
                         <div className="relative w-24 h-24 flex-shrink-0 mr-5">
                             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle 
-                                    className="text-white opacity-40" 
-                                    strokeWidth={strokeWidth} 
-                                    stroke="currentColor" 
-                                    fill="transparent" 
-                                    r={radius} cx="50" cy="50" 
-                                />
-                                <circle 
-                                    className="text-white timer-circle drop-shadow-md" 
-                                    strokeWidth={strokeWidth} 
-                                    strokeDasharray={circumference} 
-                                    strokeDashoffset={dashoffset} 
-                                    strokeLinecap="round" 
-                                    stroke="currentColor" 
-                                    fill="transparent" 
-                                    r={radius} cx="50" cy="50" 
-                                />
+                                <circle className="text-white opacity-40" strokeWidth={strokeWidth} stroke="currentColor" fill="transparent" r={radius} cx="50" cy="50" />
+                                <circle className="text-white timer-circle drop-shadow-md" strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={dashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="50" cy="50" />
                             </svg>
                         </div>
-
-                        {/* 오른쪽: 컨텐츠 */}
                         <div className="flex-1 flex flex-col justify-center h-full">
                             <div className="flex justify-between items-center mb-1 opacity-90">
                                 <span className="text-sm font-bold uppercase tracking-widest">{data.title}</span>
-                                <div className="p-1.5 bg-white/30 rounded-full backdrop-blur-sm shadow-sm">
-                                    {data.icon}
-                                </div>
+                                <div className="p-1.5 bg-white/30 rounded-full backdrop-blur-sm shadow-sm">{data.icon}</div>
                             </div>
-                            
                             <div className="text-5xl font-bold tracking-tight leading-none tabular-nums mb-4 drop-shadow-sm">
                                 {formatTime(timeLeft)}
                             </div>
-
                             <div className="w-full h-10"> 
-                                {/* 1. 기본 상태: 타이머 시작/일시정지 */}
                                 {!showExtensionChoice && !showTransitionButton && (
                                     phaseKey === 'transition' ? (
                                         <div className="flex gap-2 h-full items-center">
                                             <div className="text-xs font-bold opacity-80 flex items-center gap-1">💧 Water</div>
                                             <div className="text-xs font-bold opacity-80 flex items-center gap-1">📖 Read</div>
-                                            <button onClick={() => setIsFinished(true)} className="ml-auto px-4 py-2 bg-black/5 hover:bg-black/10 rounded-xl text-xs font-bold transition-colors">
-                                                Done
-                                            </button>
+                                            <button onClick={() => setIsFinished(true)} className="ml-auto px-4 py-2 bg-black/5 hover:bg-black/10 rounded-xl text-xs font-bold transition-colors">Done</button>
                                         </div>
                                     ) : (
-                                        <button 
-                                            onClick={() => { setIsActive(!isActive); playSound('click'); }}
-                                            className={`w-full h-full rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 ${data.accentClass}`}
-                                        >
+                                        <button onClick={() => { setIsActive(!isActive); playSound('click'); }} className={`w-full h-full rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 ${data.accentClass}`}>
                                             {isActive ? "Pause" : "Start"}
                                         </button>
                                     )
                                 )}
-
-                                {/* 2. 5분 종료 후: 연장 선택지 */}
                                 {showExtensionChoice && (
                                     <div className="flex gap-2 h-full">
-                                        <button onClick={() => animateTransition('extension')} className={`flex-1 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 ${data.accentClass}`}>
-                                            +5 min
-                                        </button>
-                                        <button onClick={() => animateTransition('transition')} className="px-4 bg-white/40 hover:bg-white/50 rounded-xl text-xs font-bold transition-colors shadow-sm">
-                                            Skip
-                                        </button>
+                                        <button onClick={() => animateTransition('extension')} className={`flex-1 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95 ${data.accentClass}`}>+5 min</button>
+                                        <button onClick={() => animateTransition('transition')} className="px-4 bg-white/40 hover:bg-white/50 rounded-xl text-xs font-bold transition-colors shadow-sm">Skip</button>
                                     </div>
                                 )}
-
-                                {/* 3. [추가됨] 연장 종료 후: 휴식 시작 버튼 (자동실행 방지) */}
                                 {showTransitionButton && phaseKey === 'extension' && (
-                                    <button 
-                                        onClick={() => animateTransition('transition')} 
-                                        className="w-full h-full rounded-xl text-sm font-bold shadow-md transition-all active:scale-95 bg-white text-[#0c4a6e] hover:bg-gray-50 flex items-center justify-center gap-2"
-                                    >
+                                    <button onClick={() => animateTransition('transition')} className="w-full h-full rounded-xl text-sm font-bold shadow-md transition-all active:scale-95 bg-white text-[#0c4a6e] hover:bg-gray-50 flex items-center justify-center gap-2">
                                         Start Rest ☕️
                                     </button>
                                 )}
@@ -328,14 +287,14 @@
                             {PHASE_ORDER.slice().reverse().map(phase => renderCard(phase))}
                         </>
                     ) : (
-                        // 완료 카드
-                        <div className="card active bg-[#1e293b] border border-slate-700 p-6 flex flex-col items-center justify-center text-white">
-                            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                        // ✨ 수정된 완료 화면: 파스텔 그라데이션 + 화이트 보더
+                        <div className="card active success-card bg-gradient-to-br from-[#E0C3FC] via-[#DCE3FD] to-[#8EC5FC] p-6 flex flex-col items-center justify-center text-[#312E81]">
+                            <div className="w-16 h-16 bg-white/40 text-[#6366F1] rounded-full flex items-center justify-center mb-4 shadow-lg backdrop-blur-md">
                                 <IconCheck />
                             </div>
-                            <h2 className="text-xl font-bold mb-1">All Done!</h2>
-                            <p className="text-slate-400 text-sm mb-6">You did great today.</p>
-                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-full text-sm font-bold shadow-lg transition-all active:scale-95">
+                            <h2 className="text-2xl font-bold mb-1 tracking-tight">Session Complete</h2>
+                            <p className="text-[#312E81] text-sm opacity-70 mb-6 font-medium">Refreshed & Ready!</p>
+                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-full text-sm font-bold shadow-xl transition-all active:scale-95">
                                 <IconRefresh /> Reset Widget
                             </button>
                         </div>
