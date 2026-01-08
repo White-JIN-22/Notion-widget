@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Widget</title>
+    <title>Fortress Block Timeline (Icon Edition)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -18,793 +20,266 @@
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
-            overflow: hidden;
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 Icy Blue Glass Theme */
+        /* 🧊 Icy Blue Glass Theme (Ultra Slim) */
         .widget-container {
             position: relative;
-            /* ✅ 수정: 너비 390px -> 270px (약 2/3) */
-            width: 270px; 
-            height: 500px; /* 높이도 비율 맞춰 조금 줄임 */
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
-            backdrop-filter: blur(20px);
-            border-radius: 28px; /* 곡률 약간 조정 */
-            border: 1px solid rgba(224, 242, 254, 0.3);
-            box-shadow: 0 0 40px rgba(186, 230, 253, 0.1), inset 0 0 20px rgba(224, 242, 254, 0.1);
+            width: 100%;
+            max-width: 160px;
+            height: 540px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            border-radius: 24px;
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            color: #e0f2fe;
+            color: #334155;
         }
 
-        .glass-panel {
-            background: rgba(224, 242, 254, 0.1);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(224, 242, 254, 0.2);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
+        .font-serif-italic { font-family: 'Nanum Myeongjo', serif; font-style: italic; }
+        .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+        .title-text { color: #FFFFFF; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); font-weight: 700; }
 
-        .tab-btn {
-            transition: all 0.2s;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 0.7rem; /* 폰트 사이즈 축소 */
-            color: #94a3b8;
-            letter-spacing: -0.02em;
-        }
-        .tab-active {
-            background: rgba(186, 230, 253, 0.2);
-            color: #bae6fd;
-            border: 1px solid rgba(186, 230, 253, 0.3);
-            box-shadow: 0 0 15px rgba(186, 230, 253, 0.1);
-        }
-        .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.05); }
-
-        .log-item {
-            animation: slideUp 0.3s ease-out forwards;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(224, 242, 254, 0.2);
-            border-radius: 16px;
-            padding: 12px; /* 패딩 축소 */
+        /* ✨ Grid System */
+        .grid-container {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            height: 100%;
             justify-content: space-between;
         }
-        @keyframes slideUp {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .grid-row {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+            min-height: 0;
         }
-
-        .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
-        
-        .modal-content {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%);
-            backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.2);
-            color: #334155;
+        .time-label {
+            width: 20px;
+            text-align: right;
+            padding-right: 4px;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1;
         }
-
-        .quest-btn, .action-btn {
-            background: rgba(224, 242, 254, 0.1);
-            border: 1px solid rgba(224, 242, 254, 0.2);
-            color: #e0f2fe;
-            transition: all 0.2s;
+        .blocks-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            height: 16px;
+            padding-right: 6px;
         }
-        .quest-btn:hover, .action-btn:hover {
-            background: rgba(224, 242, 254, 0.2);
-            border-color: rgba(186, 230, 253, 0.4);
-            box-shadow: 0 0 15px rgba(186, 230, 253, 0.1);
-            color: white;
-        }
-        .quest-btn:active { transform: scale(0.98); }
-        .quest-btn:disabled { opacity: 0.4; filter: grayscale(100%); }
-
-        .modal-btn {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            color: #475569;
-            transition: all 0.2s;
-        }
-        .modal-btn:hover {
-            background: rgba(255, 255, 255, 1);
-            border-color: #bae6fd;
-            box-shadow: 0 4px 15px rgba(186, 230, 253, 0.3);
-            transform: translateY(-2px);
-            color: #0ea5e9;
-        }
-
-        .custom-select {
-            width: 100%; border-radius: 12px; padding: 8px; font-weight: 700; outline: none; text-align: center; appearance: none;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            color: #334155;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        .custom-select:focus {
-            background: rgba(255, 255, 255, 0.9);
-            border-color: #bae6fd;
-            box-shadow: 0 0 0 3px rgba(186, 230, 253, 0.3);
+        .time-block {
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px; /* 아이콘 크기 */
         }
         
-        .toast-message {
-            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(186, 230, 253, 0.5); 
-            color: #0ea5e9;
-            padding: 10px 20px; border-radius: 30px; 
-            font-size: 0.9rem;
-            font-weight: 700;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            pointer-events: none; z-index: 100;
-            animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
-        }
-        @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-
-        .progress-ring__circle {
-            transition: stroke-dashoffset 0.35s;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
+        /* 🎨 Block Styles */
+        .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
+        .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
+        .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
+        
+        /* 🕹️ Switch/Rest Action Style (점선 + 투명) */
+        .block-switch {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px dashed rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.9);
         }
 
-        .text-sky { color: #bae6fd; }
-        .text-sky-300 { color: #bae6fd; }
-        .text-dim { color: #94a3b8; }
-        .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
-        .bg-sky-pastel { background-color: #bae6fd; box-shadow: 0 0 10px rgba(186, 230, 253, 0.5); }
-        .border-sky-300\/30 { border-color: rgba(186, 230, 253, 0.3); }
-        .bg-sky-400 { background-color: #38bdf8; }
-        .hover\:bg-sky-300:hover { background-color: #7dd3fc; }
-        .bg-sky-300 { background-color: #7dd3fc; }
-        .hover\:bg-sky-400:hover { background-color: #38bdf8; }
+        .block-empty { background: rgba(255, 255, 255, 0.04); }
 
+        .footer-blur {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* 🎨 Total Time Text Colors */
+        .text-gray-custom { color: #94a3b8; } 
+        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
+        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
     </style>
 </head>
 <body>
 
-    <div id="root" style="width: 100%; height: 100%; display: flex; justify-content: center;"></div>
+    <div id="root" style="width: 100%; display: flex; justify-content: center;"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
+        const { useState, useEffect } = React;
 
         const Icons = {
-            Ticket: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
-            Zap: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
-            Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-            Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
-            Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            Sun: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
-            Cloud: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
-            Rain: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            Trash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
-            Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
-            Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
-            Wind: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
-            Shirt: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
-            Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
-            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
-            Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
-            More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
-            Flame: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
-            Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
-            Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+            Refresh: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bae6fd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
         };
 
         const App = () => {
-            const [activeTab, setActiveTab] = useState('main');
-            const [tickets, setTickets] = useState(0);
-            const [energy, setEnergy] = useState(100);
             const [blocks, setBlocks] = useState([]);
-            
-            const [isRecording, setIsRecording] = useState(false);
-            const [startTime, setStartTime] = useState(null);
-            const [elapsed, setElapsed] = useState(0);
-            const [showIntro, setShowIntro] = useState(false);
-            
-            const [showModal, setShowModal] = useState(false);
-            const [modalType, setModalType] = useState('manual');
-            
-            const [deleteTargetId, setDeleteTargetId] = useState(null);
-            const [toast, setToast] = useState(null);
-            const [tempSession, setTempSession] = useState(null);
+            const [todayStr, setTodayStr] = useState('');
+            const [totalDuration, setTotalDuration] = useState(0);
 
-            const [visibleLogs, setVisibleLogs] = useState(3);
+            const loadData = () => {
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const now = new Date();
+                const today = now.toDateString();
+                
+                if (savedData.date === today && savedData.blocks) {
+                    setBlocks(savedData.blocks);
+                    // Total Time 계산 시 'switch' 타입은 제외하고 '집중 시간'만 합산할지 여부 결정
+                    // 여기서는 순수 집중 시간(Sun/Cloud/Rain)만 합산하도록 필터링
+                    const focusBlocks = savedData.blocks.filter(b => !b.type || b.type === 'focus');
+                    const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
+                    setTotalDuration(total);
+                } else {
+                    setBlocks([]);
+                    setTotalDuration(0);
+                }
+                
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+                setTodayStr(`${month}/${date}`);
+            };
 
-            const [manualEndHour, setManualEndHour] = useState(12);
-            const [manualEndMin, setManualEndMin] = useState(0);
-            const [manualDurHour, setManualDurHour] = useState(0);
-            const [manualDurMin, setManualDurMin] = useState(30);
+            useEffect(() => {
+                loadData();
+                const interval = setInterval(loadData, 3000); // 3초마다 갱신 (반응성 UP)
+                return () => clearInterval(interval);
+            }, []);
 
-            const [isSending, setIsSending] = useState(false);
-
-            const fixedQuests = [
-                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300' }, 
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
-            ];
-
-            const restOptions = [
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300' }, 
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
-            ].sort((a,b) => a.recovery - b.recovery);
-
-            const hours24 = Array.from({length: 24}, (_, i) => i);
-            const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
-            const durationHours = [0, 1, 2, 3, 4, 5];
+            const getTotalColorClass = (min) => {
+                if (min <= 90) return "text-gray-custom"; 
+                if (min <= 330) return "text-sky-custom"; 
+                return "text-purple-custom";              
+            };
 
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
-                if (h === 0) return `${m}M`;
-                return `${h}H ${m}M`;
-            };
+                const colorClass = getTotalColorClass(totalMin);
 
-            useEffect(() => {
-                const today = new Date().toDateString();
-                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                
-                if (savedData.date && savedData.date !== today) {
-                    if (savedData.blocks && savedData.blocks.length > 0) {
-                        const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                        if (!history.some(h => h.date === savedData.date)) {
-                            history.push(savedData);
-                            if (history.length > 7) history.shift();
-                            localStorage.setItem('fortressHistory', JSON.stringify(history));
-                        }
-                    }
-                    setTickets(0); setEnergy(100); setBlocks([]); setShowIntro(true);
-                } else {
-                    setTickets(savedData.tickets || 0);
-                    setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
-                    setBlocks(savedData.blocks || []);
-                    setShowIntro(savedData.date !== today);
-                }
-            }, []);
-
-            useEffect(() => {
-                if (toast) {
-                    const timer = setTimeout(() => setToast(null), 2500);
-                    return () => clearTimeout(timer);
-                }
-            }, [toast]);
-
-            // ✅ 30분 간격 자동 동기화
-            useEffect(() => {
-                const autoSyncInterval = setInterval(() => {
-                    if (blocks.length > 0 && !isSending) {
-                        triggerToast("☁️ 자동 동기화 시도...");
-                        sendToNotion();
-                    }
-                }, 30 * 60 * 1000); 
-
-                return () => clearInterval(autoSyncInterval);
-            }, [blocks, isSending]);
-
-            const triggerToast = (msg) => { setToast(msg); };
-
-            const saveData = (newTickets, newEnergy, newBlocks) => {
-                setTickets(newTickets);
-                setEnergy(newEnergy);
-                setBlocks(newBlocks);
-                localStorage.setItem('fortressData', JSON.stringify({
-                    date: new Date().toDateString(),
-                    tickets: newTickets,
-                    energy: newEnergy,
-                    blocks: newBlocks
-                }));
-            };
-
-            const handleIntro = (initialEnergy) => {
-                setEnergy(initialEnergy); setShowIntro(false);
-                saveData(0, initialEnergy, []);
-            };
-
-            useEffect(() => {
-                let interval = null;
-                if (isRecording) {
-                    interval = setInterval(() => {
-                        setElapsed(Math.floor((Date.now() - startTime) / 1000));
-                    }, 1000);
-                }
-                return () => clearInterval(interval);
-            }, [isRecording, startTime]);
-
-            const toggleTimer = () => {
-                if (!isRecording) {
-                    if (energy <= 5) { triggerToast("⚠️ 에너지가 부족해요!"); return; }
-                    setIsRecording(true); setStartTime(Date.now()); setElapsed(0);
-                } else {
-                    setIsRecording(false);
-                    if (elapsed < 180) { 
-                        triggerToast("❄️ 점화 실패 (기록되지 않음)"); 
-                        setElapsed(0); 
-                        setStartTime(null);
-                        return; 
-                    }
-                    setTempSession({ startTime: startTime, endTime: Date.now(), duration: Math.ceil(elapsed / 60) });
-                    setModalType('check'); setShowModal(true);
-                }
-            };
-
-            const formatStopwatch = (sec) => {
-                if (sec < 180) {
-                    const remaining = 180 - sec;
-                    const m = Math.floor(remaining / 60);
-                    const s = remaining % 60;
-                    return (
-                        <div className="flex flex-col items-start">
-                            <div className="flex items-center gap-2">
-                                <Icons.Flame />
-                                {/* ✅ 폰트 크기 대폭 축소: 6xl -> 4xl */}
-                                <span className="text-4xl font-bold tracking-tighter text-sky-300 tabular-nums">
-                                    {m}:{String(s).padStart(2, '0')}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                } else {
-                    const extended = sec - 180;
-                    const h = Math.floor(extended / 3600);
-                    const m = Math.floor((extended % 3600) / 60);
-                    const s = extended % 60;
-                    return (
-                        <div className="flex flex-col items-start">
-                            <div className="flex items-center gap-2">
-                                <Icons.Waves />
-                                {/* ✅ 폰트 크기 대폭 축소: 6xl -> 4xl */}
-                                <span className="text-4xl font-bold tracking-tighter text-bright tabular-nums">
-                                    +{h > 0 ? h + ':' : ''}{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}
-                                </span>
-                            </div>
-                        </div>
-                    );
-                }
-            };
-
-            const addRecord = (quality, type) => {
-                let newBlock;
-                let totalDuration = 0;
-
-                if (type === 'auto') {
-                    totalDuration = tempSession.duration; 
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: tempSession.startTime, 
-                        endTime: tempSession.endTime, 
-                        duration: totalDuration, 
-                        quality: quality,
-                        type: 'focus'
-                    };
-                } else {
-                    const now = new Date();
-                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
-                    totalDuration = (manualDurHour * 60) + manualDurMin + 3;
-                    const startTs = endTs - (totalDuration * 60 * 1000);
-                    
-                    if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: startTs, 
-                        endTime: endTs, 
-                        duration: totalDuration, 
-                        quality: quality,
-                        type: 'focus'
-                    };
-                }
-
-                let newEnergy = energy;
-                let msg = "💾 저장 완료!";
-
-                if (totalDuration < 10) {
-                    if (type === 'auto') {
-                        newEnergy = 20; 
-                        msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
-                    } else {
-                        msg = "💾 짧은 기록 저장 완료!";
-                    }
-                } else {
-                    const consumption = Math.floor(totalDuration / 10) * 5;
-                    newEnergy = Math.max(energy - consumption, 0);
-                    msg = `💾 저장 완료! (Energy -${consumption}%)`;
-                }
-
-                const newTickets = tickets + 1;
-                saveData(newTickets, newEnergy, [newBlock, ...blocks]);
-                setShowModal(false);
-                triggerToast(msg);
-            };
-
-            const confirmDelete = (id) => {
-                setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
-            };
-            const executeDelete = () => {
-                if (deleteTargetId) {
-                    const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
-                    saveData(tickets, energy, newBlocks);
-                    setDeleteTargetId(null); setShowModal(false); triggerToast("🗑️ 삭제 완료");
-                }
-            };
-
-            // ✅ 퀘스트(전환) 기록 기능 추가
-            const doQuest = (quest) => {
-                if (tickets > 0) {
-                    const now = Date.now();
-                    const duration = 5; 
-                    const startTs = now - (duration * 60 * 1000);
-                    
-                    const newBlock = {
-                        id: now,
-                        startTime: startTs,
-                        endTime: now,
-                        duration: duration,
-                        quality: 'Cloud',
-                        type: 'switch',
-                        icon: quest.icon,
-                        name: quest.name
-                    };
-
-                    const newBlocks = [newBlock, ...blocks];
-                    saveData(tickets - 1, Math.max(energy - 5, 0), newBlocks);
-                    triggerToast(`✨ ${quest.name} 완료! (기록됨)`);
-                } else {
-                    triggerToast("⚠️ 티켓 부족");
-                }
-            };
-
-            // ✅ 휴식 기록 기능 추가
-            const takeRest = (rest) => {
-                const now = Date.now();
-                const duration = rest.id === 'r4' ? 60 : 20; 
-                const startTs = now - (duration * 60 * 1000);
-
-                const newBlock = {
-                    id: now,
-                    startTime: startTs,
-                    endTime: now,
-                    duration: duration,
-                    quality: 'Cloud',
-                    type: 'rest',
-                    icon: rest.icon,
-                    name: rest.name
-                };
-
-                const newEnergy = Math.min(energy + rest.recovery, 100);
-                const newBlocks = [newBlock, ...blocks];
-                
-                saveData(tickets, newEnergy, newBlocks);
-                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%) 기록됨`);
-            };
-
-            const sendToNotion = async () => {
-                if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
-                
-                if (blocks.length === 0) {
-                    triggerToast("⚠️ 전송할 기록이 없어요!");
-                    return;
-                }
-
-                setIsSending(true);
-                let successCount = 0;
-
-                const sendDataset = async (dataset) => {
-                    const formatLocalYMD = (dateStr) => {
-                        const d = new Date(dateStr);
-                        const y = d.getFullYear();
-                        const m = String(d.getMonth() + 1).padStart(2, '0');
-                        const day = String(d.getDate()).padStart(2, '0');
-                        return `${y}-${m}-${day}`;
-                    };
-
-                    const payload = {
-                        date: formatLocalYMD(dataset.date),
-                        blocks: dataset.blocks
-                    };
-
-                    await fetch(WORKER_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                    });
-                };
-
-                try {
-                    await sendDataset({ date: new Date().toDateString(), blocks: blocks });
-                    successCount++;
-
-                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const today = new Date();
-                    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                    const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    
-                    const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
-
-                    for (const data of pastData) {
-                        if (data.blocks && data.blocks.length > 0) {
-                            await sendDataset(data);
-                            successCount++;
-                        }
-                    }
-                    triggerToast(`☁️ 총 ${successCount}건 전송 완료!`);
-                } catch(e) { 
-                    triggerToast("⚠️ 전송 중 에러"); 
-                    console.error(e);
-                } finally { setIsSending(false); }
-            };
-
-            const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-            
-            const openManual = () => {
-                const now = new Date();
-                setManualEndHour(now.getHours());
-                setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
-                setManualDurHour(0); setManualDurMin(30);
-                setModalType('manual'); setShowModal(true);
-            };
-
-            const renderIcon = (name, className) => {
-                const IconComponent = Icons[name] || Icons.Wind;
-                return <IconComponent className={className} />;
-            };
-
-            const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
-
-            const renderTimerPanel = () => {
-                const radius = 30; // 반지름 축소
-                const circumference = 2 * Math.PI * radius;
-                let progress;
-                let strokeColor;
-
-                if (elapsed < 180) {
-                    progress = Math.max(0, (180 - elapsed) / 180);
-                    strokeColor = "#bae6fd"; 
-                } else {
-                    progress = 1;
-                    strokeColor = "#ffffff"; 
-                }
-                
-                const dashoffset = circumference - (progress * circumference);
-                
                 return (
-                    <div className="glass-panel p-4 mb-3 relative overflow-hidden transition-all border-sky-300/30">
-                        <div className="flex justify-between items-center mb-1 px-1">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-sky-300">
-                                {isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}
-                            </span>
-                            <button onClick={openManual} className="text-dim hover:text-bright"><Icons.Plus /></button>
-                        </div>
-                        
-                        <div className="flex items-center justify-between px-1 pb-1">
-                            <div className="relative w-16 h-16 flex items-center justify-center">
-                                <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" width="64" height="64" viewBox="0 0 80 80">
-                                    <circle
-                                        stroke="rgba(255,255,255,0.1)"
-                                        strokeWidth="6"
-                                        fill="transparent"
-                                        r={radius}
-                                        cx="40"
-                                        cy="40"
-                                    />
-                                    <circle
-                                        className="progress-ring__circle"
-                                        stroke={strokeColor} 
-                                        strokeWidth="6"
-                                        fill="transparent"
-                                        r={radius}
-                                        cx="40"
-                                        cy="40"
-                                        style={{ 
-                                            strokeDasharray: `${circumference} ${circumference}`, 
-                                            strokeDashoffset: dashoffset,
-                                            strokeLinecap: "round"
-                                        }}
-                                    />
-                                </svg>
-                                
-                                <button 
-                                    onClick={toggleTimer} 
-                                    className={`absolute inset-0 m-auto w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-[#7dd3fc] hover:bg-[#bae6fd]' : 'bg-[#bae6fd] hover:bg-[#7dd3fc]'}`}
-                                >
-                                    {isRecording ? <Icons.Stop className="w-5 h-5" /> : <Icons.Play className="w-6 h-6 ml-0.5" />}
-                                </button>
-                            </div>
-
-                            <div className="flex-1 flex justify-end">
-                                {formatStopwatch(elapsed)}
-                            </div>
-                        </div>
-                    </div>
+                    <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
+                        <span className="text-lg font-bold">{h}</span><span className="text-[10px] mx-0.5 opacity-80 font-bold">H</span>
+                        <span className="text-lg font-bold">{String(m).padStart(2, '0')}</span><span className="text-[10px] ml-0.5 opacity-80 font-bold">M</span>
+                    </span>
                 );
             };
 
-            if (showIntro) {
-                return (
-                    <div className="widget-container justify-center p-6 text-center space-y-6">
-                        <div>
-                            <h1 className="text-xl font-bold text-bright mb-2 font-serif tracking-wide">༚✧ Fortress Log ✧༚</h1>
-                            <p className="text-dim text-xs">오늘의 시작 컨디션은?</p>
+            const getMessage = (min) => {
+                if (min === 0) return "❄️ 차근차근 점화를 준비해 볼까요?";
+                if (min < 60) return "🫧 오늘 시스템의 첫 단추를 잘 꿰었네요.";
+                if (min < 180) return "✨ 견고하게 쌓아가는 진솔 님의 시간.";
+                if (min < 300) return "🧊 몰입의 정점. 요새가 아주 탄탄해요.";
+                return "🎖️ 충분히 애쓴 오늘, 휴식을 권장합니다.";
+            };
+
+            const renderGrid = () => {
+                const hours = Array.from({length: 18}, (_, i) => i + 6); // 06~23
+                
+                return hours.map(hour => {
+                    const slots = Array.from({length: 6}, (_, i) => {
+                        const slotStartMin = i * 10;
+                        const slotEndMin = (i + 1) * 10;
+                        
+                        // 해당 슬롯에 겹치는 블록 찾기
+                        const foundBlock = blocks.find(b => {
+                            const slotStartTime = new Date();
+                            slotStartTime.setHours(hour, slotStartMin, 0, 0);
+                            const slotEndTime = new Date(slotStartTime);
+                            slotEndTime.setMinutes(slotEndMin);
+                            return b.startTime < slotEndTime.getTime() && b.endTime > slotStartTime.getTime();
+                        });
+
+                        let cellClass = 'block-empty';
+                        let content = null;
+
+                        if (foundBlock) {
+                            // 1. 전환 행동 (Switch/Rest) 일 때
+                            if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
+                                cellClass = 'block-switch';
+                                // 블록의 시작 시간과 현재 슬롯이 일치할 때만 아이콘 표시 (중복 표시 방지)
+                                const bStart = new Date(foundBlock.startTime);
+                                const isStartSlot = bStart.getHours() === hour && 
+                                                    bStart.getMinutes() >= slotStartMin && 
+                                                    bStart.getMinutes() < slotEndMin;
+                                
+                                if (isStartSlot) {
+                                    content = foundBlock.icon || '•';
+                                }
+                            } 
+                            // 2. 일반 집중 (Focus) 일 때
+                            else {
+                                if (foundBlock.quality === 'Sun') cellClass = 'block-sun';
+                                else if (foundBlock.quality === 'Cloud') cellClass = 'block-cloud';
+                                else cellClass = 'block-rain';
+                            }
+                        }
+
+                        return <div key={i} className={`time-block ${cellClass}`}>{content}</div>
+                    });
+
+                    return (
+                        <div key={hour} className="grid-row">
+                            <div className="time-label">{String(hour).padStart(2,'0')}</div>
+                            <div className="blocks-container">
+                                {slots}
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-2 w-full">
-                            <button onClick={() => handleIntro(90)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Sun /><span className="block mt-2 text-sm font-bold text-bright">상쾌함 (100%)</span></button>
-                            <button onClick={() => handleIntro(60)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Cloud /><span className="block mt-2 text-sm font-bold text-bright">보통 (70%)</span></button>
-                            <button onClick={() => handleIntro(30)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Rain /><span className="block mt-2 text-sm font-bold text-bright">무거움 (50%)</span></button>
-                        </div>
-                    </div>
-                )
-            }
+                    );
+                });
+            };
 
             return (
                 <div className="widget-container">
-                    {toast && <div className="toast-message">{toast}</div>}
-
-                    <div className="p-4 pb-2 flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <h1 className="text-lg font-bold text-bright tracking-tight font-serif">༚✧ Fortress Log ✧༚</h1>
-                            <div className="flex items-center gap-3 text-[10px] font-bold text-dim mt-0.5">
-                                <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-xs">{tickets}</span></div>
-                                <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
-                            </div>
+                    {/* Header */}
+                    <div className="px-4 pt-5 pb-2 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
+                        <div>
+                            <div className="text-sky-200 text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Daily Blocks</div>
+                            <h1 className="text-lg title-text font-serif-italic tracking-tight">Timeline</h1>
                         </div>
-                        <button onClick={sendToNotion} disabled={isSending} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
-                    </div>
-
-                    <div className="px-4 mb-3">
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-pastel`} style={{ width: `${energy}%` }}></div>
-                        </div>
-                    </div>
-
-                    <div className="px-4 flex gap-2 mb-3">
-                        {['main', 'niche', 'rest'].map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
-                                {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Switch' : 'Rest'}
+                        <div className="text-right flex flex-col items-end">
+                            <div className="text-sky-100 text-[9px] font-medium mb-1 font-mono-nums tracking-tighter opacity-80">{todayStr}</div>
+                            <button onClick={loadData} className="p-1 rounded-full hover:bg-white/20 text-sky-200 transition-colors">
+                                <Icons.Refresh />
                             </button>
-                        ))}
-                    </div>
-
-                    <div className="flex-1 px-4 pb-4 overflow-hidden flex flex-col">
-                        {activeTab === 'main' && (
-                            <div className="flex flex-col h-full">
-                                {renderTimerPanel()}
-                                
-                                <div className="flex-1 overflow-y-auto no-scrollbar space-y-2">
-                                    {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
-                                        <div key={block.id} className="log-item">
-                                            <div className="mr-3">
-                                                {block.type === 'switch' ? (
-                                                    <span className="text-sky text-lg">✦</span> 
-                                                ) : block.type === 'rest' ? (
-                                                    <span className="text-purple-300 text-lg">☾</span>
-                                                ) : (
-                                                    block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="text-base font-bold text-bright mb-0.5">
-                                                    {block.type === 'switch' ? block.name : block.type === 'rest' ? block.name : `Total ${formatDuration(block.duration)}`}
-                                                </div>
-                                                <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
-                                            </div>
-                                            <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-bright transition-colors p-1"><Icons.Trash /></button>
-                                        </div>
-                                    ))}
-                                    {blocks.length > visibleLogs && (
-                                        <button onClick={loadMoreLogs} className="w-full py-2 flex items-center justify-center text-dim hover:text-bright transition-colors font-bold text-xs">
-                                            <Icons.More />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                        {activeTab === 'niche' && (
-                            <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
-                                {fixedQuests.map((q) => (
-                                    <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
-                                        {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
-                                        <span className="mt-1 text-[10px] font-bold text-bright">{q.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                        {activeTab === 'rest' && (
-                            <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
-                                {restOptions.map(rest => (
-                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
-                                        {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
-                                        
-                                        <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-[10px] font-bold text-bright">{rest.name}</span>
-                                            <div className="flex items-center gap-0.5 text-[9px] font-bold text-sky-300">
-                                                <div className="w-2 h-2 flex items-center justify-center"><Icons.Zap /></div>
-                                                <span className="leading-none">{rest.recovery}%</span>
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {showModal && (
-                        <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className="w-full modal-content rounded-t-3xl p-5 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                                
-                                {modalType === 'delete' && (
-                                    <div className="text-center">
-                                        <h3 className="text-base font-bold mb-2 text-slate-700">기록 삭제</h3>
-                                        <div className="flex gap-2 mt-4">
-                                            <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all text-sm">삭제</button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {modalType === 'manual' && (
-                                    <>
-                                    <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Add Log</h3>
-                                    <div className="space-y-2 mb-4">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-xs font-bold w-12">종료</label>
-                                            <div className="flex-1 flex gap-2">
-                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
-                                                    {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
-                                                </select>
-                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
-                                                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-xs font-bold w-12">집중</label>
-                                            <div className="flex-1 flex gap-2">
-                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
-                                                    {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
-                                                </select>
-                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
-                                                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain /><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                    </div>
-                                    </>
-                                )}
-                                
-                                {modalType === 'check' && (
-                                    <>
-                                    <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain /><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                    </div>
-                                    </>
-                                )}
-                            </div>
                         </div>
-                    )}
+                    </div>
+
+                    {/* Grid Body */}
+                    <div className="flex-1 px-2 py-2 relative bg-white/5 overflow-hidden flex flex-col">
+                         <div className="flex mb-0.5 pl-5 pr-2 shrink-0">
+                            {[10, 20, 30, 40, 50, 60].map(m => (
+                                <div key={m} className="flex-1 text-center text-[6px] text-white/40 font-mono-nums">{m}</div>
+                            ))}
+                         </div>
+                        
+                        <div className="grid-container">
+                            {renderGrid()}
+                        </div>
+                    </div>
+
+                    {/* Footer Stats */}
+                    <div className="footer-blur px-4 py-3 z-10 shrink-0">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wide">Total</span>
+                            <div>{formatDuration(totalDuration)}</div>
+                        </div>
+                        <div className="text-center">
+                            {/* ✅ 요청 반영: 차분한 회색조(Slate-500)로 변경하여 튀지 않게 */}
+                            <p className="text-[13px] text-slate-500 font-bold bg-white/60 py-2 px-2 rounded-xl border border-white/80 w-full leading-tight shadow-sm" style={{wordBreak: 'keep-all'}}>
+                                {getMessage(totalDuration)}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             );
         };
