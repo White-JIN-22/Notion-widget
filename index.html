@@ -28,7 +28,7 @@
         /* 🧊 Icy Blue Glass Theme (Compact) */
         .widget-container {
             position: relative;
-            width: 270px; 
+            width: 280px; 
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
             backdrop-filter: blur(20px);
@@ -84,16 +84,14 @@
             border: 1px dashed rgba(224, 242, 254, 0.15);
             border-radius: 12px;
             padding: 6px 12px;
-            /* ✅ [수정] 가운데 정렬을 위한 Flex 설정 */
             display: flex;
             align-items: center;
             justify-content: center; 
             min-height: 36px;
             margin-bottom: 4px;
-            position: relative; /* 삭제 버튼 위치 잡기 위해 */
+            position: relative;
         }
 
-        /* 컴팩트 모드일 때 삭제 버튼을 우측 끝으로 보내기 위한 스타일 */
         .log-item-compact .delete-btn {
             position: absolute;
             right: 8px;
@@ -272,12 +270,11 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-        // ✅ 시간 포맷 변경 (Total 0H 33M -> 00H 33M)
+            // ✅ 시간 포맷 수정 (0H 0M)
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
-                // 시간(h) 앞에도 0을 채우도록 padStart(2, '0') 추가
-                return `${String(h).padStart(2, '0')}H ${String(m).padStart(2, '0')}M`;
+                return `${h}H ${m}M`;
             };
 
             useEffect(() => {
@@ -309,6 +306,7 @@
                 }
             }, [toast]);
 
+            // 자동 동기화 30분
             useEffect(() => {
                 const autoSyncInterval = setInterval(() => {
                     if (blocks.length > 0 && !isSending) {
@@ -447,7 +445,6 @@
                 }
 
                 const newTickets = tickets + 1;
-                // 새로운 블록을 배열 맨 앞에 추가 (내림차순 저장 유지)
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
@@ -715,7 +712,6 @@
                                 {renderTimerPanel()}
                                 
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 relative">
-                                    {/* ✅ [수정] 이전 기록 불러오기 버튼 (상단) */}
                                     {blocks.length > visibleLogs && (
                                         <button onClick={loadMoreLogs} className="w-full py-1 flex items-center justify-center text-dim hover:text-bright transition-colors mb-2">
                                             <Icons.ArrowUp />
@@ -723,7 +719,6 @@
                                     )}
 
                                     {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).reverse().map((block) => {
-                                        // ✅ [수정] 시간 순서대로 보이기 위해 reverse() 적용
                                         const isCompact = block.type === 'switch' || block.type === 'rest';
                                         
                                         return (
@@ -732,7 +727,7 @@
                                                     {renderBlockIcon(block)}
                                                 </div>
                                                 
-                                                {/* Switch/Rest는 중앙 정렬된 텍스트 하나만 */}
+                                                {/* ✅ [수정] Total 텍스트 제거 */}
                                                 {isCompact ? (
                                                     <div className="mx-3 text-xs text-slate-300 font-bold">
                                                         {block.name}
@@ -740,7 +735,7 @@
                                                 ) : (
                                                     <div className="flex-1">
                                                         <div className="text-base font-bold text-bright mb-0.5">
-                                                            {`Total ${formatDuration(block.duration)}`}
+                                                            {formatDuration(block.duration)}
                                                         </div>
                                                         <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                                     </div>
