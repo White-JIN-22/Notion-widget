@@ -160,6 +160,7 @@
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
+            // ... (기존 아이콘들 유지)
             Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
             Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
@@ -170,6 +171,8 @@
             Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
             Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            
+            // ✅ Quest & Rest Icons (Size & Stroke Standardized)
             Droplets: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -181,7 +184,6 @@
             More: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
             Flame: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
-            /* ✅ 명상 아이콘 (Leaf) 추가 */
             Leaf: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
         };
 
@@ -222,15 +224,14 @@
             ];
 
             const restOptions = [
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book' }, // ✅ 독서 +20
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz' },  // ✅ 낮잠 +30, 아이콘 Zzz로 변경
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf' }, // ✅ 명상 +30, 아이콘 Leaf 추가
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon' }, // ✅ 딥슬립 아이콘 Moon으로 변경
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book' },
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz' },
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf' },
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon' },
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
-            /* ✅ 집중 시간 옵션 5시간까지 확장 (0~5) */
             const durationHours = [0, 1, 2, 3, 4, 5];
 
             useEffect(() => {
@@ -498,9 +499,10 @@
                 setModalType('manual'); setShowModal(true);
             };
 
-            const renderIcon = (name) => {
+            const renderIcon = (name, className) => {
                 const IconComponent = Icons[name] || Icons.Wind;
-                return <IconComponent />;
+                // ✅ 부모에서 className을 주입받아 크기를 강제함
+                return <IconComponent className={className} />;
             };
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
@@ -613,7 +615,8 @@
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {fixedQuests.map((q) => (
                                     <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {renderIcon(q.icon)}
+                                        {/* ✅ Icon Size & Stroke Uniformity Fix */}
+                                        {renderIcon(q.icon, "w-7 h-7")} 
                                         <span className="mt-2 text-xs font-bold text-bright">{q.name}</span>
                                     </button>
                                 ))}
@@ -623,11 +626,15 @@
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {restOptions.map(rest => (
                                     <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {renderIcon(rest.icon)}
-                                        <span className="mt-1 text-xs font-bold text-bright">{rest.name}</span>
-                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-dim group-hover:text-sky font-bold">
-                                            <div className="w-2.5 h-2.5"><Icons.Zap /></div>
-                                            <span>{rest.recovery}</span>
+                                        {/* ✅ Icon Size Matching 'Switch' Tab (w-7 h-7) */}
+                                        {renderIcon(rest.icon, "w-7 h-7")}
+                                        {/* ✅ 2-Line Layout & Sky Blue Number & Centering Fix */}
+                                        <div className="flex items-center gap-1.5 mt-1.5">
+                                            <span className="text-xs font-bold text-bright">{rest.name}</span>
+                                            <div className="flex items-center gap-0.5 text-[10px] font-bold text-sky-400">
+                                                <div className="w-3 h-3"><Icons.Zap /></div>
+                                                <span>{rest.recovery}%</span>
+                                            </div>
                                         </div>
                                     </button>
                                 ))}
