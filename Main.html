@@ -358,6 +358,7 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery})`);
             };
 
+            // ✅ sendToNotion 로직 개선: 1분 단위 품질/시간 카운팅
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -370,47 +371,60 @@
                 let successCount = 0;
 
                 const sendDataset = async (dataset) => {
-                    const getDominant = (list) => {
-                        if (list.length === 0) return null;
-                        const counts = { Sun: 0, Cloud: 0, Rain: 0 };
-                        list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
-                        if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
-                        if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
-                        return 'Sun';
+                    
+                    // 1. 카운트 초기화
+                    const qualCounts = {
+                        morning: { Sun: 0, Cloud: 0, Rain: 0 },
+                        afternoon: { Sun: 0, Cloud: 0, Rain: 0 },
+                        night: { Sun: 0, Cloud: 0, Rain: 0 },
+                        total: { Sun: 0, Cloud: 0, Rain: 0 }
                     };
-
-                    // ✅ 시간 분할 로직 (1분 단위로 쪼개서 통에 담기)
+                    
                     let mornMin = 0, aftMin = 0, nightMin = 0;
-                    const totalMinutes = dataset.blocks.reduce((acc, b) => acc + b.duration, 0);
 
-                    // 1. 각 블록을 1분 단위로 쪼개서 어느 시간대에 속하는지 카운트
+                    // 2. 분 단위 순회 (Time Splitting & Quality Voting)
                     dataset.blocks.forEach(b => {
+                        const q = b.quality; // 'Sun', 'Cloud', 'Rain'
                         for (let i = 0; i < b.duration; i++) {
-                            // 블록 시작 시간부터 1분씩 더해가며 확인
                             const currentMinTime = b.startTime + (i * 60 * 1000);
                             const h = new Date(currentMinTime).getHours();
 
-                            if (h >= 6 && h < 12) mornMin++;
-                            else if (h >= 12 && h < 18) aftMin++;
-                            else nightMin++;
+                            // Total Count
+                            if(qualCounts.total[q] !== undefined) qualCounts.total[q]++;
+
+                            // Time Slot Allocation
+                            if (h >= 6 && h < 12) {
+                                mornMin++;
+                                if(qualCounts.morning[q] !== undefined) qualCounts.morning[q]++;
+                            } else if (h >= 12 && h < 18) {
+                                aftMin++;
+                                if(qualCounts.afternoon[q] !== undefined) qualCounts.afternoon[q]++;
+                            } else {
+                                nightMin++;
+                                if(qualCounts.night[q] !== undefined) qualCounts.night[q]++;
+                            }
                         }
                     });
 
-                    // 2. 시간대별 블록 그룹핑 (Dominant Quality 용)
-                    const mornBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 6 && h < 12; });
-                    const aftBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
-                    const nightBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18 || h < 6; });
+                    // 3. Dominant Quality Calculator
+                    const getDominant = (counts) => {
+                        const { Sun, Cloud, Rain } = counts;
+                        if (Sun === 0 && Cloud === 0 && Rain === 0) return null;
+                        if (Cloud > Sun && Cloud >= Rain) return 'Cloud';
+                        if (Rain > Sun && Rain > Cloud) return 'Rain';
+                        return 'Sun'; // Default & Tie-breaker
+                    };
 
                     const payload = {
                         date: new Date(dataset.date).toISOString().split('T')[0],
-                        quality: getDominant(dataset.blocks),
-                        total: totalMinutes,
+                        quality: getDominant(qualCounts.total),
+                        total: mornMin + aftMin + nightMin,
                         morning: mornMin, 
                         afternoon: aftMin, 
                         night: nightMin,
-                        q_morn: getDominant(mornBlocks),
-                        q_aft: getDominant(aftBlocks),
-                        q_night: getDominant(nightBlocks)
+                        q_morn: getDominant(qualCounts.morning),
+                        q_aft: getDominant(qualCounts.afternoon),
+                        q_night: getDominant(qualCounts.night)
                     };
 
                     await fetch(WORKER_URL, {
