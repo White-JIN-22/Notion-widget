@@ -25,16 +25,17 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 Icy Blue Glass Theme */
+        /* 🧊 Icy Blue Glass Theme - Adjusted for Lower Saturation & Higher Brightness */
         .widget-container {
             position: relative;
             width: 390px; 
             height: 540px;
-            background: linear-gradient(180deg, rgba(125, 211, 252, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
-            backdrop-filter: blur(14px);
+            /* 배경 그라데이션을 더 밝고 채도가 낮은 스카이블루로 변경 */
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
+            backdrop-filter: blur(20px); /* 블러를 더 높여 부드러운 느낌 강화 */
             border-radius: 32px;
-            border: 1px solid rgba(186, 230, 253, 0.15);
-            box-shadow: 0 0 40px rgba(56, 189, 248, 0.05), inset 0 0 20px rgba(56, 189, 248, 0.02);
+            border: 1px solid rgba(224, 242, 254, 0.3);
+            box-shadow: 0 0 40px rgba(186, 230, 253, 0.1), inset 0 0 20px rgba(224, 242, 254, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -42,10 +43,10 @@
         }
 
         .glass-panel {
-            background: rgba(186, 230, 253, 0.03);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(186, 230, 253, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(224, 242, 254, 0.1); /* 더 투명하고 밝은 배경 */
+            backdrop-filter: blur(25px); /* 블러 값 증가 */
+            border: 1px solid rgba(224, 242, 254, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
             border-radius: 24px;
             transition: all 0.3s ease;
         }
@@ -59,17 +60,18 @@
             letter-spacing: -0.02em;
         }
         .tab-active {
-            background: rgba(56, 189, 248, 0.1);
+            /* 탭 활성 상태 색상을 더 연하게 */
+            background: rgba(186, 230, 253, 0.2);
             color: #bae6fd;
-            border: 1px solid rgba(125, 211, 252, 0.3);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(186, 230, 253, 0.3);
+            box-shadow: 0 0 15px rgba(186, 230, 253, 0.1);
         }
-        .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.03); }
+        .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.05); }
 
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(186, 230, 253, 0.1);
+            background: rgba(255, 255, 255, 0.05); /* 더 밝은 반투명 배경 */
+            border: 1px solid rgba(224, 242, 254, 0.2);
             border-radius: 20px;
             padding: 16px;
             display: flex;
@@ -81,70 +83,68 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .modal-overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); }
+        .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
         
-        /* 3. 모달 투명도 수정: rgba alpha값을 0.95 -> 0.8로 낮춰 투명도 부여 */
         .modal-content {
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.8) 0%, rgba(200, 235, 253, 0.8) 100%);
-            backdrop-filter: blur(20px); /* 블러를 유지해 가독성 확보 */
-            border-top: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.3);
+            /* 모달 배경도 더 밝고 투명하게 */
+            background: linear-gradient(180deg, rgba(240, 249, 255, 0.9) 0%, rgba(224, 242, 254, 0.9) 100%);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.2);
             color: #334155;
         }
 
         .quest-btn, .action-btn {
-            background: rgba(186, 230, 253, 0.05);
-            border: 1px solid rgba(186, 230, 253, 0.1);
+            background: rgba(224, 242, 254, 0.1);
+            border: 1px solid rgba(224, 242, 254, 0.2);
             color: #e0f2fe;
             transition: all 0.2s;
         }
         .quest-btn:hover, .action-btn:hover {
-            background: rgba(186, 230, 253, 0.1);
-            border-color: rgba(125, 211, 252, 0.5);
-            box-shadow: 0 0 15px rgba(125, 211, 252, 0.15);
+            background: rgba(224, 242, 254, 0.2);
+            border-color: rgba(186, 230, 253, 0.4);
+            box-shadow: 0 0 15px rgba(186, 230, 253, 0.1);
             color: white;
         }
         .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.4; filter: grayscale(100%); }
 
-        /* 모달 내부 버튼은 선명하게 유지 (0.95) */
         .modal-btn {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.6);
             color: #475569;
             transition: all 0.2s;
         }
         .modal-btn:hover {
             background: rgba(255, 255, 255, 1);
-            border-color: #7dd3fc;
-            box-shadow: 0 4px 15px rgba(125, 211, 252, 0.4);
+            border-color: #bae6fd; /* 더 연한 하늘색 */
+            box-shadow: 0 4px 15px rgba(186, 230, 253, 0.3);
             transform: translateY(-2px);
-            color: #0284c7;
+            color: #0ea5e9; /* 조금 더 차분한 파란색 */
         }
 
         .custom-select {
             width: 100%; border-radius: 12px; padding: 12px; font-weight: 700; outline: none; text-align: center; appearance: none;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.85); /* 셀렉트 박스도 약간만 투명하게 */
+            background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.6);
             color: #334155;
             transition: all 0.2s;
         }
         .custom-select:focus {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: #7dd3fc;
-            box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.3);
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #bae6fd;
+            box-shadow: 0 0 0 3px rgba(186, 230, 253, 0.3);
         }
         
-        /* 4. 안내 문구 크기 확대: 0.85rem -> 1.05rem */
         .toast-message {
             position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px);
-            border: 1px solid rgba(125, 211, 252, 0.3); color: #bae6fd;
+            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 230, 253, 0.3); color: #bae6fd; /* 더 연한 텍스트 색상 */
             padding: 14px 28px; border-radius: 30px; 
-            font-size: 1.05rem; /* 사이즈 20% 업 */
+            font-size: 1.05rem;
             font-weight: 700;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none; z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); pointer-events: none; z-index: 100;
             animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
@@ -155,10 +155,18 @@
             transform-origin: 50% 50%;
         }
 
-        .text-sky { color: #7dd3fc; }
+        /* 색상 팔레트 재정의 (더 연하고 차분하게) */
+        .text-sky { color: #bae6fd; } /* 기존보다 연한 스카이블루 */
+        .text-sky-300 { color: #bae6fd; } /* text-sky-400 대신 사용할 더 연한 색 */
         .text-dim { color: #94a3b8; }
-        .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(125, 211, 252, 0.4); }
-        .bg-sky-pastel { background-color: #7dd3fc; box-shadow: 0 0 10px rgba(125, 211, 252, 0.6); }
+        .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
+        .bg-sky-pastel { background-color: #bae6fd; box-shadow: 0 0 10px rgba(186, 230, 253, 0.5); }
+        .border-sky-300\/30 { border-color: rgba(186, 230, 253, 0.3); } /* 더 연한 테두리 */
+        .bg-sky-400 { background-color: #38bdf8; } /* 버튼 등 강조색은 유지하되 약간 채도 낮춤 */
+        .hover\:bg-sky-300:hover { background-color: #7dd3fc; }
+        .bg-sky-300 { background-color: #7dd3fc; }
+        .hover\:bg-sky-400:hover { background-color: #38bdf8; }
+
 
     </style>
 </head>
@@ -177,7 +185,7 @@
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             CloudUpload: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
             Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
@@ -190,7 +198,8 @@
             Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             More: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
-            Flame: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
+            // Flame 아이콘 크기 확대 (width="28" height="28")
+            Flame: () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
         };
@@ -222,10 +231,10 @@
 
             const [isSending, setIsSending] = useState(false);
 
-            // 컬러 및 아이콘 매핑
+            // 컬러 및 아이콘 매핑 (채도 낮춘 색상 적용)
             const fixedQuests = [
                 { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-400' }, 
+                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300' }, 
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
@@ -235,7 +244,7 @@
             const restOptions = [
                 { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-400' }, 
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300' }, 
                 { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
             ].sort((a,b) => a.recovery - b.recovery);
 
@@ -335,7 +344,8 @@
                         <div className="flex flex-col items-start">
                             <div className="flex items-center gap-3">
                                 <Icons.Flame />
-                                <span className="text-6xl font-bold tracking-tighter text-sky-400 tabular-nums">
+                                {/* 채도 낮춘 텍스트 색상 적용 */}
+                                <span className="text-6xl font-bold tracking-tighter text-sky-300 tabular-nums">
                                     {m}:{String(s).padStart(2, '0')}
                                 </span>
                             </div>
@@ -557,7 +567,7 @@
 
                 if (elapsed < 180) {
                     progress = Math.max(0, (180 - elapsed) / 180);
-                    // 1. 타임라인 게이지 색상 연하게 변경: sky-400(#38bdf8) -> sky-200(#bae6fd)
+                    // 채도 낮춘 색상 적용
                     strokeColor = "#bae6fd"; 
                 } else {
                     progress = 1;
@@ -567,9 +577,11 @@
                 const dashoffset = circumference - (progress * circumference);
                 
                 return (
-                    <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-400/30">
+                    // 채도 낮춘 테두리 색상 적용
+                    <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-300/30">
                         <div className="flex justify-between items-center mb-2 px-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300/80">
+                            {/* 채도 낮춘 텍스트 색상 적용 */}
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300">
                                 {isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}
                             </span>
                             <button onClick={openManual} className="text-dim hover:text-bright"><Icons.Plus /></button>
@@ -604,7 +616,8 @@
                                 
                                 <button 
                                     onClick={toggleTimer} 
-                                    className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-sky-500 hover:bg-sky-400' : 'bg-sky-400 hover:bg-sky-500'}`}
+                                    // 채도 낮춘 버튼 색상 적용
+                                    className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-sky-300 hover:bg-sky-400' : 'bg-sky-400 hover:bg-sky-300'}`}
                                 >
                                     {isRecording ? <Icons.Stop className="w-6 h-6" /> : <Icons.Play className="w-8 h-8 ml-1" />}
                                 </button>
@@ -708,8 +721,8 @@
                                         
                                         <div className="flex items-center gap-1.5 mt-1.5">
                                             <span className="text-xs font-bold text-bright">{rest.name}</span>
-                                            {/* 2. 번개+숫자: 무조건 스카이블루(text-sky-400) 고정 */}
-                                            <div className="flex items-center gap-1 text-[10px] font-bold text-sky-400">
+                                            {/* 번개+숫자: 채도 낮춘 스카이블루(text-sky-300) 고정 */}
+                                            <div className="flex items-center gap-1 text-[10px] font-bold text-sky-300">
                                                 <div className="w-2.5 h-2.5 flex items-center justify-center"><Icons.Zap /></div>
                                                 <span className="mt-[1px] leading-none">{rest.recovery}%</span>
                                             </div>
