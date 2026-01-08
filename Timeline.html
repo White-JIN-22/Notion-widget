@@ -28,11 +28,12 @@
         /* 🧊 Icy Blue Glass Theme */
         .widget-container {
             position: relative;
-            width: 390px; 
-            height: 540px;
+            /* ✅ 수정: 너비 390px -> 270px (약 2/3) */
+            width: 270px; 
+            height: 500px; /* 높이도 비율 맞춰 조금 줄임 */
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
             backdrop-filter: blur(20px);
-            border-radius: 32px;
+            border-radius: 28px; /* 곡률 약간 조정 */
             border: 1px solid rgba(224, 242, 254, 0.3);
             box-shadow: 0 0 40px rgba(186, 230, 253, 0.1), inset 0 0 20px rgba(224, 242, 254, 0.1);
             display: flex;
@@ -46,15 +47,15 @@
             backdrop-filter: blur(25px);
             border: 1px solid rgba(224, 242, 254, 0.2);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            border-radius: 24px;
+            border-radius: 20px;
             transition: all 0.3s ease;
         }
 
         .tab-btn {
             transition: all 0.2s;
-            border-radius: 16px;
+            border-radius: 12px;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.7rem; /* 폰트 사이즈 축소 */
             color: #94a3b8;
             letter-spacing: -0.02em;
         }
@@ -70,8 +71,8 @@
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.2);
-            border-radius: 20px;
-            padding: 16px;
+            border-radius: 16px;
+            padding: 12px; /* 패딩 축소 */
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -83,7 +84,6 @@
 
         .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
         
-        /* 1. 모달 배경 수정: 탁한 블루 제거 -> 화이트/연한 아이스블루 그라데이션 */
         .modal-content {
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%);
             backdrop-filter: blur(30px);
@@ -122,12 +122,13 @@
         }
 
         .custom-select {
-            width: 100%; border-radius: 12px; padding: 12px; font-weight: 700; outline: none; text-align: center; appearance: none;
+            width: 100%; border-radius: 12px; padding: 8px; font-weight: 700; outline: none; text-align: center; appearance: none;
             cursor: pointer;
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.6);
             color: #334155;
             transition: all 0.2s;
+            font-size: 0.9rem;
         }
         .custom-select:focus {
             background: rgba(255, 255, 255, 0.9);
@@ -136,13 +137,13 @@
         }
         
         .toast-message {
-            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(186, 230, 253, 0.5); 
             color: #0ea5e9;
-            padding: 14px 28px; border-radius: 30px; 
-            font-size: 1.05rem;
+            padding: 10px 20px; border-radius: 30px; 
+            font-size: 0.9rem;
             font-weight: 700;
             box-shadow: 0 8px 32px rgba(0,0,0,0.12);
             pointer-events: none; z-index: 100;
@@ -178,16 +179,16 @@
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
-            Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
-            Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Ticket: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+            Zap: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
-            Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            CloudUpload: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
-            Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
-            Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+            CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+            Sun: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Cloud: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Rain: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Trash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -196,8 +197,8 @@
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
             Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
-            More: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
-            Flame: () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
+            More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+            Flame: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
         };
@@ -285,14 +286,14 @@
                 }
             }, [toast]);
 
-            // ✅ 30분 간격 자동 동기화 (Auto Sync)
+            // ✅ 30분 간격 자동 동기화
             useEffect(() => {
                 const autoSyncInterval = setInterval(() => {
                     if (blocks.length > 0 && !isSending) {
                         triggerToast("☁️ 자동 동기화 시도...");
                         sendToNotion();
                     }
-                }, 30 * 60 * 1000); // 30분마다
+                }, 30 * 60 * 1000); 
 
                 return () => clearInterval(autoSyncInterval);
             }, [blocks, isSending]);
@@ -350,9 +351,10 @@
                     const s = remaining % 60;
                     return (
                         <div className="flex flex-col items-start">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <Icons.Flame />
-                                <span className="text-6xl font-bold tracking-tighter text-sky-300 tabular-nums">
+                                {/* ✅ 폰트 크기 대폭 축소: 6xl -> 4xl */}
+                                <span className="text-4xl font-bold tracking-tighter text-sky-300 tabular-nums">
                                     {m}:{String(s).padStart(2, '0')}
                                 </span>
                             </div>
@@ -365,9 +367,10 @@
                     const s = extended % 60;
                     return (
                         <div className="flex flex-col items-start">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 <Icons.Waves />
-                                <span className="text-6xl font-bold tracking-tighter text-bright tabular-nums">
+                                {/* ✅ 폰트 크기 대폭 축소: 6xl -> 4xl */}
+                                <span className="text-4xl font-bold tracking-tighter text-bright tabular-nums">
                                     +{h > 0 ? h + ':' : ''}{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}
                                 </span>
                             </div>
@@ -388,7 +391,7 @@
                         endTime: tempSession.endTime, 
                         duration: totalDuration, 
                         quality: quality,
-                        type: 'focus' // 기본 집중 타입
+                        type: 'focus'
                     };
                 } else {
                     const now = new Date();
@@ -403,7 +406,7 @@
                         endTime: endTs, 
                         duration: totalDuration, 
                         quality: quality,
-                        type: 'focus' // 기본 집중 타입
+                        type: 'focus'
                     };
                 }
 
@@ -440,11 +443,11 @@
                 }
             };
 
-            // ✅ 퀘스트(전환) 수행 시 블록 기록 추가
+            // ✅ 퀘스트(전환) 기록 기능 추가
             const doQuest = (quest) => {
                 if (tickets > 0) {
                     const now = Date.now();
-                    const duration = 5; // 전환 행동은 5분
+                    const duration = 5; 
                     const startTs = now - (duration * 60 * 1000);
                     
                     const newBlock = {
@@ -452,8 +455,8 @@
                         startTime: startTs,
                         endTime: now,
                         duration: duration,
-                        quality: 'Cloud', // 기본 품질
-                        type: 'switch',   // 타입: 전환
+                        quality: 'Cloud',
+                        type: 'switch',
                         icon: quest.icon,
                         name: quest.name
                     };
@@ -466,10 +469,9 @@
                 }
             };
 
-            // ✅ 휴식 수행 시 블록 기록 추가
+            // ✅ 휴식 기록 기능 추가
             const takeRest = (rest) => {
                 const now = Date.now();
-                // 딥슬립 60분, 나머지는 20분으로 고정 (필요 시 수정 가능)
                 const duration = rest.id === 'r4' ? 60 : 20; 
                 const startTs = now - (duration * 60 * 1000);
 
@@ -478,8 +480,8 @@
                     startTime: startTs,
                     endTime: now,
                     duration: duration,
-                    quality: 'Cloud', // 기본 품질
-                    type: 'rest',     // 타입: 휴식
+                    quality: 'Cloud',
+                    type: 'rest',
                     icon: rest.icon,
                     name: rest.name
                 };
@@ -502,10 +504,7 @@
                 setIsSending(true);
                 let successCount = 0;
 
-                // Cloudflare Worker로 데이터 전송 (blocks 전체 배열 전송)
                 const sendDataset = async (dataset) => {
-                    // 클라이언트에서는 복잡한 계산 없이 raw 데이터만 보냄
-                    // Worker가 KST 변환 및 통계 처리를 담당
                     const formatLocalYMD = (dateStr) => {
                         const d = new Date(dateStr);
                         const y = d.getFullYear();
@@ -516,7 +515,7 @@
 
                     const payload = {
                         date: formatLocalYMD(dataset.date),
-                        blocks: dataset.blocks // 전체 블록 데이터 전송 (Switch/Rest 포함)
+                        blocks: dataset.blocks
                     };
 
                     await fetch(WORKER_URL, {
@@ -568,14 +567,13 @@
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
             const renderTimerPanel = () => {
-                const radius = 36;
+                const radius = 30; // 반지름 축소
                 const circumference = 2 * Math.PI * radius;
                 let progress;
                 let strokeColor;
 
                 if (elapsed < 180) {
                     progress = Math.max(0, (180 - elapsed) / 180);
-                    // 채도 낮춘 색상 적용
                     strokeColor = "#bae6fd"; 
                 } else {
                     progress = 1;
@@ -585,19 +583,17 @@
                 const dashoffset = circumference - (progress * circumference);
                 
                 return (
-                    // 채도 낮춘 테두리 색상 적용
-                    <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-300/30">
-                        <div className="flex justify-between items-center mb-2 px-1">
-                            {/* 채도 낮춘 텍스트 색상 적용 */}
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300">
+                    <div className="glass-panel p-4 mb-3 relative overflow-hidden transition-all border-sky-300/30">
+                        <div className="flex justify-between items-center mb-1 px-1">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-sky-300">
                                 {isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}
                             </span>
                             <button onClick={openManual} className="text-dim hover:text-bright"><Icons.Plus /></button>
                         </div>
                         
-                        <div className="flex items-center justify-between px-2 pb-1">
-                            <div className="relative w-20 h-20 flex items-center justify-center">
-                                <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" width="80" height="80" viewBox="0 0 80 80">
+                        <div className="flex items-center justify-between px-1 pb-1">
+                            <div className="relative w-16 h-16 flex items-center justify-center">
+                                <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" width="64" height="64" viewBox="0 0 80 80">
                                     <circle
                                         stroke="rgba(255,255,255,0.1)"
                                         strokeWidth="6"
@@ -624,10 +620,9 @@
                                 
                                 <button 
                                     onClick={toggleTimer} 
-                                    // 2. 타이머 시작 버튼: 타임라인 색상(#bae6fd)과 동일하게 통일 (커스텀 hex 적용)
-                                    className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-[#7dd3fc] hover:bg-[#bae6fd]' : 'bg-[#bae6fd] hover:bg-[#7dd3fc]'}`}
+                                    className={`absolute inset-0 m-auto w-11 h-11 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-[#7dd3fc] hover:bg-[#bae6fd]' : 'bg-[#bae6fd] hover:bg-[#7dd3fc]'}`}
                                 >
-                                    {isRecording ? <Icons.Stop className="w-6 h-6" /> : <Icons.Play className="w-8 h-8 ml-1" />}
+                                    {isRecording ? <Icons.Stop className="w-5 h-5" /> : <Icons.Play className="w-6 h-6 ml-0.5" />}
                                 </button>
                             </div>
 
@@ -641,15 +636,15 @@
 
             if (showIntro) {
                 return (
-                    <div className="widget-container justify-center p-8 text-center space-y-8">
+                    <div className="widget-container justify-center p-6 text-center space-y-6">
                         <div>
-                            <h1 className="text-2xl font-bold text-bright mb-2 font-serif tracking-wide">༚✧ Fortress Log ✧༚</h1>
-                            <p className="text-dim text-sm">오늘의 시작 컨디션은?</p>
+                            <h1 className="text-xl font-bold text-bright mb-2 font-serif tracking-wide">༚✧ Fortress Log ✧༚</h1>
+                            <p className="text-dim text-xs">오늘의 시작 컨디션은?</p>
                         </div>
-                        <div className="flex flex-col gap-3 w-full">
-                            <button onClick={() => handleIntro(90)} className="glass-panel p-6 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Sun /><span className="block mt-2 font-bold text-bright">상쾌함 (100%)</span></button>
-                            <button onClick={() => handleIntro(60)} className="glass-panel p-6 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Cloud /><span className="block mt-2 font-bold text-bright">보통 (70%)</span></button>
-                            <button onClick={() => handleIntro(30)} className="glass-panel p-6 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Rain /><span className="block mt-2 font-bold text-bright">무거움 (50%)</span></button>
+                        <div className="flex flex-col gap-2 w-full">
+                            <button onClick={() => handleIntro(90)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Sun /><span className="block mt-2 text-sm font-bold text-bright">상쾌함 (100%)</span></button>
+                            <button onClick={() => handleIntro(60)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Cloud /><span className="block mt-2 text-sm font-bold text-bright">보통 (70%)</span></button>
+                            <button onClick={() => handleIntro(30)} className="glass-panel p-4 hover:bg-white/10 transition-all group flex flex-col items-center"><Icons.Rain /><span className="block mt-2 text-sm font-bold text-bright">무거움 (50%)</span></button>
                         </div>
                     </div>
                 )
@@ -659,60 +654,59 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    <div className="p-6 pb-2 flex justify-between items-center">
+                    <div className="p-4 pb-2 flex justify-between items-center">
                         <div className="flex flex-col">
-                            <h1 className="text-xl font-bold text-bright tracking-tight font-serif">༚✧ Fortress Log ✧༚</h1>
-                            <div className="flex items-center gap-4 text-xs font-bold text-dim mt-1">
-                                <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-sm">{tickets}</span></div>
+                            <h1 className="text-lg font-bold text-bright tracking-tight font-serif">༚✧ Fortress Log ✧༚</h1>
+                            <div className="flex items-center gap-3 text-[10px] font-bold text-dim mt-0.5">
+                                <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-xs">{tickets}</span></div>
                                 <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
                             </div>
                         </div>
-                        <button onClick={sendToNotion} disabled={isSending} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
+                        <button onClick={sendToNotion} disabled={isSending} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
                     </div>
 
-                    <div className="px-6 mb-4">
-                        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="px-4 mb-3">
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
                             <div className={`h-full transition-all duration-500 rounded-full bg-sky-pastel`} style={{ width: `${energy}%` }}></div>
                         </div>
                     </div>
 
-                    <div className="px-6 flex gap-2 mb-4">
+                    <div className="px-4 flex gap-2 mb-3">
                         {['main', 'niche', 'rest'].map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-3 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
-                                {tab === 'main' ? '༚✧ Timeline ✧༚' : tab === 'niche' ? '༚✧ Switch ✧༚' : '༚✧ Rest ✧༚'}
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
+                                {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Switch' : 'Rest'}
                             </button>
                         ))}
                     </div>
 
-                    <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
+                    <div className="flex-1 px-4 pb-4 overflow-hidden flex flex-col">
                         {activeTab === 'main' && (
                             <div className="flex flex-col h-full">
                                 {renderTimerPanel()}
                                 
-                                <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
-                                    {blocks.length === 0 ? <div className="text-center text-dim py-12 text-sm italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
+                                <div className="flex-1 overflow-y-auto no-scrollbar space-y-2">
+                                    {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
                                         <div key={block.id} className="log-item">
-                                            <div className="mr-4">
-                                                {/* 타입에 따라 아이콘 다르게 표시 */}
+                                            <div className="mr-3">
                                                 {block.type === 'switch' ? (
-                                                    <span className="text-sky text-xl">✦</span> 
+                                                    <span className="text-sky text-lg">✦</span> 
                                                 ) : block.type === 'rest' ? (
-                                                    <span className="text-purple-300 text-xl">☾</span>
+                                                    <span className="text-purple-300 text-lg">☾</span>
                                                 ) : (
                                                     block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-lg font-bold text-bright mb-0.5">
+                                                <div className="text-base font-bold text-bright mb-0.5">
                                                     {block.type === 'switch' ? block.name : block.type === 'rest' ? block.name : `Total ${formatDuration(block.duration)}`}
                                                 </div>
-                                                <div className="text-xs text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
+                                                <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                             </div>
-                                            <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-bright transition-colors p-2"><Icons.Trash /></button>
+                                            <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-bright transition-colors p-1"><Icons.Trash /></button>
                                         </div>
                                     ))}
                                     {blocks.length > visibleLogs && (
-                                        <button onClick={loadMoreLogs} className="w-full py-3 flex items-center justify-center text-dim hover:text-bright transition-colors font-bold text-sm">
+                                        <button onClick={loadMoreLogs} className="w-full py-2 flex items-center justify-center text-dim hover:text-bright transition-colors font-bold text-xs">
                                             <Icons.More />
                                         </button>
                                     )}
@@ -720,28 +714,26 @@
                             </div>
                         )}
                         {activeTab === 'niche' && (
-                            <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
+                            <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {fixedQuests.map((q) => (
-                                    <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {renderIcon(q.icon, `w-7 h-7 ${q.color}`)}
-                                        <span className="mt-2 text-xs font-bold text-bright">{q.name}</span>
+                                    <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                        {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
+                                        <span className="mt-1 text-[10px] font-bold text-bright">{q.name}</span>
                                     </button>
                                 ))}
                             </div>
                         )}
                         {activeTab === 'rest' && (
-                            <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
+                            <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {restOptions.map(rest => (
-                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {/* 아이콘: 원래 색상 유지 */}
-                                        {renderIcon(rest.icon, `w-7 h-7 ${rest.color}`)}
+                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                        {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
                                         
-                                        <div className="flex items-center gap-1.5 mt-1.5">
-                                            <span className="text-xs font-bold text-bright">{rest.name}</span>
-                                            {/* 번개+숫자: 채도 낮춘 스카이블루(text-sky-300) 고정 */}
-                                            <div className="flex items-center gap-1 text-[10px] font-bold text-sky-300">
-                                                <div className="w-2.5 h-2.5 flex items-center justify-center"><Icons.Zap /></div>
-                                                <span className="mt-[1px] leading-none">{rest.recovery}%</span>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-[10px] font-bold text-bright">{rest.name}</span>
+                                            <div className="flex items-center gap-0.5 text-[9px] font-bold text-sky-300">
+                                                <div className="w-2 h-2 flex items-center justify-center"><Icons.Zap /></div>
+                                                <span className="leading-none">{rest.recovery}%</span>
                                             </div>
                                         </div>
                                     </button>
@@ -752,61 +744,61 @@
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="w-full modal-content rounded-t-3xl p-5 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
                                 
                                 {modalType === 'delete' && (
                                     <div className="text-center">
-                                        <h3 className="text-lg font-bold mb-2 text-slate-700">기록 삭제</h3>
-                                        <div className="flex gap-3 mt-6">
-                                            <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-2xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all">취소</button>
-                                            <button onClick={executeDelete} className="flex-1 py-3 rounded-2xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all">삭제</button>
+                                        <h3 className="text-base font-bold mb-2 text-slate-700">기록 삭제</h3>
+                                        <div className="flex gap-2 mt-4">
+                                            <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
+                                            <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all text-sm">삭제</button>
                                         </div>
                                     </div>
                                 )}
 
                                 {modalType === 'manual' && (
                                     <>
-                                    <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Add Log</h3>
-                                    <div className="space-y-3 mb-5">
+                                    <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Add Log</h3>
+                                    <div className="space-y-2 mb-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-sm font-bold w-16">종료</label>
-                                            <div className="flex-1 flex gap-3">
-                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-base">
+                                            <label className="text-slate-500 text-xs font-bold w-12">종료</label>
+                                            <div className="flex-1 flex gap-2">
+                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
                                                     {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
                                                 </select>
-                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-base">
+                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
                                                     {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-sm font-bold w-16">집중</label>
-                                            <div className="flex-1 flex gap-3">
-                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-base">
+                                            <label className="text-slate-500 text-xs font-bold w-12">집중</label>
+                                            <div className="flex-1 flex gap-2">
+                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
                                                     {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
                                                 </select>
-                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-base">
+                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
                                                     {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                 </select>
                                             </div>
                                         </div>
-                                        <p className="text-center text-xs text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
+                                        <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-1">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-1">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-1">Heavy</span></button>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain /><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                     </div>
                                     </>
                                 )}
                                 
                                 {modalType === 'check' && (
                                     <>
-                                    <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Check Weather</h3>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-1">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-1">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-1">Heavy</span></button>
+                                    <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain /><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                     </div>
                                     </>
                                 )}
