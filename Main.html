@@ -83,11 +83,12 @@
 
         .modal-overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(2px); }
         
+        /* 3. 모달 투명도 수정: rgba alpha값을 0.95 -> 0.8로 낮춰 투명도 부여 */
         .modal-content {
-            background: linear-gradient(180deg, rgba(240, 249, 255, 0.95) 0%, rgba(224, 242, 254, 0.95) 100%);
-            backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.4);
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.8) 0%, rgba(200, 235, 253, 0.8) 100%);
+            backdrop-filter: blur(20px); /* 블러를 유지해 가독성 확보 */
+            border-top: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.3);
             color: #334155;
         }
 
@@ -106,14 +107,15 @@
         .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.4; filter: grayscale(100%); }
 
+        /* 모달 내부 버튼은 선명하게 유지 (0.95) */
         .modal-btn {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.6);
             color: #475569;
             transition: all 0.2s;
         }
         .modal-btn:hover {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 1);
             border-color: #7dd3fc;
             box-shadow: 0 4px 15px rgba(125, 211, 252, 0.4);
             transform: translateY(-2px);
@@ -123,22 +125,25 @@
         .custom-select {
             width: 100%; border-radius: 12px; padding: 12px; font-weight: 700; outline: none; text-align: center; appearance: none;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.85); /* 셀렉트 박스도 약간만 투명하게 */
             border: 1px solid rgba(255, 255, 255, 0.6);
             color: #334155;
             transition: all 0.2s;
         }
         .custom-select:focus {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border-color: #7dd3fc;
             box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.3);
         }
         
+        /* 4. 안내 문구 크기 확대: 0.85rem -> 1.05rem */
         .toast-message {
             position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px);
             border: 1px solid rgba(125, 211, 252, 0.3); color: #bae6fd;
-            padding: 12px 24px; border-radius: 30px; font-size: 0.85rem; font-weight: 700;
+            padding: 14px 28px; border-radius: 30px; 
+            font-size: 1.05rem; /* 사이즈 20% 업 */
+            font-weight: 700;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none; z-index: 100;
             animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
         }
@@ -217,28 +222,28 @@
 
             const [isSending, setIsSending] = useState(false);
 
-            // 1. 컬러 적용 (요청사항 반영)
+            // 컬러 및 아이콘 매핑
             const fixedQuests = [
-                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, // 기본 유지
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-400' }, // 보라색
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, // 회색
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, // 회색
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, // 회색
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, // 회색
+                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
+                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-400' }, 
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
             ];
 
             const restOptions = [
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, // 기본 유지
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, // 회색
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-400' }, // 보라색
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, // 회색
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-400' }, 
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            // 2. 시간 포맷 변경 함수 (H M)
+            // H M 포맷
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
@@ -552,7 +557,8 @@
 
                 if (elapsed < 180) {
                     progress = Math.max(0, (180 - elapsed) / 180);
-                    strokeColor = "#38bdf8"; 
+                    // 1. 타임라인 게이지 색상 연하게 변경: sky-400(#38bdf8) -> sky-200(#bae6fd)
+                    strokeColor = "#bae6fd"; 
                 } else {
                     progress = 1;
                     strokeColor = "#ffffff"; 
@@ -697,11 +703,13 @@
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {restOptions.map(rest => (
                                     <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {/* 3. 컬러 적용 및 정렬 보정 */}
+                                        {/* 아이콘: 원래 색상 유지 */}
                                         {renderIcon(rest.icon, `w-7 h-7 ${rest.color}`)}
+                                        
                                         <div className="flex items-center gap-1.5 mt-1.5">
                                             <span className="text-xs font-bold text-bright">{rest.name}</span>
-                                            <div className={`flex items-center gap-1 text-[10px] font-bold ${rest.color}`}>
+                                            {/* 2. 번개+숫자: 무조건 스카이블루(text-sky-400) 고정 */}
+                                            <div className="flex items-center gap-1 text-[10px] font-bold text-sky-400">
                                                 <div className="w-2.5 h-2.5 flex items-center justify-center"><Icons.Zap /></div>
                                                 <span className="mt-[1px] leading-none">{rest.recovery}%</span>
                                             </div>
