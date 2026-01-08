@@ -87,7 +87,6 @@
         .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.5; }
         
-        /* 시간 입력 인풋 스타일 */
         .time-input {
             width: 100%;
             background: #f1f5f9;
@@ -137,7 +136,6 @@
             const [startTime, setStartTime] = useState(null);
             const [elapsed, setElapsed] = useState(0);
             
-            // 모달 및 수동 입력 상태
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [tempSession, setTempSession] = useState(null);
@@ -227,20 +225,15 @@
                         quality: quality 
                     };
                 } else {
-                    // 수동 입력 계산 (시작 시간 ~ 종료 시간)
                     const now = new Date();
-                    
                     const [sh, sm] = manualStartTime.split(':').map(Number);
                     const [eh, em] = manualEndTime.split(':').map(Number);
                     
                     let startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm).getTime();
                     let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em).getTime();
                     
-                    // 만약 종료 시간이 시작 시간보다 빠르면 (자정 넘긴 경우 등), 일단 단순 계산을 위해 경고 또는 보정
                     if (endTs < startTs) {
-                        // 자정을 넘긴 경우 내일 날짜로 계산할 수도 있지만, 
-                        // 단순화를 위해 같은 날짜라고 가정하고 사용자 실수 방지용 알림
-                        alert("종료 시간이 시작 시간보다 빠릅니다. (자정 넘김은 지원하지 않음)");
+                        alert("종료 시간이 시작 시간보다 빠릅니다.");
                         return;
                     }
 
@@ -295,11 +288,31 @@
                     return;
                 }
                 setIsSending(true);
-                // 통계: 개수는 그대로 유지 (추후 필요하면 수정)
+
+                // --- 📊 데이터 분석 및 집계 로직 ---
                 const clearCount = blocks.filter(b => b.quality === 'Sun').length;
                 const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
                 const rainCount = blocks.filter(b => b.quality === 'Rain').length;
                 const lastQ = blocks.length > 0 ? blocks[0].quality : '-';
+
+                // 1. 총 집중 시간 계산
+                const totalMinutes = blocks.reduce((acc, b) => acc + b.duration, 0);
+
+                // 2. 시간대별(Morning, Afternoon, Night) 분류 및 합산
+                let morningMin = 0;   // 06:00 ~ 12:00
+                let afternoonMin = 0; // 12:00 ~ 18:00
+                let nightMin = 0;     // 18:00 ~ 06:00 (그 외)
+
+                blocks.forEach(b => {
+                    const hour = new Date(b.startTime).getHours();
+                    if (hour >= 6 && hour < 12) {
+                        morningMin += b.duration;
+                    } else if (hour >= 12 && hour < 18) {
+                        afternoonMin += b.duration;
+                    } else {
+                        nightMin += b.duration;
+                    }
+                });
 
                 try {
                     const response = await fetch(WORKER_URL, {
@@ -310,11 +323,16 @@
                             start: clearCount,
                             ext1: cloudCount,
                             ext2: rainCount,
-                            quality: lastQ
+                            quality: lastQ,
+                            // 👇 추가된 데이터 전송
+                            total: totalMinutes,
+                            morning: morningMin,
+                            afternoon: afternoonMin,
+                            night: nightMin
                         }),
                     });
                     const res = await response.json();
-                    if(res.success) alert("노션 전송 완료!");
+                    if(res.success) alert("노션 전송 완료! (분석 데이터 포함)");
                     else alert("전송 실패: " + res.error);
                 } catch(e) {
                     alert("네트워크 에러: " + e.message);
@@ -325,25 +343,21 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
-            // 수동 입력 창 열기 (현재 시간 기준 설정)
             const openManual = () => {
                 const now = new Date();
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mm = String(now.getMinutes()).padStart(2, '0');
                 
-                // 기본값: 종료시간 = 현재, 시작시간 = 30분 전
                 const prev = new Date(now.getTime() - 30 * 60000);
                 const ph = String(prev.getHours()).padStart(2, '0');
                 const pm = String(prev.getMinutes()).padStart(2, '0');
 
                 setManualEndTime(`${hh}:${mm}`);
                 setManualStartTime(`${ph}:${pm}`);
-                
                 setModalType('manual');
                 setShowModal(true);
             };
 
-            // 점화/몰입 렌더링 헬퍼
             const renderDuration = (min) => {
                 if (min <= 3) {
                     return <span className="text-xs font-bold text-orange-500">🔥 {min}m (점화)</span>;
@@ -407,7 +421,6 @@
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <span className="text-xs font-bold text-[#334155]">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</span>
                                                 </div>
-                                                {/* 점화/흐름 분리 표시 */}
                                                 <div>{renderDuration(block.duration)}</div>
                                             </div>
                                             <div className="flex flex-col items-end gap-1">
@@ -419,6 +432,7 @@
                                 </div>
                             </div>
                         )}
+                        {/* 나머지 탭들은 동일 유지 */}
                         {activeTab === 'niche' && (
                             <div className="space-y-3 overflow-y-auto no-scrollbar">
                                 <div className="text-xs text-[#64748b] text-center mb-2">티켓을 사용하여 환경을 정비하세요.</div>
