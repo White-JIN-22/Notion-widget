@@ -480,7 +480,7 @@
 
                     const newBlocks = [newBlock, ...blocks];
                     saveData(tickets - 1, Math.max(energy - 5, 0), newBlocks);
-                    triggerToast(`✨ ${quest.name} 완료! (기록됨)`);
+                    triggerToast(`✨ ${quest.name} 완료!`);
                 } else {
                     triggerToast("⚠️ 티켓 부족");
                 }
@@ -506,7 +506,7 @@
                 const newBlocks = [newBlock, ...blocks];
                 
                 saveData(tickets, newEnergy, newBlocks);
-                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%) 기록됨`);
+                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
             const sendToNotion = async () => {
