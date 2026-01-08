@@ -180,7 +180,9 @@
             Zzz: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             More: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
             Flame: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
-            Waves: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>
+            Waves: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
+            /* ✅ 명상 아이콘 (Leaf) 추가 */
+            Leaf: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
         };
 
         const App = () => {
@@ -220,9 +222,10 @@
             ];
 
             const restOptions = [
-                { id: 'r1', name: '독서', recovery: 15, icon: 'Book' },
-                { id: 'r2', name: '낮잠', recovery: 20, icon: 'Zzz' },
-                { id: 'r3', name: '딥 슬립', recovery: 50, icon: 'Moon' },
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book' }, // ✅ 독서 +20
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz' },  // ✅ 낮잠 +30, 아이콘 Zzz로 변경
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf' }, // ✅ 명상 +30, 아이콘 Leaf 추가
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon' }, // ✅ 딥슬립 아이콘 Moon으로 변경
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
