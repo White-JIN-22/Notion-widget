@@ -18,7 +18,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent; /* 노션 배경과 어우러지게 투명 처리 */
+            background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -86,6 +86,25 @@
         }
         .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.5; }
+        
+        /* 시간 입력 인풋 스타일 */
+        .time-input {
+            width: 100%;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            color: #0f172a;
+            outline: none;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .time-input:focus {
+            background: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -95,7 +114,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         
-        // ✅ 진솔님의 Cloudflare 주소 자동 입력 완료!
+        // ✅ 진솔님의 주소 적용 완료
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
@@ -117,11 +136,16 @@
             const [isRecording, setIsRecording] = useState(false);
             const [startTime, setStartTime] = useState(null);
             const [elapsed, setElapsed] = useState(0);
+            
+            // 모달 및 수동 입력 상태
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [tempSession, setTempSession] = useState(null);
-            const [manualTime, setManualTime] = useState('');
-            const [manualDuration, setManualDuration] = useState(30);
+            
+            // Start ~ End Time 방식 적용
+            const [manualStartTime, setManualStartTime] = useState('');
+            const [manualEndTime, setManualEndTime] = useState('');
+
             const [isSending, setIsSending] = useState(false);
 
             useEffect(() => {
@@ -150,6 +174,7 @@
                 }));
             };
 
+            // 타이머 로직
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -190,17 +215,50 @@
                 return `${pad(h)}:${pad(m)}:${pad(s)}`;
             };
 
+            // 기록 추가 로직
             const addRecord = (quality, type) => {
                 let newBlock;
                 if (type === 'auto') {
-                    newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: tempSession.duration, quality: quality };
+                    newBlock = { 
+                        id: Date.now(), 
+                        startTime: tempSession.startTime, 
+                        endTime: tempSession.endTime, 
+                        duration: tempSession.duration, 
+                        quality: quality 
+                    };
                 } else {
-                    const [h, m] = manualTime.split(':').map(Number);
+                    // 수동 입력 계산 (시작 시간 ~ 종료 시간)
                     const now = new Date();
-                    const startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m).getTime();
-                    const endTs = startTs + (manualDuration * 60 * 1000);
-                    newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: manualDuration, quality: quality };
+                    
+                    const [sh, sm] = manualStartTime.split(':').map(Number);
+                    const [eh, em] = manualEndTime.split(':').map(Number);
+                    
+                    let startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm).getTime();
+                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em).getTime();
+                    
+                    // 만약 종료 시간이 시작 시간보다 빠르면 (자정 넘긴 경우 등), 일단 단순 계산을 위해 경고 또는 보정
+                    if (endTs < startTs) {
+                        // 자정을 넘긴 경우 내일 날짜로 계산할 수도 있지만, 
+                        // 단순화를 위해 같은 날짜라고 가정하고 사용자 실수 방지용 알림
+                        alert("종료 시간이 시작 시간보다 빠릅니다. (자정 넘김은 지원하지 않음)");
+                        return;
+                    }
+
+                    const diffMin = Math.floor((endTs - startTs) / 1000 / 60);
+                    if (diffMin <= 0) {
+                        alert("시간 간격이 너무 짧습니다.");
+                        return;
+                    }
+
+                    newBlock = { 
+                        id: Date.now(), 
+                        startTime: startTs, 
+                        endTime: endTs, 
+                        duration: diffMin, 
+                        quality: quality 
+                    };
                 }
+
                 const newTickets = tickets + 1;
                 const newFatigue = Math.min(fatigue + 10, 100);
                 const newBlocks = [newBlock, ...blocks];
@@ -237,6 +295,7 @@
                     return;
                 }
                 setIsSending(true);
+                // 통계: 개수는 그대로 유지 (추후 필요하면 수정)
                 const clearCount = blocks.filter(b => b.quality === 'Sun').length;
                 const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
                 const rainCount = blocks.filter(b => b.quality === 'Rain').length;
@@ -266,14 +325,37 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
+            // 수동 입력 창 열기 (현재 시간 기준 설정)
             const openManual = () => {
                 const now = new Date();
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mm = String(now.getMinutes()).padStart(2, '0');
-                setManualTime(`${hh}:${mm}`);
-                setManualDuration(30);
+                
+                // 기본값: 종료시간 = 현재, 시작시간 = 30분 전
+                const prev = new Date(now.getTime() - 30 * 60000);
+                const ph = String(prev.getHours()).padStart(2, '0');
+                const pm = String(prev.getMinutes()).padStart(2, '0');
+
+                setManualEndTime(`${hh}:${mm}`);
+                setManualStartTime(`${ph}:${pm}`);
+                
                 setModalType('manual');
                 setShowModal(true);
+            };
+
+            // 점화/몰입 렌더링 헬퍼
+            const renderDuration = (min) => {
+                if (min <= 3) {
+                    return <span className="text-xs font-bold text-orange-500">🔥 {min}m (점화)</span>;
+                }
+                const flowTime = min - 3;
+                return (
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-bold">🔥 3m</span>
+                        <span className="text-xs text-gray-300">+</span>
+                        <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded font-bold">🌊 {flowTime}m</span>
+                    </div>
+                );
             };
 
             return (
@@ -322,13 +404,16 @@
                                     {blocks.length === 0 ? <div className="text-center text-[#94a3b8] py-8 text-xs">기록이 없습니다.</div> : blocks.map((block) => (
                                         <div key={block.id} className="log-item bg-white/60 border border-white p-3 rounded-xl flex justify-between items-center">
                                             <div>
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <span className="text-xs font-bold text-[#334155]">{formatTimeStr(block.startTime)}</span>
-                                                    <span className="text-[10px] bg-white px-1.5 py-0.5 rounded text-[#64748b]">{block.duration}m</span>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-xs font-bold text-[#334155]">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</span>
                                                 </div>
-                                                <div className="text-xs text-[#64748b]">{block.quality === 'Sun' ? '☀️ 개운함' : block.quality === 'Cloud' ? '☁️ 무난함' : '⛈️ 무거움'}</div>
+                                                {/* 점화/흐름 분리 표시 */}
+                                                <div>{renderDuration(block.duration)}</div>
                                             </div>
-                                            <button onClick={() => deleteBlock(block.id)} className="text-[#cbd5e1] hover:text-[#ef4444] p-2"><Icons.Trash /></button>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className="text-[10px] text-[#64748b]">{block.quality === 'Sun' ? '☀️' : block.quality === 'Cloud' ? '☁️' : '⛈️'}</span>
+                                                <button onClick={() => deleteBlock(block.id)} className="text-[#cbd5e1] hover:text-[#ef4444]"><Icons.Trash /></button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -360,12 +445,20 @@
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center">
                             <div className="w-full bg-white rounded-t-3xl p-6 animate-slide-up shadow-2xl">
                                 <h3 className="text-lg font-bold text-[#0f172a] mb-4">{modalType === 'manual' ? "Add Past Log" : "Check Weather"}</h3>
+                                
                                 {modalType === 'manual' && (
                                     <div className="flex gap-3 mb-6">
-                                        <div className="flex-1"><label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Start</label><input type="time" value={manualTime} onChange={(e) => setManualTime(e.target.value)} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" /></div>
-                                        <div className="flex-1"><label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Min</label><input type="number" value={manualDuration} onChange={(e) => setManualDuration(Number(e.target.value))} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" /></div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Start Time</label>
+                                            <input type="time" value={manualStartTime} onChange={(e) => setManualStartTime(e.target.value)} className="time-input" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">End Time</label>
+                                            <input type="time" value={manualEndTime} onChange={(e) => setManualEndTime(e.target.value)} className="time-input" />
+                                        </div>
                                     </div>
                                 )}
+                                
                                 <div className="grid grid-cols-3 gap-3 mb-4">
                                     <button onClick={() => addRecord('Sun', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-orange-50 flex flex-col items-center transition-colors"><span className="text-2xl mb-1">☀️</span><span className="text-xs font-bold text-[#475569]">Clear</span></button>
                                     <button onClick={() => addRecord('Cloud', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-gray-50 flex flex-col items-center transition-colors"><span className="text-2xl mb-1">☁️</span><span className="text-xs font-bold text-[#475569]">Cloudy</span></button>
