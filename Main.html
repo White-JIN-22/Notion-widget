@@ -26,15 +26,17 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 Icy Glass 테마 */
+        /* 🧊 Icy Glass 테마 컨테이너 */
         .widget-container {
             position: relative;
             width: 100%;
             max-width: 400px;
             height: 700px;
-            background: linear-gradient(180deg, rgba(56, 189, 248, 0.03) 0%, rgba(0, 0, 0, 0) 100%);
-            backdrop-filter: blur(10px);
+            /* 배경: 노션 다크모드와 어우러지되 살짝 푸른 냉기 */
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.05) 0%, rgba(0, 0, 0, 0) 100%);
+            backdrop-filter: blur(12px);
             border-radius: 24px;
+            /* 테두리: 얼음처럼 얇고 빛나는 하늘색 */
             border: 1px solid rgba(125, 211, 252, 0.2);
             box-shadow: 0 0 40px rgba(56, 189, 248, 0.05), inset 0 0 20px rgba(56, 189, 248, 0.05);
             display: flex;
@@ -43,11 +45,12 @@
             color: #f0f9ff;
         }
 
+        /* 🧊 얼음 조각 같은 패널 */
         .glass-panel {
             background: rgba(186, 230, 253, 0.07);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(186, 230, 253, 0.3);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
             border-radius: 20px;
             transition: all 0.3s ease;
         }
@@ -57,6 +60,7 @@
             box-shadow: 0 0 20px rgba(125, 211, 252, 0.2);
         }
 
+        /* 탭 버튼 */
         .tab-btn {
             transition: all 0.2s;
             border-radius: 12px;
@@ -72,6 +76,7 @@
         }
         .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.05); }
 
+        /* 리스트 아이템 */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(15, 23, 42, 0.4);
@@ -82,34 +87,37 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .modal-overlay { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); }
+        /* 모달 스타일 (수정됨: Icy Glass 적용) */
+        .modal-overlay { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
         .modal-content {
-            background: rgba(15, 23, 42, 0.95);
-            border-top: 1px solid rgba(56, 189, 248, 0.3);
+            /* 기존 남색 배경 제거 -> 유리 질감 적용 */
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(125, 211, 252, 0.3);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
             color: #f0f9ff;
         }
 
-        /* Input 스타일 업데이트 (숫자 입력 등) */
+        /* 공통 버튼/인풋 스타일 (Icy Look) */
         .quest-btn, .time-input, .custom-select, .modal-btn, .action-btn {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(56, 189, 248, 0.1);
             border: 1px solid rgba(56, 189, 248, 0.2);
             color: #e0f2fe;
             transition: all 0.2s;
         }
         .quest-btn:hover, .time-input:focus, .custom-select:focus, .modal-btn:hover, .action-btn:hover {
-            background: rgba(56, 189, 248, 0.15);
+            background: rgba(56, 189, 248, 0.2);
             border-color: #7dd3fc;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
             color: white;
         }
         .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.4; filter: grayscale(100%); }
 
-        .time-input {
+        .time-input, .custom-select {
             width: 100%; border-radius: 12px; padding: 12px; font-weight: 700; outline: none; text-align: center; appearance: none;
         }
         
-        /* Time Input 아이콘 색상 변경 (브라우저 기본) */
         input[type="time"]::-webkit-calendar-picker-indicator {
             filter: invert(1) brightness(100%) sepia(100%) hue-rotate(180deg) saturate(500%);
             cursor: pointer;
@@ -142,7 +150,7 @@
             Sun: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fcd34d]"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             
             Droplets: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fdba74]"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
@@ -153,6 +161,8 @@
             Book: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mint"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             Coffee: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
+            Sparkles: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fcd34d]"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,
+            
             ChevronUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
             ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         };
@@ -171,7 +181,7 @@
             const [modalType, setModalType] = useState('manual');
             const [tempSession, setTempSession] = useState(null);
             
-            // 수동 입력용 상태 (종료시간 + 소요시간)
+            // 수동 입력용 상태
             const [manualEndTime, setManualEndTime] = useState('');
             const [manualDuration, setManualDuration] = useState(30);
 
@@ -197,6 +207,7 @@
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
+                // ✅ 날짜 확인 로직: 오늘 날짜가 아니면 리셋됨
                 if (savedData.date === today) {
                     setTickets(savedData.tickets || 0);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
@@ -262,26 +273,19 @@
                 return `${pad(h)}:${pad(m)}:${pad(s)}`;
             };
 
-            // ✅ 기록 추가 로직 수정 (수동 입력: 종료시간 기준 역산)
             const addRecord = (quality, type) => {
                 let newBlock;
                 if (type === 'auto') {
                     newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: tempSession.duration, quality: quality };
                 } else {
                     const now = new Date();
-                    
-                    // 1. 종료 시간 파싱
                     const [eh, em] = manualEndTime.split(':').map(Number);
                     let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em).getTime();
                     
-                    // 2. 총 소요 시간 (입력값 + 점화 3분)
-                    const totalDuration = manualDuration + 3;
-                    
-                    // 3. 시작 시간 역산
+                    const totalDuration = manualDuration + 3; // +3분 점화시간 자동 추가
                     const startTs = endTs - (totalDuration * 60 * 1000);
 
                     if (totalDuration <= 3) { alert("집중 시간이 너무 짧습니다."); return; }
-                    
                     newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
                 }
                 const newTickets = tickets + 1;
@@ -297,10 +301,11 @@
                 }
             };
 
-            // 퀘스트 관리
+            // 전환행동(퀘스트) 관리
             const addQuest = () => {
                 if(!newQuestName.trim()) return;
-                const newQuest = { id: Date.now(), name: newQuestName, icon: 'Wind', cost: 1 };
+                // ✅ 새 행동은 자동으로 'Sparkles' 아이콘 적용
+                const newQuest = { id: Date.now(), name: newQuestName, icon: 'Sparkles', cost: 1 };
                 const newQuests = [...quests, newQuest];
                 setQuests(newQuests); setNewQuestName('');
                 saveData(tickets, energy, blocks, newQuests);
@@ -365,14 +370,12 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
-            // ✅ 수동 입력 모달 열기 (기본값 설정)
             const openManual = () => {
                 const now = new Date();
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mm = String(now.getMinutes()).padStart(2, '0');
-                
-                setManualEndTime(`${hh}:${mm}`); // 현재 시간 기본값
-                setManualDuration(30);           // 기본 30분
+                setManualEndTime(`${hh}:${mm}`); 
+                setManualDuration(30);           
                 setModalType('manual'); 
                 setShowModal(true);
             };
@@ -420,7 +423,9 @@
 
                     <div className="px-6 flex gap-2 mb-4">
                         {['main', 'niche', 'rest'].map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>{tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Quests' : 'Rest'}</button>
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
+                                {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Switch' : 'Rest'}
+                            </button>
                         ))}
                     </div>
 
@@ -450,7 +455,7 @@
                         {activeTab === 'niche' && (
                             <div className="space-y-3 overflow-y-auto no-scrollbar h-full flex flex-col">
                                 <div className="flex gap-2 mb-2">
-                                    <input type="text" value={newQuestName} onChange={(e) => setNewQuestName(e.target.value)} placeholder="새 퀘스트..." className="time-input text-left" />
+                                    <input type="text" value={newQuestName} onChange={(e) => setNewQuestName(e.target.value)} placeholder="전환 행동..." className="time-input text-left" />
                                     <button onClick={addQuest} className="action-btn w-12 rounded-xl flex items-center justify-center"><Icons.Plus /></button>
                                 </div>
                                 <div className="flex-1 space-y-2 overflow-y-auto no-scrollbar">
@@ -459,7 +464,6 @@
                                             <button onClick={() => doQuest(q)} disabled={tickets === 0} className="flex-1 flex items-center gap-3 text-left">
                                                 {renderIcon(q.icon)}
                                                 <span className="text-bright">{q.name}</span>
-                                                <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-dim">1 Ticket</span>
                                             </button>
                                             <div className="flex items-center gap-1 ml-2">
                                                 <div className="flex flex-col gap-1">
@@ -487,8 +491,10 @@
                     </div>
 
                     {showModal && (
-                        <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center">
-                            <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl">
+                        /* ✅ 모달 바깥(오버레이) 클릭 시 닫힘 */
+                        <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
+                            {/* ✅ 내부 클릭 시 닫힘 방지 (e.stopPropagation) */}
+                            <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
                                 <h3 className="text-lg font-bold mb-4">{modalType === 'manual' ? "Add Past Log" : "Check Weather"}</h3>
                                 
                                 {modalType === 'manual' && (
@@ -507,12 +513,11 @@
                                     </div>
                                 )}
                                 
-                                <div className="grid grid-cols-3 gap-3 mb-4">
+                                <div className="grid grid-cols-3 gap-3">
                                     <button onClick={() => addRecord('Sun', modalType === 'manual' ? 'manual' : 'auto')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold text-dim mt-1">Clear</span></button>
                                     <button onClick={() => addRecord('Cloud', modalType === 'manual' ? 'manual' : 'auto')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold text-dim mt-1">Cloudy</span></button>
                                     <button onClick={() => addRecord('Rain', modalType === 'manual' ? 'manual' : 'auto')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold text-dim mt-1">Heavy</span></button>
                                 </div>
-                                <button onClick={() => setShowModal(false)} className="w-full py-3 text-dim text-sm font-bold hover:text-bright transition-colors">Cancel</button>
                             </div>
                         </div>
                     )}
