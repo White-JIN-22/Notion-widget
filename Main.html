@@ -632,29 +632,29 @@
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className="w-full modal-content rounded-t-3xl p-8 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
                                 
                                 {modalType === 'delete' && (
                                     <div className="text-center">
-                                        <h3 className="text-xl font-bold mb-2 text-slate-700">기록 삭제</h3>
-                                        <div className="flex gap-4 mt-8">
-                                            <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all">취소</button>
-                                            <button onClick={executeDelete} className="flex-1 py-4 rounded-2xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all">삭제</button>
+                                        <h3 className="text-lg font-bold mb-2 text-slate-700">기록 삭제</h3>
+                                        <div className="flex gap-3 mt-6">
+                                            <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-2xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all">취소</button>
+                                            <button onClick={executeDelete} className="flex-1 py-3 rounded-2xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all">삭제</button>
                                         </div>
                                     </div>
                                 )}
 
                                 {modalType === 'manual' && (
                                     <>
-                                    <h3 className="text-xl font-bold mb-8 text-center italic text-slate-700">Add Log</h3>
-                                    <div className="space-y-6 mb-10">
+                                    <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Add Log</h3>
+                                    <div className="space-y-3 mb-5">
                                         <div className="flex items-center justify-between">
                                             <label className="text-slate-500 text-sm font-bold w-16">종료</label>
                                             <div className="flex-1 flex gap-3">
-                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-lg">
+                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-base">
                                                     {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
                                                 </select>
-                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-lg">
+                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-base">
                                                     {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                 </select>
                                             </div>
@@ -662,31 +662,31 @@
                                         <div className="flex items-center justify-between">
                                             <label className="text-slate-500 text-sm font-bold w-16">집중</label>
                                             <div className="flex-1 flex gap-3">
-                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-lg">
+                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-base">
                                                     {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
                                                 </select>
-                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-lg">
+                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-base">
                                                     {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                 </select>
                                             </div>
                                         </div>
                                         <p className="text-center text-xs text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-2">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-2">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-2">Heavy</span></button>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-1">Clear</span></button>
+                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-1">Cloudy</span></button>
+                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-1">Heavy</span></button>
                                     </div>
                                     </>
                                 )}
                                 
                                 {modalType === 'check' && (
                                     <>
-                                    <h3 className="text-xl font-bold mb-6 text-center italic text-slate-700">Check Weather</h3>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-2">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-2">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-4 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-2">Heavy</span></button>
+                                    <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Check Weather</h3>
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold mt-1">Clear</span></button>
+                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold mt-1">Cloudy</span></button>
+                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Rain /><span className="text-xs font-bold mt-1">Heavy</span></button>
                                     </div>
                                     </>
                                 )}
