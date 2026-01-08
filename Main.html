@@ -29,8 +29,7 @@
             position: relative;
             width: 100%;
             max-width: 400px;
-            /* ✅ 높이 수정: 700px -> 640px */
-            height: 640px;
+            height: 640px; /* Compact Height */
             background: linear-gradient(180deg, rgba(125, 211, 252, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
             backdrop-filter: blur(14px);
             border-radius: 24px;
@@ -142,13 +141,10 @@
             Stop: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            
             Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            
-            Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            
+            Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Droplets: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -299,9 +295,8 @@
                 } else {
                     const now = new Date();
                     let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
-                    totalDuration = (manualDurHour * 60) + manualDurMin + 3;
+                    const totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
                     const startTs = endTs - (totalDuration * 60 * 1000);
-                    
                     if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
                     newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
                 }
@@ -349,6 +344,7 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery})`);
             };
 
+            // ✅ sendToNotion 로직 개선: 시간대별 최빈값(Dominant Quality) 계산
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -358,26 +354,57 @@
                 }
 
                 setIsSending(true);
-                const clearCount = blocks.filter(b => b.quality === 'Sun').length;
-                const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
-                const rainCount = blocks.filter(b => b.quality === 'Rain').length;
-                const lastQ = blocks.length > 0 ? blocks[0].quality : '-';
-                const totalMinutes = blocks.reduce((acc, b) => acc + b.duration, 0);
-                let morningMin = 0; let afternoonMin = 0; let nightMin = 0;
-                blocks.forEach(b => {
-                    const hour = new Date(b.startTime).getHours();
-                    if (hour >= 6 && hour < 12) morningMin += b.duration;
-                    else if (hour >= 12 && hour < 18) afternoonMin += b.duration;
-                    else nightMin += b.duration;
+
+                // Helper to get dominant quality from a list of blocks
+                const getDominant = (list) => {
+                    if (list.length === 0) return null;
+                    const counts = { Sun: 0, Cloud: 0, Rain: 0 };
+                    list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
+                    if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
+                    if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
+                    return 'Sun';
+                };
+
+                // Filter blocks by time of day
+                const mornBlocks = blocks.filter(b => {
+                    const h = new Date(b.startTime).getHours();
+                    return h >= 6 && h < 12;
                 });
+                const aftBlocks = blocks.filter(b => {
+                    const h = new Date(b.startTime).getHours();
+                    return h >= 12 && h < 18;
+                });
+                const nightBlocks = blocks.filter(b => {
+                    const h = new Date(b.startTime).getHours();
+                    return h >= 18 || h < 6;
+                });
+
+                // Calculate Dominant Qualities
+                const domMorn = getDominant(mornBlocks);
+                const domAft = getDominant(aftBlocks);
+                const domNight = getDominant(nightBlocks);
+                const domDay = getDominant(blocks); // Daily dominant
+
+                // Calculate Durations
+                const totalMinutes = blocks.reduce((acc, b) => acc + b.duration, 0);
+                const mornMin = mornBlocks.reduce((acc, b) => acc + b.duration, 0);
+                const aftMin = aftBlocks.reduce((acc, b) => acc + b.duration, 0);
+                const nightMin = nightBlocks.reduce((acc, b) => acc + b.duration, 0);
+
                 try {
                     const response = await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             date: new Date().toISOString().split('T')[0],
-                            start: clearCount, quality: lastQ,
-                            total: totalMinutes, morning: morningMin, afternoon: afternoonMin, night: nightMin
+                            quality: domDay,
+                            total: totalMinutes,
+                            morning: mornMin, 
+                            afternoon: aftMin, 
+                            night: nightMin,
+                            q_morn: domMorn, // New field
+                            q_aft: domAft,   // New field
+                            q_night: domNight // New field
                         }),
                     });
                     const res = await response.json();
