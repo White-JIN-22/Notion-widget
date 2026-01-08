@@ -2,12 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="robots" content="noindex, nofollow">
     <meta name="referrer" content="no-referrer">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Main Widget</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
@@ -26,43 +23,35 @@
             min-height: 100vh;
             overflow: hidden;
         }
-
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 메인 컨테이너: 다크모드 기반 투명 글라스 */
+        /* 다크 글라스 테마 */
         .widget-container {
             position: relative;
             width: 100%;
             max-width: 400px;
             height: 700px;
-            /* 배경을 어둡고 투명하게 변경 */
             background: rgba(30, 41, 59, 0.4); 
-            backdrop-filter: blur(20px); /* 블러 효과 강화 */
+            backdrop-filter: blur(20px);
             border-radius: 24px;
-            /* 테두리와 그림자에 파스텔 블루 빛 추가 */
             border: 1px solid rgba(147, 197, 253, 0.2);
             box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(147, 197, 253, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            color: #e2e8f0; /* 기본 텍스트 색상 밝게 */
+            color: #e2e8f0;
         }
 
-        /* 유리 패널: 더 투명하고 영롱하게 */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.08); /* 투명도 높임 */
+            background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.15); /* 얇고 밝은 테두리 */
+            border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             border-radius: 20px;
             transition: all 0.3s ease;
         }
-        .glass-panel:hover {
-             border-color: rgba(147, 197, 253, 0.4); /* 호버 시 파란 빛 */
-        }
 
-        /* 탭 버튼 */
         .tab-btn {
             transition: all 0.2s;
             border-radius: 12px;
@@ -72,70 +61,53 @@
         }
         .tab-active {
             background: rgba(255, 255, 255, 0.1);
-            color: #bae6fd; /* 활성 탭 파스텔 블루 */
+            color: #bae6fd;
             box-shadow: inset 0 0 10px rgba(186, 230, 253, 0.1);
             border: 1px solid rgba(186, 230, 253, 0.2);
         }
-        .tab-inactive {
-            &:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
-        }
+        .tab-inactive:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
 
-        /* 로그 아이템 */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
-            background: rgba(255, 255, 255, 0.05) !important; /* 덮어쓰기 */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         @keyframes slideUp {
             from { transform: translateY(10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* 모달 */
-        .modal-overlay {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-        }
+        .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); }
         .modal-content {
-            background: rgba(30, 41, 59, 0.85) !important; /* 다크 글라스 배경 */
+            background: rgba(30, 41, 59, 0.85);
             backdrop-filter: blur(24px);
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            color: #e2e8f0 !important;
+            color: #e2e8f0;
         }
 
-        /* 버튼 및 입력창 스타일 통일 */
-        .quest-btn, .time-input, .custom-select, .modal-btn {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            color: #e2e8f0 !important;
+        .quest-btn, .time-input, .custom-select, .modal-btn, .action-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
             transition: all 0.2s;
         }
-        .quest-btn:hover, .time-input:focus, .custom-select:focus, .modal-btn:hover {
-            background: rgba(255, 255, 255, 0.12) !important;
-            border-color: rgba(147, 197, 253, 0.5) !important; /* 파란 빛 강조 */
-            box-shadow: 0 0 15px rgba(147, 197, 253, 0.2);
+        .quest-btn:hover, .time-input:focus, .custom-select:focus, .modal-btn:hover, .action-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(147, 197, 253, 0.5);
         }
-        .quest-btn:active, .modal-btn:active { transform: scale(0.98); }
+        .quest-btn:active { transform: scale(0.98); }
         .quest-btn:disabled { opacity: 0.4; }
 
         .time-input, .custom-select {
-            width: 100%;
-            border-radius: 12px;
-            padding: 12px;
-            font-weight: 700;
-            outline: none;
-            text-align: center;
-            appearance: none;
+            width: 100%; border-radius: 12px; padding: 12px; font-weight: 700; outline: none; text-align: center; appearance: none;
         }
         
-        /* 아이콘 색상 조정 */
-        .icon-blue { color: #7dd3fc; } /* 파스텔 블루 */
-        .icon-red { color: #fca5a5; } /* 파스텔 레드 */
-        .icon-green { color: #86efac; } /* 파스텔 그린 */
-        .icon-orange { color: #fdba74; } /* 파스텔 오렌지 */
+        .icon-blue { color: #7dd3fc; }
+        .icon-red { color: #fca5a5; }
+        .icon-green { color: #86efac; }
+        .icon-orange { color: #fdba74; }
         .text-bright { color: #f1f5f9; }
         .text-dim { color: #94a3b8; }
-
     </style>
 </head>
 <body>
@@ -144,22 +116,34 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
-        // 아이콘에 색상 클래스 적용
+        // --- 아이콘 세트 ---
         const Icons = {
             Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon-blue"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
             Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon-green"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
-            Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-dim hover:text-bright transition-colors"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            Coffee: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon-orange"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
-            Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             CloudUpload: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="icon-blue"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
             Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-orange"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-blue"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
-            Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-dim"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>
+            Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-dim"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            
+            // 퀘스트 & 휴식 아이콘
+            Droplets: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-blue"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+            Utensils: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-orange"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
+            Recycle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-green"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+            Wind: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-dim"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
+            Shirt: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-dim"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
+            Moon: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-dim"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
+            Book: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-green"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Zzz: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon-blue"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
+            
+            // 화살표
+            ChevronUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
+            ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         };
 
         const App = () => {
@@ -167,22 +151,38 @@
             const [tickets, setTickets] = useState(0);
             const [energy, setEnergy] = useState(100);
             const [blocks, setBlocks] = useState([]);
+            
             const [isRecording, setIsRecording] = useState(false);
             const [startTime, setStartTime] = useState(null);
             const [elapsed, setElapsed] = useState(0);
-            
             const [showIntro, setShowIntro] = useState(false);
-            
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [tempSession, setTempSession] = useState(null);
-            
             const [startHour, setStartHour] = useState(10);
             const [startMin, setStartMin] = useState(0);
             const [endHour, setEndHour] = useState(11);
             const [endMin, setEndMin] = useState(0);
-
             const [isSending, setIsSending] = useState(false);
+
+            // --- 퀘스트 관리 상태 ---
+            const defaultQuests = [
+                { id: 'q1', name: '씻기', icon: 'Droplets', cost: 1 },
+                { id: 'q2', name: '식사', icon: 'Utensils', cost: 1 },
+                { id: 'q3', name: '설거지', icon: 'Droplets', cost: 1 },
+                { id: 'q4', name: '빨래', icon: 'Shirt', cost: 1 },
+                { id: 'q5', name: '분리수거', icon: 'Recycle', cost: 1 },
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', cost: 1 },
+            ];
+            const [quests, setQuests] = useState(defaultQuests);
+            const [newQuestName, setNewQuestName] = useState('');
+
+            // --- 휴식 데이터 (오름차순 정렬) ---
+            const restOptions = [
+                { id: 'r1', name: '독서 (능동 휴식)', recovery: 15, icon: 'Book' },
+                { id: 'r2', name: '짧은 낮잠', recovery: 20, icon: 'Moon' },
+                { id: 'r3', name: '딥 슬립', recovery: 50, icon: 'Zzz' },
+            ].sort((a,b) => a.recovery - b.recovery);
 
             const hours = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,1,2];
             const minutes = [0, 15, 30, 45];
@@ -202,26 +202,36 @@
                     setBlocks([]);
                     setShowIntro(true);
                 }
+                
+                // 퀘스트 목록 불러오기 (없으면 기본값)
+                if (savedData.quests) {
+                    setQuests(savedData.quests);
+                }
             }, []);
 
-            const saveData = (newTickets, newEnergy, newBlocks) => {
+            const saveData = (newTickets, newEnergy, newBlocks, newQuests) => {
+                const qToSave = newQuests || quests;
                 setTickets(newTickets);
                 setEnergy(newEnergy);
                 setBlocks(newBlocks);
+                if(newQuests) setQuests(newQuests);
+
                 localStorage.setItem('fortressData', JSON.stringify({
                     date: new Date().toDateString(),
                     tickets: newTickets,
                     energy: newEnergy,
-                    blocks: newBlocks
+                    blocks: newBlocks,
+                    quests: qToSave
                 }));
             };
 
             const handleIntro = (initialEnergy) => {
                 setEnergy(initialEnergy);
                 setShowIntro(false);
-                saveData(0, initialEnergy, []);
+                saveData(0, initialEnergy, [], quests);
             };
 
+            // ... (타이머, 모달 등 기존 로직 유지) ...
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -253,7 +263,6 @@
                     setShowModal(true);
                 }
             };
-
             const formatStopwatch = (sec) => {
                 const h = Math.floor(sec / 3600);
                 const m = Math.floor((sec % 3600) / 60);
@@ -265,183 +274,131 @@
             const addRecord = (quality, type) => {
                 let newBlock;
                 if (type === 'auto') {
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: tempSession.startTime, 
-                        endTime: tempSession.endTime, 
-                        duration: tempSession.duration, 
-                        quality: quality 
-                    };
+                    newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: tempSession.duration, quality: quality };
                 } else {
                     const now = new Date();
-                    const sH = startHour;
-                    const sM = startMin;
-                    const eH = endHour;
-                    const eM = endMin;
-                    
-                    let startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sH, sM).getTime();
-                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eH, eM).getTime();
-                    
-                    if (endTs < startTs) {
-                        endTs += 24 * 60 * 60 * 1000;
-                    }
-
+                    let startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startHour, startMin).getTime();
+                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endHour, endMin).getTime();
+                    if (endTs < startTs) endTs += 24 * 60 * 60 * 1000;
                     const diffMin = Math.floor((endTs - startTs) / 1000 / 60);
-                    
-                    if (diffMin <= 0) {
-                        alert("종료 시간이 시작 시간과 같거나 빠릅니다.");
-                        return;
-                    }
-
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: startTs, 
-                        endTime: endTs, 
-                        duration: diffMin, 
-                        quality: quality 
-                    };
+                    if (diffMin <= 0) { alert("종료 시간이 빠릅니다."); return; }
+                    newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: diffMin, quality: quality };
                 }
-
                 const newTickets = tickets + 1;
                 const newEnergy = Math.max(energy - 10, 0); 
-                const newBlocks = [newBlock, ...blocks];
-                saveData(newTickets, newEnergy, newBlocks);
+                saveData(newTickets, newEnergy, [newBlock, ...blocks], quests);
                 setShowModal(false);
-            };
-
-            const doNicheQuest = (questName) => {
-                if (tickets > 0) {
-                    saveData(tickets - 1, Math.max(energy - 5, 0), blocks);
-                    alert(`🧹 '${questName}' 완료! (-1 Ticket)`);
-                }
-            };
-
-            const takeRest = (type) => {
-                let charge = 0;
-                if (type === 'tea') charge = 15;
-                if (type === 'sleep') charge = 50;
-                
-                const newEnergy = Math.min(energy + charge, 100);
-                saveData(tickets, newEnergy, blocks);
-                alert(`🔋 에너지 충전 완료! (+${charge})`);
             };
 
             const deleteBlock = (id) => {
                 if(confirm("기록을 삭제합니까?")) {
                     const newBlocks = blocks.filter(b => b.id !== id);
-                    saveData(tickets, energy, newBlocks);
+                    saveData(tickets, energy, newBlocks, quests);
                 }
             };
 
-            const sendToNotion = async () => {
-                if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
-                    alert("코드 내 WORKER_URL 변수를 확인해주세요.");
-                    return;
-                }
-                setIsSending(true);
+            // --- 퀘스트 관련 핸들러 ---
+            const addQuest = () => {
+                if(!newQuestName.trim()) return;
+                const newQuest = { id: Date.now(), name: newQuestName, icon: 'Wind', cost: 1 };
+                const newQuests = [...quests, newQuest];
+                setQuests(newQuests);
+                setNewQuestName('');
+                saveData(tickets, energy, blocks, newQuests);
+            };
 
+            const removeQuest = (id) => {
+                if(confirm("이 퀘스트를 삭제할까요?")) {
+                    const newQuests = quests.filter(q => q.id !== id);
+                    setQuests(newQuests);
+                    saveData(tickets, energy, blocks, newQuests);
+                }
+            };
+
+            const moveQuest = (index, direction) => {
+                const newQuests = [...quests];
+                const targetIndex = index + direction;
+                if(targetIndex < 0 || targetIndex >= newQuests.length) return;
+                [newQuests[index], newQuests[targetIndex]] = [newQuests[targetIndex], newQuests[index]];
+                setQuests(newQuests);
+                saveData(tickets, energy, blocks, newQuests);
+            };
+
+            const doQuest = (quest) => {
+                if (tickets > 0) {
+                    saveData(tickets - 1, Math.max(energy - 5, 0), blocks, quests);
+                    alert(`🧹 '${quest.name}' 완료! (-1 Ticket)`);
+                }
+            };
+
+            const takeRest = (rest) => {
+                const newEnergy = Math.min(energy + rest.recovery, 100);
+                saveData(tickets, newEnergy, blocks, quests);
+                alert(`🔋 ${rest.name} 완료! (+${rest.recovery})`);
+            };
+
+            // 노션 전송
+            const sendToNotion = async () => {
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) { alert("코드 내 WORKER_URL 변수 확인 필요"); return; }
+                setIsSending(true);
                 const clearCount = blocks.filter(b => b.quality === 'Sun').length;
                 const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
                 const rainCount = blocks.filter(b => b.quality === 'Rain').length;
                 const lastQ = blocks.length > 0 ? blocks[0].quality : '-';
-
                 const totalMinutes = blocks.reduce((acc, b) => acc + b.duration, 0);
-
-                let morningMin = 0;
-                let afternoonMin = 0;
-                let nightMin = 0;
-
+                let morningMin = 0; let afternoonMin = 0; let nightMin = 0;
                 blocks.forEach(b => {
                     const hour = new Date(b.startTime).getHours();
-                    if (hour >= 6 && hour < 12) {
-                        morningMin += b.duration;
-                    } else if (hour >= 12 && hour < 18) {
-                        afternoonMin += b.duration;
-                    } else {
-                        nightMin += b.duration;
-                    }
+                    if (hour >= 6 && hour < 12) morningMin += b.duration;
+                    else if (hour >= 12 && hour < 18) afternoonMin += b.duration;
+                    else nightMin += b.duration;
                 });
-
                 try {
                     const response = await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             date: new Date().toISOString().split('T')[0],
-                            start: clearCount,
-                            ext1: cloudCount,
-                            ext2: rainCount,
-                            quality: lastQ,
-                            total: totalMinutes,
-                            morning: morningMin,
-                            afternoon: afternoonMin,
-                            night: nightMin
+                            start: clearCount, ext1: cloudCount, ext2: rainCount, quality: lastQ,
+                            total: totalMinutes, morning: morningMin, afternoon: afternoonMin, night: nightMin
                         }),
                     });
                     const res = await response.json();
-                    if(res.success) alert("노션 전송 완료! (분석 데이터 포함)");
+                    if(res.success) alert("노션 전송 완료!");
                     else alert("전송 실패: " + res.error);
-                } catch(e) {
-                    alert("네트워크 에러: " + e.message);
-                } finally {
-                    setIsSending(false);
-                }
+                } catch(e) { alert("네트워크 에러: " + e.message); } finally { setIsSending(false); }
             };
 
+            // 렌더링 헬퍼
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-            
             const openManual = () => {
                 const now = new Date();
                 let h = now.getHours();
                 let m = now.getMinutes();
                 m = Math.floor(m / 15) * 15; 
-                
-                setEndHour(h);
-                setEndMin(m);
-                
+                setEndHour(h); setEndMin(m);
                 let prev = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
                 prev.setMinutes(prev.getMinutes() - 30);
-                setStartHour(prev.getHours());
-                setStartMin(prev.getMinutes());
-
-                setModalType('manual');
-                setShowModal(true);
+                setStartHour(prev.getHours()); setStartMin(prev.getMinutes());
+                setModalType('manual'); setShowModal(true);
             };
-
             const renderDuration = (min) => {
-                if (min <= 3) {
-                    return <span className="text-xs font-bold text-orange-400">🔥 {min}m (점화)</span>;
-                }
-                const flowTime = min - 3;
-                return (
-                    <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] bg-orange-400/20 text-orange-300 px-1.5 py-0.5 rounded font-bold">🔥 3m</span>
-                        <span className="text-xs text-dim">+</span>
-                        <span className="text-[10px] bg-blue-400/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">🌊 {flowTime}m</span>
-                    </div>
-                );
+                if (min <= 3) return <span className="text-xs font-bold text-orange-400">🔥 {min}m (점화)</span>;
+                return <div className="flex items-center gap-1.5"><span className="text-[10px] bg-orange-400/20 text-orange-300 px-1.5 py-0.5 rounded font-bold">🔥 3m</span><span className="text-xs text-dim">+</span><span className="text-[10px] bg-blue-400/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">🌊 {min-3}m</span></div>;
+            };
+            const renderIcon = (name) => {
+                const IconComponent = Icons[name] || Icons.Wind;
+                return <IconComponent />;
             };
 
             if (showIntro) {
                 return (
                     <div className="widget-container justify-center p-8 text-center space-y-8">
-                        <div>
-                            <h1 className="text-2xl font-bold text-bright mb-2">Good Morning!</h1>
-                            <p className="text-dim">오늘의 시작 컨디션은 어떤가요?</p>
-                        </div>
+                        <div><h1 className="text-2xl font-bold text-bright mb-2">Good Morning!</h1><p className="text-dim">오늘의 시작 컨디션은?</p></div>
                         <div className="flex flex-col gap-3 w-full">
-                            <button onClick={() => handleIntro(100)} className="glass-panel p-6 hover:bg-white/10 transition-all group">
-                                <Icons.Sun />
-                                <span className="block mt-2 font-bold text-bright">상쾌함 (100%)</span>
-                            </button>
-                            <button onClick={() => handleIntro(70)} className="glass-panel p-6 hover:bg-white/10 transition-all group">
-                                <Icons.Cloud />
-                                <span className="block mt-2 font-bold text-bright">보통 (70%)</span>
-                            </button>
-                            <button onClick={() => handleIntro(50)} className="glass-panel p-6 hover:bg-white/10 transition-all group">
-                                <Icons.Rain />
-                                <span className="block mt-2 font-bold text-bright">무거움 (50%)</span>
-                            </button>
+                            <button onClick={() => handleIntro(100)} className="glass-panel p-6 hover:bg-white/10 transition-all group"><Icons.Sun /><span className="block mt-2 font-bold text-bright">상쾌함 (100%)</span></button>
+                            <button onClick={() => handleIntro(70)} className="glass-panel p-6 hover:bg-white/10 transition-all group"><Icons.Cloud /><span className="block mt-2 font-bold text-bright">보통 (70%)</span></button>
+                            <button onClick={() => handleIntro(50)} className="glass-panel p-6 hover:bg-white/10 transition-all group"><Icons.Rain /><span className="block mt-2 font-bold text-bright">무거움 (50%)</span></button>
                         </div>
                     </div>
                 )
@@ -449,7 +406,6 @@
 
             return (
                 <div className="widget-container">
-                    {/* 상단바 */}
                     <div className="p-6 pb-2 flex justify-between items-center">
                         <div className="flex flex-col">
                             <h1 className="text-xl font-bold text-bright tracking-tight">Fortress Log</h1>
@@ -458,28 +414,21 @@
                                 <div className="flex items-center gap-1"><Icons.Zap /><span>{energy}%</span></div>
                             </div>
                         </div>
-                        <button onClick={sendToNotion} disabled={isSending} className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-blue-300 hover:bg-white/20 transition-all shadow-sm">
-                            <Icons.CloudUpload />
-                        </button>
+                        <button onClick={sendToNotion} disabled={isSending} className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-blue-300 hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
                     </div>
 
-                    {/* 에너지 게이지 */}
                     <div className="px-6 mb-4">
                         <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                             <div className={`h-full transition-all duration-500 rounded-full ${energy < 30 ? 'bg-red-400' : 'bg-green-400'}`} style={{ width: `${energy}%` }}></div>
                         </div>
                     </div>
 
-                    {/* 탭 버튼 */}
                     <div className="px-6 flex gap-2 mb-4">
                         {['main', 'niche', 'rest'].map(tab => (
-                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
-                                {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Quests' : 'Rest'}
-                            </button>
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>{tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Quests' : 'Rest'}</button>
                         ))}
                     </div>
 
-                    {/* 메인 컨텐츠 */}
                     <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
                         {activeTab === 'main' && (
                             <div className="flex flex-col h-full">
@@ -496,63 +445,63 @@
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5">
                                     {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs">기록이 없습니다.</div> : blocks.map((block) => (
                                         <div key={block.id} className="log-item p-3 rounded-xl flex justify-between items-center">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-xs font-bold text-bright">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</span>
-                                                </div>
-                                                <div>{renderDuration(block.duration)}</div>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <span className="text-[10px] text-dim">{block.quality === 'Sun' ? '☀️' : block.quality === 'Cloud' ? '☁️' : '⛈️'}</span>
-                                                <button onClick={() => deleteBlock(block.id)} className="text-dim hover:text-red-400 transition-colors"><Icons.Trash /></button>
-                                            </div>
+                                            <div><div className="flex items-center gap-2 mb-1"><span className="text-xs font-bold text-bright">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</span></div><div>{renderDuration(block.duration)}</div></div>
+                                            <div className="flex flex-col items-end gap-1"><span className="text-[10px] text-dim">{block.quality === 'Sun' ? '☀️' : block.quality === 'Cloud' ? '☁️' : '⛈️'}</span><button onClick={() => deleteBlock(block.id)} className="text-dim hover:text-red-400 transition-colors"><Icons.Trash /></button></div>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
                         {activeTab === 'niche' && (
-                            <div className="space-y-3 overflow-y-auto no-scrollbar">
-                                <div className="text-xs text-dim text-center mb-2">티켓을 사용하여 환경을 정비하세요.</div>
-                                {['전선 정리하기', '책상 위 닦기', '설거지', '빨래 개기'].map((q, idx) => (
-                                    <button key={idx} onClick={() => doNicheQuest(q)} disabled={tickets === 0} className="quest-btn w-full p-4 rounded-xl flex justify-between items-center text-sm font-bold">
-                                        <span>{q}</span><span className="text-[10px] bg-white/10 px-2 py-1 rounded text-dim">-1 Ticket</span>
+                            <div className="space-y-3 overflow-y-auto no-scrollbar h-full flex flex-col">
+                                <div className="flex gap-2 mb-2">
+                                    <input type="text" value={newQuestName} onChange={(e) => setNewQuestName(e.target.value)} placeholder="새 퀘스트..." className="time-input text-left" />
+                                    <button onClick={addQuest} className="action-btn w-12 rounded-xl flex items-center justify-center"><Icons.Plus /></button>
+                                </div>
+                                <div className="flex-1 space-y-2 overflow-y-auto no-scrollbar">
+                                    {quests.map((q, idx) => (
+                                        <div key={q.id} className="quest-btn w-full p-4 rounded-xl flex justify-between items-center text-sm font-bold">
+                                            <button onClick={() => doQuest(q)} disabled={tickets === 0} className="flex-1 flex items-center gap-3 text-left">
+                                                {renderIcon(q.icon)}
+                                                <span>{q.name}</span>
+                                                <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-dim">1 Ticket</span>
+                                            </button>
+                                            <div className="flex items-center gap-1 ml-2">
+                                                <div className="flex flex-col gap-1">
+                                                    <button onClick={() => moveQuest(idx, -1)} className="text-dim hover:text-bright"><Icons.ChevronUp/></button>
+                                                    <button onClick={() => moveQuest(idx, 1)} className="text-dim hover:text-bright"><Icons.ChevronDown/></button>
+                                                </div>
+                                                <button onClick={() => removeQuest(q.id)} className="text-dim hover:text-red-400 ml-1"><Icons.Trash /></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === 'rest' && (
+                            <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar">
+                                {restOptions.map(rest => (
+                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-4 rounded-xl flex flex-col items-center justify-center h-32 hover:bg-white/10">
+                                        {renderIcon(rest.icon)}
+                                        <span className="mt-2 text-sm font-bold">{rest.name}</span>
+                                        <span className="text-[10px] text-dim mt-1">Energy +{rest.recovery}</span>
                                     </button>
                                 ))}
                             </div>
                         )}
-                        {activeTab === 'rest' && (
-                            <div className="grid grid-cols-2 gap-3 mt-2">
-                                <button onClick={() => takeRest('tea')} className="quest-btn p-4 rounded-xl flex flex-col items-center justify-center h-32">
-                                    <Icons.Coffee /><span className="mt-2 text-sm font-bold">Tea Time</span><span className="text-[10px] text-dim mt-1">Energy +15</span>
-                                </button>
-                                <button onClick={() => takeRest('sleep')} className="p-4 rounded-xl flex flex-col items-center justify-center h-32 bg-blue-600/80 hover:bg-blue-500/80 text-white shadow-lg transition-all modal-btn">
-                                    <div className="text-xl mb-1">💤</div><span className="mt-2 text-sm font-bold">Deep Rest</span><span className="text-[10px] text-blue-200 mt-1">Energy +50</span>
-                                </button>
-                            </div>
-                        )}
                     </div>
 
-                    {/* 모달 (다크 글라스 스타일 적용) */}
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center">
                             <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl">
                                 <h3 className="text-lg font-bold mb-4">{modalType === 'manual' ? "Add Past Log" : "Check Weather"}</h3>
-                                
                                 {modalType === 'manual' && (
                                     <div className="flex gap-2 mb-6 items-center">
-                                        <div className="flex-1 flex gap-1">
-                                            <select value={startHour} onChange={(e)=>setStartHour(Number(e.target.value))} className="custom-select">{hours.map(h => <option key={h} value={h}>{h}시</option>)}</select>
-                                            <select value={startMin} onChange={(e)=>setStartMin(Number(e.target.value))} className="custom-select">{minutes.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select>
-                                        </div>
+                                        <div className="flex-1 flex gap-1"><select value={startHour} onChange={(e)=>setStartHour(Number(e.target.value))} className="custom-select">{hours.map(h => <option key={h} value={h}>{h}시</option>)}</select><select value={startMin} onChange={(e)=>setStartMin(Number(e.target.value))} className="custom-select">{minutes.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select></div>
                                         <span className="text-dim font-bold">~</span>
-                                        <div className="flex-1 flex gap-1">
-                                            <select value={endHour} onChange={(e)=>setEndHour(Number(e.target.value))} className="custom-select">{hours.map(h => <option key={h} value={h}>{h}시</option>)}</select>
-                                            <select value={endMin} onChange={(e)=>setEndMin(Number(e.target.value))} className="custom-select">{minutes.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select>
-                                        </div>
+                                        <div className="flex-1 flex gap-1"><select value={endHour} onChange={(e)=>setEndHour(Number(e.target.value))} className="custom-select">{hours.map(h => <option key={h} value={h}>{h}시</option>)}</select><select value={endMin} onChange={(e)=>setEndMin(Number(e.target.value))} className="custom-select">{minutes.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select></div>
                                     </div>
                                 )}
-                                
                                 <div className="grid grid-cols-3 gap-3 mb-4">
                                     <button onClick={() => addRecord('Sun', modalType === 'manual' ? 'manual' : 'auto')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold text-dim mt-1">Clear</span></button>
                                     <button onClick={() => addRecord('Cloud', modalType === 'manual' ? 'manual' : 'auto')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold text-dim mt-1">Cloudy</span></button>
