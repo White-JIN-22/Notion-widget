@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Block Timeline (Ultra Slim)</title>
+    <title>Fortress Block Timeline (Icon Edition)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -28,7 +28,7 @@
         .widget-container {
             position: relative;
             width: 100%;
-            max-width: 160px; /* ✅ 폭을 160px로 줄여 정사각형 비율 확보 */
+            max-width: 160px;
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
@@ -45,12 +45,12 @@
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         .title-text { color: #FFFFFF; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); font-weight: 700; }
 
-        /* ✨ 타임블록 그리드 스타일 */
+        /* ✨ Grid System */
         .grid-container {
             display: flex;
             flex-direction: column;
             height: 100%;
-            justify-content: space-between; /* 상하 균등 배치 */
+            justify-content: space-between;
         }
         .grid-row {
             flex: 1;
@@ -60,7 +60,7 @@
             min-height: 0;
         }
         .time-label {
-            width: 20px; /* 라벨 폭 최소화 */
+            width: 20px;
             text-align: right;
             padding-right: 4px;
             font-size: 8px;
@@ -72,19 +72,31 @@
             flex: 1;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 2px; /* 간격 */
-            height: 16px; /* ⚠️ 정사각형 느낌을 위한 높이 강제 조정 */
+            gap: 2px;
+            height: 16px;
             padding-right: 6px;
         }
         .time-block {
             border-radius: 2px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px; /* 아이콘 크기 */
         }
         
-        /* 🎨 Block Colors */
+        /* 🎨 Block Styles */
         .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
         .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
         .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
+        
+        /* 🕹️ Switch/Rest Action Style (점선 + 투명) */
+        .block-switch {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px dashed rgba(255, 255, 255, 0.6);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
         .block-empty { background: rgba(255, 255, 255, 0.04); }
 
         .footer-blur {
@@ -93,10 +105,10 @@
             border-top: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        /* 🎨 Total Time Text Colors (색상 선명도 UP) */
-        .text-gray-custom { color: #94a3b8; } /* 초기: 회색 */
-        .text-sky-custom { color: #0ea5e9; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } /* 1.5H~: 선명한 스카이 */
-        .text-purple-custom { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); } /* 5.5H~: 선명한 보라 */
+        /* 🎨 Total Time Text Colors */
+        .text-gray-custom { color: #94a3b8; } 
+        .text-sky-custom { color: #0ea5e9; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
+        .text-purple-custom { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
     </style>
 </head>
 <body>
@@ -122,7 +134,10 @@
                 
                 if (savedData.date === today && savedData.blocks) {
                     setBlocks(savedData.blocks);
-                    const total = savedData.blocks.reduce((acc, curr) => acc + curr.duration, 0);
+                    // Total Time 계산 시 'switch' 타입은 제외하고 '집중 시간'만 합산할지 여부 결정
+                    // 여기서는 순수 집중 시간(Sun/Cloud/Rain)만 합산하도록 필터링
+                    const focusBlocks = savedData.blocks.filter(b => !b.type || b.type === 'focus');
+                    const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
                     setTotalDuration(total);
                 } else {
                     setBlocks([]);
@@ -131,21 +146,19 @@
                 
                 const month = now.getMonth() + 1;
                 const date = now.getDate();
-                const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
                 setTodayStr(`${month}/${date}`);
             };
 
             useEffect(() => {
                 loadData();
-                const interval = setInterval(loadData, 5000);
+                const interval = setInterval(loadData, 3000); // 3초마다 갱신 (반응성 UP)
                 return () => clearInterval(interval);
             }, []);
 
-            // ✅ 컬러 로직 검증 완료
             const getTotalColorClass = (min) => {
-                if (min <= 90) return "text-gray-custom"; // ~1시간 30분
-                if (min <= 330) return "text-sky-custom"; // ~5시간 30분
-                return "text-purple-custom";              // 5시간 30분 초과
+                if (min <= 90) return "text-gray-custom"; 
+                if (min <= 330) return "text-sky-custom"; 
+                return "text-purple-custom";              
             };
 
             const formatDuration = (totalMin) => {
@@ -177,6 +190,7 @@
                         const slotStartMin = i * 10;
                         const slotEndMin = (i + 1) * 10;
                         
+                        // 해당 슬롯에 겹치는 블록 찾기
                         const foundBlock = blocks.find(b => {
                             const slotStartTime = new Date();
                             slotStartTime.setHours(hour, slotStartMin, 0, 0);
@@ -186,13 +200,31 @@
                         });
 
                         let cellClass = 'block-empty';
+                        let content = null;
+
                         if (foundBlock) {
-                            if (foundBlock.quality === 'Sun') cellClass = 'block-sun';
-                            else if (foundBlock.quality === 'Cloud') cellClass = 'block-cloud';
-                            else cellClass = 'block-rain';
+                            // 1. 전환 행동 (Switch/Rest) 일 때
+                            if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
+                                cellClass = 'block-switch';
+                                // 블록의 시작 시간과 현재 슬롯이 일치할 때만 아이콘 표시 (중복 표시 방지)
+                                const bStart = new Date(foundBlock.startTime);
+                                const isStartSlot = bStart.getHours() === hour && 
+                                                    bStart.getMinutes() >= slotStartMin && 
+                                                    bStart.getMinutes() < slotEndMin;
+                                
+                                if (isStartSlot) {
+                                    content = foundBlock.icon || '•';
+                                }
+                            } 
+                            // 2. 일반 집중 (Focus) 일 때
+                            else {
+                                if (foundBlock.quality === 'Sun') cellClass = 'block-sun';
+                                else if (foundBlock.quality === 'Cloud') cellClass = 'block-cloud';
+                                else cellClass = 'block-rain';
+                            }
                         }
 
-                        return <div key={i} className={`time-block ${cellClass}`}></div>
+                        return <div key={i} className={`time-block ${cellClass}`}>{content}</div>
                     });
 
                     return (
@@ -236,15 +268,14 @@
                     </div>
 
                     {/* Footer Stats */}
-                    <div className="footer-blur px-3 py-3 z-10 shrink-0">
+                    <div className="footer-blur px-4 py-3 z-10 shrink-0">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wide">Total</span>
                             <div>{formatDuration(totalDuration)}</div>
                         </div>
                         <div className="text-center">
-                            {/* ✅ 응원 문구 색상 변경: 남색(Slate) -> 스카이블루(Sky-600) */}
-                            {/* 글자색을 #0284c7 (Sky-600) 정도로 설정하여 가독성 확보 */}
-                            <p className="text-[13px] text-sky-600 font-bold bg-white/60 py-2 px-2 rounded-xl border border-white/80 w-full leading-tight shadow-sm" style={{wordBreak: 'keep-all'}}>
+                            {/* ✅ 요청 반영: 차분한 회색조(Slate-500)로 변경하여 튀지 않게 */}
+                            <p className="text-[13px] text-slate-500 font-bold bg-white/60 py-2 px-2 rounded-xl border border-white/80 w-full leading-tight shadow-sm" style={{wordBreak: 'keep-all'}}>
                                 {getMessage(totalDuration)}
                             </p>
                         </div>
