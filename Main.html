@@ -2,8 +2,6 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fortress Widget</title>
     
@@ -26,27 +24,29 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 System & Flow 테마 (다크 글라스) */
+        /* 🧊 Icy Blue Glass 테마 */
         .widget-container {
             position: relative;
             width: 100%;
             max-width: 400px;
             height: 700px;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(12px);
+            /* 배경: 은은한 하늘색 틴트 추가 */
+            background: linear-gradient(180deg, rgba(125, 211, 252, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
+            backdrop-filter: blur(14px);
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
+            /* 테두리: 얼음처럼 빛나는 하늘색 */
+            border: 1px solid rgba(186, 230, 253, 0.15);
+            box-shadow: 0 0 40px rgba(56, 189, 248, 0.05), inset 0 0 20px rgba(56, 189, 248, 0.02);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            color: #e2e8f0;
+            color: #e0f2fe;
         }
 
         .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(186, 230, 253, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(186, 230, 253, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
             border-radius: 20px;
             transition: all 0.3s ease;
@@ -60,17 +60,17 @@
             color: #94a3b8;
         }
         .tab-active {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-            border: 1px solid rgba(125, 211, 252, 0.2);
+            background: rgba(56, 189, 248, 0.1);
+            color: #bae6fd; /* 연한 하늘색 텍스트 */
+            border: 1px solid rgba(125, 211, 252, 0.3);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.1);
         }
-        .tab-inactive:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+        .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.03); }
 
-        /* 로그 아이템 (미니멀 디자인) */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(186, 230, 253, 0.1);
             border-radius: 16px;
             padding: 16px;
             display: flex;
@@ -84,23 +84,23 @@
 
         .modal-overlay { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); }
         .modal-content {
-            background: rgba(20, 20, 20, 0.9); 
+            background: rgba(15, 23, 42, 0.85); 
             backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(125, 211, 252, 0.3);
             box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-            color: #e2e8f0;
+            color: #e0f2fe;
         }
 
         .quest-btn, .custom-select, .modal-btn, .action-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
+            background: rgba(186, 230, 253, 0.05);
+            border: 1px solid rgba(186, 230, 253, 0.1);
+            color: #e0f2fe;
             transition: all 0.2s;
         }
         .quest-btn:hover, .custom-select:focus, .modal-btn:hover, .action-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(125, 211, 252, 0.4);
-            box-shadow: 0 0 15px rgba(125, 211, 252, 0.1);
+            background: rgba(186, 230, 253, 0.1);
+            border-color: rgba(125, 211, 252, 0.5);
+            box-shadow: 0 0 15px rgba(125, 211, 252, 0.15);
             color: white;
         }
         .quest-btn:active { transform: scale(0.98); }
@@ -114,18 +114,18 @@
         .toast-message {
             position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px);
-            border: 1px solid rgba(125, 211, 252, 0.3); color: #e0f2fe;
+            border: 1px solid rgba(125, 211, 252, 0.3); color: #bae6fd;
             padding: 12px 24px; border-radius: 30px; font-size: 0.85rem; font-weight: 700;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none; z-index: 100;
             animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        .text-icy { color: #e2e8f0; }
-        .text-mint { color: #a7f3d0; }
-        .text-warm { color: #fecaca; }
+        /* 컬러 유틸리티 */
+        .text-sky { color: #7dd3fc; } /* 파스텔 스카이 블루 */
         .text-dim { color: #94a3b8; }
-        .text-bright { color: #ffffff; }
+        .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(125, 211, 252, 0.4); }
+        .bg-sky-pastel { background-color: #7dd3fc; box-shadow: 0 0 10px rgba(125, 211, 252, 0.6); }
 
     </style>
 </head>
@@ -138,28 +138,27 @@
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
-            Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
-            Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-mint"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+            Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+            CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
             
-            // 날씨 아이콘 (확대용)
             Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fcd34d]"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
-            Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             
-            Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            Droplets: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+            // Quest Icons
+            Droplets: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fdba74]"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
-            Recycle: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mint"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+            Recycle: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
             Wind: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
             Shirt: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
             Moon: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
-            Book: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mint"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
-            Zzz: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-icy"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
-            Coffee: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
+            Book: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Zzz: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             More: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         };
 
@@ -181,10 +180,8 @@
             const [toast, setToast] = useState(null);
             const [tempSession, setTempSession] = useState(null);
 
-            // 페이지네이션 상태
             const [visibleLogs, setVisibleLogs] = useState(3);
 
-            // 수동 입력용 상태 (선택형)
             const [manualEndHour, setManualEndHour] = useState(12);
             const [manualEndMin, setManualEndMin] = useState(0);
             const [manualDurHour, setManualDurHour] = useState(0);
@@ -192,7 +189,6 @@
 
             const [isSending, setIsSending] = useState(false);
 
-            // 고정된 전환행동 목록 (수정 불가)
             const fixedQuests = [
                 { id: 'q1', name: '씻기', icon: 'Droplets' },
                 { id: 'q2', name: '식사', icon: 'Utensils' },
@@ -209,7 +205,7 @@
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
-            const minutes5 = Array.from({length: 12}, (_, i) => i * 5); // 0, 5, 10 ... 55
+            const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3];
 
             useEffect(() => {
@@ -273,12 +269,23 @@
                     setModalType('check'); setShowModal(true);
                 }
             };
+
+            // ✅ 타이머 표시 로직 수정 (3분 카운트다운 -> 이후 확장 시간 카운트업)
             const formatStopwatch = (sec) => {
-                const h = Math.floor(sec / 3600);
-                const m = Math.floor((sec % 3600) / 60);
-                const s = sec % 60;
-                const pad = (n) => String(n).padStart(2, '0');
-                return `${pad(h)}:${pad(m)}:${pad(s)}`;
+                if (sec < 180) {
+                    // 3분 미만: 카운트다운 (3:00 -> 0:00)
+                    const remaining = 180 - sec;
+                    const m = Math.floor(remaining / 60);
+                    const s = remaining % 60;
+                    return `Ignition ${m}:${String(s).padStart(2, '0')}`;
+                } else {
+                    // 3분 이후: 확장 시간 (0:01 ~ )
+                    const extended = sec - 180;
+                    const h = Math.floor(extended / 3600);
+                    const m = Math.floor((extended % 3600) / 60);
+                    const s = extended % 60;
+                    return `Flow +${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
             };
 
             const addRecord = (quality, type) => {
@@ -286,14 +293,10 @@
                 if (type === 'auto') {
                     newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: tempSession.duration, quality: quality };
                 } else {
-                    // 수동 입력 (선택형 로직)
                     const now = new Date();
                     let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
-                    
-                    // 총 소요 시간 (시 * 60 + 분) + 3분 점화
                     const totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
                     const startTs = endTs - (totalDuration * 60 * 1000);
-
                     if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
                     newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
                 }
@@ -305,18 +308,13 @@
             };
 
             const confirmDelete = (id) => {
-                setDeleteTargetId(id);
-                setModalType('delete');
-                setShowModal(true);
+                setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
-
             const executeDelete = () => {
                 if (deleteTargetId) {
                     const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
                     saveData(tickets, energy, newBlocks);
-                    setDeleteTargetId(null);
-                    setShowModal(false);
-                    triggerToast("🗑️ 삭제 완료");
+                    setDeleteTargetId(null); setShowModal(false); triggerToast("🗑️ 삭제 완료");
                 }
             };
 
@@ -331,13 +329,13 @@
             const takeRest = (rest) => {
                 const newEnergy = Math.min(energy + rest.recovery, 100);
                 saveData(tickets, newEnergy, blocks);
+                // ✅ 텍스트 대신 아이콘과 숫자 표시로 변경됨
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery})`);
             };
 
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 setIsSending(true);
-                // (노션 전송 로직 유지)
                 const clearCount = blocks.filter(b => b.quality === 'Sun').length;
                 const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
                 const rainCount = blocks.filter(b => b.quality === 'Rain').length;
@@ -356,7 +354,7 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             date: new Date().toISOString().split('T')[0],
-                            start: clearCount, ext1: cloudCount, ext2: rainCount, quality: lastQ,
+                            start: clearCount, ext1: 0, ext2: 0, quality: lastQ, // ext1, ext2는 0으로 고정 전송
                             total: totalMinutes, morning: morningMin, afternoon: afternoonMin, night: nightMin
                         }),
                     });
@@ -370,25 +368,18 @@
             
             const openManual = () => {
                 const now = new Date();
-                // 기본값: 현재 시각
                 setManualEndHour(now.getHours());
-                setManualEndMin(Math.floor(now.getMinutes() / 5) * 5); // 5분 단위 반올림
-                setManualDurHour(0);
-                setManualDurMin(30);
-                setModalType('manual'); 
-                setShowModal(true);
+                setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
+                setManualDurHour(0); setManualDurMin(30);
+                setModalType('manual'); setShowModal(true);
             };
 
-            // 미니멀 아이콘 렌더링
             const renderIcon = (name) => {
                 const IconComponent = Icons[name] || Icons.Wind;
                 return <IconComponent />;
             };
 
-            // 로그 더보기
-            const loadMoreLogs = () => {
-                setVisibleLogs(prev => prev + 3);
-            };
+            const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
             if (showIntro) {
                 return (
@@ -412,15 +403,16 @@
                             <h1 className="text-xl font-bold text-bright tracking-tight">Fortress Log</h1>
                             <div className="flex items-center gap-4 text-xs font-bold text-dim mt-1">
                                 <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-sm">{tickets}</span></div>
-                                <div className="flex items-center gap-1"><Icons.Zap /><span>{energy}%</span></div>
+                                <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
                             </div>
                         </div>
-                        <button onClick={sendToNotion} disabled={isSending} className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-icy hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
+                        <button onClick={sendToNotion} disabled={isSending} className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.CloudUpload /></button>
                     </div>
 
                     <div className="px-6 mb-4">
                         <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 rounded-full ${energy < 30 ? 'bg-red-400' : 'bg-emerald-400'}`} style={{ width: `${energy}%` }}></div>
+                            {/* ✅ 에너지바: 파스텔 스카이 블루 */}
+                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-pastel`} style={{ width: `${energy}%` }}></div>
                         </div>
                     </div>
 
@@ -435,33 +427,29 @@
                     <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
                         {activeTab === 'main' && (
                             <div className="flex flex-col h-full">
-                                <div className={`glass-panel p-5 mb-4 flex flex-col items-center transition-all ${isRecording ? 'border-sky-400/50 shadow-[0_0_20px_rgba(56,189,248,0.3)]' : ''}`}>
+                                <div className={`glass-panel p-5 mb-4 flex flex-col items-center transition-all ${isRecording ? 'border-sky-400/50 shadow-[0_0_20px_rgba(125,211,252,0.3)]' : ''}`}>
                                     <div className="w-full flex justify-between items-center mb-2">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{isRecording ? "Focusing..." : "Ready"}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider text-dim">{isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}</span>
                                         <button onClick={openManual} className="text-dim hover:text-bright"><Icons.Plus /></button>
                                     </div>
                                     <div className={`text-4xl font-bold tabular-nums mb-4 ${isRecording ? 'text-bright' : 'text-dim'}`}>{formatStopwatch(elapsed)}</div>
-                                    <button onClick={toggleTimer} className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-sky-500 hover:bg-sky-600'}`}>
+                                    <button onClick={toggleTimer} className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-sky-400 hover:bg-sky-500'}`}>
                                         {isRecording ? <Icons.Stop /> : <Icons.Play />}
                                     </button>
                                 </div>
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5">
                                     {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
                                         <div key={block.id} className="log-item">
-                                            {/* 왼쪽: 날씨 아이콘 크게 */}
                                             <div className="mr-4">
                                                 {block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />}
                                             </div>
-                                            {/* 가운데: 정보 */}
                                             <div className="flex-1">
                                                 <div className="text-lg font-bold text-bright mb-0.5">Total {block.duration}m</div>
                                                 <div className="text-xs text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                             </div>
-                                            {/* 오른쪽: 삭제 버튼 */}
                                             <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-warm transition-colors p-2"><Icons.Trash /></button>
                                         </div>
                                     ))}
-                                    {/* 더보기 버튼 */}
                                     {blocks.length > visibleLogs && (
                                         <button onClick={loadMoreLogs} className="w-full py-2 flex items-center justify-center text-dim hover:text-bright transition-colors">
                                             <Icons.More />
@@ -476,7 +464,7 @@
                                     <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-4 rounded-xl flex flex-col items-center justify-center h-28 hover:bg-white/10 group">
                                         {renderIcon(q.icon)}
                                         <span className="mt-2 text-sm font-bold text-bright">{q.name}</span>
-                                        <span className="text-[10px] text-dim mt-1 group-hover:text-icy">-1 Ticket</span>
+                                        {/* 티켓 소모 문구 삭제 */}
                                     </button>
                                 ))}
                             </div>
@@ -487,7 +475,11 @@
                                     <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-4 rounded-xl flex flex-col items-center justify-center h-32 hover:bg-white/10 group">
                                         {renderIcon(rest.icon)}
                                         <span className="mt-2 text-sm font-bold text-bright">{rest.name}</span>
-                                        <span className="text-[10px] text-dim mt-1 group-hover:text-icy">+{rest.recovery}</span>
+                                        {/* + 숫자 대신 번개 아이콘 + 숫자 */}
+                                        <div className="flex items-center gap-1 mt-1 text-[10px] text-dim group-hover:text-sky">
+                                            <div className="w-3 h-3"><Icons.Zap /></div>
+                                            <span>{rest.recovery}</span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -511,9 +503,7 @@
                                 {modalType === 'manual' && (
                                     <>
                                     <h3 className="text-lg font-bold mb-6">Add Log</h3>
-                                    
                                     <div className="space-y-4 mb-8">
-                                        {/* 종료 시각 선택 */}
                                         <div className="flex items-center justify-between">
                                             <label className="text-dim text-xs font-bold w-16">종료</label>
                                             <div className="flex-1 flex gap-2">
@@ -525,8 +515,6 @@
                                                 </select>
                                             </div>
                                         </div>
-
-                                        {/* 타이머 시간 선택 */}
                                         <div className="flex items-center justify-between">
                                             <label className="text-dim text-xs font-bold w-16">집중</label>
                                             <div className="flex-1 flex gap-2">
@@ -540,7 +528,6 @@
                                         </div>
                                         <p className="text-center text-[10px] text-dim">* 자동으로 점화 시간 3분이 추가됩니다.</p>
                                     </div>
-
                                     <div className="grid grid-cols-3 gap-3">
                                         <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Sun /><span className="text-xs font-bold text-dim mt-1">Clear</span></button>
                                         <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-3 rounded-xl flex flex-col items-center"><Icons.Cloud /><span className="text-xs font-bold text-dim mt-1">Cloudy</span></button>
