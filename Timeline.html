@@ -4,64 +4,58 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Timeline</title>
+    <title>The 9th Fortress Integrated</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
         body {
-            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
             background-color: transparent;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 20px;
             min-height: 100vh;
-            overflow: hidden;
         }
+        
+        /* 폰트 설정 */
+        .font-serif-custom { font-family: 'Nanum Myeongjo', serif; }
+        .font-mono-custom { font-family: 'JetBrains Mono', monospace; }
+
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 Icy Blue Glass Theme (Consistent with Main Widget) */
-        .widget-container {
-            position: relative;
-            width: 390px; 
-            height: 540px;
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+        /* 🧊 Glass Theme Base */
+        .glass-base {
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.4) 0%, rgba(240, 249, 255, 0.2) 100%);
             backdrop-filter: blur(25px);
-            border-radius: 32px;
-            border: 1px solid rgba(224, 242, 254, 0.4);
-            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            color: #334155;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.3);
         }
 
-        .timeline-card {
-            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        @keyframes slideIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* Weather Colors for Timeline */
+        .weather-sun { background: linear-gradient(135deg, rgba(186, 230, 253, 0.4), rgba(125, 211, 252, 0.2)); border-left: 3px solid #38bdf8; }
+        .weather-cloud { background: linear-gradient(135deg, rgba(203, 213, 225, 0.3), rgba(148, 163, 184, 0.1)); border-left: 3px solid #94a3b8; }
+        .weather-rain { background: linear-gradient(135deg, rgba(196, 181, 253, 0.3), rgba(167, 139, 250, 0.1)); border-left: 3px solid #818cf8; }
 
-        /* Weather Colors */
-        .weather-sun { background: linear-gradient(135deg, rgba(186, 230, 253, 0.4), rgba(125, 211, 252, 0.2)); border-left: 4px solid #38bdf8; }
-        .weather-cloud { background: linear-gradient(135deg, rgba(203, 213, 225, 0.3), rgba(148, 163, 184, 0.1)); border-left: 4px solid #94a3b8; }
-        .weather-rain { background: linear-gradient(135deg, rgba(196, 181, 253, 0.3), rgba(167, 139, 250, 0.1)); border-left: 4px solid #818cf8; }
+        /* Animation */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideIn 0.4s ease-out forwards; }
 
-        .footer-blur {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.5);
-        }
+        /* Tab & Button Styles */
+        .tab-btn { transition: all 0.2s; border-radius: 12px; }
+        .tab-active { background: rgba(255,255,255,0.4); color: #0ea5e9; box-shadow: 0 2px 10px rgba(186, 230, 253, 0.2); }
+        .tab-inactive:hover { background: rgba(255,255,255,0.1); }
         
-        .font-serif-italic { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; font-style: italic; }
+        .action-btn { background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.4); transition: all 0.2s; }
+        .action-btn:hover { background: rgba(255,255,255,0.6); transform: translateY(-1px); }
+        .action-btn:active { transform: scale(0.98); }
+
+        .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
     </style>
 </head>
 <body>
@@ -69,149 +63,381 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
+        // --- Icons (Minimal Set) ---
         const Icons = {
-            Sun: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
-            Cloud: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
-            Rain: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+            Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
+            Sun: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Cloud: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Rain: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
             Clock: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
-            Refresh: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+            Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+            Trash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
         };
 
-        const App = () => {
-            const [blocks, setBlocks] = useState([]);
-            const [todayStr, setTodayStr] = useState('');
-            const [totalDuration, setTotalDuration] = useState(0);
+        // --- Sub-Components ---
 
-            const loadData = () => {
-                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                const now = new Date();
-                const today = now.toDateString();
-                
-                // 오늘 날짜와 다르면 초기화된 상태로 보임 (데이터 없음)
-                if (savedData.date === today && savedData.blocks) {
-                    // 시간순 정렬 (최신이 위로 오지만, 타임라인은 과거->현재 순서가 자연스러울 수 있음. 
-                    // 하지만 요약형이므로 최신순(내림차순)으로 배치하되 시각적 연결)
-                    // 여기서는 '하루의 흐름'을 보기 위해 오름차순(아침->밤)으로 정렬
-                    const sorted = [...savedData.blocks].sort((a, b) => a.startTime - b.startTime);
-                    setBlocks(sorted);
-                    
-                    const total = sorted.reduce((acc, curr) => acc + curr.duration, 0);
-                    setTotalDuration(total);
-                } else {
-                    setBlocks([]);
-                    setTotalDuration(0);
-                }
-                
-                const month = now.getMonth() + 1;
-                const date = now.getDate();
-                const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
-                setTodayStr(`${month}/${date} ${day}`);
+        const TimelinePanel = ({ blocks, totalDuration }) => {
+            const formatTime = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            
+            const getMessage = (min) => {
+                if (min === 0) return "시스템 대기. 점화 준비.";
+                if (min < 60) return "초기 가동. 예열 중.";
+                if (min < 180) return "안정적 흐름 유지 중.";
+                if (min < 300) return "고효율 구간. 요새 견고함.";
+                return "최적화 달성. 휴식 권장.";
             };
 
-            useEffect(() => {
-                loadData();
-                // 1분마다 자동 갱신 (Notion 임베드 시 도움됨)
-                const interval = setInterval(loadData, 60000); 
-                return () => clearInterval(interval);
-            }, []);
-
-            const formatTime = (ts) => {
-                const d = new Date(ts);
-                return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-            };
-
-            const formatTotalTime = (min) => {
+            const formatTotal = (min) => {
                 const h = Math.floor(min / 60);
                 const m = min % 60;
-                return h > 0 ? `${h}H ${m}M` : `${m}Min`;
-            };
-
-            // 총 시간에 따른 격려/상태 메시지 (시스템/구조적 언어 사용)
-            const getMessage = (min) => {
-                if (min === 0) return "시스템 대기 중. 점화 준비 완료.";
-                if (min < 60) return "초기 시스템 가동. 예열 구간입니다.";
-                if (min < 180) return "안정적 흐름. 리듬이 잡히고 있습니다.";
-                if (min < 300) return "고효율 구간 진입. 9층 요새 견고함.";
-                return "최적화 상태 도달. 충분한 휴식을 권장합니다.";
+                return (
+                    <span className="font-mono-custom tracking-tight text-slate-700">
+                        <span className="text-2xl font-bold">{h}</span>
+                        <span className="text-sm font-medium text-slate-400 mx-1">H</span>
+                        <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span>
+                        <span className="text-sm font-medium text-slate-400 ml-1">M</span>
+                    </span>
+                );
             };
 
             return (
-                <div className="widget-container">
-                    {/* Header */}
-                    <div className="px-6 pt-7 pb-4 flex justify-between items-end border-b border-white/30">
+                <div className="glass-base rounded-3xl w-full md:w-[350px] h-[520px] flex flex-col overflow-hidden relative">
+                    <div className="px-6 py-5 border-b border-white/40 flex justify-between items-end bg-white/10">
                         <div>
-                            <div className="text-sky-400 text-xs font-bold tracking-widest uppercase mb-1">Daily Report</div>
-                            <h1 className="text-2xl font-bold text-slate-700 font-serif-italic tracking-tight">
-                                ༚✧ Timeline
-                            </h1>
+                            <div className="text-sky-500/80 text-[10px] font-bold tracking-widest uppercase mb-1">Daily Report</div>
+                            <h2 className="text-xl font-bold text-slate-700 font-serif-custom italic">༚✧ Timeline</h2>
                         </div>
                         <div className="text-right">
-                            <div className="text-slate-400 text-xs font-medium mb-1">{todayStr}</div>
-                            <button onClick={loadData} className="p-2 rounded-full hover:bg-white/40 text-sky-400 transition-colors">
-                                <Icons.Refresh />
-                            </button>
+                             {formatTotal(totalDuration)}
                         </div>
                     </div>
 
-                    {/* Timeline Body */}
-                    <div className="flex-1 overflow-y-auto no-scrollbar p-5 space-y-3 relative">
-                        {/* Vertical Line Decoration */}
-                        <div className="absolute left-9 top-0 bottom-0 w-[1px] bg-slate-200/50 -z-10"></div>
-
+                    <div className="flex-1 overflow-y-auto no-scrollbar p-4 space-y-2 relative">
+                        <div className="absolute left-8 top-0 bottom-0 w-[1px] bg-slate-300/30 -z-10"></div>
+                        
                         {blocks.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
-                                <span className="text-4xl mb-2">🔭</span>
-                                <span className="text-xs">기록된 데이터가 없습니다.</span>
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400/60 gap-2">
+                                <span className="text-3xl">🔭</span>
+                                <span className="text-xs">데이터 없음</span>
                             </div>
                         ) : (
-                            blocks.map((block, index) => (
-                                <div 
-                                    key={block.id} 
-                                    className={`timeline-card relative flex items-center p-3 pr-4 rounded-xl border border-white/40 shadow-sm
-                                        ${block.quality === 'Sun' ? 'weather-sun' : block.quality === 'Cloud' ? 'weather-cloud' : 'weather-rain'}
-                                    `}
-                                    style={{ animationDelay: `${index * 0.05}s` }}
-                                >
-                                    {/* Icon Box */}
-                                    <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-white/40 rounded-full mr-3 backdrop-blur-sm shadow-sm">
+                            [...blocks].reverse().map((block, idx) => ( // Show chronological (morning to night) or reverse? Let's keep newest at top for history logic, but strictly for timeline visual, chronological is better? No, User wanted log. Let's stick to newest top.
+                                <div key={block.id} className={`animate-slide relative flex items-center p-3 rounded-xl border border-white/40 shadow-sm backdrop-blur-sm transition-all hover:scale-[1.02] 
+                                    ${block.quality === 'Sun' ? 'weather-sun' : block.quality === 'Cloud' ? 'weather-cloud' : 'weather-rain'}`}
+                                    style={{ animationDelay: `${idx * 0.05}s` }}>
+                                    
+                                    <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/40 rounded-full mr-3 text-slate-600">
                                         {block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />}
                                     </div>
-
-                                    {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-baseline mb-0.5">
-                                            <span className="text-slate-700 font-bold text-sm">
-                                                {block.quality === 'Sun' ? 'Clear Focus' : block.quality === 'Cloud' ? 'Cloudy Flow' : 'Heavy Duty'}
-                                            </span>
-                                            <span className="text-slate-500 text-xs font-mono">{block.duration} min</span>
+                                        <div className="flex justify-between items-baseline">
+                                            <span className="text-slate-700 font-bold text-xs">{block.quality === 'Sun' ? 'Clear' : block.quality === 'Cloud' ? 'Cloudy' : 'Heavy'}</span>
+                                            <span className="font-mono-custom text-slate-500 text-xs font-bold">{block.duration}m</span>
                                         </div>
-                                        <div className="flex items-center text-slate-400 text-[11px] gap-1">
+                                        <div className="flex items-center text-slate-400 text-[10px] gap-1 mt-0.5">
                                             <Icons.Clock />
-                                            <span>{formatTime(block.startTime)} ~ {formatTime(block.endTime)}</span>
+                                            <span className="font-mono-custom tracking-tight">{formatTime(block.startTime)} - {formatTime(block.endTime)}</span>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         )}
-                        <div className="h-4"></div> {/* Bottom Spacing */}
+                        <div className="h-4"></div>
+                    </div>
+                    
+                    <div className="px-5 py-3 bg-white/40 border-t border-white/40 text-center backdrop-blur-md">
+                        <p className="text-xs text-slate-600 font-medium">{getMessage(totalDuration)}</p>
+                    </div>
+                </div>
+            );
+        };
+
+        const ControlPanel = ({ tickets, energy, isRecording, toggleTimer, elapsed, openManual, onQuest, onRest }) => {
+            const [tab, setTab] = useState('main');
+            
+            const radius = 32;
+            const circumference = 2 * Math.PI * radius;
+            const progress = isRecording ? (elapsed < 180 ? Math.max(0, (180 - elapsed) / 180) : 1) : 0;
+            const dashoffset = circumference - (progress * circumference);
+            const strokeColor = elapsed < 180 ? "#bae6fd" : "#ffffff";
+
+            const formatStopwatch = (sec) => {
+                if (sec < 180) {
+                    const rem = 180 - sec;
+                    return `${Math.floor(rem/60)}:${String(rem%60).padStart(2,'0')}`;
+                } else {
+                    const ext = sec - 180;
+                    const h = Math.floor(ext/3600);
+                    const m = Math.floor((ext%3600)/60);
+                    return `+${h > 0 ? h+':' : ''}${String(m).padStart(2,'0')}:${String(ext%60).padStart(2,'0')}`;
+                }
+            };
+
+            const fixedQuests = [
+                { id: 'q1', name: '씻기', icon: '🚿' }, { id: 'q2', name: '식사', icon: '🍚' },
+                { id: 'q3', name: '설거지', icon: '🧼' }, { id: 'q4', name: '빨래', icon: '🧺' },
+                { id: 'q5', name: '정리', icon: '🧹' }, { id: 'q6', name: '환기', icon: '🪟' }
+            ];
+            const restOptions = [
+                { id: 'r1', name: '독서', rec: 20 }, { id: 'r2', name: '낮잠', rec: 30 },
+                { id: 'r3', name: '명상', rec: 30 }, { id: 'r4', name: '숙면', rec: 50 }
+            ];
+
+            return (
+                <div className="glass-base rounded-3xl w-full md:w-[350px] h-[520px] flex flex-col relative overflow-hidden">
+                    {/* Header */}
+                    <div className="px-6 pt-5 pb-2 flex justify-between items-center">
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-700 font-serif-custom italic tracking-tight">༚✧ Fortress</h1>
+                            <div className="flex items-center gap-3 text-xs font-bold text-slate-500 mt-1">
+                                <div className="flex items-center gap-1 bg-white/40 px-2 py-0.5 rounded-lg"><Icons.Ticket /><span className="font-mono-custom pt-0.5">{tickets}</span></div>
+                                <div className="flex items-center gap-1 bg-white/40 px-2 py-0.5 rounded-lg"><Icons.Zap /><span className="font-mono-custom pt-0.5 text-sky-500">{energy}%</span></div>
+                            </div>
+                        </div>
+                        <button onClick={openManual} className="w-10 h-10 rounded-xl bg-white/40 hover:bg-white/70 text-slate-500 flex items-center justify-center transition-all">
+                            <Icons.Plus />
+                        </button>
                     </div>
 
-                    {/* Footer Stats */}
-                    <div className="footer-blur px-6 py-5">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Total Time</span>
-                            <span className="text-2xl font-bold text-sky-500 font-mono tracking-tighter">
-                                {formatTotalTime(totalDuration)}
-                            </span>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-xs text-slate-500 font-medium bg-white/50 py-2 px-3 rounded-lg border border-white/60 inline-block w-full">
-                                {getMessage(totalDuration)}
-                            </p>
+                    {/* Energy Bar */}
+                    <div className="px-6 mt-2 mb-4">
+                        <div className="w-full h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+                            <div className="h-full bg-sky-300 transition-all duration-500 rounded-full" style={{ width: `${energy}%` }}></div>
                         </div>
                     </div>
+
+                    {/* Tabs */}
+                    <div className="px-6 flex gap-2 mb-4">
+                        {['main', 'niche', 'rest'].map(t => (
+                            <button key={t} onClick={() => setTab(t)} className={`flex-1 py-2 text-xs font-bold ${tab === t ? 'tab-active' : 'tab-inactive text-slate-400'} tab-btn`}>
+                                {t === 'main' ? 'Focus' : t === 'niche' ? 'Switch' : 'Rest'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
+                        {tab === 'main' && (
+                            <div className="flex flex-col h-full justify-center">
+                                <div className="bg-white/20 rounded-3xl p-6 border border-white/30 flex flex-col items-center shadow-inner relative overflow-hidden">
+                                    <div className="relative w-40 h-40 flex items-center justify-center mb-4">
+                                        <svg className="absolute w-full h-full" viewBox="0 0 80 80">
+                                            <circle stroke="rgba(255,255,255,0.3)" strokeWidth="4" fill="transparent" r={radius} cx="40" cy="40" />
+                                            <circle className="progress-ring__circle" stroke={strokeColor} strokeWidth="4" fill="transparent" r={radius} cx="40" cy="40"
+                                                style={{ strokeDasharray: `${circumference} ${circumference}`, strokeDashoffset: dashoffset, strokeLinecap: "round" }} />
+                                        </svg>
+                                        <button onClick={toggleTimer} className={`absolute inset-0 m-auto w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 
+                                            ${isRecording ? 'bg-sky-400 hover:bg-sky-300' : 'bg-sky-200 hover:bg-sky-300'}`}>
+                                            {isRecording ? <Icons.Stop className="w-8 h-8" /> : <Icons.Play className="w-8 h-8 ml-1" />}
+                                        </button>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-xs font-bold text-sky-500 uppercase tracking-widest mb-1">{isRecording ? (elapsed < 180 ? "IGNITION" : "FLOW") : "READY"}</div>
+                                        <div className="text-4xl font-bold text-slate-700 font-mono-custom tracking-tighter tabular-nums">
+                                            {formatStopwatch(elapsed)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {tab === 'niche' && (
+                            <div className="grid grid-cols-2 gap-3 h-full content-start overflow-y-auto no-scrollbar">
+                                {fixedQuests.map(q => (
+                                    <button key={q.id} onClick={() => onQuest(q)} disabled={tickets === 0} className="action-btn p-3 rounded-2xl flex flex-col items-center justify-center h-24 disabled:opacity-50">
+                                        <span className="text-2xl mb-1">{q.icon}</span>
+                                        <span className="text-sm font-bold text-slate-600">{q.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        {tab === 'rest' && (
+                            <div className="grid grid-cols-2 gap-3 h-full content-start overflow-y-auto no-scrollbar">
+                                {restOptions.map(r => (
+                                    <button key={r.id} onClick={() => onRest(r)} className="action-btn p-3 rounded-2xl flex flex-col items-center justify-center h-24">
+                                        <span className="text-sm font-bold text-slate-600 mb-1">{r.name}</span>
+                                        <div className="flex items-center gap-1 text-sky-500 text-xs font-bold bg-white/50 px-2 py-0.5 rounded-full">
+                                            <Icons.Zap /> +{r.rec}%
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const [tickets, setTickets] = useState(0);
+            const [energy, setEnergy] = useState(100);
+            const [blocks, setBlocks] = useState([]);
+            
+            // Timer State
+            const [isRecording, setIsRecording] = useState(false);
+            const [startTime, setStartTime] = useState(null);
+            const [elapsed, setElapsed] = useState(0);
+
+            // Modal State
+            const [showModal, setShowModal] = useState(false);
+            const [modalType, setModalType] = useState(null); // 'check', 'manual'
+            const [tempSession, setTempSession] = useState(null);
+
+            // Manual Input State
+            const [manualEndHour, setManualEndHour] = useState(12);
+            const [manualEndMin, setManualEndMin] = useState(0);
+            const [manualDurHour, setManualDurHour] = useState(0);
+            const [manualDurMin, setManualDurMin] = useState(30);
+
+            // Load & Save
+            useEffect(() => {
+                const today = new Date().toDateString();
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                if (savedData.date && savedData.date !== today) {
+                    setTickets(0); setEnergy(100); setBlocks([]);
+                } else {
+                    setTickets(savedData.tickets || 0);
+                    setEnergy(savedData.energy ?? 100);
+                    setBlocks(savedData.blocks || []);
+                }
+            }, []);
+
+            const saveData = (newTickets, newEnergy, newBlocks) => {
+                setTickets(newTickets); setEnergy(newEnergy); setBlocks(newBlocks);
+                localStorage.setItem('fortressData', JSON.stringify({
+                    date: new Date().toDateString(),
+                    tickets: newTickets,
+                    energy: newEnergy,
+                    blocks: newBlocks
+                }));
+            };
+
+            // Timer Logic
+            useEffect(() => {
+                let interval = null;
+                if (isRecording) {
+                    interval = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isRecording, startTime]);
+
+            const toggleTimer = () => {
+                if (!isRecording) {
+                    if (energy <= 5) return alert("에너지가 부족합니다.");
+                    setIsRecording(true); setStartTime(Date.now()); setElapsed(0);
+                } else {
+                    setIsRecording(false);
+                    if (elapsed < 180) { setElapsed(0); return; } // No record if < 3min
+                    setTempSession({ startTime, endTime: Date.now(), duration: Math.ceil(elapsed / 60) });
+                    setModalType('check'); setShowModal(true);
+                }
+            };
+
+            const addRecord = (quality, type) => {
+                let newBlock;
+                let totalDuration = 0;
+                
+                if (type === 'auto') {
+                    totalDuration = tempSession.duration;
+                    newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: totalDuration, quality };
+                } else {
+                    const now = new Date();
+                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+                    totalDuration = (manualDurHour * 60) + manualDurMin;
+                    const startTs = endTs - (totalDuration * 60 * 1000);
+                    newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality };
+                }
+
+                const consumption = Math.floor(totalDuration / 10) * 5;
+                const newEnergy = Math.max(energy - consumption, 0);
+                saveData(tickets + 1, newEnergy, [newBlock, ...blocks]);
+                setShowModal(false); setElapsed(0);
+            };
+
+            const handleQuest = (q) => {
+                if (tickets > 0) saveData(tickets - 1, Math.max(energy - 5, 0), blocks);
+            };
+            const handleRest = (r) => {
+                saveData(tickets, Math.min(energy + r.rec, 100), blocks);
+            };
+
+            const totalDuration = blocks.reduce((acc, curr) => acc + curr.duration, 0);
+
+            return (
+                <div className="w-full flex justify-center">
+                    <div className="flex flex-col md:flex-row gap-6 items-center md:items-start max-w-4xl w-full">
+                        
+                        {/* 1. Control Panel (Widget) */}
+                        <ControlPanel 
+                            tickets={tickets} energy={energy} isRecording={isRecording} elapsed={elapsed}
+                            toggleTimer={toggleTimer} 
+                            openManual={() => {
+                                const now = new Date();
+                                setManualEndHour(now.getHours());
+                                setManualEndMin(Math.floor(now.getMinutes()/5)*5);
+                                setModalType('manual'); setShowModal(true);
+                            }}
+                            onQuest={handleQuest} onRest={handleRest}
+                        />
+
+                        {/* 2. Timeline Panel */}
+                        <TimelinePanel blocks={blocks} totalDuration={totalDuration} />
+                    </div>
+
+                    {/* Modal */}
+                    {showModal && (
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+                            <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 w-full max-w-xs shadow-2xl border border-white" onClick={e => e.stopPropagation()}>
+                                <h3 className="text-center font-bold text-slate-700 mb-4 font-serif-custom italic">
+                                    {modalType === 'manual' ? 'Add Log' : 'Check Quality'}
+                                </h3>
+                                
+                                {modalType === 'manual' && (
+                                    <div className="space-y-3 mb-4">
+                                        <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                                            <span>종료</span>
+                                            <div className="flex gap-1">
+                                                <select className="bg-slate-100 rounded p-1" value={manualEndHour} onChange={e=>setManualEndHour(Number(e.target.value))}>
+                                                    {Array.from({length:24},(_,i)=>i).map(h=><option key={h} value={h}>{h}</option>)}
+                                                </select>시
+                                                <select className="bg-slate-100 rounded p-1" value={manualEndMin} onChange={e=>setManualEndMin(Number(e.target.value))}>
+                                                    {Array.from({length:12},(_,i)=>i*5).map(m=><option key={m} value={m}>{m}</option>)}
+                                                </select>분
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+                                            <span>시간</span>
+                                            <div className="flex gap-1">
+                                                <select className="bg-slate-100 rounded p-1" value={manualDurHour} onChange={e=>setManualDurHour(Number(e.target.value))}>
+                                                    {[0,1,2,3,4,5].map(h=><option key={h} value={h}>{h}</option>)}
+                                                </select>H
+                                                <select className="bg-slate-100 rounded p-1" value={manualDurMin} onChange={e=>setManualDurMin(Number(e.target.value))}>
+                                                    {Array.from({length:12},(_,i)=>i*5).map(m=><option key={m} value={m}>{m}</option>)}
+                                                </select>M
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-3 gap-3">
+                                    {['Sun', 'Cloud', 'Rain'].map(q => (
+                                        <button key={q} onClick={() => addRecord(q, modalType === 'manual' ? 'manual' : 'auto')} 
+                                            className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-slate-100 hover:border-sky-200 hover:bg-sky-50 transition-all shadow-sm">
+                                            <span className="text-sky-500 mb-1">
+                                                {q === 'Sun' ? <Icons.Sun /> : q === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase">{q}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
