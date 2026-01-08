@@ -272,7 +272,7 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            // ✅ 시간 포맷 변경 (Total 0H 33M -> 00H 33M)
+        // ✅ 시간 포맷 변경 (Total 0H 33M -> 00H 33M)
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
