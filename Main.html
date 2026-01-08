@@ -18,28 +18,26 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent; /* 노션 배경과 어우러지게 투명 처리 가능 */
+            background-color: transparent; /* 노션 배경과 어우러지게 투명 처리 */
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden; /* 스크롤바 이중 생김 방지 */
+            overflow: hidden;
         }
 
-        /* 스크롤바 숨김 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 위젯 디자인 (노션 임베드에 맞춤) */
         .widget-container {
             position: relative;
             width: 100%;
-            max-width: 400px; /* 너무 넓어지지 않게 제한 */
+            max-width: 400px;
             height: 700px;
             background: linear-gradient(145deg, #e0f2fe 0%, #f0f9ff 100%);
-            border-radius: 24px; /* 둥근 모서리 약간 줄임 */
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); /* 그림자 은은하게 */
+            border-radius: 24px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -47,7 +45,6 @@
             color: #334155;
         }
 
-        /* 유리 질감 패널 */
         .glass-panel {
             background: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(12px);
@@ -56,7 +53,6 @@
             border-radius: 20px;
         }
 
-        /* 탭 버튼 스타일 */
         .tab-btn {
             transition: all 0.2s;
             border-radius: 12px;
@@ -72,7 +68,6 @@
             color: #94a3b8;
         }
 
-        /* 애니메이션 */
         .log-item { animation: slideUp 0.3s ease-out forwards; }
         @keyframes slideUp {
             from { transform: translateY(10px); opacity: 0; }
@@ -84,7 +79,6 @@
             backdrop-filter: blur(4px);
         }
 
-        /* 퀘스트/휴식 버튼 */
         .quest-btn {
             background: white;
             border: 1px solid #e2e8f0;
@@ -101,10 +95,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         
-        // 🔴 [필수] 본인의 Cloudflare Worker 주소로 변경하세요!
-        const WORKER_URL = "https://your-worker-name.account.workers.dev"; 
+        // ✅ 진솔님의 Cloudflare 주소 자동 입력 완료!
+        const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
-        // --- 아이콘 컴포넌트 (SVG) ---
         const Icons = {
             Ticket: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
             Zap: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
@@ -117,41 +110,30 @@
         };
 
         const App = () => {
-            // --- 상태 관리 ---
-            const [activeTab, setActiveTab] = useState('main'); // main, niche, rest
+            const [activeTab, setActiveTab] = useState('main');
             const [tickets, setTickets] = useState(0);
             const [fatigue, setFatigue] = useState(0);
-            const [blocks, setBlocks] = useState([]); // 타임라인 데이터
-            
-            // 스톱워치 상태
+            const [blocks, setBlocks] = useState([]);
             const [isRecording, setIsRecording] = useState(false);
             const [startTime, setStartTime] = useState(null);
             const [elapsed, setElapsed] = useState(0);
-
-            // 모달 상태
             const [showModal, setShowModal] = useState(false);
-            const [modalType, setModalType] = useState('manual'); // 'manual' or 'check'
-            
-            // 데이터 입력용 임시 상태
+            const [modalType, setModalType] = useState('manual');
             const [tempSession, setTempSession] = useState(null);
             const [manualTime, setManualTime] = useState('');
             const [manualDuration, setManualDuration] = useState(30);
-
-            // 네트워크 상태
             const [isSending, setIsSending] = useState(false);
 
-            // --- 초기 로드 및 저장 로직 ---
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                
                 if (savedData.date === today) {
                     setTickets(savedData.tickets || 0);
                     setFatigue(savedData.fatigue || 0);
                     setBlocks(savedData.blocks || []);
                 } else {
                     setTickets(0);
-                    setFatigue(30); // 기본 피로도
+                    setFatigue(30);
                     setBlocks([]);
                 }
             }, []);
@@ -168,7 +150,6 @@
                 }));
             };
 
-            // --- 스톱워치 타이머 ---
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -195,11 +176,7 @@
                         alert("1분 미만은 기록되지 않습니다.");
                         return;
                     }
-                    setTempSession({
-                        startTime: startTime,
-                        endTime: Date.now(),
-                        duration: durationMin
-                    });
+                    setTempSession({ startTime: startTime, endTime: Date.now(), duration: durationMin });
                     setModalType('check');
                     setShowModal(true);
                 }
@@ -213,40 +190,24 @@
                 return `${pad(h)}:${pad(m)}:${pad(s)}`;
             };
 
-            // --- 데이터 추가 처리 ---
             const addRecord = (quality, type) => {
                 let newBlock;
                 if (type === 'auto') {
-                    newBlock = {
-                        id: Date.now(),
-                        startTime: tempSession.startTime,
-                        endTime: tempSession.endTime,
-                        duration: tempSession.duration,
-                        quality: quality
-                    };
+                    newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: tempSession.duration, quality: quality };
                 } else {
                     const [h, m] = manualTime.split(':').map(Number);
                     const now = new Date();
                     const startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m).getTime();
                     const endTs = startTs + (manualDuration * 60 * 1000);
-                    newBlock = {
-                        id: Date.now(),
-                        startTime: startTs,
-                        endTime: endTs,
-                        duration: manualDuration,
-                        quality: quality
-                    };
+                    newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: manualDuration, quality: quality };
                 }
-
                 const newTickets = tickets + 1;
                 const newFatigue = Math.min(fatigue + 10, 100);
                 const newBlocks = [newBlock, ...blocks];
-
                 saveData(newTickets, newFatigue, newBlocks);
                 setShowModal(false);
             };
 
-            // --- 퀘스트 & 휴식 ---
             const doNicheQuest = (questName) => {
                 if (tickets > 0) {
                     saveData(tickets - 1, Math.min(fatigue + 5, 100), blocks);
@@ -258,7 +219,6 @@
                 let recovery = 0;
                 if (type === 'tea') recovery = 15;
                 if (type === 'sleep') recovery = 100;
-                
                 const newFatigue = Math.max(fatigue - recovery, 0);
                 saveData(tickets, newFatigue, blocks);
                 alert("🔋 회복되었습니다.");
@@ -271,14 +231,12 @@
                 }
             };
 
-            // --- 노션 전송 ---
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
-                    alert("코드 내 WORKER_URL 변수에 주소를 입력해주세요.");
+                    alert("코드 내 WORKER_URL 변수를 확인해주세요.");
                     return;
                 }
                 setIsSending(true);
-                
                 const clearCount = blocks.filter(b => b.quality === 'Sun').length;
                 const cloudCount = blocks.filter(b => b.quality === 'Cloud').length;
                 const rainCount = blocks.filter(b => b.quality === 'Rain').length;
@@ -290,9 +248,9 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             date: new Date().toISOString().split('T')[0],
-                            start: clearCount, // Clear
-                            ext1: cloudCount,  // Cloudy
-                            ext2: rainCount,   // Heavy
+                            start: clearCount,
+                            ext1: cloudCount,
+                            ext2: rainCount,
                             quality: lastQ
                         }),
                     });
@@ -306,7 +264,6 @@
                 }
             };
 
-            // 헬퍼 함수
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
             const openManual = () => {
@@ -321,8 +278,6 @@
 
             return (
                 <div className="widget-container">
-                    
-                    {/* 상단바 */}
                     <div className="p-6 pb-2 flex justify-between items-center">
                         <div className="flex flex-col">
                             <h1 className="text-xl font-bold text-[#0f172a] tracking-tight">Fortress Log</h1>
@@ -336,33 +291,21 @@
                         </button>
                     </div>
 
-                    {/* 피로도 게이지 */}
                     <div className="px-6 mb-4">
                         <div className="w-full h-1.5 bg-white/50 rounded-full overflow-hidden">
-                            <div 
-                                className={`h-full transition-all duration-500 rounded-full ${fatigue > 80 ? 'bg-[#ef4444]' : 'bg-[#3b82f6]'}`} 
-                                style={{ width: `${fatigue}%` }}
-                            ></div>
+                            <div className={`h-full transition-all duration-500 rounded-full ${fatigue > 80 ? 'bg-[#ef4444]' : 'bg-[#3b82f6]'}`} style={{ width: `${fatigue}%` }}></div>
                         </div>
                     </div>
 
-                    {/* 탭 버튼 */}
                     <div className="px-6 flex gap-2 mb-4">
                         {['main', 'niche', 'rest'].map(tab => (
-                            <button 
-                                key={tab} 
-                                onClick={() => setActiveTab(tab)}
-                                className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}
-                            >
+                            <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2.5 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
                                 {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Quests' : 'Rest'}
                             </button>
                         ))}
                     </div>
 
-                    {/* 메인 컨텐츠 영역 */}
                     <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
-                        
-                        {/* 1. 타임라인 (메인) */}
                         {activeTab === 'main' && (
                             <div className="flex flex-col h-full">
                                 <div className={`glass-panel p-5 mb-4 flex flex-col items-center transition-all ${isRecording ? 'border-[#3b82f6] shadow-md' : ''}`}>
@@ -370,107 +313,63 @@
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#94a3b8]">{isRecording ? "Focusing..." : "Ready"}</span>
                                         <button onClick={openManual} className="text-[#64748b] hover:text-[#0f172a]"><Icons.Plus /></button>
                                     </div>
-                                    <div className={`text-4xl font-bold tabular-nums mb-4 ${isRecording ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>
-                                        {formatStopwatch(elapsed)}
-                                    </div>
-                                    <button 
-                                        onClick={toggleTimer}
-                                        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white ${isRecording ? 'bg-[#ef4444]' : 'bg-[#0f172a]'}`}
-                                    >
+                                    <div className={`text-4xl font-bold tabular-nums mb-4 ${isRecording ? 'text-[#0f172a]' : 'text-[#94a3b8]'}`}>{formatStopwatch(elapsed)}</div>
+                                    <button onClick={toggleTimer} className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white ${isRecording ? 'bg-[#ef4444]' : 'bg-[#0f172a]'}`}>
                                         {isRecording ? <Icons.Stop /> : <Icons.Play />}
                                     </button>
                                 </div>
-
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5">
-                                    {blocks.length === 0 ? (
-                                        <div className="text-center text-[#94a3b8] py-8 text-xs">기록이 없습니다.</div>
-                                    ) : (
-                                        blocks.map((block) => (
-                                            <div key={block.id} className="log-item bg-white/60 border border-white p-3 rounded-xl flex justify-between items-center">
-                                                <div>
-                                                    <div className="flex items-center gap-2 mb-0.5">
-                                                        <span className="text-xs font-bold text-[#334155]">{formatTimeStr(block.startTime)}</span>
-                                                        <span className="text-[10px] bg-white px-1.5 py-0.5 rounded text-[#64748b]">{block.duration}m</span>
-                                                    </div>
-                                                    <div className="text-xs text-[#64748b]">
-                                                        {block.quality === 'Sun' ? '☀️ 개운함' : block.quality === 'Cloud' ? '☁️ 무난함' : '⛈️ 무거움'}
-                                                    </div>
+                                    {blocks.length === 0 ? <div className="text-center text-[#94a3b8] py-8 text-xs">기록이 없습니다.</div> : blocks.map((block) => (
+                                        <div key={block.id} className="log-item bg-white/60 border border-white p-3 rounded-xl flex justify-between items-center">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className="text-xs font-bold text-[#334155]">{formatTimeStr(block.startTime)}</span>
+                                                    <span className="text-[10px] bg-white px-1.5 py-0.5 rounded text-[#64748b]">{block.duration}m</span>
                                                 </div>
-                                                <button onClick={() => deleteBlock(block.id)} className="text-[#cbd5e1] hover:text-[#ef4444] p-2"><Icons.Trash /></button>
+                                                <div className="text-xs text-[#64748b]">{block.quality === 'Sun' ? '☀️ 개운함' : block.quality === 'Cloud' ? '☁️ 무난함' : '⛈️ 무거움'}</div>
                                             </div>
-                                        ))
-                                    )}
+                                            <button onClick={() => deleteBlock(block.id)} className="text-[#cbd5e1] hover:text-[#ef4444] p-2"><Icons.Trash /></button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
-
-                        {/* 2. 틈새 퀘스트 */}
                         {activeTab === 'niche' && (
                             <div className="space-y-3 overflow-y-auto no-scrollbar">
                                 <div className="text-xs text-[#64748b] text-center mb-2">티켓을 사용하여 환경을 정비하세요.</div>
                                 {['전선 정리하기', '책상 위 닦기', '설거지', '빨래 개기'].map((q, idx) => (
-                                    <button 
-                                        key={idx} 
-                                        onClick={() => doNicheQuest(q)} 
-                                        disabled={tickets === 0}
-                                        className="quest-btn w-full p-4 rounded-xl flex justify-between items-center text-sm font-bold text-[#334155]"
-                                    >
-                                        <span>{q}</span>
-                                        <span className="text-[10px] bg-[#f1f5f9] px-2 py-1 rounded text-[#64748b]">-1 Ticket</span>
+                                    <button key={idx} onClick={() => doNicheQuest(q)} disabled={tickets === 0} className="quest-btn w-full p-4 rounded-xl flex justify-between items-center text-sm font-bold text-[#334155]">
+                                        <span>{q}</span><span className="text-[10px] bg-[#f1f5f9] px-2 py-1 rounded text-[#64748b]">-1 Ticket</span>
                                     </button>
                                 ))}
                             </div>
                         )}
-
-                        {/* 3. 휴식 */}
                         {activeTab === 'rest' && (
                             <div className="grid grid-cols-2 gap-3 mt-2">
                                 <button onClick={() => takeRest('tea')} className="quest-btn p-4 rounded-xl flex flex-col items-center justify-center h-32 hover:bg-[#f8fafc]">
-                                    <Icons.Coffee />
-                                    <span className="mt-2 text-sm font-bold">Tea Time</span>
-                                    <span className="text-[10px] text-[#64748b] mt-1">Fatigue -15</span>
+                                    <Icons.Coffee /><span className="mt-2 text-sm font-bold">Tea Time</span><span className="text-[10px] text-[#64748b] mt-1">Fatigue -15</span>
                                 </button>
                                 <button onClick={() => takeRest('sleep')} className="p-4 rounded-xl flex flex-col items-center justify-center h-32 bg-[#1e293b] text-white hover:bg-[#0f172a] shadow-lg">
-                                    <div className="text-xl mb-1">💤</div>
-                                    <span className="mt-2 text-sm font-bold">Deep Rest</span>
-                                    <span className="text-[10px] text-gray-400 mt-1">Reset Fatigue</span>
+                                    <div className="text-xl mb-1">💤</div><span className="mt-2 text-sm font-bold">Deep Rest</span><span className="text-[10px] text-gray-400 mt-1">Reset Fatigue</span>
                                 </button>
                             </div>
                         )}
-
                     </div>
 
-                    {/* 모달 */}
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center">
                             <div className="w-full bg-white rounded-t-3xl p-6 animate-slide-up shadow-2xl">
-                                <h3 className="text-lg font-bold text-[#0f172a] mb-4">
-                                    {modalType === 'manual' ? "Add Past Log" : "Check Weather"}
-                                </h3>
-
+                                <h3 className="text-lg font-bold text-[#0f172a] mb-4">{modalType === 'manual' ? "Add Past Log" : "Check Weather"}</h3>
                                 {modalType === 'manual' && (
                                     <div className="flex gap-3 mb-6">
-                                        <div className="flex-1">
-                                            <label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Start</label>
-                                            <input type="time" value={manualTime} onChange={(e) => setManualTime(e.target.value)} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Min</label>
-                                            <input type="number" value={manualDuration} onChange={(e) => setManualDuration(Number(e.target.value))} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" />
-                                        </div>
+                                        <div className="flex-1"><label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Start</label><input type="time" value={manualTime} onChange={(e) => setManualTime(e.target.value)} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" /></div>
+                                        <div className="flex-1"><label className="text-[10px] font-bold text-[#64748b] uppercase block mb-1">Min</label><input type="number" value={manualDuration} onChange={(e) => setManualDuration(Number(e.target.value))} className="w-full bg-[#f1f5f9] rounded-xl p-3 text-center font-bold text-[#0f172a] outline-none" /></div>
                                     </div>
                                 )}
-
                                 <div className="grid grid-cols-3 gap-3 mb-4">
-                                    <button onClick={() => addRecord('Sun', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-orange-50 flex flex-col items-center transition-colors">
-                                        <span className="text-2xl mb-1">☀️</span><span className="text-xs font-bold text-[#475569]">Clear</span>
-                                    </button>
-                                    <button onClick={() => addRecord('Cloud', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-gray-50 flex flex-col items-center transition-colors">
-                                        <span className="text-2xl mb-1">☁️</span><span className="text-xs font-bold text-[#475569]">Cloudy</span>
-                                    </button>
-                                    <button onClick={() => addRecord('Rain', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-blue-50 flex flex-col items-center transition-colors">
-                                        <span className="text-2xl mb-1">⛈️</span><span className="text-xs font-bold text-[#475569]">Heavy</span>
-                                    </button>
+                                    <button onClick={() => addRecord('Sun', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-orange-50 flex flex-col items-center transition-colors"><span className="text-2xl mb-1">☀️</span><span className="text-xs font-bold text-[#475569]">Clear</span></button>
+                                    <button onClick={() => addRecord('Cloud', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-gray-50 flex flex-col items-center transition-colors"><span className="text-2xl mb-1">☁️</span><span className="text-xs font-bold text-[#475569]">Cloudy</span></button>
+                                    <button onClick={() => addRecord('Rain', modalType === 'manual' ? 'manual' : 'auto')} className="p-3 border rounded-xl hover:bg-blue-50 flex flex-col items-center transition-colors"><span className="text-2xl mb-1">⛈️</span><span className="text-xs font-bold text-[#475569]">Heavy</span></button>
                                 </div>
                                 <button onClick={() => setShowModal(false)} className="w-full py-3 text-[#94a3b8] text-sm font-bold">Cancel</button>
                             </div>
