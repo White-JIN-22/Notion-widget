@@ -477,7 +477,6 @@
                     };
 
                     const payload = {
-                        // ✅ FIX: UTC 밀림 방지. 로컬 시간대로 날짜 포맷팅
                         date: formatLocalYMD(dataset.date),
                         quality: getDomFromCounts(qualCounts.total),
                         total: mornMin + aftMin + nightMin,
@@ -537,27 +536,82 @@
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
-            const renderTimer = () => {
+            const renderTimerPanel = () => {
+                // 원형 프로그레스 계산
+                const radius = 36;
+                const circumference = 2 * Math.PI * radius;
+                // ✅ Countdown Logic: 3분(180초)에서 줄어듦
+                // 시작: progress = 1 (꽉참) -> 끝: progress = 0 (비움)
+                // 만약 180초 지나면(Flow), progress = 1 (다시 꽉 채움 - 성공!)
+                let progress;
+                let strokeColor;
+
                 if (elapsed < 180) {
-                    const remaining = 180 - elapsed;
-                    const m = Math.floor(remaining / 60);
-                    const s = remaining % 60;
-                    return (
-                        <div className="flex items-center gap-2 text-sky text-4xl font-bold tabular-nums">
-                            <Icons.Flame /> <span>{m}:{String(s).padStart(2, '0')}</span>
-                        </div>
-                    );
+                    // Ignition Phase: Shrinking Blue Ring
+                    progress = Math.max(0, (180 - elapsed) / 180);
+                    strokeColor = "#38bdf8"; // Sky Blue
                 } else {
-                    const extended = elapsed - 180;
-                    const h = Math.floor(extended / 3600);
-                    const m = Math.floor((extended % 3600) / 60);
-                    const s = extended % 60;
-                    return (
-                        <div className="flex items-center gap-2 text-bright text-4xl font-bold tabular-nums">
-                            <Icons.Waves /> <span>+{h > 0 ? h + ':' : ''}{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}</span>
-                        </div>
-                    );
+                    // Flow Phase: Full White Ring
+                    progress = 1;
+                    strokeColor = "#ffffff"; // White
                 }
+                
+                const dashoffset = circumference - (progress * circumference);
+                
+                return (
+                    <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-400/30">
+                        <div className="flex justify-between items-center mb-2 px-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300/80">
+                                {isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}
+                            </span>
+                            <button onClick={openManual} className="text-dim hover:text-bright"><Icons.Plus /></button>
+                        </div>
+                        
+                        <div className="flex items-center justify-between px-2 pb-1">
+                            {/* 좌측: 원형 버튼 (Ignition Ring) */}
+                            <div className="relative w-20 h-20 flex items-center justify-center">
+                                {/* SVG Ring */}
+                                <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" width="80" height="80" viewBox="0 0 80 80">
+                                    <circle
+                                        stroke="rgba(255,255,255,0.1)"
+                                        strokeWidth="6"
+                                        fill="transparent"
+                                        r={radius}
+                                        cx="40"
+                                        cy="40"
+                                    />
+                                    <circle
+                                        className="progress-ring__circle"
+                                        stroke={strokeColor} 
+                                        strokeWidth="6"
+                                        fill="transparent"
+                                        r={radius}
+                                        cx="40"
+                                        cy="40"
+                                        style={{ 
+                                            strokeDasharray: `${circumference} ${circumference}`, 
+                                            strokeDashoffset: dashoffset,
+                                            strokeLinecap: "round"
+                                        }}
+                                    />
+                                </svg>
+                                
+                                {/* Center Play/Stop Button */}
+                                <button 
+                                    onClick={toggleTimer} 
+                                    className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-sky-500 hover:bg-sky-400' : 'bg-sky-400 hover:bg-sky-500'}`}
+                                >
+                                    {isRecording ? <Icons.Stop className="w-6 h-6" /> : <Icons.Play className="w-8 h-8 ml-1" />}
+                                </button>
+                            </div>
+
+                            {/* 우측: 타이머 텍스트 */}
+                            <div className="flex-1 flex justify-end">
+                                {formatStopwatch(elapsed)}
+                            </div>
+                        </div>
+                    </div>
+                );
             };
 
             if (showIntro) {
