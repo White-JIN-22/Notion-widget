@@ -227,7 +227,8 @@
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
-            const durationHours = [0, 1, 2, 3];
+            /* ✅ 집중 시간 옵션 5시간까지 확장 (0~5) */
+            const durationHours = [0, 1, 2, 3, 4, 5];
 
             useEffect(() => {
                 const today = new Date().toDateString();
