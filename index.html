@@ -1,358 +1,254 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jinsol Soft Pastel Widget</title>
-    
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="googlebot" content="noindex, nofollow">
-    <meta name="bingbot" content="noindex, nofollow">
-
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #191919; /* 노션 다크모드 배경 */
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: white;
-            overflow: hidden;
-        }
-
-        .tabular-nums { font-variant-numeric: tabular-nums; }
-        .timer-circle { transition: stroke-dashoffset 1s linear; }
-
-        /* 카드 컨테이너 */
-        .card-container {
-            position: relative;
-            width: 380px;
-            height: 240px;
-        }
-
-        .card {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 340px;
-            height: 200px;
-            border-radius: 28px;
-            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease, filter 0.6s ease;
-            /* 유리 질감 테두리 (더 은은하게) */
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.25);
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 24px;
-            box-sizing: border-box;
-            transform-origin: center center;
-            backdrop-filter: blur(12px);
-        }
-
-        /* 활성 카드 */
-        .card.active {
-            z-index: 30;
-            transform: translate(0, 0) scale(1);
-            opacity: 1;
-            filter: blur(0px);
-        }
-
-        /* 대기 카드 1 */
-        .card.next-1 {
-            z-index: 20;
-            transform: translate(14px, 14px) scale(0.96);
-            opacity: 0.4;
-            filter: blur(2px);
-        }
-
-        /* 대기 카드 2 */
-        .card.next-2 {
-            z-index: 10;
-            transform: translate(28px, 28px) scale(0.92);
-            opacity: 0.2;
-            filter: blur(4px);
-        }
-
-        /* 카드 퇴장 애니메이션 */
-        .card.exit {
-            z-index: 40;
-            transform: translate(-40px, -10px) scale(0.98); 
-            opacity: 0; 
-            filter: blur(12px); 
-            pointer-events: none;
-        }
-
-        /* ✨ 완료 카드 전용 스타일 (은은한 파스텔 옐로우) */
-        .card.success-card {
-            border: 3px solid rgba(255, 255, 255, 0.7);
-            box-shadow: 0 20px 60px -15px rgba(252, 211, 77, 0.3), inset 0 0 20px rgba(255,255,255,0.3);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Fortress Log</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:transparent;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;overflow:hidden}
+  .no-scrollbar::-webkit-scrollbar{display:none}
+  .widget-container{position:relative;width:390px;height:540px;background:linear-gradient(180deg,rgba(224,242,254,0.2) 0%,rgba(240,249,255,0.1) 100%);backdrop-filter:blur(20px);border-radius:32px;border:1px solid rgba(224,242,254,0.3);box-shadow:0 0 40px rgba(186,230,253,0.1);display:flex;flex-direction:column;overflow:hidden;color:#e0f2fe}
+  .glass-panel{background:rgba(224,242,254,0.1);backdrop-filter:blur(25px);border:1px solid rgba(224,242,254,0.2);box-shadow:0 4px 30px rgba(0,0,0,0.1);border-radius:24px;transition:all 0.3s ease}
+  .log-item{animation:slideUp 0.3s ease-out forwards;background:rgba(255,255,255,0.05);border:1px solid rgba(224,242,254,0.2);border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:space-between}
+  @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-overlay{background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;z-index:50}
+  .modal-content{background:linear-gradient(180deg,rgba(255,255,255,0.98) 0%,rgba(240,249,255,0.98) 100%);width:100%;padding:24px;border-top-left-radius:24px;border-top-right-radius:24px;color:#334155;box-shadow:0 -20px 50px rgba(186,230,253,0.2)}
+  .quest-btn,.action-btn{background:rgba(224,242,254,0.1);border:1px solid rgba(224,242,254,0.2);color:#e0f2fe;transition:all 0.2s}
+  .quest-btn:hover,.action-btn:hover{background:rgba(224,242,254,0.2);border-color:rgba(186,230,253,0.4);box-shadow:0 0 15px rgba(186,230,253,0.1);color:white}
+  .quest-btn:active{transform:scale(0.98)}.quest-btn:disabled{opacity:0.4;filter:grayscale(100%)}
+  .modal-btn{background:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.6);color:#475569;transition:all 0.2s}
+  .modal-btn:hover{background:rgba(255,255,255,1);border-color:#bae6fd;box-shadow:0 4px 15px rgba(186,230,253,0.3);transform:translateY(-2px);color:#0ea5e9}
+  .custom-select{width:100%;border-radius:12px;padding:12px;font-weight:700;outline:none;text-align:center;appearance:none;cursor:pointer;background:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.6);color:#334155;transition:all 0.2s}
+  .toast-message{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border:1px solid rgba(186,230,253,0.5);color:#bae6fd;padding:14px 28px;border-radius:30px;font-size:1.05rem;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,0.12);pointer-events:none;z-index:100;animation:fadeUp 0.3s ease-out forwards;white-space:nowrap}
+  @keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  .progress-ring__circle{transition:stroke-dashoffset 0.35s;transform:rotate(-90deg);transform-origin:50% 50%}
+  .text-sky{color:#bae6fd}.text-sky-300{color:#bae6fd}.text-dim{color:#94a3b8}.text-bright{color:#ffffff;text-shadow:0 0 10px rgba(186,230,253,0.3)}
+  .bg-sky-pastel{background-color:#bae6fd;box-shadow:0 0 10px rgba(186,230,253,0.5)}.border-sky-300\/30{border-color:rgba(186,230,253,0.3)}
+  .bg-sky-400{background-color:#38bdf8}.hover\:bg-sky-300:hover{background-color:#7dd3fc}.bg-sky-300{background-color:#7dd3fc}.hover\:bg-sky-400:hover{background-color:#38bdf8}
+  .tab-btn{transition:all 0.2s;border-radius:16px;font-weight:600;font-size:0.8rem;color:#94a3b8;letter-spacing:-0.02em}
+  .tab-active{background:rgba(186,230,253,0.2);color:#bae6fd;border:1px solid rgba(186,230,253,0.3);box-shadow:0 0 15px rgba(186,230,253,0.1)}
+  .tab-inactive:hover{color:#e0f2fe;background:rgba(255,255,255,0.05)}
+</style>
 </head>
 <body>
+<div id="root" style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;color:white;">로딩중...</div>
+<script type="text/babel">
+  const { useState, useEffect } = React;
+  // ⚠️ 본인의 워커 주소 확인
+  const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
-    <div id="root"></div>
+  const Icons = {
+    Ticket:()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+    Zap:()=><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+    Play:({className})=><svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+    Stop:({className})=><svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
+    Plus:()=><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+    CloudUpload:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+    Sun:()=><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+    Cloud:()=><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+    Rain:()=><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+    Trash:()=><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+    Droplets:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+    Utensils:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
+    Recycle:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+    Wind:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
+    Shirt:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
+    Moon:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
+    Book:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+    Zzz:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
+    More:()=><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+    Flame:()=><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
+    Waves:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
+    Leaf:({className})=><svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>
+  };
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  const App = () => {
+    const [activeTab, setActiveTab] = useState('main');
+    const [tickets, setTickets] = useState(0);
+    const [energy, setEnergy] = useState(100);
+    const [blocks, setBlocks] = useState([]);
+    const [isRecording, setIsRecording] = useState(false);
+    const [startTime, setStartTime] = useState(null);
+    const [elapsed, setElapsed] = useState(0);
+    const [showIntro, setShowIntro] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState('manual');
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+    const [toast, setToast] = useState(null);
+    const [tempSession, setTempSession] = useState(null);
+    const [visibleLogs, setVisibleLogs] = useState(3);
+    const [manualEndHour, setManualEndHour] = useState(12);
+    const [manualEndMin, setManualEndMin] = useState(0);
+    const [manualDurHour, setManualDurHour] = useState(0);
+    const [manualDurMin, setManualDurMin] = useState(30);
+    const [isSending, setIsSending] = useState(false);
 
-        // 아이콘
-        const IconZap = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
-        // ✨ 다시 흰색 불꽃 아이콘으로 변경 (사이즈 조절)
-        const IconFlame = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a5.5 5.5 0 11-11 0c0-3.042 2.235-5.5 5.106-5.5H8.5c-.552 0-1 .448-1 1z"/></svg>;
-        const IconArrowUp = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>;
-        const IconCoffee = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4 4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>;
-        const IconCheck = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
-        const IconRefresh = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>;
+    const fixedQuests = [
+      { id: 'q1', name: '씻기', icon: 'Droplets', emoji: '🚿', color: 'text-sky' },
+      { id: 'q2', name: '식사', icon: 'Utensils', emoji: '🍚', color: 'text-purple-300' },
+      { id: 'q3', name: '설거지', icon: 'Waves', emoji: '🧼', color: 'text-slate-400' },
+      { id: 'q4', name: '빨래', icon: 'Shirt', emoji: '🧺', color: 'text-slate-400' },
+      { id: 'q5', name: '분리수거', icon: 'Recycle', emoji: '🧹', color: 'text-slate-400' },
+      { id: 'q6', name: '방 쓸기', icon: 'Wind', emoji: '🪟', color: 'text-slate-400' }
+    ];
+    const restOptions = [
+      { id: 'r1', name: '독서', recovery: 20, icon: 'Book', emoji: '📚', color: 'text-sky' },
+      { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', emoji: '💤', color: 'text-slate-400' },
+      { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', emoji: '🧘', color: 'text-purple-300' },
+      { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', emoji: '🛌', color: 'text-slate-400' }
+    ].sort((a,b) => a.recovery - b.recovery);
 
-        const PHASES = {
-            START: {
-                id: 'start',
-                duration: 10, 
-                // 🎨 1단계: 부드러운 소프트 네이비 (채도 낮춤)
-                bgClass: 'bg-gradient-to-br from-[#3e5796] to-[#2a3b6b]', 
-                textClass: 'text-white',
-                accentClass: 'bg-[#3b5998] text-white hover:bg-[#2d4373]', 
-                title: 'Focus',
-                icon: <IconZap />
-            },
-            EXTENSION: {
-                id: 'extension',
-                duration: 10, 
-                // 🎨 2단계: 은은한 파스텔 스카이블루 (채도 대폭 낮춤)
-                bgClass: 'bg-gradient-to-br from-[#8fb1f2] to-[#6082B6]', 
-                textClass: 'text-white',
-                accentClass: 'bg-[#6082B6] text-white hover:bg-[#4a6999]', 
-                title: 'Extend!',
-                icon: <IconArrowUp />
-            },
-            TRANSITION: {
-                id: 'transition',
-                duration: 10, 
-                // 🎨 3단계: 아주 연한 클라우드 화이트
-                bgClass: 'bg-gradient-to-br from-[#f3f4f6] to-[#e2e8f0]', 
-                textClass: 'text-[#2a3b6b]', // 소프트 네이비 텍스트
-                accentClass: 'bg-[#334155] text-white hover:bg-[#1e293b]', 
-                title: 'Rest',
-                icon: <IconCoffee />
-            }
-        };
+    const hours24 = Array.from({length: 24}, (_, i) => i);
+    const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
+    const durationHours = [0, 1, 2, 3, 4, 5];
 
-        const PHASE_ORDER = ['start', 'extension', 'transition'];
+    const formatDuration = (min) => { const h=Math.floor(min/60); const m=min%60; return h>0 ? `${h}H ${m}M` : `${m}M`; };
+    const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-        const playSound = (type) => {
-            try {
-                const src = type === 'click' 
-                    ? 'https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3' 
-                    : 'https://assets.mixkit.co/active_storage/sfx/2044/2044-preview.mp3'; 
-                const audio = new Audio(src);
-                audio.volume = type === 'click' ? 0.3 : 0.6; 
-                audio.play().catch(() => {});
-            } catch (e) {}
-        };
+    // Data Load with Safety Check
+    useEffect(() => {
+      const today = new Date().toDateString();
+      try {
+        const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+        if (savedData.date && savedData.date !== today) {
+          setTickets(0); setEnergy(100); setBlocks([]); setShowIntro(true);
+        } else {
+          setTickets(savedData.tickets || 0);
+          setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
+          setBlocks(savedData.blocks || []);
+          setShowIntro(savedData.date !== today);
+        }
+      } catch (e) {
+        localStorage.removeItem('fortressData'); setTickets(0); setEnergy(100); setBlocks([]); setShowIntro(true);
+      }
+    }, []);
 
-        const FocusWidget = () => {
-            const [currentPhase, setCurrentPhase] = useState('start');
-            const [timeLeft, setTimeLeft] = useState(PHASES.START.duration);
-            const [isActive, setIsActive] = useState(false);
-            const [showExtensionChoice, setShowExtensionChoice] = useState(false);
-            const [showTransitionButton, setShowTransitionButton] = useState(false);
-            const [isFinished, setIsFinished] = useState(false);
-            const [exitingPhase, setExitingPhase] = useState(null);
-            const [sparkCount, setSparkCount] = useState(0);
+    useEffect(() => { if (toast) { const t = setTimeout(() => setToast(null), 2500); return () => clearTimeout(t); } }, [toast]);
 
-            useEffect(() => {
-                const savedDate = localStorage.getItem('sparkDate');
-                const today = new Date().toDateString();
-                const savedCount = parseInt(localStorage.getItem('sparkCount') || '0');
+    const triggerToast = (msg) => setToast(msg);
+    const saveData = (t, e, b) => {
+      setTickets(t); setEnergy(e); setBlocks(b);
+      localStorage.setItem('fortressData', JSON.stringify({ date: new Date().toDateString(), tickets: t, energy: e, blocks: b }));
+    };
 
-                if (savedDate !== today) {
-                    setSparkCount(0);
-                    localStorage.setItem('sparkDate', today);
-                    localStorage.setItem('sparkCount', '0');
-                } else {
-                    setSparkCount(savedCount);
-                }
-            }, []);
+    useEffect(() => {
+      let interval;
+      if (isRecording) interval = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+      return () => clearInterval(interval);
+    }, [isRecording, startTime]);
 
-            const incrementSpark = () => {
-                const newCount = sparkCount + 1;
-                setSparkCount(newCount);
-                localStorage.setItem('sparkCount', newCount.toString());
-                localStorage.setItem('sparkDate', new Date().toDateString());
-            };
+    const toggleTimer = () => {
+      if (!isRecording) {
+        if (energy <= 5) return triggerToast("⚠️ 에너지가 부족해요!");
+        setIsRecording(true); setStartTime(Date.now()); setElapsed(0);
+      } else {
+        setIsRecording(false);
+        if (elapsed < 180) { triggerToast("❄️ 점화 실패"); setElapsed(0); return; }
+        setTempSession({ startTime, endTime: Date.now(), duration: Math.ceil(elapsed / 60) });
+        setModalType('check'); setShowModal(true);
+      }
+    };
 
-            useEffect(() => {
-                let interval = null;
-                if (isActive && timeLeft > 0) {
-                    interval = setInterval(() => {
-                        setTimeLeft((t) => t - 1);
-                    }, 1000);
-                } else if (timeLeft === 0 && isActive) {
-                    setIsActive(false);
-                    playSound('finish');
-                    handlePhaseComplete();
-                }
-                return () => clearInterval(interval);
-            }, [isActive, timeLeft]);
+    const addRecord = (quality, type) => {
+      let newBlock, totalDuration;
+      if (type === 'auto') {
+        totalDuration = tempSession.duration;
+        newBlock = { id: Date.now(), type: 'focus', startTime: tempSession.startTime, endTime: tempSession.endTime, duration: totalDuration, quality, icon: '🔥', synced: false };
+      } else {
+        const now = new Date();
+        const endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+        totalDuration = (manualDurHour * 60) + manualDurMin + 3;
+        const startTs = endTs - (totalDuration * 60 * 1000);
+        newBlock = { id: Date.now(), type: 'focus', startTime: startTs, endTime: endTs, duration: totalDuration, quality, icon: '🔥', synced: false };
+      }
+      const cons = Math.floor(totalDuration / 10) * 5;
+      saveData(tickets + 1, Math.max(energy - cons, 0), [newBlock, ...blocks]);
+      setShowModal(false); triggerToast("💾 저장 완료!");
+    };
 
-            const handlePhaseComplete = () => {
-                if (currentPhase === 'start') {
-                    incrementSpark();
-                    setShowExtensionChoice(true);
-                } else if (currentPhase === 'extension') {
-                    setShowTransitionButton(true);
-                } else if (currentPhase === 'transition') {
-                    setIsFinished(true);
-                }
-            };
+    const addActionBlock = (item, type, duration) => {
+      const now = Date.now();
+      const start = now - (duration * 60 * 1000);
+      const newBlock = { id: now, type, startTime: start, endTime: now, duration, name: item.name, icon: item.emoji, synced: false };
+      let newEnergy = energy; let newTickets = tickets;
+      if (type === 'switch') {
+        if (tickets > 0) { newTickets--; newEnergy = Math.max(energy - 5, 0); triggerToast(`✨ ${item.name} 완료!`); }
+        else return triggerToast("⚠️ 티켓 부족");
+      } else {
+        newEnergy = Math.min(energy + item.recovery, 100); triggerToast(`🔋 ${item.name} (+${item.recovery}%)`);
+      }
+      saveData(newTickets, newEnergy, [newBlock, ...blocks]);
+    };
 
-            const animateTransition = (nextPhaseKey) => {
-                setExitingPhase(currentPhase);
-                setTimeout(() => {
-                    setCurrentPhase(nextPhaseKey);
-                    setTimeLeft(PHASES[nextPhaseKey.toUpperCase()].duration);
-                    setIsActive(true);
-                    setShowExtensionChoice(false);
-                    setShowTransitionButton(false);
-                    setExitingPhase(null);
-                    playSound('click');
-                }, 600);
-            };
+    const sendToNotion = async (isAuto = false) => {
+      if (!WORKER_URL || WORKER_URL.includes("your-worker")) return !isAuto && triggerToast("⚠️ URL 확인");
+      const unsynced = blocks.filter(b => !b.synced);
+      if (unsynced.length === 0) return !isAuto && triggerToast("✅ 모두 전송됨");
+      if (!isAuto) setIsSending(true);
+      try {
+        await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ blocks: unsynced }) });
+        const updated = blocks.map(b => unsynced.find(u => u.id === b.id) ? { ...b, synced: true } : b);
+        saveData(tickets, energy, updated);
+        if (!isAuto) triggerToast(`☁️ ${unsynced.length}건 전송 완료!`);
+      } catch (e) { if (!isAuto) triggerToast("⚠️ 전송 에러"); }
+      finally { if (!isAuto) setIsSending(false); }
+    };
 
-            const resetAll = () => {
-                setCurrentPhase('start');
-                setTimeLeft(PHASES.START.duration);
-                setIsActive(false);
-                setIsFinished(false);
-                setShowExtensionChoice(false);
-                setShowTransitionButton(false);
-                playSound('click');
-            };
+    useEffect(() => {
+      const timer = setInterval(() => sendToNotion(true), 10 * 60 * 1000);
+      return () => clearInterval(timer);
+    }, [blocks]);
 
-            const formatTime = (seconds) => {
-                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-                const s = (seconds % 60).toString().padStart(2, '0');
-                return `${m}:${s}`;
-            };
+    const renderIcon = (name, cls) => { const I = Icons[name] || Icons.Wind; return <I className={cls} />; };
 
-            const renderCard = (phaseKey) => {
-                const data = PHASES[phaseKey.toUpperCase()];
-                const currentIndex = PHASE_ORDER.indexOf(currentPhase);
-                const phaseIndex = PHASE_ORDER.indexOf(phaseKey);
+    const renderTimerPanel = () => {
+      const r = 36; const c = 2 * Math.PI * r;
+      const progress = elapsed < 180 ? Math.max(0, (180 - elapsed) / 180) : 1;
+      const color = elapsed < 180 ? "#bae6fd" : "#ffffff";
+      return (
+        <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-300/30">
+          <div className="flex justify-between mb-2 px-1"><span className="text-[10px] font-bold uppercase text-sky-300 tracking-wider">{isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}</span><button onClick={()=>{setModalType('manual');setShowModal(true)}} className="text-dim hover:text-bright"><Icons.Plus/></button></div>
+          <div className="flex justify-between items-center px-2 pb-1">
+            <div className="relative w-20 h-20 flex justify-center items-center">
+              <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 80 80"><circle stroke="rgba(255,255,255,0.1)" strokeWidth="6" fill="transparent" r={r} cx="40" cy="40"/><circle className="progress-ring__circle" stroke={color} strokeWidth="6" fill="transparent" r={r} cx="40" cy="40" style={{strokeDasharray:`${c} ${c}`, strokeDashoffset: c - (progress * c), strokeLinecap: "round"}}/></svg>
+              <button onClick={toggleTimer} className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex justify-center items-center shadow-lg active:scale-95 text-white z-10 ${isRecording?'bg-sky-400':'bg-sky-300'}`}>{isRecording?<Icons.Stop className="w-6 h-6"/>:<Icons.Play className="w-8 h-8 ml-1"/>}</button>
+            </div>
+            <div className="flex-1 flex justify-end text-6xl font-bold tracking-tighter text-bright items-center gap-3">
+               {isRecording && elapsed < 180 ? <Icons.Flame /> : <Icons.Waves />}
+               <span>{String(Math.floor((elapsed < 180 ? 180 - elapsed : elapsed - 180) / 60)).padStart(1,'0')}:{String((elapsed < 180 ? 180 - elapsed : elapsed - 180) % 60).padStart(2,'0')}</span>
+            </div>
+          </div>
+        </div>
+      );
+    };
 
-                let statusClass = '';
-                if (exitingPhase === phaseKey) statusClass = 'exit'; 
-                else if (currentPhase === phaseKey && !exitingPhase) statusClass = 'active'; 
-                else if (phaseIndex > currentIndex) statusClass = `next-${phaseIndex - currentIndex}`;
-                else return null;
+    if (showIntro) return (<div className="widget-container justify-center p-8 text-center space-y-8"><div><h1 className="text-2xl font-bold text-bright mb-2 font-serif">༚✧ Fortress Log ✧༚</h1><p className="text-dim text-sm">오늘의 시작 컨디션은?</p></div><div className="flex flex-col gap-3 w-full"><button onClick={()=>handleIntro(90)} className="glass-panel p-6 hover:bg-white/10 flex flex-col items-center"><Icons.Sun/><span className="mt-2 font-bold text-bright">상쾌함</span></button><button onClick={()=>handleIntro(60)} className="glass-panel p-6 hover:bg-white/10 flex flex-col items-center"><Icons.Cloud/><span className="mt-2 font-bold text-bright">보통</span></button><button onClick={()=>handleIntro(30)} className="glass-panel p-6 hover:bg-white/10 flex flex-col items-center"><Icons.Rain/><span className="mt-2 font-bold text-bright">무거움</span></button></div></div>);
 
-                const radius = 36;
-                const strokeWidth = 10;
-                const circumference = 2 * Math.PI * radius;
-                const maxDuration = data.duration;
-                const progress = timeLeft / maxDuration;
-                const dashoffset = circumference * (1 - progress);
-
-                const iconColor = phaseKey === 'transition' ? 'text-[#2a3b6b]' : 'text-white';
-                const timerColor = phaseKey === 'transition' ? 'text-[#2a3b6b]' : 'text-white';
-
-                return (
-                    <div key={phaseKey} className={`card ${data.bgClass} ${data.textClass} ${statusClass}`}>
-                        {phaseKey === 'start' && (
-                            <>
-                                {/* ✨ 점화 횟수: 사이즈 축소 및 불꽃 아이콘 복구 */}
-                                <div className="absolute top-5 left-6 flex items-center gap-1.5 py-1 px-2.5 bg-white/20 rounded-lg backdrop-blur-md shadow-sm border border-white/30 transition-all hover:bg-white/30 z-10">
-                                    <span className="text-white opacity-90"><IconFlame /></span>
-                                    <span className="text-sm font-bold tabular-nums text-white">{sparkCount}</span>
-                                </div>
-                                <div className="absolute top-5 right-6 opacity-90 text-white">
-                                    <IconZap />
-                                </div>
-                            </>
-                        )}
-
-                        <div className="relative w-24 h-24 flex-shrink-0 mr-5">
-                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                <circle className={`${timerColor} opacity-30`} strokeWidth={strokeWidth} stroke="currentColor" fill="transparent" r={radius} cx="50" cy="50" />
-                                <circle className={`${timerColor} timer-circle drop-shadow-sm`} strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={dashoffset} strokeLinecap="round" stroke="currentColor" fill="transparent" r={radius} cx="50" cy="50" />
-                            </svg>
-                        </div>
-                        <div className="flex-1 flex flex-col justify-center h-full mt-6">
-                            <div className="flex justify-between items-center mb-1 opacity-90">
-                                <span className="text-sm font-bold uppercase tracking-widest">{data.title}</span>
-                                {phaseKey !== 'start' && (
-                                    <div className={`p-2 rounded-full backdrop-blur-sm shadow-sm ${iconColor} bg-white/20`}>{data.icon}</div>
-                                )}
-                            </div>
-                            <div className="text-5xl font-bold tracking-tight leading-none tabular-nums mb-5 drop-shadow-sm opacity-95">
-                                {formatTime(timeLeft)}
-                            </div>
-                            <div className="w-full h-12"> 
-                                {!showExtensionChoice && !showTransitionButton && (
-                                    phaseKey === 'transition' ? (
-                                        <div className="flex gap-2 h-full items-center">
-                                            <div className="text-sm font-bold opacity-80 flex items-center gap-1">💧 Water</div>
-                                            <div className="text-sm font-bold opacity-80 flex items-center gap-1">📖 Read</div>
-                                            <button onClick={() => setIsFinished(true)} className="ml-auto px-5 py-2.5 bg-black/5 hover:bg-black/10 rounded-xl text-sm font-bold transition-colors">Done</button>
-                                        </div>
-                                    ) : (
-                                        <button onClick={() => { setIsActive(!isActive); playSound('click'); }} className={`w-full h-full rounded-2xl text-base font-bold shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 ${data.accentClass}`}>
-                                            {isActive ? "Pause" : "Start"}
-                                        </button>
-                                    )
-                                )}
-                                {showExtensionChoice && (
-                                    <div className="flex gap-3 h-full">
-                                        <button onClick={() => animateTransition('extension')} className={`flex-1 rounded-2xl text-base font-bold shadow-md transition-all active:scale-95 ${data.accentClass}`}>+5 min</button>
-                                        <button onClick={() => animateTransition('transition')} className="px-6 bg-white/20 hover:bg-white/30 text-white rounded-2xl text-sm font-bold transition-colors shadow-sm backdrop-blur-md">Skip</button>
-                                    </div>
-                                )}
-                                {showTransitionButton && phaseKey === 'extension' && (
-                                    <button onClick={() => animateTransition('transition')} className="w-full h-full rounded-2xl text-base font-bold shadow-md transition-all active:scale-95 bg-white text-[#2a3b6b] hover:bg-blue-50 flex items-center justify-center gap-2">
-                                        Start Rest ☕️
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            return (
-                <div className="card-container">
-                    {!isFinished ? (
-                        <>
-                            {PHASE_ORDER.slice().reverse().map(phase => renderCard(phase))}
-                        </>
-                    ) : (
-                        // ✨ 완료 화면: 은은한 크림/피치 파스텔 그라데이션
-                        <div className="card active success-card bg-gradient-to-br from-[#fef08a] via-[#fde047] to-[#facc15] p-6 flex flex-col items-center justify-center text-[#2a3b6b]">
-                            <div className="w-20 h-20 bg-white/40 text-white rounded-full flex items-center justify-center mb-3 shadow-lg backdrop-blur-md border border-white/50">
-                                <IconCheck />
-                            </div>
-                            <h2 className="text-3xl font-extrabold mb-1 tracking-tight text-white drop-shadow-sm" style={{textShadow: '0 1px 2px rgba(0,0,0,0.1)'}}>Session Complete!</h2>
-                            <p className="text-white/90 text-sm font-medium mb-5">Refreshed & Ready for next.</p>
-                            {/* 버튼: 소프트 골드/브라운 */}
-                            <button onClick={resetAll} className="flex items-center gap-2 px-8 py-3 bg-[#b45309] hover:bg-[#92400e] text-white rounded-full text-sm font-bold shadow-xl transition-all active:scale-95">
-                                <IconRefresh /> Reset Widget
-                            </button>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<FocusWidget />);
-    </script>
+    return (
+      <div className="widget-container">
+        {toast && <div className="toast-message">{toast}</div>}
+        <div className="p-6 pb-2 flex justify-between items-center">
+          <div><h1 className="text-xl font-bold text-bright font-serif">༚✧ Fortress Log ✧༚</h1><div className="flex gap-4 text-xs font-bold text-dim mt-1"><div className="flex gap-1"><Icons.Ticket/><span>{tickets}</span></div><div className="flex gap-1"><Icons.Zap/><span className="text-sky">{energy}%</span></div></div></div>
+          <button onClick={()=>sendToNotion(false)} disabled={isSending} className={`w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex justify-center items-center text-sky hover:bg-white/20 shadow-sm ${blocks.every(b=>b.synced)?'opacity-50':'opacity-100'}`}><Icons.CloudUpload/></button>
+        </div>
+        <div className="px-6 mb-4"><div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full transition-all duration-500 bg-sky-pastel" style={{width:`${energy}%`}}></div></div></div>
+        <div className="px-6 flex gap-2 mb-4">{['main','niche','rest'].map(t=><button key={t} onClick={()=>setActiveTab(t)} className={`flex-1 py-3 tab-btn ${activeTab===t?'tab-active':'tab-inactive'}`}>{t==='main'?'Timeline':t==='niche'?'Switch':'Rest'}</button>)}</div>
+        <div className="flex-1 px-6 pb-6 overflow-hidden flex flex-col">
+          {activeTab==='main' && <div className="flex flex-col h-full">{renderTimerPanel()}<div className="flex-1 overflow-y-auto no-scrollbar space-y-3">{blocks.length===0?<div className="text-center text-dim py-12 text-sm italic">기록 없음</div>:blocks.slice(0,visibleLogs).map(b=><div key={b.id} className="log-item"><div className="mr-4">{b.quality==='Sun'?<Icons.Sun/>:b.quality==='Cloud'?<Icons.Cloud/>:<Icons.Rain/>}</div><div className="flex-1"><div className="text-lg font-bold text-bright">Total {formatDuration(b.duration)}</div><div className="text-xs text-dim">{formatTimeStr(b.startTime)} ~ {formatTimeStr(b.endTime)}</div></div><button onClick={()=>confirmDelete(b.id)} className="text-dim hover:text-bright p-2"><Icons.Trash/></button></div>)}{blocks.length>visibleLogs&&<button onClick={()=>setVisibleLogs(v=>v+3)} className="w-full py-3 text-dim font-bold text-sm"><Icons.More/></button>}</div></div>}
+          {activeTab==='niche' && <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">{fixedQuests.map(q=><button key={q.id} onClick={()=>addActionBlock(q,'switch',10)} disabled={tickets===0} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 group">{renderIcon(q.icon,`w-7 h-7 ${q.color}`)}<span className="mt-2 text-xs font-bold text-bright">{q.name}</span></button>)}</div>}
+          {activeTab==='rest' && <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">{restOptions.map(r=><button key={r.id} onClick={()=>addActionBlock(r,'rest',30)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 group">{renderIcon(r.icon,`w-7 h-7 ${r.color}`)}<div className="flex items-center gap-1.5 mt-1.5"><span className="text-xs font-bold text-bright">{r.name}</span><span className="text-[10px] font-bold text-sky-300">+{r.recovery}%</span></div></button>)}</div>}
+        </div>
+        {showModal && <div className="modal-overlay" onClick={()=>setShowModal(false)}><div className="modal-content" onClick={e=>e.stopPropagation()}>{modalType==='delete'?<div className="text-center"><h3 className="text-lg font-bold mb-2">기록 삭제</h3><div className="flex gap-3 mt-4"><button onClick={()=>setShowModal(false)} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold">취소</button><button onClick={executeDelete} className="flex-1 py-3 bg-slate-200 text-slate-600 rounded-xl font-bold">삭제</button></div></div>:<><h3 className="text-lg font-bold mb-4 text-center italic">Check</h3>{modalType==='manual'&&<div className="space-y-3 mb-5"><div className="flex justify-between items-center"><label className="font-bold text-sm">종료</label><div className="flex gap-2"><select className="custom-select" value={manualEndHour} onChange={e=>setManualEndHour(Number(e.target.value))}>{hours24.map(h=><option key={h} value={h}>{h}시</option>)}</select><select className="custom-select" value={manualEndMin} onChange={e=>setManualEndMin(Number(e.target.value))}>{minutes5.map(m=><option key={m} value={m}>{m}분</option>)}</select></div></div><div className="flex justify-between items-center"><label className="font-bold text-sm">시간</label><div className="flex gap-2"><select className="custom-select" value={manualDurHour} onChange={e=>setManualDurHour(Number(e.target.value))}>{durationHours.map(h=><option key={h} value={h}>{h}시간</option>)}</select><select className="custom-select" value={manualDurMin} onChange={e=>setManualDurMin(Number(e.target.value))}>{minutes5.map(m=><option key={m} value={m}>{m}분</option>)}</select></div></div></div>}<div className="grid grid-cols-3 gap-3"><button onClick={()=>addRecord('Sun',modalType)} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Sun/><span className="text-xs font-bold mt-1">Clear</span></button><button onClick={()=>addRecord('Cloud',modalType)} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Cloud/><span className="text-xs font-bold mt-1">Cloudy</span></button><button onClick={()=>addRecord('Rain',modalType)} className="modal-btn p-3 rounded-2xl flex flex-col items-center"><Icons.Rain/><span className="text-xs font-bold mt-1">Heavy</span></button></div></>}</div></div>}
+      </div>
+    );
+  };
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App />);
+</script>
 </body>
 </html>
