@@ -29,7 +29,7 @@
             position: relative;
             width: 100%;
             max-width: 400px;
-            height: 640px; 
+            height: 640px;
             background: linear-gradient(180deg, rgba(125, 211, 252, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
             backdrop-filter: blur(14px);
             border-radius: 24px;
@@ -141,12 +141,10 @@
             Stop: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            
             Sun: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: () => <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
             Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            
             Droplets: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -210,23 +208,17 @@
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
-                // ✅ 날짜 변경 체크 및 History 저장 로직
                 if (savedData.date && savedData.date !== today) {
-                    // 데이터가 있고 오늘 날짜가 아니면 History에 저장
                     if (savedData.blocks && savedData.blocks.length > 0) {
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                        // 중복 방지 (같은 날짜가 이미 있는지 확인)
                         if (!history.some(h => h.date === savedData.date)) {
                             history.push(savedData);
-                            // 최근 7일치만 보관
                             if (history.length > 7) history.shift();
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
                     }
-                    // 리셋
                     setTickets(0); setEnergy(100); setBlocks([]); setShowIntro(true);
                 } else {
-                    // 오늘 날짜 데이터 불러오기
                     setTickets(savedData.tickets || 0);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
@@ -319,13 +311,21 @@
                     newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
                 }
 
-                let newEnergy;
-                let msg;
+                // ✅ 수정된 에너지 로직: 수동 입력은 10분 미만도 허용 (페널티 없음)
+                let newEnergy = energy;
+                let msg = "💾 저장 완료!";
 
                 if (totalDuration < 10) {
-                    newEnergy = 20; 
-                    msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
+                    if (type === 'auto') {
+                        // 타이머: 10분 미만 -> 실패(페널티)
+                        newEnergy = 20; 
+                        msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
+                    } else {
+                        // 수동: 10분 미만 -> 정상 저장 (페널티 X)
+                        msg = "💾 짧은 기록 저장 완료!";
+                    }
                 } else {
+                    // 10분 이상 (공통)
                     const consumption = Math.floor(totalDuration / 10) * 5;
                     newEnergy = Math.max(energy - consumption, 0);
                     msg = `💾 저장 완료! (Energy -${consumption}%)`;
@@ -362,49 +362,9 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery})`);
             };
 
-            // ✅ 개별 데이터셋 전송 함수 (Helper)
-            const sendDataset = async (dataset) => {
-                // 1. Dominant Quality
-                const getDominant = (list) => {
-                    if (list.length === 0) return null;
-                    const counts = { Sun: 0, Cloud: 0, Rain: 0 };
-                    list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
-                    if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
-                    if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
-                    return 'Sun';
-                };
-
-                // 2. Filter Time Blocks
-                const mornBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 6 && h < 12; });
-                const aftBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
-                const nightBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18 || h < 6; });
-
-                // 3. Calculate Values
-                const payload = {
-                    date: new Date(dataset.date).toISOString().split('T')[0], // Convert Date String to YYYY-MM-DD
-                    quality: getDominant(dataset.blocks),
-                    total: dataset.blocks.reduce((acc, b) => acc + b.duration, 0),
-                    morning: mornBlocks.reduce((acc, b) => acc + b.duration, 0),
-                    afternoon: aftBlocks.reduce((acc, b) => acc + b.duration, 0),
-                    night: nightBlocks.reduce((acc, b) => acc + b.duration, 0),
-                    q_morn: getDominant(mornBlocks),
-                    q_aft: getDominant(aftBlocks),
-                    q_night: getDominant(nightBlocks)
-                };
-
-                // 4. Send API Request
-                await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-            };
-
-            // ✅ 메인 전송 함수 (오늘 + 과거 2일치 전송)
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
-                // 오늘 데이터라도 있으면 전송 시작
                 if (blocks.length === 0) {
                     triggerToast("⚠️ 전송할 기록이 없어요!");
                     return;
@@ -413,42 +373,62 @@
                 setIsSending(true);
                 let successCount = 0;
 
+                // Helper: Dataset Sender
+                const sendDataset = async (dataset) => {
+                    const getDominant = (list) => {
+                        if (list.length === 0) return null;
+                        const counts = { Sun: 0, Cloud: 0, Rain: 0 };
+                        list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
+                        if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
+                        if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
+                        return 'Sun';
+                    };
+
+                    const mornBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 6 && h < 12; });
+                    const aftBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
+                    const nightBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18 || h < 6; });
+
+                    const payload = {
+                        date: new Date(dataset.date).toISOString().split('T')[0],
+                        quality: getDominant(dataset.blocks),
+                        total: dataset.blocks.reduce((acc, b) => acc + b.duration, 0),
+                        morning: mornBlocks.reduce((acc, b) => acc + b.duration, 0),
+                        afternoon: aftBlocks.reduce((acc, b) => acc + b.duration, 0),
+                        night: nightBlocks.reduce((acc, b) => acc + b.duration, 0),
+                        q_morn: getDominant(mornBlocks),
+                        q_aft: getDominant(aftBlocks),
+                        q_night: getDominant(nightBlocks)
+                    };
+
+                    await fetch(WORKER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    });
+                };
+
                 try {
-                    // 1️⃣ 오늘 데이터 전송
                     await sendDataset({ date: new Date().toDateString(), blocks: blocks });
                     successCount++;
 
-                    // 2️⃣ 과거 데이터(History) 확인 및 전송
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     const today = new Date();
-                    
-                    // 어제 날짜
                     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                    const yStr = yesterday.toDateString();
-                    
-                    // 그저께 날짜
                     const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    const dbStr = dayBefore.toDateString();
+                    
+                    const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
 
-                    // History에서 어제/그저께 데이터 찾기
-                    const pastData = history.filter(h => h.date === yStr || h.date === dbStr);
-
-                    // 과거 데이터 순차 전송
                     for (const data of pastData) {
                         if (data.blocks && data.blocks.length > 0) {
                             await sendDataset(data);
                             successCount++;
                         }
                     }
-
                     triggerToast(`☁️ 총 ${successCount}건 전송 완료!`);
-
                 } catch(e) { 
-                    triggerToast("⚠️ 전송 중 에러 발생"); 
+                    triggerToast("⚠️ 전송 중 에러"); 
                     console.error(e);
-                } finally { 
-                    setIsSending(false); 
-                }
+                } finally { setIsSending(false); }
             };
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
