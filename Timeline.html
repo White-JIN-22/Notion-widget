@@ -1,368 +1,223 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bio-Rhythm Timetable</title>
-<style>
-  :root {
-    --bg-color: #1a1a1a;
-    --text-color: #f2f2f2;
-    --line-color: rgba(255,255,255,0.1);
-    --golden-time: rgba(76, 175, 80, 0.15); /* 10-12시 */
-    --danger-zone: rgba(255, 82, 82, 0.1);  /* 15-17시 */
-  }
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortress Timeline</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  body {
-    background: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 20px;
-    height: 100vh;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
+    <style>
+        body {
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    padding: 0 10px;
-  }
-  .header h2 { margin: 0; font-size: 1.2rem; }
-  .controls button {
-    background: #333;
-    border: none;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .controls button:hover { background: #444; }
+        /* 🧊 Icy Blue Glass Theme (Consistent with Main Widget) */
+        .widget-container {
+            position: relative;
+            width: 390px; 
+            height: 540px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            border-radius: 32px;
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #334155;
+        }
 
-  /* 시간표 그리드 */
-  .timetable {
-    display: grid;
-    grid-template-columns: 50px repeat(7, 1fr); /* 시간축 + 7일 */
-    height: calc(100% - 50px);
-    overflow-y: auto;
-    position: relative;
-    border-top: 1px solid var(--line-color);
-  }
+        .timeline-card {
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-  /* 시간축 */
-  .time-col {
-    border-right: 1px solid var(--line-color);
-    font-size: 0.75rem;
-    color: #888;
-    text-align: right;
-    padding-right: 8px;
-  }
-  .time-slot {
-    height: 60px; /* 1시간 높이 */
-    position: relative;
-  }
-  .time-slot span {
-    position: absolute;
-    top: -6px;
-    right: 8px;
-  }
+        /* Weather Colors */
+        .weather-sun { background: linear-gradient(135deg, rgba(186, 230, 253, 0.4), rgba(125, 211, 252, 0.2)); border-left: 4px solid #38bdf8; }
+        .weather-cloud { background: linear-gradient(135deg, rgba(203, 213, 225, 0.3), rgba(148, 163, 184, 0.1)); border-left: 4px solid #94a3b8; }
+        .weather-rain { background: linear-gradient(135deg, rgba(196, 181, 253, 0.3), rgba(167, 139, 250, 0.1)); border-left: 4px solid #818cf8; }
 
-  /* 요일 컬럼 */
-  .day-col {
-    border-right: 1px solid var(--line-color);
-    position: relative;
-  }
-  
-  /* 요일 헤더 */
-  .day-header {
-    text-align: center;
-    font-size: 0.9rem;
-    padding: 5px;
-    border-bottom: 1px solid var(--line-color);
-    background: #252525;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  .day-header.today { color: #5ab0ff; font-weight: bold; }
-
-  /* 배경 에너지 존 (바이오리듬) */
-  .bg-zone {
-    position: absolute;
-    left: 0; right: 0;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .zone-golden {
-    top: 180px; /* 10:00 (7시 시작 기준 3시간 뒤 * 60px) */
-    height: 120px; /* 2시간 */
-    background: var(--golden-time);
-    border-left: 3px solid #4caf50;
-  }
-  .zone-golden::after {
-    content: "Golden Time";
-    font-size: 0.7rem;
-    color: #4caf50;
-    opacity: 0.7;
-    position: absolute;
-    top: 2px; left: 4px;
-  }
-
-  .zone-danger {
-    top: 480px; /* 15:00 (7시 시작 기준 8시간 뒤) */
-    height: 120px; /* 2시간 */
-    background: repeating-linear-gradient(
-      45deg,
-      var(--danger-zone),
-      var(--danger-zone) 10px,
-      rgba(255,255,255,0.02) 10px,
-      rgba(255,255,255,0.02) 20px
-    );
-    border-left: 3px solid #ff5252;
-  }
-  .zone-danger::after {
-    content: "Danger Zone (Rest)";
-    font-size: 0.7rem;
-    color: #ff5252;
-    opacity: 0.7;
-    position: absolute;
-    top: 2px; left: 4px;
-  }
-
-  /* 일정 박스 */
-  .event-block {
-    position: absolute;
-    left: 4px; right: 4px;
-    padding: 4px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    overflow: hidden;
-    color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    z-index: 1;
-    cursor: pointer;
-  }
-  .event-block:hover { z-index: 10; transform: scale(1.02); transition: 0.2s; }
-  
-  /* 색상 테마 */
-  .red { background: rgba(244, 67, 54, 0.7); border-left: 3px solid #f44336; }
-  .orange { background: rgba(255, 152, 0, 0.7); border-left: 3px solid #ff9800; }
-  .blue { background: rgba(33, 150, 243, 0.7); border-left: 3px solid #2196f3; }
-  .green { background: rgba(76, 175, 80, 0.7); border-left: 3px solid #4caf50; }
-
-</style>
+        .footer-blur {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .font-serif-italic { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; font-style: italic; }
+    </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="controls">
-    <button id="prevWeek">❮</button>
-  </div>
-  <h2 id="weekRange"></h2>
-  <div class="controls">
-    <button id="todayBtn">Today</button>
-    <button id="nextWeek">❯</button>
-  </div>
-</div>
+    <div id="root"></div>
 
-<div class="timetable" id="timetable">
-  <div class="time-col" id="timeLabels"></div>
-  </div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-<script>
-// 1. 설정 및 데이터
-const proxy = "https://ical-proxy.moonkelly601.workers.dev/";
-const calendars = {
-  red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
-  orange: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
-  blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
-  green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
-};
+        const Icons = {
+            Sun: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Cloud: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Rain: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Clock: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
+            Refresh: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+        };
 
-let currentWeekStart = getMonday(new Date());
-let events = []; // { title, start, end, color }
+        const App = () => {
+            const [blocks, setBlocks] = useState([]);
+            const [todayStr, setTodayStr] = useState('');
+            const [totalDuration, setTotalDuration] = useState(0);
 
-// 시작 시간 설정 (아침 7시 ~ 밤 12시)
-const START_HOUR = 7;
-const END_HOUR = 24; 
-const HOUR_HEIGHT = 60; // 1시간당 픽셀 높이
+            const loadData = () => {
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const now = new Date();
+                const today = now.toDateString();
+                
+                // 오늘 날짜와 다르면 초기화된 상태로 보임 (데이터 없음)
+                if (savedData.date === today && savedData.blocks) {
+                    // 시간순 정렬 (최신이 위로 오지만, 타임라인은 과거->현재 순서가 자연스러울 수 있음. 
+                    // 하지만 요약형이므로 최신순(내림차순)으로 배치하되 시각적 연결)
+                    // 여기서는 '하루의 흐름'을 보기 위해 오름차순(아침->밤)으로 정렬
+                    const sorted = [...savedData.blocks].sort((a, b) => a.startTime - b.startTime);
+                    setBlocks(sorted);
+                    
+                    const total = sorted.reduce((acc, curr) => acc + curr.duration, 0);
+                    setTotalDuration(total);
+                } else {
+                    setBlocks([]);
+                    setTotalDuration(0);
+                }
+                
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+                const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][now.getDay()];
+                setTodayStr(`${month}/${date} ${day}`);
+            };
 
-// 2. 유틸리티 함수
-function getMonday(d) {
-  d = new Date(d);
-  const day = d.getDay(),
-      diff = d.getDate() - day + (day == 0 ? -6 : 1); 
-  d.setDate(diff);
-  d.setHours(0,0,0,0);
-  return d;
-}
+            useEffect(() => {
+                loadData();
+                // 1분마다 자동 갱신 (Notion 임베드 시 도움됨)
+                const interval = setInterval(loadData, 60000); 
+                return () => clearInterval(interval);
+            }, []);
 
-function parseICSDate(icsDate) {
-  if (!icsDate) return null;
-  // YYYYMMDDTHHMMSSZ 형태 파싱
-  const year = icsDate.substring(0, 4);
-  const month = icsDate.substring(4, 6);
-  const day = icsDate.substring(6, 8);
-  const hour = icsDate.includes('T') ? icsDate.substring(9, 11) : '00';
-  const min = icsDate.includes('T') ? icsDate.substring(11, 13) : '00';
-  
-  // 한국 시간 보정 (UTC -> KST 필요시 로직 추가, 여기선 단순 파싱)
-  // iCal 데이터가 보통 UTC면 +9시간 해줘야 함. 
-  // 심플함을 위해 로컬 시간으로 간주하거나 필요시 조정.
-  // 이 코드는 단순히 문자열을 Date 객체로 만듦.
-  return new Date(year, month - 1, day, hour, min);
-}
+            const formatTime = (ts) => {
+                const d = new Date(ts);
+                return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+            };
 
-// 3. 데이터 가져오기 및 파싱
-async function fetchAllCalendars() {
-  events = [];
-  for (const [color, url] of Object.entries(calendars)) {
-    try {
-      const response = await fetch(`${proxy}?url=${encodeURIComponent(url)}`);
-      const text = await response.text();
-      parseICS(color, text);
-    } catch (e) { console.error(e); }
-  }
-  renderTimetable();
-}
+            const formatTotalTime = (min) => {
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                return h > 0 ? `${h}H ${m}M` : `${m}Min`;
+            };
 
-function parseICS(color, text) {
-  const lines = text.split("\n");
-  let event = {};
-  
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith("BEGIN:VEVENT")) event = { color };
-    else if (trimmed.startsWith("DTSTART")) event.startRaw = trimmed.split(":")[1];
-    else if (trimmed.startsWith("DTEND")) event.endRaw = trimmed.split(":")[1];
-    else if (trimmed.startsWith("SUMMARY")) event.title = trimmed.split(":")[1];
-    else if (trimmed.startsWith("END:VEVENT")) {
-      if (event.startRaw) {
-        let startTime = parseICSDate(event.startRaw);
-        let endTime = event.endRaw ? parseICSDate(event.endRaw) : new Date(startTime.getTime() + 60*60*1000); // 기본 1시간
-        
-        // UTC to KST (간단 보정: 'Z'로 끝나면 9시간 더하기)
-        if (event.startRaw.endsWith('Z')) {
-            startTime = new Date(startTime.getTime() + 9*60*60*1000);
-            endTime = new Date(endTime.getTime() + 9*60*60*1000);
-        }
+            // 총 시간에 따른 격려/상태 메시지 (시스템/구조적 언어 사용)
+            const getMessage = (min) => {
+                if (min === 0) return "시스템 대기 중. 점화 준비 완료.";
+                if (min < 60) return "초기 시스템 가동. 예열 구간입니다.";
+                if (min < 180) return "안정적 흐름. 리듬이 잡히고 있습니다.";
+                if (min < 300) return "고효율 구간 진입. 9층 요새 견고함.";
+                return "최적화 상태 도달. 충분한 휴식을 권장합니다.";
+            };
 
-        events.push({
-          title: event.title,
-          start: startTime,
-          end: endTime,
-          color: event.color
-        });
-      }
-    }
-  }
-}
+            return (
+                <div className="widget-container">
+                    {/* Header */}
+                    <div className="px-6 pt-7 pb-4 flex justify-between items-end border-b border-white/30">
+                        <div>
+                            <div className="text-sky-400 text-xs font-bold tracking-widest uppercase mb-1">Daily Report</div>
+                            <h1 className="text-2xl font-bold text-slate-700 font-serif-italic tracking-tight">
+                                ༚✧ Timeline
+                            </h1>
+                        </div>
+                        <div className="text-right">
+                            <div className="text-slate-400 text-xs font-medium mb-1">{todayStr}</div>
+                            <button onClick={loadData} className="p-2 rounded-full hover:bg-white/40 text-sky-400 transition-colors">
+                                <Icons.Refresh />
+                            </button>
+                        </div>
+                    </div>
 
-// 4. 렌더링
-function renderTimetable() {
-  const container = document.getElementById("timetable");
-  const timeLabels = document.getElementById("timeLabels");
-  const headerText = document.getElementById("weekRange");
-  
-  // 초기화 (시간축 제외하고 내용 지우기)
-  container.innerHTML = '';
-  container.appendChild(timeLabels);
+                    {/* Timeline Body */}
+                    <div className="flex-1 overflow-y-auto no-scrollbar p-5 space-y-3 relative">
+                        {/* Vertical Line Decoration */}
+                        <div className="absolute left-9 top-0 bottom-0 w-[1px] bg-slate-200/50 -z-10"></div>
 
-  // 시간축 그리기 (최초 1회 혹은 매번)
-  timeLabels.innerHTML = '';
-  for (let h = START_HOUR; h < END_HOUR; h++) {
-    const div = document.createElement("div");
-    div.className = "time-slot";
-    div.innerHTML = `<span>${h}:00</span>`;
-    timeLabels.appendChild(div);
-  }
+                        {blocks.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
+                                <span className="text-4xl mb-2">🔭</span>
+                                <span className="text-xs">기록된 데이터가 없습니다.</span>
+                            </div>
+                        ) : (
+                            blocks.map((block, index) => (
+                                <div 
+                                    key={block.id} 
+                                    className={`timeline-card relative flex items-center p-3 pr-4 rounded-xl border border-white/40 shadow-sm
+                                        ${block.quality === 'Sun' ? 'weather-sun' : block.quality === 'Cloud' ? 'weather-cloud' : 'weather-rain'}
+                                    `}
+                                    style={{ animationDelay: `${index * 0.05}s` }}
+                                >
+                                    {/* Icon Box */}
+                                    <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-white/40 rounded-full mr-3 backdrop-blur-sm shadow-sm">
+                                        {block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />}
+                                    </div>
 
-  // 날짜 헤더 설정
-  const weekEnd = new Date(currentWeekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
-  headerText.textContent = `${currentWeekStart.getMonth()+1}.${currentWeekStart.getDate()} - ${weekEnd.getMonth()+1}.${weekEnd.getDate()}`;
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-baseline mb-0.5">
+                                            <span className="text-slate-700 font-bold text-sm">
+                                                {block.quality === 'Sun' ? 'Clear Focus' : block.quality === 'Cloud' ? 'Cloudy Flow' : 'Heavy Duty'}
+                                            </span>
+                                            <span className="text-slate-500 text-xs font-mono">{block.duration} min</span>
+                                        </div>
+                                        <div className="flex items-center text-slate-400 text-[11px] gap-1">
+                                            <Icons.Clock />
+                                            <span>{formatTime(block.startTime)} ~ {formatTime(block.endTime)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                        <div className="h-4"></div> {/* Bottom Spacing */}
+                    </div>
 
-  // 7일 컬럼 생성
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  
-  for (let i = 0; i < 7; i++) {
-    const currentDay = new Date(currentWeekStart);
-    currentDay.setDate(currentDay.getDate() + i);
-    
-    const col = document.createElement("div");
-    col.className = "day-col";
-    
-    // 요일 헤더
-    const dayHeader = document.createElement("div");
-    dayHeader.className = "day-header";
-    const today = new Date();
-    if (currentDay.getDate() === today.getDate() && currentDay.getMonth() === today.getMonth()) {
-      dayHeader.classList.add("today");
-    }
-    dayHeader.innerHTML = `${days[i]}<br>${currentDay.getDate()}`;
-    col.appendChild(dayHeader);
+                    {/* Footer Stats */}
+                    <div className="footer-blur px-6 py-5">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-slate-500 text-xs font-bold uppercase tracking-wide">Total Time</span>
+                            <span className="text-2xl font-bold text-sky-500 font-mono tracking-tighter">
+                                {formatTotalTime(totalDuration)}
+                            </span>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xs text-slate-500 font-medium bg-white/50 py-2 px-3 rounded-lg border border-white/60 inline-block w-full">
+                                {getMessage(totalDuration)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-    // 배경 에너지 존 (10~12, 15~17)
-    const goldenZone = document.createElement("div");
-    goldenZone.className = "bg-zone zone-golden";
-    col.appendChild(goldenZone);
-
-    const dangerZone = document.createElement("div");
-    dangerZone.className = "bg-zone zone-danger";
-    col.appendChild(dangerZone);
-
-    // 이벤트 배치
-    const dayEvents = events.filter(e => 
-      e.start.getDate() === currentDay.getDate() &&
-      e.start.getMonth() === currentDay.getMonth() &&
-      e.start.getFullYear() === currentDay.getFullYear()
-    );
-
-    dayEvents.forEach(ev => {
-      const startH = ev.start.getHours();
-      const startM = ev.start.getMinutes();
-      const endH = ev.end.getHours();
-      const endM = ev.end.getMinutes();
-
-      // 시작 시간이 범위 밖이면 스킵하거나 조정
-      if (startH < START_HOUR) return; 
-
-      const top = (startH - START_HOUR) * HOUR_HEIGHT + (startM / 60) * HOUR_HEIGHT;
-      const durationMin = (ev.end - ev.start) / (1000 * 60);
-      const height = (durationMin / 60) * HOUR_HEIGHT;
-
-      const el = document.createElement("div");
-      el.className = `event-block ${ev.color}`;
-      el.style.top = `${top + 35}px`; // 헤더 높이만큼 보정 필요 (약 35px)
-      el.style.height = `${height}px`;
-      el.textContent = ev.title;
-      col.appendChild(el);
-    });
-
-    container.appendChild(col);
-  }
-}
-
-// 5. 이벤트 리스너
-document.getElementById("prevWeek").onclick = () => {
-  currentWeekStart.setDate(currentWeekStart.getDate() - 7);
-  renderTimetable();
-};
-document.getElementById("nextWeek").onclick = () => {
-  currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-  renderTimetable();
-};
-document.getElementById("todayBtn").onclick = () => {
-  currentWeekStart = getMonday(new Date());
-  renderTimetable();
-};
-
-// 실행
-fetchAllCalendars();
-
-</script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
