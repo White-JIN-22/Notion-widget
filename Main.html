@@ -311,21 +311,17 @@
                     newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
                 }
 
-                // ✅ 수정된 에너지 로직: 수동 입력은 10분 미만도 허용 (페널티 없음)
                 let newEnergy = energy;
                 let msg = "💾 저장 완료!";
 
                 if (totalDuration < 10) {
                     if (type === 'auto') {
-                        // 타이머: 10분 미만 -> 실패(페널티)
                         newEnergy = 20; 
                         msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
                     } else {
-                        // 수동: 10분 미만 -> 정상 저장 (페널티 X)
                         msg = "💾 짧은 기록 저장 완료!";
                     }
                 } else {
-                    // 10분 이상 (공통)
                     const consumption = Math.floor(totalDuration / 10) * 5;
                     newEnergy = Math.max(energy - consumption, 0);
                     msg = `💾 저장 완료! (Energy -${consumption}%)`;
@@ -373,7 +369,6 @@
                 setIsSending(true);
                 let successCount = 0;
 
-                // Helper: Dataset Sender
                 const sendDataset = async (dataset) => {
                     const getDominant = (list) => {
                         if (list.length === 0) return null;
@@ -384,6 +379,24 @@
                         return 'Sun';
                     };
 
+                    // ✅ 시간 분할 로직 (1분 단위로 쪼개서 통에 담기)
+                    let mornMin = 0, aftMin = 0, nightMin = 0;
+                    const totalMinutes = dataset.blocks.reduce((acc, b) => acc + b.duration, 0);
+
+                    // 1. 각 블록을 1분 단위로 쪼개서 어느 시간대에 속하는지 카운트
+                    dataset.blocks.forEach(b => {
+                        for (let i = 0; i < b.duration; i++) {
+                            // 블록 시작 시간부터 1분씩 더해가며 확인
+                            const currentMinTime = b.startTime + (i * 60 * 1000);
+                            const h = new Date(currentMinTime).getHours();
+
+                            if (h >= 6 && h < 12) mornMin++;
+                            else if (h >= 12 && h < 18) aftMin++;
+                            else nightMin++;
+                        }
+                    });
+
+                    // 2. 시간대별 블록 그룹핑 (Dominant Quality 용)
                     const mornBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 6 && h < 12; });
                     const aftBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
                     const nightBlocks = dataset.blocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18 || h < 6; });
@@ -391,10 +404,10 @@
                     const payload = {
                         date: new Date(dataset.date).toISOString().split('T')[0],
                         quality: getDominant(dataset.blocks),
-                        total: dataset.blocks.reduce((acc, b) => acc + b.duration, 0),
-                        morning: mornBlocks.reduce((acc, b) => acc + b.duration, 0),
-                        afternoon: aftBlocks.reduce((acc, b) => acc + b.duration, 0),
-                        night: nightBlocks.reduce((acc, b) => acc + b.duration, 0),
+                        total: totalMinutes,
+                        morning: mornMin, 
+                        afternoon: aftMin, 
+                        night: nightMin,
                         q_morn: getDominant(mornBlocks),
                         q_aft: getDominant(aftBlocks),
                         q_night: getDominant(nightBlocks)
