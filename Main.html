@@ -28,7 +28,8 @@
         .widget-container {
             position: relative;
             width: 390px; 
-            height: 760px;
+            /* ✅ 높이 수정: 760px -> 540px (약 30% 축소) */
+            height: 540px;
             background: linear-gradient(180deg, rgba(125, 211, 252, 0.05) 0%, rgba(0, 0, 0, 0.05) 100%);
             backdrop-filter: blur(14px);
             border-radius: 32px;
@@ -53,8 +54,9 @@
             transition: all 0.2s;
             border-radius: 16px;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #94a3b8;
+            letter-spacing: -0.02em;
         }
         .tab-active {
             background: rgba(56, 189, 248, 0.1);
@@ -369,15 +371,22 @@
                 let successCount = 0;
 
                 const sendDataset = async (dataset) => {
-                    // Count qualities per minute for accuracy
+                    const getDominant = (list) => {
+                        if (list.length === 0) return null;
+                        const counts = { Sun: 0, Cloud: 0, Rain: 0 };
+                        list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
+                        if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
+                        if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
+                        return 'Sun';
+                    };
+
+                    let mornMin = 0, aftMin = 0, nightMin = 0;
                     const qualCounts = {
                         morning: { Sun: 0, Cloud: 0, Rain: 0 },
                         afternoon: { Sun: 0, Cloud: 0, Rain: 0 },
                         night: { Sun: 0, Cloud: 0, Rain: 0 },
                         total: { Sun: 0, Cloud: 0, Rain: 0 }
                     };
-                    
-                    let mornMin = 0, aftMin = 0, nightMin = 0;
 
                     dataset.blocks.forEach(b => {
                         const q = b.quality; 
@@ -495,7 +504,7 @@
                 return (
                     <div className="widget-container justify-center p-8 text-center space-y-8">
                         <div>
-                            <h1 className="text-2xl font-bold text-bright mb-2 font-serif italic tracking-wide">༚✧ 𝘍𝘰𝘳𝘵𝘳𝘦𝘴𝘴 𝘓𝘰𝘨 ✧༚</h1>
+                            <h1 className="text-2xl font-bold text-bright mb-2 font-serif tracking-wide">༚✧ Fortress Log ✧༚</h1>
                             <p className="text-dim text-sm">오늘의 시작 컨디션은?</p>
                         </div>
                         <div className="flex flex-col gap-3 w-full">
@@ -513,7 +522,7 @@
 
                     <div className="p-6 pb-2 flex justify-between items-center">
                         <div className="flex flex-col">
-                            <h1 className="text-xl font-bold text-bright tracking-tight italic font-serif">༚✧ 𝘍𝘰𝘳𝘵𝘳𝘦𝘴𝘴 𝘓𝘰𝘨 ✧༚</h1>
+                            <h1 className="text-xl font-bold text-bright tracking-tight font-serif">༚✧ Fortress Log ✧༚</h1>
                             <div className="flex items-center gap-4 text-xs font-bold text-dim mt-1">
                                 <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-sm">{tickets}</span></div>
                                 <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
@@ -531,7 +540,7 @@
                     <div className="px-6 flex gap-2 mb-4">
                         {['main', 'niche', 'rest'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-3 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
-                                {tab === 'main' ? 'Timeline' : tab === 'niche' ? 'Switch' : 'Rest'}
+                                {tab === 'main' ? '༚✧ Timeline ✧༚' : tab === 'niche' ? '༚✧ Switch ✧༚' : '༚✧ Rest ✧༚'}
                             </button>
                         ))}
                     </div>
@@ -585,7 +594,7 @@
                         {activeTab === 'rest' && (
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {restOptions.map(rest => (
-                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-4 rounded-2xl flex flex-col items-center justify-center h-40 hover:bg-white/10 group">
+                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-4 rounded-2xl flex flex-col items-center justify-center h-32 hover:bg-white/10 group">
                                         {renderIcon(rest.icon)}
                                         <span className="mt-3 text-sm font-bold text-bright">{rest.name}</span>
                                         <div className="flex items-center gap-1 mt-1 text-xs text-dim group-hover:text-sky font-bold">
