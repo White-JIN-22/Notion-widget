@@ -107,8 +107,8 @@
 
         /* 🎨 Total Time Text Colors */
         .text-gray-custom { color: #94a3b8; } 
-        .text-sky-custom { color: #0ea5e9; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
-        .text-purple-custom { color: #a855f7; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
+        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
     </style>
 </head>
 <body>
@@ -125,6 +125,7 @@
         const App = () => {
             const [blocks, setBlocks] = useState([]);
             const [todayStr, setTodayStr] = useState('');
+            const [footerDateStr, setFooterDateStr] = useState(''); // ✅ 하단 날짜 상태 추가
             const [totalDuration, setTotalDuration] = useState(0);
 
             const loadData = () => {
@@ -134,8 +135,8 @@
                 
                 if (savedData.date === today && savedData.blocks) {
                     setBlocks(savedData.blocks);
-                    // Total Time 계산 시 'switch' 타입은 제외하고 '집중 시간'만 합산할지 여부 결정
-                    // 여기서는 순수 집중 시간(Sun/Cloud/Rain)만 합산하도록 필터링
+                    // 순수 집중 시간(Sun/Cloud/Rain)만 합산하도록 필터링
+                    // (Switch/Rest는 duration 합산에서 제외하려면 여기서 조건 유지)
                     const focusBlocks = savedData.blocks.filter(b => !b.type || b.type === 'focus');
                     const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
                     setTotalDuration(total);
@@ -144,21 +145,29 @@
                     setTotalDuration(0);
                 }
                 
+                // 상단 날짜 (M/D)
                 const month = now.getMonth() + 1;
                 const date = now.getDate();
                 setTodayStr(`${month}/${date}`);
+
+                // ✅ 하단 날짜 (MM/DD DDD) 생성
+                const m = String(month).padStart(2, '0');
+                const d = String(date).padStart(2, '0');
+                const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                const day = days[now.getDay()];
+                setFooterDateStr(`${m}/${d} ${day}`);
             };
 
             useEffect(() => {
                 loadData();
-                const interval = setInterval(loadData, 3000); // 3초마다 갱신 (반응성 UP)
+                const interval = setInterval(loadData, 3000); // 3초마다 갱신
                 return () => clearInterval(interval);
             }, []);
 
             const getTotalColorClass = (min) => {
                 if (min <= 90) return "text-gray-custom"; 
                 if (min <= 330) return "text-sky-custom"; 
-                return "text-purple-custom";              
+                return "text-purple-custom";               
             };
 
             const formatDuration = (totalMin) => {
@@ -213,7 +222,10 @@
                                                     bStart.getMinutes() < slotEndMin;
                                 
                                 if (isStartSlot) {
-                                    content = foundBlock.icon || '•';
+                                    // Fortress Log에서 저장한 icon 이름이 있거나 없으면 기본값
+                                    // 여기서는 텍스트나 간단한 기호로 표시하거나, 
+                                    // 향후 아이콘 컴포넌트를 추가하여 매핑 가능
+                                    content = '•'; 
                                 }
                             } 
                             // 2. 일반 집중 (Focus) 일 때
@@ -270,11 +282,11 @@
                     {/* Footer Stats */}
                     <div className="footer-blur px-4 py-3 z-10 shrink-0">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wide">Total</span>
+                            {/* ✅ TOTAL 대신 날짜 표시 (스타일 유지) */}
+                            <span className="text-slate-500 text-[10px] font-bold uppercase tracking-wide">{footerDateStr}</span>
                             <div>{formatDuration(totalDuration)}</div>
                         </div>
                         <div className="text-center">
-                            {/* ✅ 요청 반영: 차분한 회색조(Slate-500)로 변경하여 튀지 않게 */}
                             <p className="text-[13px] text-slate-500 font-bold bg-white/60 py-2 px-2 rounded-xl border border-white/80 w-full leading-tight shadow-sm" style={{wordBreak: 'keep-all'}}>
                                 {getMessage(totalDuration)}
                             </p>
