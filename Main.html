@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Widget</title>
+    <title>Fortress Log</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -83,7 +83,6 @@
 
         .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
         
-        /* 1. 모달 배경 수정: 탁한 블루 제거 -> 화이트/연한 아이스블루 그라데이션 */
         .modal-content {
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%);
             backdrop-filter: blur(30px);
@@ -229,20 +228,22 @@
 
             const [isSending, setIsSending] = useState(false);
 
+            // 전환 행동 데이터 (Switch) - 아이콘 추가
             const fixedQuests = [
-                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300' }, 
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
+                { id: 'q1', name: '씻기', icon: 'Droplets', emoji: '🚿', color: 'text-sky' }, 
+                { id: 'q2', name: '식사', icon: 'Utensils', emoji: '🍚', color: 'text-purple-300' }, 
+                { id: 'q3', name: '설거지', icon: 'Waves', emoji: '🧼', color: 'text-slate-400' }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', emoji: '🧺', color: 'text-slate-400' }, 
+                { id: 'q5', name: '분리수거', icon: 'Recycle', emoji: '🧹', color: 'text-slate-400' }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', emoji: '🪟', color: 'text-slate-400' }, 
             ];
 
+            // 휴식 행동 데이터 (Rest) - 아이콘 추가
             const restOptions = [
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300' }, 
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', emoji: '📚', color: 'text-sky' }, 
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', emoji: '💤', color: 'text-slate-400' }, 
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', emoji: '🧘', color: 'text-purple-300' }, 
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', emoji: '🛌', color: 'text-slate-400' }, 
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
@@ -256,11 +257,13 @@
                 return `${h}H ${m}M`;
             };
 
+            // 데이터 로드
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
                 if (savedData.date && savedData.date !== today) {
+                    // 날짜 변경 시 기록 보존 (History) 및 리셋
                     if (savedData.blocks && savedData.blocks.length > 0) {
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         if (!history.some(h => h.date === savedData.date)) {
@@ -278,6 +281,7 @@
                 }
             }, []);
 
+            // 토스트 타이머
             useEffect(() => {
                 if (toast) {
                     const timer = setTimeout(() => setToast(null), 2500);
@@ -304,6 +308,7 @@
                 saveData(0, initialEnergy, []);
             };
 
+            // 스톱워치
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -370,7 +375,15 @@
 
                 if (type === 'auto') {
                     totalDuration = tempSession.duration; 
-                    newBlock = { id: Date.now(), startTime: tempSession.startTime, endTime: tempSession.endTime, duration: totalDuration, quality: quality };
+                    newBlock = { 
+                        id: Date.now(), 
+                        type: 'focus', // ✨ 타입 명시
+                        startTime: tempSession.startTime, 
+                        endTime: tempSession.endTime, 
+                        duration: totalDuration, 
+                        quality: quality,
+                        icon: '🔥'
+                    };
                 } else {
                     const now = new Date();
                     let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
@@ -378,7 +391,15 @@
                     const startTs = endTs - (totalDuration * 60 * 1000);
                     
                     if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
-                    newBlock = { id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration, quality: quality };
+                    newBlock = { 
+                        id: Date.now(), 
+                        type: 'focus', // ✨ 타입 명시
+                        startTime: startTs, 
+                        endTime: endTs, 
+                        duration: totalDuration, 
+                        quality: quality,
+                        icon: '🔥'
+                    };
                 }
 
                 let newEnergy = energy;
@@ -403,6 +424,41 @@
                 triggerToast(msg);
             };
 
+            // ✨ 전환 행동 / 휴식 기록 (업데이트)
+            const addActionBlock = (item, type, duration) => {
+                const now = Date.now();
+                const start = now - (duration * 60 * 1000);
+                
+                const newBlock = {
+                    id: now,
+                    type: type, // 'switch' or 'rest'
+                    startTime: start,
+                    endTime: now,
+                    duration: duration,
+                    name: item.name,
+                    icon: item.emoji || '✨' // 이모지 저장 (타임라인 표시용)
+                };
+
+                let newEnergy = energy;
+                let newTickets = tickets;
+
+                if (type === 'switch') {
+                    if (tickets > 0) {
+                        newTickets = tickets - 1;
+                        newEnergy = Math.max(energy - 5, 0);
+                        triggerToast(`✨ ${item.name} 완료!`);
+                    } else {
+                        triggerToast("⚠️ 티켓 부족");
+                        return;
+                    }
+                } else if (type === 'rest') {
+                    newEnergy = Math.min(energy + item.recovery, 100);
+                    triggerToast(`🔋 ${item.name} (+${item.recovery}%)`);
+                }
+
+                saveData(newTickets, newEnergy, [newBlock, ...blocks]);
+            };
+
             const confirmDelete = (id) => {
                 setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
@@ -414,20 +470,7 @@
                 }
             };
 
-            const doQuest = (quest) => {
-                if (tickets > 0) {
-                    saveData(tickets - 1, Math.max(energy - 5, 0), blocks);
-                    triggerToast(`✨ ${quest.name} 완료!`);
-                } else {
-                    triggerToast("⚠️ 티켓 부족");
-                }
-            };
-            const takeRest = (rest) => {
-                const newEnergy = Math.min(energy + rest.recovery, 100);
-                saveData(tickets, newEnergy, blocks);
-                triggerToast(`🔋 ${rest.name} (+${rest.recovery})`);
-            };
-
+            // 전송 로직 (수정: 모든 블록 전송)
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -437,100 +480,13 @@
                 }
 
                 setIsSending(true);
-                let successCount = 0;
-
-                const sendDataset = async (dataset) => {
-                    const getDominant = (list) => {
-                        if (list.length === 0) return null;
-                        const counts = { Sun: 0, Cloud: 0, Rain: 0 };
-                        list.forEach(b => { if(counts[b.quality] !== undefined) counts[b.quality]++; });
-                        if (counts.Cloud > counts.Sun && counts.Cloud >= counts.Rain) return 'Cloud';
-                        if (counts.Rain > counts.Sun && counts.Rain > counts.Cloud) return 'Rain';
-                        return 'Sun';
-                    };
-
-                    let mornMin = 0, aftMin = 0, nightMin = 0;
-                    const qualCounts = {
-                        morning: { Sun: 0, Cloud: 0, Rain: 0 },
-                        afternoon: { Sun: 0, Cloud: 0, Rain: 0 },
-                        night: { Sun: 0, Cloud: 0, Rain: 0 },
-                        total: { Sun: 0, Cloud: 0, Rain: 0 }
-                    };
-
-                    dataset.blocks.forEach(b => {
-                        const q = b.quality; 
-                        for (let i = 0; i < b.duration; i++) {
-                            const currentMinTime = b.startTime + (i * 60 * 1000);
-                            const h = new Date(currentMinTime).getHours();
-
-                            if(qualCounts.total[q] !== undefined) qualCounts.total[q]++;
-
-                            if (h >= 6 && h < 12) {
-                                mornMin++;
-                                if(qualCounts.morning[q] !== undefined) qualCounts.morning[q]++;
-                            } else if (h >= 12 && h < 18) {
-                                aftMin++;
-                                if(qualCounts.afternoon[q] !== undefined) qualCounts.afternoon[q]++;
-                            } else {
-                                nightMin++;
-                                if(qualCounts.night[q] !== undefined) qualCounts.night[q]++;
-                            }
-                        }
-                    });
-
-                    const getDomFromCounts = (counts) => {
-                        const { Sun, Cloud, Rain } = counts;
-                        if (Sun === 0 && Cloud === 0 && Rain === 0) return null;
-                        if (Cloud > Sun && Cloud >= Rain) return 'Cloud';
-                        if (Rain > Sun && Rain > Cloud) return 'Rain';
-                        return 'Sun';
-                    };
-
-                    const formatLocalYMD = (dateStr) => {
-                        const d = new Date(dateStr);
-                        const y = d.getFullYear();
-                        const m = String(d.getMonth() + 1).padStart(2, '0');
-                        const day = String(d.getDate()).padStart(2, '0');
-                        return `${y}-${m}-${day}`;
-                    };
-
-                    const payload = {
-                        date: formatLocalYMD(dataset.date),
-                        quality: getDomFromCounts(qualCounts.total),
-                        total: mornMin + aftMin + nightMin,
-                        morning: mornMin, 
-                        afternoon: aftMin, 
-                        night: nightMin,
-                        q_morn: getDomFromCounts(qualCounts.morning),
-                        q_aft: getDomFromCounts(qualCounts.afternoon),
-                        q_night: getDomFromCounts(qualCounts.night)
-                    };
-
+                try {
                     await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
+                        body: JSON.stringify({ blocks: blocks }), // 전체 블록 전송
                     });
-                };
-
-                try {
-                    await sendDataset({ date: new Date().toDateString(), blocks: blocks });
-                    successCount++;
-
-                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const today = new Date();
-                    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                    const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    
-                    const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
-
-                    for (const data of pastData) {
-                        if (data.blocks && data.blocks.length > 0) {
-                            await sendDataset(data);
-                            successCount++;
-                        }
-                    }
-                    triggerToast(`☁️ 총 ${successCount}건 전송 완료!`);
+                    triggerToast(`☁️ 모든 기록 노션 전송 완료!`);
                 } catch(e) { 
                     triggerToast("⚠️ 전송 중 에러"); 
                     console.error(e);
@@ -539,14 +495,6 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
-            const openManual = () => {
-                const now = new Date();
-                setManualEndHour(now.getHours());
-                setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
-                setManualDurHour(0); setManualDurMin(30);
-                setModalType('manual'); setShowModal(true);
-            };
-
             const renderIcon = (name, className) => {
                 const IconComponent = Icons[name] || Icons.Wind;
                 return <IconComponent className={className} />;
@@ -562,7 +510,6 @@
 
                 if (elapsed < 180) {
                     progress = Math.max(0, (180 - elapsed) / 180);
-                    // 채도 낮춘 색상 적용
                     strokeColor = "#bae6fd"; 
                 } else {
                     progress = 1;
@@ -572,10 +519,8 @@
                 const dashoffset = circumference - (progress * circumference);
                 
                 return (
-                    // 채도 낮춘 테두리 색상 적용
                     <div className="glass-panel p-5 mb-4 relative overflow-hidden transition-all border-sky-300/30">
                         <div className="flex justify-between items-center mb-2 px-1">
-                            {/* 채도 낮춘 텍스트 색상 적용 */}
                             <span className="text-[10px] font-bold uppercase tracking-wider text-sky-300">
                                 {isRecording ? (elapsed < 180 ? "IGNITION..." : "FLOW STATE") : "READY"}
                             </span>
@@ -585,39 +530,14 @@
                         <div className="flex items-center justify-between px-2 pb-1">
                             <div className="relative w-20 h-20 flex items-center justify-center">
                                 <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" width="80" height="80" viewBox="0 0 80 80">
-                                    <circle
-                                        stroke="rgba(255,255,255,0.1)"
-                                        strokeWidth="6"
-                                        fill="transparent"
-                                        r={radius}
-                                        cx="40"
-                                        cy="40"
-                                    />
-                                    <circle
-                                        className="progress-ring__circle"
-                                        stroke={strokeColor} 
-                                        strokeWidth="6"
-                                        fill="transparent"
-                                        r={radius}
-                                        cx="40"
-                                        cy="40"
-                                        style={{ 
-                                            strokeDasharray: `${circumference} ${circumference}`, 
-                                            strokeDashoffset: dashoffset,
-                                            strokeLinecap: "round"
-                                        }}
-                                    />
+                                    <circle stroke="rgba(255,255,255,0.1)" strokeWidth="6" fill="transparent" r={radius} cx="40" cy="40" />
+                                    <circle className="progress-ring__circle" stroke={strokeColor} strokeWidth="6" fill="transparent" r={radius} cx="40" cy="40"
+                                        style={{ strokeDasharray: `${circumference} ${circumference}`, strokeDashoffset: dashoffset, strokeLinecap: "round" }} />
                                 </svg>
-                                
-                                <button 
-                                    onClick={toggleTimer} 
-                                    // 2. 타이머 시작 버튼: 타임라인 색상(#bae6fd)과 동일하게 통일 (커스텀 hex 적용)
-                                    className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-[#7dd3fc] hover:bg-[#bae6fd]' : 'bg-[#bae6fd] hover:bg-[#7dd3fc]'}`}
-                                >
+                                <button onClick={toggleTimer} className={`absolute inset-0 m-auto w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 text-white z-10 ${isRecording ? 'bg-[#7dd3fc] hover:bg-[#bae6fd]' : 'bg-[#bae6fd] hover:bg-[#7dd3fc]'}`}>
                                     {isRecording ? <Icons.Stop className="w-6 h-6" /> : <Icons.Play className="w-8 h-8 ml-1" />}
                                 </button>
                             </div>
-
                             <div className="flex-1 flex justify-end">
                                 {formatStopwatch(elapsed)}
                             </div>
@@ -675,9 +595,8 @@
                         {activeTab === 'main' && (
                             <div className="flex flex-col h-full">
                                 {renderTimerPanel()}
-                                
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-3">
-                                    {blocks.length === 0 ? <div className="text-center text-dim py-12 text-sm italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
+                                    {blocks.filter(b => b.type === 'focus').length === 0 ? <div className="text-center text-dim py-12 text-sm italic">기록이 없습니다.</div> : blocks.filter(b => b.type === 'focus').slice(0, visibleLogs).map((block) => (
                                         <div key={block.id} className="log-item">
                                             <div className="mr-4">
                                                 {block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />}
@@ -700,7 +619,7 @@
                         {activeTab === 'niche' && (
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {fixedQuests.map((q) => (
-                                    <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
+                                    <button key={q.id} onClick={() => addActionBlock(q, 'switch', 10)} disabled={tickets === 0} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
                                         {renderIcon(q.icon, `w-7 h-7 ${q.color}`)}
                                         <span className="mt-2 text-xs font-bold text-bright">{q.name}</span>
                                     </button>
@@ -710,13 +629,10 @@
                         {activeTab === 'rest' && (
                             <div className="grid grid-cols-2 gap-3 mt-2 overflow-y-auto no-scrollbar pb-4">
                                 {restOptions.map(rest => (
-                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
-                                        {/* 아이콘: 원래 색상 유지 */}
+                                    <button key={rest.id} onClick={() => addActionBlock(rest, 'rest', 30)} className="quest-btn p-3 rounded-2xl flex flex-col items-center justify-center h-20 hover:bg-white/10 group">
                                         {renderIcon(rest.icon, `w-7 h-7 ${rest.color}`)}
-                                        
                                         <div className="flex items-center gap-1.5 mt-1.5">
                                             <span className="text-xs font-bold text-bright">{rest.name}</span>
-                                            {/* 번개+숫자: 채도 낮춘 스카이블루(text-sky-300) 고정 */}
                                             <div className="flex items-center gap-1 text-[10px] font-bold text-sky-300">
                                                 <div className="w-2.5 h-2.5 flex items-center justify-center"><Icons.Zap /></div>
                                                 <span className="mt-[1px] leading-none">{rest.recovery}%</span>
@@ -731,7 +647,6 @@
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
                             <div className="w-full modal-content rounded-t-3xl p-6 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                                
                                 {modalType === 'delete' && (
                                     <div className="text-center">
                                         <h3 className="text-lg font-bold mb-2 text-slate-700">기록 삭제</h3>
@@ -741,7 +656,6 @@
                                         </div>
                                     </div>
                                 )}
-
                                 {modalType === 'manual' && (
                                     <>
                                     <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Add Log</h3>
@@ -777,7 +691,6 @@
                                     </div>
                                     </>
                                 )}
-                                
                                 {modalType === 'check' && (
                                     <>
                                     <h3 className="text-lg font-bold mb-4 text-center italic text-slate-700">Check Weather</h3>
