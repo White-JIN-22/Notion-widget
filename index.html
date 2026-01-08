@@ -28,8 +28,9 @@
         /* 🧊 Icy Blue Glass Theme (Compact) */
         .widget-container {
             position: relative;
-            width: 270px; /* 가로 폭 2/3 수준으로 축소 */
-            height: 520px;
+            width: 270px; 
+            /* ✅ [수정] 높이 520px -> 540px (타임라인 위젯과 동기화) */
+            height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
             backdrop-filter: blur(20px);
             border-radius: 28px;
@@ -66,6 +67,7 @@
         }
         .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.05); }
 
+        /* 일반 로그 아이템 */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.05);
@@ -75,7 +77,23 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            min-height: 60px; /* 기본 높이 확보 */
         }
+
+        /* ✅ [추가] 축소된 로그 아이템 (휴식/전환용) */
+        .log-item-compact {
+            animation: slideUp 0.3s ease-out forwards;
+            background: rgba(255, 255, 255, 0.02); /* 배경 더 투명하게 */
+            border: 1px dashed rgba(224, 242, 254, 0.15); /* 점선으로 구분 */
+            border-radius: 12px;
+            padding: 6px 12px; /* 패딩 축소 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 36px; /* 높이 대폭 축소 */
+            margin-bottom: 4px; /* 간격 좁힘 */
+        }
+
         @keyframes slideUp {
             from { transform: translateY(10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
@@ -183,10 +201,10 @@
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             CloudUpload: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
-            Sun: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
-            Cloud: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
-            Rain: () => <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            Trash: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            Sun: ({className}) => <svg className={className || "text-purple-300"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Cloud: ({className}) => <svg className={className || "text-sky"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Rain: ({className}) => <svg className={className || "text-slate-400"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -439,7 +457,6 @@
                 }
             };
 
-            // ✅ 퀘스트(전환) 기능: 5분 블록 생성
             const doQuest = (quest) => {
                 if (tickets > 0) {
                     const now = Date.now();
@@ -465,10 +482,8 @@
                 }
             };
 
-            // ✅ 휴식 기능: 종류별 시간 블록 생성
             const takeRest = (rest) => {
                 const now = Date.now();
-                // 딥슬립 60분, 나머지 20분
                 const duration = rest.id === 'r4' ? 60 : 20; 
                 const startTs = now - (duration * 60 * 1000);
 
@@ -556,9 +571,21 @@
                 setModalType('manual'); setShowModal(true);
             };
 
-            const renderIcon = (name, className) => {
-                const IconComponent = Icons[name] || Icons.Wind;
-                return <IconComponent className={className} />;
+            // ✅ 아이콘 렌더링 헬퍼 함수
+            const renderBlockIcon = (block) => {
+                // Focus 블록 (시간에 따른 날씨 아이콘)
+                if (block.type === 'focus' || !block.type) {
+                    if (block.quality === 'Sun') return <Icons.Sun />;
+                    if (block.quality === 'Cloud') return <Icons.Cloud />;
+                    return <Icons.Rain />;
+                }
+                // Switch / Rest 블록 (저장된 아이콘 이름 사용)
+                // 아이콘 이름이 있으면 Icons 객체에서 찾아 렌더링, 없으면 기본값
+                const IconComp = Icons[block.icon] || Icons.Zap;
+                
+                // 휴식/전환 아이콘은 조금 작게 표시
+                const iconColor = block.type === 'switch' ? 'text-sky' : 'text-purple-300';
+                return <IconComp className={`w-5 h-5 ${iconColor}`} />;
             };
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
@@ -631,6 +658,11 @@
                 );
             };
 
+            const renderIcon = (name, className) => {
+                const IconComponent = Icons[name] || Icons.Wind;
+                return <IconComponent className={className} />;
+            };
+
             if (showIntro) {
                 return (
                     <div className="widget-container justify-center p-6 text-center space-y-6">
@@ -682,27 +714,29 @@
                                 {renderTimerPanel()}
                                 
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2">
-                                    {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => (
-                                        <div key={block.id} className="log-item">
-                                            <div className="mr-3">
-                                                {/* 타입에 따라 아이콘 다르게 표시 */}
-                                                {block.type === 'switch' ? (
-                                                    <span className="text-sky text-lg">✦</span> 
-                                                ) : block.type === 'rest' ? (
-                                                    <span className="text-purple-300 text-lg">☾</span>
-                                                ) : (
-                                                    block.quality === 'Sun' ? <Icons.Sun /> : block.quality === 'Cloud' ? <Icons.Cloud /> : <Icons.Rain />
-                                                )}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="text-base font-bold text-bright mb-0.5">
-                                                    {block.type === 'switch' ? block.name : block.type === 'rest' ? block.name : `Total ${formatDuration(block.duration)}`}
+                                    {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => {
+                                        // ✅ [수정] 타입에 따라 스타일 및 내용 다르게 렌더링
+                                        const isCompact = block.type === 'switch' || block.type === 'rest';
+                                        
+                                        return (
+                                            <div key={block.id} className={isCompact ? "log-item-compact" : "log-item"}>
+                                                <div className="mr-3 flex items-center justify-center">
+                                                    {renderBlockIcon(block)}
                                                 </div>
-                                                <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
+                                                <div className="flex-1">
+                                                    <div className={`${isCompact ? "text-xs text-slate-300" : "text-base text-bright"} font-bold mb-0.5`}>
+                                                        {/* 이름만 표시하거나 Total 시간 표시 */}
+                                                        {block.type === 'switch' ? block.name : block.type === 'rest' ? block.name : `Total ${formatDuration(block.duration)}`}
+                                                    </div>
+                                                    {/* 컴팩트 모드에서는 시간 범위 숨김 */}
+                                                    {!isCompact && (
+                                                        <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
+                                                    )}
+                                                </div>
+                                                <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-bright transition-colors p-1"><Icons.Trash /></button>
                                             </div>
-                                            <button onClick={() => confirmDelete(block.id)} className="text-dim hover:text-bright transition-colors p-1"><Icons.Trash /></button>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                     {blocks.length > visibleLogs && (
                                         <button onClick={loadMoreLogs} className="w-full py-2 flex items-center justify-center text-dim hover:text-bright transition-colors font-bold text-xs">
                                             <Icons.More />
