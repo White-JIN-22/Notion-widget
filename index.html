@@ -652,6 +652,14 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
+            // ✅ [추가] formatDuration 함수 추가 (이게 없어서 오류가 났습니다)
+            const formatDuration = (min) => {
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                if (h > 0) return `${h}h ${m}m`;
+                return `${m}m`;
+            };
+
             const openManual = () => {
                 const now = new Date();
                 setManualEndHour(now.getHours());
