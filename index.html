@@ -350,11 +350,15 @@
                     blocks: newBlocks
                 }));
             };
-
-            const handleIntro = (initialEnergy) => {
-                setEnergy(initialEnergy); setShowIntro(false);
-                saveData(0, initialEnergy, []);
-            };
+// 기존 handleIntro 함수를 이걸로 교체해
+const handleIntro = (initialEnergy) => {
+    setTickets(0); // ✅ 상태 즉시 0으로 초기화
+    setEnergy(initialEnergy); 
+    setShowIntro(false);
+    
+    // ✅ 저장 함수에도 티켓 0개, 초기화된 에너지, 빈 블록 리스트 전달
+    saveData(0, initialEnergy, []); 
+};
 
             useEffect(() => {
                 let interval = null;
