@@ -92,6 +92,9 @@
         
         .block-empty { background: rgba(255, 255, 255, 0.04); }
 
+        /* ✅ [수정] Switch/Rest 배경 투명화 */
+        .block-action-bg { background: transparent; border: none; }
+
         .footer-blur {
             background: rgba(255, 255, 255, 0.75);
             backdrop-filter: blur(15px);
@@ -187,17 +190,14 @@
                 );
             };
 
-            // ✅ [수정] 시간대 및 기록 유무에 따른 맞춤 메시지
             const getMessage = (min) => {
                 const now = new Date();
                 const currentHour = now.getHours();
 
-                // 1. 오후 1시 이후 & 기록 없음 (늦은 시작 격려)
                 if (currentHour >= 13 && min === 0) {
                     return "🧊 첫 번째 블록, 지금 놓으면 됩니다.";
                 }
 
-                // 2. 저녁 6시 이후 & 기록 있음 (하루 질적 평가 및 마무리)
                 if (currentHour >= 18 && blocks.length > 0) {
                     const sunCount = blocks.filter(b => b.quality === 'Sun').length;
                     const cloudyCount = blocks.filter(b => b.quality === 'Cloud' || b.quality === 'Rain').length;
@@ -207,7 +207,6 @@
                     if (min > 300) return "🎖️ 긴 시간 고생 많으셨어요. 편안한 밤 보내세요.";
                 }
 
-                // 3. 일반적인 시간 기반 메시지
                 if (min === 0) return "❄️ 차근차근 점화를 준비해 볼까요?";
                 if (min < 60) return "🫧 오늘 시스템의 첫 단추를 잘 꿰었네요.";
                 if (min < 180) return "✨ 견고하게 쌓아가는 진솔 님의 시간.";
@@ -242,11 +241,11 @@
                         let content = null;
 
                         if (foundBlock) {
+                            // ✅ [수정] Switch/Rest: 배경 투명화 & 가로선 연결
                             if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
-                                cellClass = 'relative flex items-center justify-center'; 
+                                cellClass = 'block-action-bg relative flex items-center justify-center'; 
                                 
                                 const lineColor = getColorCode(foundBlock.color);
-                                
                                 const bStart = new Date(foundBlock.startTime);
                                 const isStartSlot = bStart.getHours() === hour && 
                                                     bStart.getMinutes() >= slotStartMin && 
@@ -256,11 +255,19 @@
                                     const IconComp = Icons[foundBlock.icon] || (foundBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                                     const iconColor = foundBlock.color || 'text-white';
                                     
-                                    content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
+                                    content = (
+                                        <>
+                                            <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />
+                                            {/* ✅ [수정] 시작 슬롯: 아이콘 오른쪽으로 선 뻗기 */}
+                                            <div className="absolute left-1/2 w-full h-[3px] rounded-r-full" style={{backgroundColor: lineColor}}></div>
+                                        </>
+                                    );
                                 } else {
-                                    content = <div className="w-full h-[2.5px] rounded-full" style={{backgroundColor: lineColor}}></div>;
+                                    // ✅ [수정] 이후 슬롯: 선을 꽉 채워 연결 (rounded-full 제거)
+                                    content = <div className="w-full h-[3px]" style={{backgroundColor: lineColor}}></div>;
                                 }
                             } 
+                            // 2. 일반 집중 (Focus)
                             else {
                                 if (foundBlock.quality === 'Sun') cellClass = 'block-sun';
                                 else if (foundBlock.quality === 'Cloud') cellClass = 'block-cloud';
