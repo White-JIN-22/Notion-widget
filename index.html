@@ -537,21 +537,42 @@
                 setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
             
-            // ✅ [수정] 삭제 시 티켓 감소 로직 추가
+            // ✅ [수정] 삭제 시 기록 유형별로 티켓/에너지 복구 로직 추가
             const executeDelete = () => {
                 if (deleteTargetId) {
                     const targetBlock = blocks.find(b => b.id === deleteTargetId);
                     const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
                     
                     let newTickets = tickets;
-                    
-                    // 삭제하려는 기록이 '집중(focus)' 타입이면 티켓을 1개 줄임 (0 이하로는 안 내려감)
-                    if (targetBlock && targetBlock.type === 'focus') {
-                        newTickets = Math.max(0, tickets - 1);
+                    let newEnergy = energy;
+
+                    if (targetBlock) {
+                        // 1. Focus Type (집중): 티켓 반납, 소모한 에너지 복구
+                        if (targetBlock.type === 'focus' || !targetBlock.type) {
+                            newTickets = Math.max(0, tickets - 1);
+                            
+                            // 집중 시 소모했던 에너지 계산 (10분당 5%)
+                            // 만약 10분 미만이었다면 소모량이 0이었으므로 복구도 0
+                            const restoredEnergy = Math.floor(targetBlock.duration / 10) * 5;
+                            newEnergy = Math.min(100, energy + restoredEnergy);
+                        }
+                        // 2. Switch Type (전환 행동): 티켓 환불, 소모한 에너지(5) 복구
+                        else if (targetBlock.type === 'switch') {
+                            newTickets = tickets + 1;
+                            newEnergy = Math.min(100, energy + 5);
+                        }
+                        // 3. Rest Type (휴식): 얻었던 에너지 차감
+                        else if (targetBlock.type === 'rest') {
+                            // 휴식 옵션에서 해당 활동의 회복량을 찾음
+                            const restOption = restOptions.find(r => r.name === targetBlock.name);
+                            const recoveryValue = restOption ? restOption.recovery : 0;
+                            newEnergy = Math.max(0, energy - recoveryValue);
+                        }
                     }
 
-                    saveData(newTickets, energy, newBlocks);
-                    setDeleteTargetId(null); setShowModal(false); triggerToast("🗑️ 삭제 완료");
+                    saveData(newTickets, newEnergy, newBlocks);
+                    setDeleteTargetId(null); setShowModal(false); 
+                    triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
                 }
             };
 
@@ -663,7 +684,6 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
-            // ✅ [추가] formatDuration 함수 복구 (화면 오류 방지용)
             const formatDuration = (min) => {
                 const h = Math.floor(min / 60);
                 const m = min % 60;
@@ -904,20 +924,22 @@
                                     <div className="text-center">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">기록 삭제</h3>
                                         <div className="flex gap-2 mt-4">
+                                            {/* ✅ [수정] 버튼 색상 변경 (Red -> Purple 계열) */}
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all text-sm">삭제</button>
+                                            <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">삭제</button>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* ✅ [추가] 리셋 모달 UI (노션 임베드용) */}
+                                {/* ✅ [수정] 리셋 모달 UI */}
                                 {modalType === 'reset' && (
                                     <div className="text-center">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">하루 초기화</h3>
                                         <p className="text-xs text-slate-500 mb-4">오늘의 모든 기록이 삭제되고<br/>컨디션 체크 화면으로 돌아갑니다.</p>
                                         <div className="flex gap-2">
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            <button onClick={executeReset} className="flex-1 py-2 rounded-xl bg-red-100/50 hover:bg-red-200/80 text-red-500 font-bold border border-red-200/50 transition-all text-sm">초기화</button>
+                                            {/* ✅ [수정] 버튼 색상 변경 (Red -> Purple 계열) */}
+                                            <button onClick={executeReset} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">초기화</button>
                                         </div>
                                     </div>
                                 )}
