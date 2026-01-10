@@ -71,39 +71,47 @@
         }
         .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.05); }
 
+        /* ✅ [수정] log-item: relative 및 우측 패딩 추가 (삭제 버튼 공간 확보) */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.2);
             border-radius: 16px;
-            padding: 12px;
+            padding: 12px 36px 12px 12px; /* 우측 패딩 늘림 */
             display: flex;
             align-items: center;
-            justify-content: space-between;
             min-height: 60px;
+            position: relative; /* 삭제 버튼 절대 위치를 위해 추가 */
         }
 
-        /* ✅ [수정] 컴팩트 아이템 높이와 패딩 축소 */
+        /* ✅ [수정] log-item-compact: 우측 패딩 확보 */
         .log-item-compact {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.02);
             border: 1px dashed rgba(224, 242, 254, 0.15);
             border-radius: 10px;
-            padding: 3px 12px; /* 패딩 축소 */
+            padding: 3px 36px 3px 12px; /* 우측 패딩 늘림 */
             display: flex;
             align-items: center;
             justify-content: center; 
-            min-height: 28px; /* 높이 축소 (36px -> 28px) */
+            min-height: 28px;
             margin-bottom: 4px;
             position: relative;
         }
 
-        .log-item-compact .delete-btn {
+        /* ✅ [수정] 모든 삭제 버튼 통일 (우측 정렬 고정) */
+        .universal-delete-btn {
             position: absolute;
-            right: 8px;
+            right: 10px;
             top: 50%;
-            transform: translateY(-50%); /* 중앙 정렬 보정 */
+            transform: translateY(-50%);
+            color: #94a3b8;
+            padding: 4px;
+            transition: color 0.2s;
+            cursor: pointer;
+            z-index: 10;
         }
+        .universal-delete-btn:hover { color: #e0f2fe; }
 
         @keyframes slideUp {
             from { transform: translateY(10px); opacity: 0; }
@@ -807,7 +815,8 @@
                                                                     </div>
                                                                 )}
 
-                                                                <button onClick={() => confirmDelete(block.id)} className={`${isCompact ? "delete-btn" : ""} text-dim hover:text-bright transition-colors p-1`}><Icons.Trash /></button>
+                                                                {/* ✅ [수정] 삭제 버튼을 절대 위치 클래스로 통일 */}
+                                                                <button onClick={() => confirmDelete(block.id)} className="universal-delete-btn"><Icons.Trash /></button>
                                                             </div>
                                                         );
                                                     })
@@ -865,17 +874,20 @@
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
                                     
-                                    <div className="flex gap-4 justify-center mb-3">
+                                    {/* ✅ [수정] mb-3 -> mb-2 */}
+                                    <div className="flex gap-4 justify-center mb-2">
                                         <button onClick={() => setManualTab('focus')} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
                                         <button onClick={() => setManualTab('switch')} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
                                         <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
-                                    <div className="space-y-2 mb-4">
+                                    {/* ✅ [수정] mb-4 -> mb-2 */}
+                                    <div className="space-y-2 mb-2">
                                         <div className="flex items-center justify-between">
+                                            {/* ✅ [수정] underline decoration-dotted -> decoration-solid */}
                                             <button 
                                                 onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
-                                                className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-dotted underline-offset-4 text-left"
+                                                className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
                                                 title="클릭하여 기준 변경"
                                             >
                                                 {timeRef === 'start' ? '시작' : '종료'}
