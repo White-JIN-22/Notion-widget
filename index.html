@@ -299,12 +299,6 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            const formatDuration = (totalMin) => {
-                const h = Math.floor(totalMin / 60);
-                const m = totalMin % 60;
-                return `${h}H ${m}M`;
-            };
-
             // ✅ 1. 데이터 로드 로직 (표준 00:00 기준)
             useEffect(() => {
                 const today = new Date().toDateString();
@@ -335,14 +329,12 @@
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
                     if (savedData.date && savedData.date !== currentToday) {
-                        // ⭐️ 핵심 수정: 타이머가 돌고 있거나(modalType check 포함), 모달이 열려있으면 새로고침 방지
                         if (isRecording || showModal) {
-                            if (!toast || toast !== "🌞 새로운 하루가 되었습니다!") {
-                                triggerToast("🌞 새로운 하루가 되었습니다! (작업 후 갱신됨)");
+                            if (!toast || toast !== "☀️ 새로운 하루가 되었습니다!") {
+                                triggerToast("☀️ 새로운 하루가 되었습니다! (작업 후 갱신됨)");
                             }
                             return; 
                         }
-                        // 아무것도 안 하고 있을 때만 안전하게 새로고침
                         window.location.reload(); 
                     }
                 }, 60000); // 1분마다 체크
@@ -895,7 +887,8 @@
                                         <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
-                                    <div className="space-y-2 mb-2">
+                                    {/* ✅ [수정] space-y-2 -> space-y-1 로 축소 */}
+                                    <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
                                             <button 
                                                 onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
@@ -917,6 +910,7 @@
                                         
                                         {manualTab === 'focus' && (
                                             <>
+                                            {/* ✅ [수정] 상하 여백 제거, input과 매우 가깝게 배치 */}
                                             <div className="flex items-center justify-between">
                                                 <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
                                                 <div className="flex-1 flex gap-2">
@@ -928,7 +922,7 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
+                                            <p className="text-center text-[10px] text-slate-400 opacity-80 mt-1">* 자동으로 점화 시간 3분이 추가됩니다.</p>
                                             </>
                                         )}
                                     </div>
@@ -944,7 +938,8 @@
                                     {manualTab === 'switch' && (
                                         <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
                                             {fixedQuests.map((q) => (
-                                                <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-20 justify-center">
+                                                /* ✅ [수정] h-20 -> h-16 (Rest 탭 버튼 높이와 일치시킴) */
+                                                <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
                                                     {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
                                                     <span className="text-[10px] font-bold mt-1">{q.name}</span>
                                                 </button>
