@@ -140,6 +140,20 @@
             color: #0ea5e9;
         }
 
+        /* 매뉴얼 모달 탭 버튼 스타일 */
+        .manual-tab {
+            padding: 8px 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .manual-tab.active {
+            color: #0ea5e9;
+            border-bottom-color: #0ea5e9;
+        }
+
         .custom-select {
             width: 100%; border-radius: 12px; padding: 8px; font-weight: 700; outline: none; text-align: center; appearance: none;
             cursor: pointer;
@@ -236,6 +250,7 @@
             
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
+            const [manualTab, setManualTab] = useState('focus'); // manual 모달 내부 탭: focus, switch, rest
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -270,7 +285,6 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            // ✅ 시간 포맷 수정 (0H 0M)
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
@@ -306,7 +320,6 @@
                 }
             }, [toast]);
 
-            // 자동 동기화 30분
             useEffect(() => {
                 const autoSyncInterval = setInterval(() => {
                     if (blocks.length > 0 && !isSending) {
@@ -397,9 +410,13 @@
                 }
             };
 
-            const addRecord = (quality, type) => {
+            const addRecord = (quality, type, itemData) => {
                 let newBlock;
                 let totalDuration = 0;
+
+                const now = new Date();
+                // 종료 시간 설정 (수동 입력 시 선택된 시간 사용)
+                let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
 
                 if (type === 'auto') {
                     totalDuration = tempSession.duration; 
@@ -411,12 +428,10 @@
                         quality: quality,
                         type: 'focus'
                     };
-                } else {
-                    const now = new Date();
-                    let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+                } else if (type === 'manual') {
+                    // Focus 수동 입력
                     totalDuration = (manualDurHour * 60) + manualDurMin + 3;
                     const startTs = endTs - (totalDuration * 60 * 1000);
-                    
                     if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
                     newBlock = { 
                         id: Date.now(), 
@@ -426,25 +441,67 @@
                         quality: quality,
                         type: 'focus'
                     };
+                } else if (type === 'manual-switch') {
+                    // Switch 수동 입력 (5분 고정)
+                    totalDuration = 5;
+                    const startTs = endTs - (totalDuration * 60 * 1000);
+                    newBlock = {
+                        id: Date.now(),
+                        startTime: startTs,
+                        endTime: endTs,
+                        duration: totalDuration,
+                        quality: 'Cloud',
+                        type: 'switch',
+                        icon: itemData.icon,
+                        name: itemData.name,
+                        color: itemData.color
+                    };
+                } else if (type === 'manual-rest') {
+                    // Rest 수동 입력 (회복량에 따른 시간 또는 고정)
+                    totalDuration = itemData.id === 'r4' ? 60 : 20; 
+                    const startTs = endTs - (totalDuration * 60 * 1000);
+                    newBlock = {
+                        id: Date.now(),
+                        startTime: startTs,
+                        endTime: endTs,
+                        duration: totalDuration,
+                        quality: 'Cloud',
+                        type: 'rest',
+                        icon: itemData.icon,
+                        name: itemData.name,
+                        color: itemData.color
+                    };
                 }
 
                 let newEnergy = energy;
                 let msg = "💾 저장 완료!";
 
-                if (totalDuration < 10) {
-                    if (type === 'auto') {
-                        newEnergy = 20; 
-                        msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
-                    } else {
-                        msg = "💾 짧은 기록 저장 완료!";
-                    }
+                if (type === 'manual-rest') {
+                    // 휴식은 에너지 회복
+                    newEnergy = Math.min(energy + (itemData.recovery || 0), 100);
+                    msg = `💾 ${itemData.name} 기록됨 (+${itemData.recovery}%)`;
                 } else {
-                    const consumption = Math.floor(totalDuration / 10) * 5;
-                    newEnergy = Math.max(energy - consumption, 0);
-                    msg = `💾 저장 완료! (Energy -${consumption}%)`;
+                    // 집중/전환은 에너지 소모
+                    if (totalDuration < 10) {
+                        if (type === 'auto') {
+                            newEnergy = 20; 
+                            msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
+                        } else {
+                            // 전환 행동 소모값
+                            const cost = type === 'manual-switch' ? 5 : 0;
+                            newEnergy = Math.max(energy - cost, 0);
+                            msg = "💾 기록 완료!";
+                        }
+                    } else {
+                        const consumption = Math.floor(totalDuration / 10) * 5;
+                        newEnergy = Math.max(energy - consumption, 0);
+                        msg = `💾 저장 완료! (Energy -${consumption}%)`;
+                    }
                 }
 
-                const newTickets = tickets + 1;
+                const newTickets = tickets + (type === 'manual-switch' ? -1 : type === 'focus' || type === 'auto' || type === 'manual' ? 1 : 0);
+                
+                // 새로운 블록을 배열 맨 앞에 추가 -> 시간순 정렬은 렌더링 시 처리
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
@@ -475,7 +532,8 @@
                         quality: 'Cloud',
                         type: 'switch',
                         icon: quest.icon,
-                        name: quest.name
+                        name: quest.name,
+                        color: quest.color // ✅ 색상 저장
                     };
 
                     const newBlocks = [newBlock, ...blocks];
@@ -499,7 +557,8 @@
                     quality: 'Cloud',
                     type: 'rest',
                     icon: rest.icon,
-                    name: rest.name
+                    name: rest.name,
+                    color: rest.color // ✅ 색상 저장
                 };
 
                 const newEnergy = Math.min(energy + rest.recovery, 100);
@@ -573,8 +632,10 @@
                 setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
+                setManualTab('focus'); // 기본 탭은 focus
             };
 
+            // ✅ 저장된 색상 정보를 사용하여 아이콘 렌더링
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
                     if (block.quality === 'Sun') return <Icons.Sun className="w-10 h-10 text-purple-300" />;
@@ -582,7 +643,8 @@
                     return <Icons.Rain className="w-10 h-10 text-slate-400" />;
                 }
                 const IconComp = Icons[block.icon] || Icons.Zap;
-                const iconColor = block.type === 'switch' ? 'text-sky' : 'text-purple-300';
+                // 저장된 색상이 있으면 사용, 없으면 타입별 기본값
+                const iconColor = block.color || (block.type === 'switch' ? 'text-sky' : 'text-purple-300');
                 return <IconComp className={`w-5 h-5 ${iconColor}`} />;
             };
 
@@ -727,7 +789,6 @@
                                                     {renderBlockIcon(block)}
                                                 </div>
                                                 
-                                                {/* ✅ [수정] Total 텍스트 제거 */}
                                                 {isCompact ? (
                                                     <div className="mx-3 text-xs text-slate-300 font-bold">
                                                         {block.name}
@@ -793,7 +854,15 @@
 
                                 {modalType === 'manual' && (
                                     <>
-                                    <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Add Log</h3>
+                                    <h3 className="text-base font-bold mb-1 text-center italic text-slate-700">Add Log</h3>
+                                    
+                                    {/* ✅ [추가] 탭 버튼: Focus / Switch / Rest */}
+                                    <div className="flex gap-4 justify-center mb-3">
+                                        <button onClick={() => setManualTab('focus')} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>Focus</button>
+                                        <button onClick={() => setManualTab('switch')} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>Switch</button>
+                                        <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>Rest</button>
+                                    </div>
+
                                     <div className="space-y-2 mb-4">
                                         <div className="flex items-center justify-between">
                                             <label className="text-slate-500 text-xs font-bold w-12">종료</label>
@@ -806,24 +875,56 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-xs font-bold w-12">집중</label>
-                                            <div className="flex-1 flex gap-2">
-                                                <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
-                                                    {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
-                                                </select>
-                                                <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
-                                                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                                                </select>
+                                        
+                                        {/* Focus 모드일 때만 집중시간 선택 표시 */}
+                                        {manualTab === 'focus' && (
+                                            <>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-slate-500 text-xs font-bold w-12">집중</label>
+                                                <div className="flex-1 flex gap-2">
+                                                    <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
+                                                        {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
+                                                    </select>
+                                                    <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
+                                                        {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                    </select>
+                                                </div>
                                             </div>
+                                            <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* 탭에 따라 하단 버튼 변경 */}
+                                    {manualTab === 'focus' && (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                            <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                            <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                         </div>
-                                        <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                        <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                        <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                    </div>
+                                    )}
+
+                                    {manualTab === 'switch' && (
+                                        <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
+                                            {fixedQuests.map((q) => (
+                                                <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-20 justify-center">
+                                                    {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
+                                                    <span className="text-[10px] font-bold mt-1">{q.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {manualTab === 'rest' && (
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {restOptions.map((r) => (
+                                                <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
+                                                    {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
+                                                    <span className="text-[10px] font-bold mt-1">{r.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                     </>
                                 )}
                                 
