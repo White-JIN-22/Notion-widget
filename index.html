@@ -759,39 +759,64 @@
                     </div>
 
                     <div className="flex-1 px-4 pb-4 overflow-hidden flex flex-col">
-                        {activeTab === 'main' && (
+{activeTab === 'main' && (
                             <div className="flex flex-col h-full">
                                 {renderTimerPanel()}
                                 
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 relative">
-                                    {/* ✅ [수정] .reverse() 제거하여 최신순 정렬 */}
-                                    {blocks.length === 0 ? <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div> : blocks.slice(0, visibleLogs).map((block) => {
-                                        const isCompact = block.type === 'switch' || block.type === 'rest';
+                                    {(() => {
+                                        // 1. 시간순 정렬 (최신순: Newest -> Oldest)
+                                        // 입력 순서가 뒤죽박죽이어도 시간 기준으로 줄 세움
+                                        const sortedBlocks = [...blocks].sort((a, b) => b.startTime - a.startTime);
                                         
+                                        // 2. 보여줄 개수만큼 자르고 -> 역순(아침->밤)으로 뒤집기 (채팅방 스타일)
+                                        const visibleData = sortedBlocks.slice(0, visibleLogs).reverse();
+
                                         return (
-                                            <div key={block.id} className={isCompact ? "log-item-compact" : "log-item"}>
-                                                <div className={`${isCompact ? "" : "mr-3"} flex items-center justify-center`}>
-                                                    {renderBlockIcon(block)}
-                                                </div>
-                                                
-                                                {isCompact ? (
-                                                    <div className="mx-3 text-xs text-slate-300 font-bold">
-                                                        {block.name}
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex-1">
-                                                        <div className="text-base font-bold text-bright mb-0.5">
-                                                            {formatDuration(block.duration)}
-                                                        </div>
-                                                        <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
-                                                    </div>
+                                            <>
+                                                {/* 3. 더 보기 버튼 (과거 기록은 위쪽에 숨어있음) */}
+                                                {sortedBlocks.length > visibleLogs && (
+                                                    <button onClick={loadMoreLogs} className="w-full py-1 flex items-center justify-center text-dim hover:text-bright transition-colors mb-2">
+                                                        <Icons.ArrowUp />
+                                                    </button>
                                                 )}
 
-                                                <button onClick={() => confirmDelete(block.id)} className={`${isCompact ? "delete-btn" : ""} text-dim hover:text-bright transition-colors p-1`}><Icons.Trash /></button>
-                                            </div>
-                                        );
-                                    })}
+                                                {visibleData.length === 0 ? (
+                                                    <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div>
+                                                ) : (
+                                                    visibleData.map((block) => {
+                                                        const isCompact = block.type === 'switch' || block.type === 'rest';
+                                                        
+                                                        return (
+                                                            <div key={block.id} className={isCompact ? "log-item-compact" : "log-item"}>
+                                                                <div className={`${isCompact ? "" : "mr-3"} flex items-center justify-center`}>
+                                                                    {renderBlockIcon(block)}
+                                                                </div>
+                                                                
+                                                                {isCompact ? (
+                                                                    <div className="mx-3 text-xs text-slate-300 font-bold">
+                                                                        {block.name}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex-1">
+                                                                        <div className="text-base font-bold text-bright mb-0.5">
+                                                                            {formatDuration(block.duration)}
+                                                                        </div>
+                                                                        <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
+                                                                    </div>
+                                                                )}
 
+                                                                <button onClick={() => confirmDelete(block.id)} className={`${isCompact ? "delete-btn" : ""} text-dim hover:text-bright transition-colors p-1`}><Icons.Trash /></button>
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+                        )}
                                     {/* ✅ [수정] 더 보기 버튼을 리스트 하단으로 이동 */}
                                     {blocks.length > visibleLogs && (
                                         <button onClick={loadMoreLogs} className="w-full py-2 flex items-center justify-center text-dim hover:text-bright transition-colors mt-2">
