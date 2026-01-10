@@ -536,10 +536,21 @@
             const confirmDelete = (id) => {
                 setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
+            
+            // ✅ [수정] 삭제 시 티켓 감소 로직 추가
             const executeDelete = () => {
                 if (deleteTargetId) {
+                    const targetBlock = blocks.find(b => b.id === deleteTargetId);
                     const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
-                    saveData(tickets, energy, newBlocks);
+                    
+                    let newTickets = tickets;
+                    
+                    // 삭제하려는 기록이 '집중(focus)' 타입이면 티켓을 1개 줄임 (0 이하로는 안 내려감)
+                    if (targetBlock && targetBlock.type === 'focus') {
+                        newTickets = Math.max(0, tickets - 1);
+                    }
+
+                    saveData(newTickets, energy, newBlocks);
                     setDeleteTargetId(null); setShowModal(false); triggerToast("🗑️ 삭제 완료");
                 }
             };
@@ -652,7 +663,7 @@
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
-            // ✅ [추가] formatDuration 함수 추가 (이게 없어서 오류가 났습니다)
+            // ✅ [추가] formatDuration 함수 복구 (화면 오류 방지용)
             const formatDuration = (min) => {
                 const h = Math.floor(min / 60);
                 const m = min % 60;
