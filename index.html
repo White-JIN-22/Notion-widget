@@ -296,15 +296,14 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            // ✅ [수정] formatTimeStr 안전장치 추가 (에러 방지)
+            // ✅ [안전장치] 시간 포맷 에러 방지
             const formatTimeStr = (ts) => {
+                if (!ts) return "--:--";
                 try {
                     const date = new Date(ts);
                     if (isNaN(date.getTime())) return "--:--";
                     return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-                } catch (e) {
-                    return "--:--";
-                }
+                } catch (e) { return "--:--"; }
             };
 
             const formatDuration = (totalMin) => {
@@ -314,7 +313,6 @@
                 return `${h}H ${m}M`;
             };
 
-            // ✅ 1. 데이터 로드 로직 (표준 00:00 기준)
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
@@ -337,7 +335,6 @@
                 }
             }, []);
 
-            // ✅ 2. [추가] 안전한 자정 감지기 (작업 중이면 새로고침 안 함)
             useEffect(() => {
                 const checkMidnight = setInterval(() => {
                     const currentToday = new Date().toDateString();
@@ -352,7 +349,7 @@
                         }
                         window.location.reload(); 
                     }
-                }, 60000); // 1분마다 체크
+                }, 60000);
 
                 return () => clearInterval(checkMidnight);
             }, [isRecording, showModal, toast]);
@@ -396,18 +393,17 @@
                 saveData(0, initialEnergy, []); 
             };
 
-            // ✅ [수정] 강제 초기화 실행 (모달 없이 즉시 실행하면 위험하므로 모달 띄움)
             const openResetModal = () => {
                 setModalType('reset');
                 setShowModal(true);
             };
 
             const executeReset = () => {
-                setShowIntro(true); // 인트로 화면으로 전환
+                setShowIntro(true); 
                 setTickets(0);
                 setEnergy(100);
-                setBlocks([]); // 화면상 기록 삭제
-                saveData(0, 100, []); // 실제 데이터 초기화 저장
+                setBlocks([]); 
+                saveData(0, 100, []); 
                 setShowModal(false);
                 triggerToast("🔄 하루가 초기화되었습니다.");
             };
@@ -479,7 +475,6 @@
                 const now = new Date();
                 const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
                 
-                // ✅ [수정] 입력 시간 검증 강화
                 if (isNaN(inputTime)) {
                     triggerToast("⚠️ 잘못된 시간입니다.");
                     return;
@@ -521,9 +516,10 @@
                     duration: totalDuration,
                     quality: quality || 'Cloud',
                     type: type.includes('focus') || type === 'manual' ? 'focus' : (type.includes('switch') ? 'switch' : 'rest'),
-                    icon: itemData?.icon,
-                    name: itemData?.name,
-                    color: itemData?.color
+                    // ✅ [수정] itemData가 없을 때를 대비한 안전장치
+                    icon: itemData ? itemData.icon : null,
+                    name: itemData ? itemData.name : null,
+                    color: itemData ? itemData.color : null
                 };
 
                 let newEnergy = energy;
@@ -551,7 +547,6 @@
 
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : type === 'focus' || type === 'auto' || type === 'manual' ? 1 : 0);
                 
-                // 새로운 블록을 배열 맨 앞에 추가
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
