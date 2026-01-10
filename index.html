@@ -12,7 +12,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* 폰트 설정 (Playfair Display 포함) */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
         body {
@@ -26,11 +25,9 @@
             overflow: hidden;
         }
         .font-serif { font-family: 'Playfair Display', serif; } 
-        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🧊 Icy Blue Glass Theme (Compact) */
         .widget-container {
             position: relative;
             width: 280px; 
@@ -887,7 +884,6 @@
                                         <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
-                                    {/* ✅ [수정] space-y-2 -> space-y-1 로 축소 */}
                                     <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
                                             <button 
@@ -910,7 +906,6 @@
                                         
                                         {manualTab === 'focus' && (
                                             <>
-                                            {/* ✅ [수정] 상하 여백 제거, input과 매우 가깝게 배치 */}
                                             <div className="flex items-center justify-between">
                                                 <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
                                                 <div className="flex-1 flex gap-2">
@@ -938,7 +933,6 @@
                                     {manualTab === 'switch' && (
                                         <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
                                             {fixedQuests.map((q) => (
-                                                /* ✅ [수정] h-20 -> h-16 (Rest 탭 버튼 높이와 일치시킴) */
                                                 <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
                                                     {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
                                                     <span className="text-[10px] font-bold mt-1">{q.name}</span>
