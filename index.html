@@ -12,6 +12,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        /* 폰트 설정 (Playfair Display 포함) */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: transparent;
@@ -22,6 +25,8 @@
             min-height: 100vh;
             overflow: hidden;
         }
+        .font-serif { font-family: 'Playfair Display', serif; } 
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -250,7 +255,7 @@
             
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
-            const [manualTab, setManualTab] = useState('focus'); // manual 모달 내부 탭: focus, switch, rest
+            const [manualTab, setManualTab] = useState('focus'); 
             const [timeRef, setTimeRef] = useState('end'); // 'start' | 'end'
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
@@ -844,95 +849,41 @@
                                     </div>
                                 )}
 
-{modalType === 'manual' && (
-    <>
-    {/* 제목 폰트 수정 반영됨 */}
-    <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
-    
-    <div className="flex gap-4 justify-center mb-3">
-        <button onClick={() => setManualTab('focus')} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
-        <button onClick={() => setManualTab('switch')} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
-        <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
-    </div>
-    
-    {/* [삭제됨] 기존 시작/종료 기준 선택 버튼 그룹 제거 */}
+                                {modalType === 'manual' && (
+                                    <>
+                                    <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
+                                    
+                                    <div className="flex gap-4 justify-center mb-3">
+                                        <button onClick={() => setManualTab('focus')} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
+                                        <button onClick={() => setManualTab('switch')} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
+                                        <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
+                                    </div>
+                                    
+                                    <div className="space-y-2 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <button 
+                                                onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
+                                                className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-dotted underline-offset-4 text-left"
+                                                title="클릭하여 기준 변경"
+                                            >
+                                                {timeRef === 'start' ? '시작' : '종료'}
+                                            </button>
 
-    <div className="space-y-2 mb-4">
-        <div className="flex items-center justify-between">
-            {/* ✅ [수정] 라벨을 버튼으로 변경: 클릭 시 기준 전환 */}
-            <button 
-                onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
-                className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-dotted underline-offset-4 text-left"
-                title="클릭하여 기준 변경"
-            >
-                {timeRef === 'start' ? '시작' : '종료'}
-            </button>
-
-            <div className="flex-1 flex gap-2">
-                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
-                    {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
-                </select>
-                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
-                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                </select>
-            </div>
-        </div>
-        
-        {manualTab === 'focus' && (
-            <>
-            <div className="flex items-center justify-between">
-                <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
-                <div className="flex-1 flex gap-2">
-                    <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
-                        {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
-                    </select>
-                    <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
-                        {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                    </select>
-                </div>
-            </div>
-            <p className="text-center text-[10px] text-slate-400 opacity-80">* 자동으로 점화 시간 3분이 추가됩니다.</p>
-            </>
-        )}
-    </div>
-
-    {/* 하단 버튼 영역 (Focus/Switch/Rest) - 기존 코드 유지 */}
-    {manualTab === 'focus' && (
-        <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
-            <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-            <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-        </div>
-    )}
-
-    {manualTab === 'switch' && (
-        <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
-            {fixedQuests.map((q) => (
-                <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-20 justify-center">
-                    {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
-                    <span className="text-[10px] font-bold mt-1">{q.name}</span>
-                </button>
-            ))}
-        </div>
-    )}
-
-    {manualTab === 'rest' && (
-        <div className="grid grid-cols-2 gap-2">
-            {restOptions.map((r) => (
-                <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
-                    {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
-                    <span className="text-[10px] font-bold mt-1">{r.name}</span>
-                </button>
-            ))}
-        </div>
-    )}
-    </>
-)}
+                                            <div className="flex-1 flex gap-2">
+                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
+                                                    {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
+                                                </select>
+                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
+                                                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
                                         {/* Focus 모드일 때만 집중시간 선택 표시 */}
                                         {manualTab === 'focus' && (
                                             <>
                                             <div className="flex items-center justify-between">
-                                                <label className="text-slate-500 text-xs font-bold w-12">집중</label>
+                                                <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
                                                 <div className="flex-1 flex gap-2">
                                                     <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
                                                         {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
