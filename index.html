@@ -251,6 +251,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); // manual 모달 내부 탭: focus, switch, rest
+            const [timeRef, setTimeRef] = useState('end'); // 'start' | 'end'
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -415,63 +416,55 @@
                 let totalDuration = 0;
 
                 const now = new Date();
-                // 종료 시간 설정 (수동 입력 시 선택된 시간 사용)
-                let endTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+                // 사용자가 입력한 시간 (시작 기준일 수도, 종료 기준일 수도 있음)
+                const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+                
+                let startTs, endTs;
 
+                // 1. 지속 시간(Duration) 먼저 계산
                 if (type === 'auto') {
-                    totalDuration = tempSession.duration; 
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: tempSession.startTime, 
-                        endTime: tempSession.endTime, 
-                        duration: totalDuration, 
-                        quality: quality,
-                        type: 'focus'
-                    };
+                    totalDuration = tempSession.duration;
                 } else if (type === 'manual') {
-                    // Focus 수동 입력
-                    totalDuration = (manualDurHour * 60) + manualDurMin + 3;
-                    const startTs = endTs - (totalDuration * 60 * 1000);
-                    if (totalDuration <= 3) { triggerToast("⚠️ 시간이 너무 짧아요."); return; }
-                    newBlock = { 
-                        id: Date.now(), 
-                        startTime: startTs, 
-                        endTime: endTs, 
-                        duration: totalDuration, 
-                        quality: quality,
-                        type: 'focus'
-                    };
+                    totalDuration = (manualDurHour * 60) + manualDurMin + 3; // 점화 시간 3분 포함
                 } else if (type === 'manual-switch') {
-                    // Switch 수동 입력 (5분 고정)
                     totalDuration = 5;
-                    const startTs = endTs - (totalDuration * 60 * 1000);
-                    newBlock = {
-                        id: Date.now(),
-                        startTime: startTs,
-                        endTime: endTs,
-                        duration: totalDuration,
-                        quality: 'Cloud',
-                        type: 'switch',
-                        icon: itemData.icon,
-                        name: itemData.name,
-                        color: itemData.color
-                    };
                 } else if (type === 'manual-rest') {
-                    // Rest 수동 입력 (회복량에 따른 시간 또는 고정)
-                    totalDuration = itemData.id === 'r4' ? 60 : 20; 
-                    const startTs = endTs - (totalDuration * 60 * 1000);
-                    newBlock = {
-                        id: Date.now(),
-                        startTime: startTs,
-                        endTime: endTs,
-                        duration: totalDuration,
-                        quality: 'Cloud',
-                        type: 'rest',
-                        icon: itemData.icon,
-                        name: itemData.name,
-                        color: itemData.color
-                    };
+                    totalDuration = itemData.id === 'r4' ? 60 : 20;
                 }
+
+                // 2. 기준(timeRef)에 따라 시작/종료 시간 확정
+                if (type === 'auto') {
+                    // 자동은 타이머 기준이므로 기존 로직 유지
+                    startTs = tempSession.startTime;
+                    endTs = tempSession.endTime;
+                } else {
+                    // 수동 입력일 때
+                    if (timeRef === 'start') {
+                        startTs = inputTime;
+                        endTs = startTs + (totalDuration * 60 * 1000);
+                    } else {
+                        // 기존 (종료 기준)
+                        endTs = inputTime;
+                        startTs = endTs - (totalDuration * 60 * 1000);
+                    }
+                }
+
+                // 3. 유효성 검사 및 블록 생성
+                if (type === 'manual' && totalDuration <= 3) { 
+                    triggerToast("⚠️ 시간이 너무 짧아요."); return; 
+                }
+
+                newBlock = {
+                    id: Date.now(),
+                    startTime: startTs,
+                    endTime: endTs,
+                    duration: totalDuration,
+                    quality: quality || 'Cloud',
+                    type: type.includes('focus') || type === 'manual' ? 'focus' : (type.includes('switch') ? 'switch' : 'rest'),
+                    icon: itemData?.icon,
+                    name: itemData?.name,
+                    color: itemData?.color
+                };
 
                 let newEnergy = energy;
                 let msg = "💾 저장 완료!";
@@ -501,7 +494,7 @@
 
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : type === 'focus' || type === 'auto' || type === 'manual' ? 1 : 0);
                 
-                // 새로운 블록을 배열 맨 앞에 추가 -> 시간순 정렬은 렌더링 시 처리
+                // 새로운 블록을 배열 맨 앞에 추가
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
@@ -533,7 +526,7 @@
                         type: 'switch',
                         icon: quest.icon,
                         name: quest.name,
-                        color: quest.color // ✅ 색상 저장
+                        color: quest.color 
                     };
 
                     const newBlocks = [newBlock, ...blocks];
@@ -558,7 +551,7 @@
                     type: 'rest',
                     icon: rest.icon,
                     name: rest.name,
-                    color: rest.color // ✅ 색상 저장
+                    color: rest.color 
                 };
 
                 const newEnergy = Math.min(energy + rest.recovery, 100);
@@ -632,10 +625,10 @@
                 setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
-                setManualTab('focus'); // 기본 탭은 focus
+                setManualTab('focus'); 
+                setTimeRef('end'); // 기본값: 종료 기준
             };
 
-            // ✅ 저장된 색상 정보를 사용하여 아이콘 렌더링
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
                     if (block.quality === 'Sun') return <Icons.Sun className="w-10 h-10 text-purple-300" />;
@@ -643,7 +636,6 @@
                     return <Icons.Rain className="w-10 h-10 text-slate-400" />;
                 }
                 const IconComp = Icons[block.icon] || Icons.Zap;
-                // 저장된 색상이 있으면 사용, 없으면 타입별 기본값
                 const iconColor = block.color || (block.type === 'switch' ? 'text-sky' : 'text-purple-300');
                 return <IconComp className={`w-5 h-5 ${iconColor}`} />;
             };
@@ -856,16 +848,34 @@
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700">｡✧ Add Log ✧｡</h3>
                                     
-                                    {/* ✅ [추가] 탭 버튼: Focus / Switch / Rest */}
+                                    {/* 탭 버튼: Focus / Switch / Rest */}
                                     <div className="flex gap-4 justify-center mb-3">
                                         <button onClick={() => setManualTab('focus')} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
                                         <button onClick={() => setManualTab('switch')} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
                                         <button onClick={() => setManualTab('rest')} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
+                                    
+                                    {/* 시간 기준 선택 토글 */}
+                                    <div className="flex justify-center gap-1 mb-2 bg-slate-100/50 p-1 rounded-xl mx-auto w-fit">
+                                        <button 
+                                            onClick={() => setTimeRef('start')}
+                                            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${timeRef === 'start' ? 'bg-white text-blue-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                        >
+                                            시작 기준
+                                        </button>
+                                        <button 
+                                            onClick={() => setTimeRef('end')}
+                                            className={`px-3 py-1 text-[10px] font-bold rounded-lg transition-all ${timeRef === 'end' ? 'bg-white text-blue-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                        >
+                                            종료 기준
+                                        </button>
+                                    </div>
 
                                     <div className="space-y-2 mb-4">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-slate-500 text-xs font-bold w-12">종료</label>
+                                            <label className="text-slate-500 text-xs font-bold w-12">
+                                                {timeRef === 'start' ? '시작' : '종료'}
+                                            </label>
                                             <div className="flex-1 flex gap-2">
                                                 <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
                                                     {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
