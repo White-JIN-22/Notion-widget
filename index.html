@@ -83,16 +83,17 @@
             min-height: 60px;
         }
 
+        /* ✅ [수정] 컴팩트 아이템 높이와 패딩 축소 */
         .log-item-compact {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.02);
             border: 1px dashed rgba(224, 242, 254, 0.15);
-            border-radius: 12px;
-            padding: 6px 12px;
+            border-radius: 10px;
+            padding: 3px 12px; /* 패딩 축소 */
             display: flex;
             align-items: center;
             justify-content: center; 
-            min-height: 36px;
+            min-height: 28px; /* 높이 축소 (36px -> 28px) */
             margin-bottom: 4px;
             position: relative;
         }
@@ -100,6 +101,8 @@
         .log-item-compact .delete-btn {
             position: absolute;
             right: 8px;
+            top: 50%;
+            transform: translateY(-50%); /* 중앙 정렬 보정 */
         }
 
         @keyframes slideUp {
@@ -145,7 +148,6 @@
             color: #0ea5e9;
         }
 
-        /* 매뉴얼 모달 탭 버튼 스타일 */
         .manual-tab {
             padding: 8px 0;
             font-size: 0.7rem; 
@@ -239,7 +241,8 @@
             Flame: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
-            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>,
+            ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
         const App = () => {
@@ -256,7 +259,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); 
-            const [timeRef, setTimeRef] = useState('end'); // 'start' | 'end'
+            const [timeRef, setTimeRef] = useState('end'); 
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -423,40 +426,33 @@
                 let totalDuration = 0;
 
                 const now = new Date();
-                // 사용자가 입력한 시간 (시작 기준일 수도, 종료 기준일 수도 있음)
                 const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
                 
                 let startTs, endTs;
 
-                // 1. 지속 시간(Duration) 먼저 계산
                 if (type === 'auto') {
                     totalDuration = tempSession.duration;
                 } else if (type === 'manual') {
-                    totalDuration = (manualDurHour * 60) + manualDurMin + 3; // 점화 시간 3분 포함
+                    totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
                 } else if (type === 'manual-switch') {
                     totalDuration = 5;
                 } else if (type === 'manual-rest') {
                     totalDuration = itemData.id === 'r4' ? 60 : 20;
                 }
 
-                // 2. 기준(timeRef)에 따라 시작/종료 시간 확정
                 if (type === 'auto') {
-                    // 자동은 타이머 기준이므로 기존 로직 유지
                     startTs = tempSession.startTime;
                     endTs = tempSession.endTime;
                 } else {
-                    // 수동 입력일 때
                     if (timeRef === 'start') {
                         startTs = inputTime;
                         endTs = startTs + (totalDuration * 60 * 1000);
                     } else {
-                        // 기존 (종료 기준)
                         endTs = inputTime;
                         startTs = endTs - (totalDuration * 60 * 1000);
                     }
                 }
 
-                // 3. 유효성 검사 및 블록 생성
                 if (type === 'manual' && totalDuration <= 3) { 
                     triggerToast("⚠️ 시간이 너무 짧아요."); return; 
                 }
@@ -477,17 +473,14 @@
                 let msg = "💾 저장 완료!";
 
                 if (type === 'manual-rest') {
-                    // 휴식은 에너지 회복
                     newEnergy = Math.min(energy + (itemData.recovery || 0), 100);
                     msg = `💾 ${itemData.name} 기록됨 (+${itemData.recovery}%)`;
                 } else {
-                    // 집중/전환은 에너지 소모
                     if (totalDuration < 10) {
                         if (type === 'auto') {
                             newEnergy = 20; 
                             msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
                         } else {
-                            // 전환 행동 소모값
                             const cost = type === 'manual-switch' ? 5 : 0;
                             newEnergy = Math.max(energy - cost, 0);
                             msg = "💾 기록 완료!";
@@ -633,7 +626,7 @@
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
                 setManualTab('focus'); 
-                setTimeRef('end'); // 기본값: 종료 기준
+                setTimeRef('end'); 
             };
 
             const renderBlockIcon = (block) => {
@@ -775,7 +768,6 @@
                                 <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 relative">
                                     {(() => {
                                         // 1. 시간순 정렬 (최신순: Newest -> Oldest)
-                                        // 입력 순서가 뒤죽박죽이어도 시간 기준으로 줄 세움
                                         const sortedBlocks = [...blocks].sort((a, b) => b.startTime - a.startTime);
                                         
                                         // 2. 보여줄 개수만큼 자르고 -> 역순(아침->밤)으로 뒤집기 (채팅방 스타일)
@@ -899,6 +891,7 @@
                                             </div>
                                         </div>
                                         
+                                        {/* Focus 모드일 때만 집중시간 선택 표시 */}
                                         {manualTab === 'focus' && (
                                             <>
                                             <div className="flex items-center justify-between">
