@@ -187,12 +187,17 @@
                 );
             };
 
-            // ✅ [수정] 저녁(18시 이후)에는 질(Quality) 기반 피드백, 그 외엔 시간 기반
+            // ✅ [수정] 시간대 및 기록 유무에 따른 맞춤 메시지
             const getMessage = (min) => {
                 const now = new Date();
                 const currentHour = now.getHours();
 
-                // 저녁 6시 이후 & 기록이 있을 때
+                // 1. 오후 1시 이후 & 기록 없음 (늦은 시작 격려)
+                if (currentHour >= 13 && min === 0) {
+                    return "늦지 않았어요. 지금부터 진솔 님의 속도대로 시작하면 돼요.";
+                }
+
+                // 2. 저녁 6시 이후 & 기록 있음 (하루 질적 평가 및 마무리)
                 if (currentHour >= 18 && blocks.length > 0) {
                     const sunCount = blocks.filter(b => b.quality === 'Sun').length;
                     const cloudyCount = blocks.filter(b => b.quality === 'Cloud' || b.quality === 'Rain').length;
@@ -202,7 +207,7 @@
                     if (min > 300) return "🎖️ 긴 시간 고생 많으셨어요. 편안한 밤 보내세요.";
                 }
 
-                // 기존 시간 기반 로직
+                // 3. 일반적인 시간 기반 메시지
                 if (min === 0) return "❄️ 차근차근 점화를 준비해 볼까요?";
                 if (min < 60) return "🫧 오늘 시스템의 첫 단추를 잘 꿰었네요.";
                 if (min < 180) return "✨ 견고하게 쌓아가는 진솔 님의 시간.";
@@ -210,14 +215,10 @@
                 return "🎖️ 충분히 애쓴 오늘, 휴식을 권장합니다.";
             };
 
-            // ✅ [수정] Tailwind 클래스 -> 정확한 HEX 컬러 매핑
             const getColorCode = (colorClass) => {
-                // Tailwind Colors (text-sky-300, text-purple-300, text-slate-400)
                 if (colorClass?.includes('text-sky')) return '#bae6fd'; 
                 if (colorClass?.includes('text-purple')) return '#d8b4fe'; 
                 if (colorClass?.includes('text-slate') || colorClass?.includes('text-gray')) return '#94a3b8';
-                
-                // Fallback (text-white or default)
                 return '#ffffff'; 
             };
 
@@ -244,7 +245,6 @@
                             if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
                                 cellClass = 'relative flex items-center justify-center'; 
                                 
-                                // ✅ 가로선 색상 추출 (아이콘과 동일)
                                 const lineColor = getColorCode(foundBlock.color);
                                 
                                 const bStart = new Date(foundBlock.startTime);
@@ -253,13 +253,11 @@
                                                     bStart.getMinutes() < slotEndMin;
                                 
                                 if (isStartSlot) {
-                                    // 시작점: 아이콘만 표시
                                     const IconComp = Icons[foundBlock.icon] || (foundBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                                     const iconColor = foundBlock.color || 'text-white';
                                     
                                     content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
                                 } else {
-                                    // ✅ 이후 구간: 선만 표시 (배경색이 아닌 선 자체의 색상)
                                     content = <div className="w-full h-[2.5px] rounded-full" style={{backgroundColor: lineColor}}></div>;
                                 }
                             } 
