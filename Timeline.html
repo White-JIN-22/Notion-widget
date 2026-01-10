@@ -83,6 +83,7 @@
             align-items: center;
             justify-content: center;
             position: relative; 
+            overflow: hidden; /* ✅ [수정] 가로선이 네모 칸 밖으로 나가지 않도록 제한 */
         }
         
         /* 🎨 Block Styles (Focus) */
@@ -92,7 +93,7 @@
         
         .block-empty { background: rgba(255, 255, 255, 0.04); }
 
-        /* ✅ [수정] Switch/Rest 배경 투명화 */
+        /* Switch/Rest 배경 투명화 */
         .block-action-bg { background: transparent; border: none; }
 
         .footer-blur {
@@ -251,19 +252,21 @@
                                                     bStart.getMinutes() >= slotStartMin && 
                                                     bStart.getMinutes() < slotEndMin;
                                 
+                                // ✅ [수정] 가로선 두께를 3px로 조정 (아이콘 두께와 통일)
                                 if (isStartSlot) {
                                     const IconComp = Icons[foundBlock.icon] || (foundBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                                     const iconColor = foundBlock.color || 'text-white';
                                     
                                     content = (
                                         <>
-                                            <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />
-                                            {/* ✅ [수정] 시작 슬롯: 아이콘 오른쪽으로 선 뻗기 */}
-                                            <div className="absolute left-1/2 w-full h-[3px] rounded-r-full" style={{backgroundColor: lineColor}}></div>
+                                            {/* ✅ [수정] 가로선을 아이콘 뒤로 배치 (z-0) */}
+                                            <div className="absolute left-1/2 w-full h-[3px] rounded-r-full z-0" style={{backgroundColor: lineColor}}></div>
+                                            {/* ✅ [수정] 아이콘을 앞으로 배치 (z-10) */}
+                                            <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-sm`} />
                                         </>
                                     );
                                 } else {
-                                    // ✅ [수정] 이후 슬롯: 선을 꽉 채워 연결 (rounded-full 제거)
+                                    // ✅ [수정] 이후 슬롯: 선을 꽉 채워 연결 (rounded-full 제거, 두께 3px)
                                     content = <div className="w-full h-[3px]" style={{backgroundColor: lineColor}}></div>;
                                 }
                             } 
