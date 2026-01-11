@@ -247,7 +247,7 @@
             ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>,
             ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
             Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
-            Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+            Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>
         };
 
         const App = () => {
@@ -281,24 +281,24 @@
             
             const lastAutoSyncRef = useRef(Date.now());
 
+            // 퀵 액션은 이제 duration을 참조하지 않지만(함수 내에서 10분으로 고정), 데이터 구조 유지를 위해 남겨둠.
             const fixedQuests = [
-                // 씻기, 식사 제거 -> 집안일 추가
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400', duration: 20 }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400', duration: 20 }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', duration: 20 }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', duration: 10 }, 
-                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', duration: 30 }, 
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
+                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
             ];
 
             const restOptions = [
-                { id: 'r_exercise', name: '운동', recovery: 30, icon: 'Zap', color: 'text-purple-300', duration: 20 }, 
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky', duration: 30 }, 
-                { id: 'r_counseling', name: '상담', recovery: 25, icon: 'Leaf', color: 'text-sky', duration: 50 }, 
-                { id: 'r_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-emerald-300', duration: 20 }, 
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400', duration: 30 }, 
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400', duration: 60 }, 
-                { id: 'q1_moved', name: '씻기', recovery: 15, icon: 'Droplets', color: 'text-sky', duration: 30 }, 
-                { id: 'q2_moved', name: '식사', recovery: 20, icon: 'Utensils', color: 'text-purple-300', duration: 30 }, 
+                { id: 'r_exercise', name: '운동', recovery: 30, icon: 'Zap', color: 'text-purple-300' }, 
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
+                { id: 'r_counseling', name: '상담', recovery: 25, icon: 'Leaf', color: 'text-sky' }, 
+                { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky' }, 
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
+                { id: 'q1_moved', name: '씻기', recovery: 15, icon: 'Droplets', color: 'text-sky' }, 
+                { id: 'q2_moved', name: '식사', recovery: 20, icon: 'Utensils', color: 'text-purple-300' }, 
             ];
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
@@ -503,13 +503,18 @@
                     triggerToast("⚠️ 시간이 너무 짧아요."); return; 
                 }
 
+                // [수정] 타입 지정 버그 수정
+                const resolvedType = (type === 'auto' || type.includes('focus') || type === 'manual') 
+                    ? 'focus' 
+                    : (type.includes('switch') ? 'switch' : 'rest');
+
                 newBlock = {
                     id: Date.now(),
                     startTime: startTs,
                     endTime: endTs,
                     duration: totalDuration,
                     quality: quality || 'Cloud',
-                    type: type.includes('focus') || type === 'manual' ? 'focus' : (type.includes('switch') ? 'switch' : 'rest'),
+                    type: resolvedType,
                     icon: itemData?.icon,
                     name: itemData?.name,
                     color: itemData?.color
@@ -538,11 +543,19 @@
                     }
                 }
 
-                const newTickets = tickets + (type === 'manual-switch' ? -1 : type === 'focus' || type === 'auto' || type === 'manual' ? 1 : 0);
+                const newTickets = tickets + (type === 'manual-switch' ? -1 : resolvedType === 'focus' ? 1 : 0);
                 
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
+
+                // [수정] 자동 타이머 저장 후 리셋 로직
+                if (type === 'auto') {
+                    setElapsed(0);
+                    setStartTime(null);
+                    setIsRecording(false);
+                    setTempSession(null);
+                }
             };
 
             const confirmDelete = (id) => {
@@ -583,7 +596,7 @@
             const doQuest = (quest) => {
                 if (tickets > 0) {
                     const now = Date.now();
-                    const duration = quest.duration || 5; 
+                    const duration = 10; // [수정] 모든 퀵 액션 10분 고정
                     const startTs = now - (duration * 60 * 1000);
                     
                     const newBlock = {
@@ -608,7 +621,7 @@
 
             const takeRest = (rest) => {
                 const now = Date.now();
-                const duration = rest.duration || 20; 
+                const duration = 10; // [수정] 모든 퀵 액션 10분 고정
                 const startTs = now - (duration * 60 * 1000);
 
                 const newBlock = {
