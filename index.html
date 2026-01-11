@@ -350,7 +350,7 @@
                 const checkInterval = setInterval(() => {
                     const now = Date.now();
                     const elapsedSinceLastSync = now - lastAutoSyncRef.current;
-                    const SYNC_INTERVAL = 5 * 60 * 1000; 
+                    const SYNC_INTERVAL = 60 * 60 * 1000; 
 
                     if (elapsedSinceLastSync >= SYNC_INTERVAL) {
                         if (blocks.length > 0 && !isSending) {
