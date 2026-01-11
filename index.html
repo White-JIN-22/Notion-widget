@@ -931,7 +931,7 @@
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className="w-full modal-content rounded-t-3xl p-5 animate-slide-up shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                            <div className="w-full modal-content rounded-t-3xl p-5 animate-slide-up shadow-2xl h-[340px] flex flex-col" onClick={(e) => e.stopPropagation()}>
                                 
                                 {modalType === 'delete' && (
                                     <div className="text-center">
@@ -956,15 +956,15 @@
 
                                 {modalType === 'manual' && (
                                     <>
-                                    <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
+                                    <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Add Log ✧｡</h3>
                                     
-                                    <div className="flex gap-4 justify-center mb-2">
+                                    <div className="flex gap-4 justify-center mb-2 shrink-0">
                                         <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
                                         <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
                                         <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
-                                    <div className="space-y-1 mb-2">
+                                    <div className="space-y-1 mb-2 shrink-0">
                                         <div className="flex items-center justify-between">
                                             {manualTab === 'focus' ? (
                                                 <span className="w-12 text-xs font-bold text-slate-500 text-left pt-2 cursor-default">종료</span>
@@ -1006,35 +1006,37 @@
                                         )}
                                     </div>
 
-                                    {manualTab === 'focus' && (
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                            <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                            <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                        </div>
-                                    )}
+                                    <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
+                                        {manualTab === 'focus' && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                                <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                                <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
+                                            </div>
+                                        )}
 
-                                    {manualTab === 'switch' && (
-                                        <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
-                                            {fixedQuests.map((q) => (
-                                                <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
-                                                    {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
-                                                    <span className="text-xs font-bold mt-1">{q.name}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                        {manualTab === 'switch' && (
+                                            <div className="grid grid-cols-4 gap-1">
+                                                {fixedQuests.map((q) => (
+                                                    <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
+                                                        {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
+                                                        <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{q.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
 
-                                    {manualTab === 'rest' && (
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {restOptions.map((r) => (
-                                                <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn p-2 rounded-xl flex flex-col items-center h-16 justify-center">
-                                                    {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
-                                                    <span className="text-xs font-bold mt-1">{r.name}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                        {manualTab === 'rest' && (
+                                            <div className="grid grid-cols-4 gap-1">
+                                                {restOptions.map((r) => (
+                                                    <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
+                                                        {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
+                                                        <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{r.name}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                     </>
                                 )}
                                 
