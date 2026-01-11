@@ -73,10 +73,10 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.2);
             border-radius: 16px;
-            padding: 12px 36px 12px 12px; 
+            padding: 8px 36px 8px 12px;
+            min-height: 48px;
             display: flex;
             align-items: center;
-            min-height: 60px;
             position: relative; 
         }
 
@@ -704,9 +704,9 @@
 
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
-                    if (block.quality === 'Sun') return <Icons.Sun className="w-10 h-10 text-purple-300" />;
-                    if (block.quality === 'Cloud') return <Icons.Cloud className="w-10 h-10 text-sky" />;
-                    return <Icons.Rain className="w-10 h-10 text-slate-400" />;
+                    if (block.quality === 'Sun') return <Icons.Sun className="w-8 h-8 text-purple-300" />;
+                    if (block.quality === 'Cloud') return <Icons.Cloud className="w-8 h-8 text-sky" />;
+                    return <Icons.Rain className="w-8 h-8 text-slate-400" />;
                 }
                 const IconComp = Icons[block.icon] || Icons.Zap;
                 const iconColor = block.color || (block.type === 'switch' ? 'text-sky' : 'text-purple-300');
@@ -870,7 +870,7 @@
                                                                     </div>
                                                                 ) : (
                                                                     <div className="flex-1">
-                                                                        <div className="text-base font-bold text-bright mb-0.5">
+                                                                        <div className="text-sm font-bold text-bright mb-0.5">
                                                                             {formatDuration(block.duration)}
                                                                         </div>
                                                                         <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
