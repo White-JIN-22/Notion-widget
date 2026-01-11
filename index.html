@@ -261,7 +261,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); 
-            const [timeRef, setTimeRef] = useState('end'); 
+            const [timeRef, setTimeRef] = useState('start'); // ✅ [수정] 기본값 'start'로 변경
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -352,7 +352,7 @@
                         triggerToast("☁️ 자동 동기화 시도...");
                         sendToNotion();
                     }
-                }, 60 * 60 * 1000); 
+                }, 5 * 60 * 1000); // ✅ [수정] 테스트용 5분 (나중에 60 * 60 * 1000으로 변경하세요)
 
                 return () => clearInterval(autoSyncInterval);
             }, [blocks, isSending]);
@@ -698,7 +698,7 @@
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
                 setManualTab('focus'); 
-                setTimeRef('end'); 
+                setTimeRef('start'); // ✅ 기본값 시작으로 설정
             };
 
             const renderBlockIcon = (block) => {
@@ -956,8 +956,14 @@
                                     
                                     <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
-                                            {/* ✅ [수정] Focus 수동 입력 시 '종료'로 고정 */}
-                                            <span className="w-12 text-xs font-bold text-slate-500 text-left pt-2">종료</span>
+                                            {/* ✅ [수정] 다시 토글 기능 부활 (기본값: 시작) */}
+                                            <button 
+                                                onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
+                                                className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
+                                                title="클릭하여 기준 변경"
+                                            >
+                                                {timeRef === 'start' ? '시작' : '종료'}
+                                            </button>
 
                                             <div className="flex-1 flex gap-2">
                                                 <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
