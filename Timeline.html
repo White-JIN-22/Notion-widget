@@ -238,7 +238,7 @@
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
-                        // ✅ [수정] 5분 이상 겹치는 블록만 필터링
+                        // 5분 이상 겹치는 블록만 필터링
                         const foundBlocks = blocks.filter(b => {
                             if (b.endTime <= slotStartTs || b.startTime >= slotEndTs) return false;
 
@@ -264,13 +264,20 @@
                             if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
                                 cellClass = 'block-action-bg relative flex items-center justify-center'; 
                                 
-                                const bStart = new Date(foundBlock.startTime);
-                                // 아이콘 표시: 해당 블록의 시작 시간이 이 슬롯 안에 있어야 함
-                                const isStartSlot = bStart.getHours() === hour && 
-                                                    bStart.getMinutes() >= slotStartMin && 
-                                                    bStart.getMinutes() < slotEndMin;
+                                const bEnd = new Date(foundBlock.endTime);
+                                // ✅ [수정] 아이콘 표시 기준: 해당 블록의 '종료' 시간이 이 슬롯 안에 있어야 함
+                                // 단, 종료시간이 10분 단위(00, 10, 20...)일 경우, 바로 앞 슬롯(X9분)에 포함된 것으로 간주
+                                let endMin = bEnd.getMinutes();
+                                if (endMin === 0 && slotEndMin === 60) {
+                                    // 10:00 종료 -> 09:50~10:00 슬롯에 그림 (여기서는 hour 로직이 복잡해지므로, 분 단위 비교로 단순화)
+                                }
+
+                                // 정확한 비교를 위해 timestamp 사용
+                                // 슬롯 시작 <= 종료시간 <= 슬롯 끝
+                                // 단, 종료시간이 슬롯 시작과 같으면 제외 (이미 앞 슬롯에 그려짐)
+                                const isEndSlot = (bEnd.getTime() > slotStartTs) && (bEnd.getTime() <= slotEndTs);
                                 
-                                if (isStartSlot) {
+                                if (isEndSlot) {
                                     const IconComp = Icons[foundBlock.icon] || (foundBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                                     const iconColor = foundBlock.color || 'text-white';
                                     content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
