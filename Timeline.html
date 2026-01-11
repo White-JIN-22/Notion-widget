@@ -230,7 +230,8 @@
                         const slotStartMin = i * 10;
                         const slotEndMin = (i + 1) * 10;
                         
-                        const foundBlock = blocks.find(b => {
+                        // ✅ [수정] 같은 시간대에 여러 블록이 있으면 'Focus' 타입을 우선 선택
+                        const foundBlocks = blocks.filter(b => {
                             const slotStartTime = new Date();
                             slotStartTime.setHours(hour, slotStartMin, 0, 0);
                             const slotEndTime = new Date(slotStartTime);
@@ -238,11 +239,18 @@
                             return b.startTime < slotEndTime.getTime() && b.endTime > slotStartTime.getTime();
                         });
 
+                        // 우선순위 정렬: Focus > 그 외 (Switch, Rest)
+                        let foundBlock = null;
+                        if (foundBlocks.length > 0) {
+                            foundBlock = foundBlocks.find(b => !b.type || b.type === 'focus');
+                            if (!foundBlock) foundBlock = foundBlocks[0]; // Focus가 없으면 아무거나
+                        }
+
                         let cellClass = 'block-empty';
                         let content = null;
 
                         if (foundBlock) {
-                            // ✅ [수정] Switch/Rest: 가로선 제거, 아이콘만 표시
+                            // Switch/Rest: 가로선 제거, 아이콘만 표시
                             if (foundBlock.type === 'switch' || foundBlock.type === 'rest') {
                                 cellClass = 'block-action-bg relative flex items-center justify-center'; 
                                 
