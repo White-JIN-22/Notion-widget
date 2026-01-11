@@ -237,8 +237,8 @@
             Wind: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
             Shirt: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
-            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
-            Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
+            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
             Flame: () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
@@ -261,7 +261,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); 
-            const [timeRef, setTimeRef] = useState('end'); // 기본값은 안전하게 end
+            const [timeRef, setTimeRef] = useState('end'); // 기본값
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -275,6 +275,9 @@
             const [manualDurMin, setManualDurMin] = useState(30);
 
             const [isSending, setIsSending] = useState(false);
+            
+            // ✅ [수정] 자동 저장용 Ref (마지막 저장 시간 추적)
+            const lastAutoSyncRef = useRef(Date.now());
 
             const fixedQuests = [
                 { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
@@ -296,7 +299,6 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
 
-            // ✅ 1. 데이터 로드 로직 (표준 00:00 기준)
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
@@ -319,7 +321,6 @@
                 }
             }, []);
 
-            // ✅ 2. [추가] 안전한 자정 감지기 (작업 중이면 새로고침 안 함)
             useEffect(() => {
                 const checkMidnight = setInterval(() => {
                     const currentToday = new Date().toDateString();
@@ -334,7 +335,7 @@
                         }
                         window.location.reload(); 
                     }
-                }, 60000); // 1분마다 체크
+                }, 60000); 
 
                 return () => clearInterval(checkMidnight);
             }, [isRecording, showModal, toast]);
@@ -346,16 +347,24 @@
                 }
             }, [toast]);
 
+            // ✅ [수정] 자동 저장 로직: blocks 변경에 영향받지 않도록 setInterval 내부에서 시간차 계산
             useEffect(() => {
-                const autoSyncInterval = setInterval(() => {
-                    if (blocks.length > 0 && !isSending) {
-                        triggerToast("☁️ 자동 동기화 시도...");
-                        sendToNotion();
-                    }
-                }, 5 * 60 * 1000); // ✅ [수정] 5분 단위로 변경
+                const checkInterval = setInterval(() => {
+                    const now = Date.now();
+                    const elapsedSinceLastSync = now - lastAutoSyncRef.current;
+                    const SYNC_INTERVAL = 5 * 60 * 1000; // 5분 (테스트 후 60분으로 변경 가능)
 
-                return () => clearInterval(autoSyncInterval);
-            }, [blocks, isSending]);
+                    if (elapsedSinceLastSync >= SYNC_INTERVAL) {
+                        if (blocks.length > 0 && !isSending) {
+                            triggerToast("☁️ 자동 동기화 시도...");
+                            sendToNotion();
+                            lastAutoSyncRef.current = now; // 시간 갱신
+                        }
+                    }
+                }, 10000); // 10초마다 체크 (부담 없음)
+
+                return () => clearInterval(checkInterval);
+            }, [blocks, isSending]); // 의존성은 그대로 두되, 시간 판단은 ref로 함
 
             const triggerToast = (msg) => { setToast(msg); };
 
@@ -378,18 +387,17 @@
                 saveData(0, initialEnergy, []); 
             };
 
-            // ✅ [수정] 강제 초기화 실행 (모달 없이 즉시 실행하면 위험하므로 모달 띄움)
             const openResetModal = () => {
                 setModalType('reset');
                 setShowModal(true);
             };
 
             const executeReset = () => {
-                setShowIntro(true); // 인트로 화면으로 전환
+                setShowIntro(true); 
                 setTickets(0);
                 setEnergy(100);
-                setBlocks([]); // 화면상 기록 삭제
-                saveData(0, 100, []); // 실제 데이터 초기화 저장
+                setBlocks([]); 
+                saveData(0, 100, []); 
                 setShowModal(false);
                 triggerToast("🔄 하루가 초기화되었습니다.");
             };
@@ -527,7 +535,6 @@
 
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : type === 'focus' || type === 'auto' || type === 'manual' ? 1 : 0);
                 
-                // 새로운 블록을 배열 맨 앞에 추가
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 setShowModal(false);
                 triggerToast(msg);
@@ -537,7 +544,6 @@
                 setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
             
-            // ✅ [수정] 삭제 시 기록 유형별로 티켓/에너지 복구 로직 추가
             const executeDelete = () => {
                 if (deleteTargetId) {
                     const targetBlock = blocks.find(b => b.id === deleteTargetId);
@@ -547,23 +553,16 @@
                     let newEnergy = energy;
 
                     if (targetBlock) {
-                        // 1. Focus Type (집중): 티켓 반납, 소모한 에너지 복구
                         if (targetBlock.type === 'focus' || !targetBlock.type) {
                             newTickets = Math.max(0, tickets - 1);
-                            
-                            // 집중 시 소모했던 에너지 계산 (10분당 5%)
-                            // 만약 10분 미만이었다면 소모량이 0이었으므로 복구도 0
                             const restoredEnergy = Math.floor(targetBlock.duration / 10) * 5;
                             newEnergy = Math.min(100, energy + restoredEnergy);
                         }
-                        // 2. Switch Type (전환 행동): 티켓 환불, 소모한 에너지(5) 복구
                         else if (targetBlock.type === 'switch') {
                             newTickets = tickets + 1;
                             newEnergy = Math.min(100, energy + 5);
                         }
-                        // 3. Rest Type (휴식): 얻었던 에너지 차감
                         else if (targetBlock.type === 'rest') {
-                            // 휴식 옵션에서 해당 활동의 회복량을 찾음
                             const restOption = restOptions.find(r => r.name === targetBlock.name);
                             const recoveryValue = restOption ? restOption.recovery : 0;
                             newEnergy = Math.max(0, energy - recoveryValue);
@@ -698,7 +697,7 @@
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
                 
-                // ✅ [수정] 처음 열 때 Focus는 '종료(end)' 기준
+                // ✅ [수정] 수동 입력창을 열 때 (기본 Focus) => '종료' 기준
                 setManualTab('focus'); 
                 setTimeRef('end'); 
             };
@@ -959,7 +958,7 @@
                                     
                                     <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
-                                            {/* ✅ [수정] 다시 토글 기능 부활 (기본값: 시작) */}
+                                            {/* ✅ [수정] 다시 토글 기능 부활 (기본값: 탭에 따라 다름) */}
                                             <button 
                                                 onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
                                                 className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
