@@ -261,7 +261,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); 
-            const [timeRef, setTimeRef] = useState('end'); // 기본값
+            const [timeRef, setTimeRef] = useState('start'); // 기본값
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -276,23 +276,22 @@
 
             const [isSending, setIsSending] = useState(false);
             
-            // ✅ [수정] 자동 저장용 Ref (마지막 저장 시간 추적)
             const lastAutoSyncRef = useRef(Date.now());
 
             const fixedQuests = [
-                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky' }, 
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300' }, 
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400' }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
+                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky', duration: 30 }, 
+                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300', duration: 30 }, 
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400', duration: 20 }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400', duration: 20 }, 
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', duration: 20 }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', duration: 10 }, 
             ];
 
             const restOptions = [
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky' }, 
-                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300' }, 
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
+                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky', duration: 30 }, 
+                { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400', duration: 30 }, 
+                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300', duration: 10 }, 
+                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400', duration: 60 }, 
             ].sort((a,b) => a.recovery - b.recovery);
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
@@ -347,24 +346,23 @@
                 }
             }, [toast]);
 
-            // ✅ [수정] 자동 저장 로직: blocks 변경에 영향받지 않도록 setInterval 내부에서 시간차 계산
             useEffect(() => {
                 const checkInterval = setInterval(() => {
                     const now = Date.now();
                     const elapsedSinceLastSync = now - lastAutoSyncRef.current;
-                    const SYNC_INTERVAL = 5 * 60 * 1000; // 5분 (테스트 후 60분으로 변경 가능)
+                    const SYNC_INTERVAL = 5 * 60 * 1000; 
 
                     if (elapsedSinceLastSync >= SYNC_INTERVAL) {
                         if (blocks.length > 0 && !isSending) {
                             triggerToast("☁️ 자동 동기화 시도...");
                             sendToNotion();
-                            lastAutoSyncRef.current = now; // 시간 갱신
+                            lastAutoSyncRef.current = now; 
                         }
                     }
-                }, 10000); // 10초마다 체크 (부담 없음)
+                }, 10000); 
 
                 return () => clearInterval(checkInterval);
-            }, [blocks, isSending]); // 의존성은 그대로 두되, 시간 판단은 ref로 함
+            }, [blocks, isSending]); 
 
             const triggerToast = (msg) => { setToast(msg); };
 
@@ -476,9 +474,9 @@
                 } else if (type === 'manual') {
                     totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
                 } else if (type === 'manual-switch') {
-                    totalDuration = 5;
+                    totalDuration = itemData.duration || 5; 
                 } else if (type === 'manual-rest') {
-                    totalDuration = itemData.id === 'r4' ? 60 : 20;
+                    totalDuration = itemData.duration || 20; 
                 }
 
                 if (type === 'auto') {
@@ -575,16 +573,17 @@
                 }
             };
 
+            // ✅ [수정] 메인 화면 버튼 클릭 시 '현재 시각 = 종료 시각'으로 계산
             const doQuest = (quest) => {
                 if (tickets > 0) {
                     const now = Date.now();
-                    const duration = 5; 
+                    const duration = quest.duration || 5; 
                     const startTs = now - (duration * 60 * 1000);
                     
                     const newBlock = {
                         id: now,
                         startTime: startTs,
-                        endTime: now,
+                        endTime: now, // 현재 시각을 종료 시간으로
                         duration: duration,
                         quality: 'Cloud',
                         type: 'switch',
@@ -601,15 +600,16 @@
                 }
             };
 
+            // ✅ [수정] 메인 화면 버튼 클릭 시 '현재 시각 = 종료 시각'으로 계산
             const takeRest = (rest) => {
                 const now = Date.now();
-                const duration = rest.id === 'r4' ? 60 : 20; 
+                const duration = rest.duration || 20; 
                 const startTs = now - (duration * 60 * 1000);
 
                 const newBlock = {
                     id: now,
                     startTime: startTs,
-                    endTime: now,
+                    endTime: now, // 현재 시각을 종료 시간으로
                     duration: duration,
                     quality: 'Cloud',
                     type: 'rest',
@@ -697,9 +697,9 @@
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
                 
-                // ✅ [수정] 수동 입력창을 열 때 (기본 Focus) => '종료' 기준
+                // ✅ [수정] 수동 입력창 처음 열 때는 Focus & 시작 기준 (기본값 복구)
                 setManualTab('focus'); 
-                setTimeRef('end'); 
+                setTimeRef('start'); 
             };
 
             const renderBlockIcon = (block) => {
@@ -949,16 +949,16 @@
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
                                     
-                                    {/* ✅ [수정] 탭 누르면 기준 시간이 자동 변경됨 (Focus->End, Others->Start) */}
+                                    {/* ✅ [수정] 탭 눌러도 기준 시간은 무조건 '종료(End)'로 고정 */}
                                     <div className="flex gap-4 justify-center mb-2">
                                         <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
-                                        <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
-                                        <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
+                                        <button onClick={() => { setManualTab('switch'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
+                                        <button onClick={() => { setManualTab('rest'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
                                     <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
-                                            {/* ✅ [수정] 다시 토글 기능 부활 (기본값: 탭에 따라 다름) */}
+                                            {/* ✅ [수정] 다시 토글 기능 부활 (기본값: 시작) */}
                                             <button 
                                                 onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
                                                 className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
