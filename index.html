@@ -201,6 +201,7 @@
 
         .text-sky { color: #bae6fd; }
         .text-sky-300 { color: #bae6fd; }
+        .text-emerald-300 { color: #6ee7b7; }
         .text-dim { color: #94a3b8; }
         .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
         .bg-sky-pastel { background-color: #bae6fd; box-shadow: 0 0 10px rgba(186, 230, 253, 0.5); }
@@ -222,7 +223,7 @@
 
         const Icons = {
             Ticket: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
-            Zap: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none" className="text-sky"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Zap: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
@@ -244,7 +245,9 @@
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
             ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>,
-            ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+            Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
         };
 
         const App = () => {
@@ -261,7 +264,7 @@
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
             const [manualTab, setManualTab] = useState('focus'); 
-            const [timeRef, setTimeRef] = useState('start'); // 기본값
+            const [timeRef, setTimeRef] = useState('start'); 
             
             const [deleteTargetId, setDeleteTargetId] = useState(null);
             const [toast, setToast] = useState(null);
@@ -279,20 +282,24 @@
             const lastAutoSyncRef = useRef(Date.now());
 
             const fixedQuests = [
-                { id: 'q1', name: '씻기', icon: 'Droplets', color: 'text-sky', duration: 30 }, 
-                { id: 'q2', name: '식사', icon: 'Utensils', color: 'text-purple-300', duration: 30 }, 
+                // 씻기, 식사 제거 -> 집안일 추가
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400', duration: 20 }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-slate-400', duration: 20 }, 
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', duration: 20 }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', duration: 10 }, 
+                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', duration: 30 }, 
             ];
 
             const restOptions = [
+                { id: 'r_exercise', name: '운동', recovery: 30, icon: 'Zap', color: 'text-purple-300', duration: 20 }, 
                 { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky', duration: 30 }, 
+                { id: 'r_counseling', name: '상담', recovery: 25, icon: 'Leaf', color: 'text-sky', duration: 50 }, 
+                { id: 'r_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-emerald-300', duration: 20 }, 
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400', duration: 30 }, 
-                { id: 'r3', name: '명상', recovery: 30, icon: 'Leaf', color: 'text-purple-300', duration: 10 }, 
                 { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400', duration: 60 }, 
-            ].sort((a,b) => a.recovery - b.recovery);
+                { id: 'q1_moved', name: '씻기', recovery: 15, icon: 'Droplets', color: 'text-sky', duration: 30 }, 
+                { id: 'q2_moved', name: '식사', recovery: 20, icon: 'Utensils', color: 'text-purple-300', duration: 30 }, 
+            ];
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
@@ -573,7 +580,6 @@
                 }
             };
 
-            // ✅ [수정] 메인 화면 버튼 클릭 시 '현재 시각 = 종료 시각'으로 계산
             const doQuest = (quest) => {
                 if (tickets > 0) {
                     const now = Date.now();
@@ -583,7 +589,7 @@
                     const newBlock = {
                         id: now,
                         startTime: startTs,
-                        endTime: now, // 현재 시각을 종료 시간으로
+                        endTime: now, 
                         duration: duration,
                         quality: 'Cloud',
                         type: 'switch',
@@ -600,7 +606,6 @@
                 }
             };
 
-            // ✅ [수정] 메인 화면 버튼 클릭 시 '현재 시각 = 종료 시각'으로 계산
             const takeRest = (rest) => {
                 const now = Date.now();
                 const duration = rest.duration || 20; 
@@ -609,7 +614,7 @@
                 const newBlock = {
                     id: now,
                     startTime: startTs,
-                    endTime: now, // 현재 시각을 종료 시간으로
+                    endTime: now, 
                     duration: duration,
                     quality: 'Cloud',
                     type: 'rest',
@@ -696,8 +701,6 @@
                 setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
-                
-                // ✅ [수정] 수동 입력창 처음 열 때는 Focus & 종료 기준 (Focus 특성 반영)
                 setManualTab('focus'); 
                 setTimeRef('end'); 
             };
@@ -816,7 +819,6 @@
                                 <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
                             </div>
                         </div>
-                        {/* ✅ [수정] 수동 업로드 버튼 -> 강제 리셋 버튼 (모달 호출) */}
                         <button onClick={openResetModal} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.Refresh /></button>
                     </div>
 
@@ -925,21 +927,18 @@
                                     <div className="text-center">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">기록 삭제</h3>
                                         <div className="flex gap-2 mt-4">
-                                            {/* ✅ [수정] 버튼 색상 변경 (Red -> Purple 계열) */}
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
                                             <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">삭제</button>
                                         </div>
                                     </div>
                                 )}
 
-                                {/* ✅ [수정] 리셋 모달 UI */}
                                 {modalType === 'reset' && (
                                     <div className="text-center">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">하루 초기화</h3>
                                         <p className="text-xs text-slate-500 mb-4">오늘의 모든 기록이 삭제되고<br/>컨디션 체크 화면으로 돌아갑니다.</p>
                                         <div className="flex gap-2">
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            {/* ✅ [수정] 버튼 색상 변경 (Red -> Purple 계열) */}
                                             <button onClick={executeReset} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">초기화</button>
                                         </div>
                                     </div>
@@ -949,7 +948,6 @@
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
                                     
-                                    {/* ✅ [수정] Focus 탭일 때는 종료 고정 */}
                                     <div className="flex gap-4 justify-center mb-2">
                                         <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
                                         <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
@@ -958,7 +956,6 @@
                                     
                                     <div className="space-y-1 mb-2">
                                         <div className="flex items-center justify-between">
-                                            {/* ✅ [수정] Focus일 땐 고정 텍스트, 그 외엔 토글 버튼 */}
                                             {manualTab === 'focus' ? (
                                                 <span className="w-12 text-xs font-bold text-slate-500 text-left pt-2 cursor-default">종료</span>
                                             ) : (
@@ -1007,7 +1004,6 @@
                                         </div>
                                     )}
 
-                                    {/* ✅ [수정] 모달 내 버튼 글자 크기 text-xs로 변경 */}
                                     {manualTab === 'switch' && (
                                         <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar">
                                             {fixedQuests.map((q) => (
@@ -1019,7 +1015,6 @@
                                         </div>
                                     )}
 
-                                    {/* ✅ [수정] 모달 내 버튼 글자 크기 text-xs로 변경 */}
                                     {manualTab === 'rest' && (
                                         <div className="grid grid-cols-2 gap-2">
                                             {restOptions.map((r) => (
