@@ -85,11 +85,11 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px dashed rgba(224, 242, 254, 0.15);
             border-radius: 10px;
-            padding: 3px 36px 3px 12px; 
+            padding: 1px 36px 1px 12px; 
             display: flex;
             align-items: center;
             justify-content: center; 
-            min-height: 28px;
+            min-height: 24px;
             margin-bottom: 4px;
             position: relative;
         }
@@ -710,7 +710,7 @@
                 }
                 const IconComp = Icons[block.icon] || Icons.Zap;
                 const iconColor = block.color || (block.type === 'switch' ? 'text-sky' : 'text-purple-300');
-                return <IconComp className={`w-5 h-5 ${iconColor}`} />;
+                return <IconComp className={`w-3 h-3 ${iconColor}`} />;
             };
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
@@ -865,7 +865,7 @@
                                                                 </div>
                                                                 
                                                                 {isCompact ? (
-                                                                    <div className="mx-3 text-xs text-slate-300 font-bold">
+                                                                    <div className="mx-3 text-[10px] text-slate-300 font-bold">
                                                                         {block.name}
                                                                     </div>
                                                                 ) : (
