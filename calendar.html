@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Color Sync)</title>
+    <title>Fortress Calendar (Final Polished)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -24,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* 🧊 Fortress Glass Container */
         .widget-container {
             position: relative;
             width: 280px; 
@@ -44,6 +43,13 @@
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* [수정] 달력 높이 고정 (흔들림 방지) */
+        .calendar-fixed-height {
+            min-height: 270px; /* 6주가 들어가도 넉넉한 높이 */
+            display: flex;
+            flex-direction: column;
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -62,7 +68,8 @@
             font-family: 'Roboto Mono', monospace;
             position: relative;
             cursor: pointer;
-            padding-top: 4px;
+            /* [수정] 위쪽 패딩 축소 -> 점을 위로 당김 */
+            padding-top: 2px; 
             padding-bottom: 2px;
             transition: all 0.2s;
         }
@@ -80,18 +87,21 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .dot-wrapper { margin-top: 1px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        /* [수정] 점 간격 밀착 */
+        .dot-wrapper { 
+            margin-top: 0px; /* 여백 제거 */
+            flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
         .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* [색상 정의] Fortress Theme Pastel Colors */
-        /* 업무(Work) - Blue -> SkyBlue */
+        /* 색상 매핑 */
         .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
-        /* 자기계발(Dev) - Orange/Purple -> Purple */
         .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
-        /* 건강(Health) - Red/Yellow -> Yellow */
         .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
-        /* 휴식(Rest) - Green/Gray -> Slate Gray */
         .bg-rest { background-color: #94a3b8; }                                                 
 
         .text-rose-custom { color: #fda4af; }
@@ -138,16 +148,11 @@
             green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    
         };
 
-        // [수정] 아이클라우드 색상과 Fortress 테마 연결
-        // blue(업무) -> bg-work (스카이블루)
-        // orange(자기계발) -> bg-dev (보라)
-        // red(건강) -> bg-health (노랑)
-        // green(휴식) -> bg-rest (그레이)
         const COLOR_MAP = { 
-            blue:   'bg-work',    // 🔵 업무 -> SkyBlue
-            orange: 'bg-dev',     // 🟣 자기계발 -> Purple
-            red:    'bg-health',  // 🟡 건강 -> Yellow
-            green:  'bg-rest'     // ⚪ 휴식 -> Gray
+            blue:   'bg-work',    
+            orange: 'bg-dev',     
+            red:    'bg-health',  
+            green:  'bg-rest'     
         };
 
         const Icons = {
@@ -178,7 +183,6 @@
             } catch (e) { return null; }
         };
 
-        // 비상용 Mock 데이터 (연결 실패 시 보여줄 데이터 - 색상 테스트용)
         const MOCK_EVENTS = {
             "20260112": [
                 { title: "[샘플] 건강검진", type: "bg-health", startTime: "09:00", endTime: "11:00", dateObj: new Date() },
@@ -327,8 +331,11 @@
                 <div className="widget-container">
                     <div className="px-5 pt-5 pb-3 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
                         <div>
-                            <div className="text-sky-point text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Calendar</div>
-                            <h1 className="text-xl title-text font-serif tracking-tight text-white font-bold">{monthStr} {year}</h1>
+                            {/* [수정] 헤더 디자인 변경: CALENDAR 2026 (Small) / Month (Big) */}
+                            <div className="text-sky-point text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">
+                                CALENDAR <span className="text-white ml-1 font-mono">{year}</span>
+                            </div>
+                            <h1 className="text-xl title-text font-serif tracking-tight text-white font-bold">{monthStr}</h1>
                         </div>
                         <div className="flex gap-1 items-center pb-0.5">
                             <button onClick={goToday} className="nav-btn mr-1" title="Go Today"><Icons.RotateCcw /></button>
@@ -338,7 +345,8 @@
                     </div>
 
                     <div className="flex-1 px-4 pt-3 pb-0 relative overflow-hidden flex flex-col justify-between">
-                        <div className="mb-2 shrink-0">
+                        {/* [수정] 달력 높이 고정용 Wrapper */}
+                        <div className="mb-2 shrink-0 calendar-fixed-height">
                             <div className="calendar-grid mb-2">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-dim')}`}>{d}</div>
@@ -389,7 +397,8 @@
                             </div>
                         </div>
 
-                        <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-1 relative min-h-0">
+                        {/* [수정] 상단 패딩(pt-3) 추가로 리스트 잘림 방지 */}
+                        <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-3 relative min-h-0">
                             <button onClick={handleLoadPrev} disabled={visibleRange.start === 0} className="list-nav-btn shrink-0 mb-1">
                                 {visibleRange.start > 0 && <Icons.ArrowUp />}
                             </button>
