@@ -11,7 +11,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -41,9 +41,11 @@
             color: #334155;
         }
 
+        /* [수정] 폰트 스타일 변경 (달력과 통일) */
         .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
+        
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
-        .title-text { color: #FFFFFF; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); font-weight: 700; }
+        .title-text { color: #FFFFFF; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
         /* ✨ Grid System */
         .grid-container {
@@ -93,11 +95,10 @@
         
         .block-empty { background: rgba(255, 255, 255, 0.04); }
 
-        /* Switch/Rest 배경 투명화 (아이콘만 뜰 때) */
+        /* Switch/Rest 배경 투명화 */
         .block-action-bg { background: transparent; border: none; }
 
         .footer-blur {
-            /* 배경 투명도 유지 */
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(15px);
             border-top: 1px solid rgba(255, 255, 255, 0.5);
@@ -138,6 +139,7 @@
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
             Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
+            Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
         };
 
@@ -219,13 +221,6 @@
                 return "🎖️ 충분히 애쓴 오늘, 휴식을 권장합니다.";
             };
 
-            const getColorCode = (colorClass) => {
-                if (colorClass?.includes('text-sky')) return '#bae6fd'; 
-                if (colorClass?.includes('text-purple')) return '#d8b4fe'; 
-                if (colorClass?.includes('text-slate') || colorClass?.includes('text-gray')) return '#94a3b8';
-                return '#ffffff'; 
-            };
-
             const renderGrid = () => {
                 const hours = Array.from({length: 18}, (_, i) => i + 6); // 06~23
                 
@@ -242,39 +237,32 @@
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
-                        // 1. [배경색] 5분 이상 겹치는 'Focus' 블록 찾기
                         const bgBlock = blocks.find(b => {
-                            if (b.type !== 'focus' && b.type) return false; // Focus만 대상
+                            if (b.type !== 'focus' && b.type) return false;
                             if (b.endTime <= slotStartTs || b.startTime >= slotEndTs) return false;
-
                             const overlapStart = Math.max(b.startTime, slotStartTs);
                             const overlapEnd = Math.min(b.endTime, slotEndTs);
                             const overlapDuration = (overlapEnd - overlapStart) / (1000 * 60);
-
                             return overlapDuration >= 5;
                         });
 
-                        // 2. [아이콘] 해당 슬롯에서 '끝나는' Switch/Rest 블록 찾기
                         const iconBlock = blocks.find(b => {
-                            if (b.type === 'focus' || !b.type) return false; // Focus 제외
+                            if (b.type === 'focus' || !b.type) return false;
                             return b.endTime > slotStartTs && b.endTime <= slotEndTs;
                         });
 
                         let cellClass = 'block-empty';
                         let content = null;
 
-                        // 배경색 설정 (Focus가 있을 때만)
                         if (bgBlock) {
                             if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
                             else if (bgBlock.quality === 'Cloud') cellClass = 'block-cloud';
                             else cellClass = 'block-rain';
                         } 
-                        // 배경색은 없지만 아이콘이 있는 경우 (투명 배경)
                         else if (iconBlock) {
                             cellClass = 'block-action-bg';
                         }
 
-                        // 아이콘 렌더링
                         if (iconBlock) {
                             const IconComp = Icons[iconBlock.icon] || (iconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                             const iconColor = bgBlock ? 'text-white' : (iconBlock.color || 'text-white');
@@ -304,7 +292,9 @@
                     {/* Header */}
                     <div className="px-4 pt-5 pb-2 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
                         <div>
+                            {/* [수정] Daily Blocks 색상 -> text-sky-300 */}
                             <div className="text-sky-300 text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Daily Blocks</div>
+                            {/* [수정] font-serif 적용 (Playfair Display) */}
                             <h1 className="text-lg title-text font-serif tracking-tight">Timeline</h1>
                         </div>
                     </div>
@@ -325,12 +315,11 @@
                     {/* Footer Stats */}
                     <div className="footer-blur px-4 pt-2 pb-3 z-10 shrink-0">
                         <div className="flex justify-between items-center mb-1">
-                            {/* [수정] text-slate-500 -> text-sky-400 (가독성 고려한 스카이블루) */}
-                            <span className="text-slate-300 text-[10px] font-bold uppercase tracking-wide">{footerDateStr}</span>
+                            {/* [수정] 날짜 텍스트 색상 -> text-sky-300 (Daily Blocks와 동일) */}
+                            <span className="text-sky-300 text-[10px] font-bold uppercase tracking-wide">{footerDateStr}</span>
                             <div>{formatDuration(totalDuration)}</div>
                         </div>
                         <div className="text-center">
-                            {/* [수정] py-2 -> py-3 (박스 높이 확대) */}
                             <p className="text-[13px] text-slate-500 font-bold bg-white/60 py-3 px-2 rounded-xl border border-white/80 w-full leading-tight shadow-sm" style={{wordBreak: 'keep-all'}}>
                                 {getMessage(totalDuration)}
                             </p>
