@@ -8,25 +8,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* 기본 폰트 설정 */
         body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
-        /* 스크롤바 숨김 */
         ::-webkit-scrollbar { display: none; }
-        /* 모달 제어 */
         #eventModal { display: none; }
+        /* 로딩 스피너 애니메이션 */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
     </style>
 </head>
 <body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-200 relative">
         
+        <div id="loadingIndicator" class="absolute top-4 right-14 hidden">
+            <i data-lucide="loader-2" class="spinner text-gray-400" width="16"></i>
+        </div>
+
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-2">
                 <button onclick="changeMonth(-1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
                     <i data-lucide="chevron-left"></i>
                 </button>
-                <span id="currentMonthYear" class="text-xl font-bold text-gray-800 tracking-tight">
-                    </span>
+                <span id="currentMonthYear" class="text-xl font-bold text-gray-800 tracking-tight"></span>
                 <button onclick="changeMonth(1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
                     <i data-lucide="chevron-right"></i>
                 </button>
@@ -46,8 +49,7 @@
             <div class="text-sm text-gray-500 font-semibold">토</div>
         </div>
 
-        <div id="calendarGrid" class="grid grid-cols-7 gap-1">
-            </div>
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
     </div>
 
     <div id="eventModal" class="fixed inset-0 bg-black/30 items-center justify-center z-50">
@@ -70,10 +72,9 @@
                     <input type="time" id="endTime" class="w-1/2 text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 pt-2" id="categoryContainer">
-                    </div>
+                <div class="grid grid-cols-2 gap-2 pt-2" id="categoryContainer"></div>
 
-                <button onclick="addEvent()" class="w-full py-3 mt-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-bold rounded-xl transition-colors">
+                <button onclick="addEvent()" id="addBtn" class="w-full py-3 mt-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-bold rounded-xl transition-colors">
                     추가하기
                 </button>
             </div>
@@ -81,12 +82,13 @@
     </div>
 
     <script>
-        // 초기 데이터 및 설정
+        // ✅ 진솔이의 Worker 주소 적용 완료!
+        const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev/"; 
+
         let currentDate = new Date();
-        let events = JSON.parse(localStorage.getItem('fortressEvents')) || [];
+        let events = [];
         let selectedCategory = 'work';
 
-        // 카테고리 정의
         const categories = {
             work: { label: '업무', class: 'bg-sky-100 text-sky-600 border-sky-200', icon: 'briefcase' },
             develop: { label: '자기계발', class: 'bg-purple-100 text-purple-600 border-purple-200', icon: 'book-open' },
@@ -94,14 +96,73 @@
             rest: { label: '휴식', class: 'bg-gray-100 text-gray-600 border-gray-200', icon: 'coffee' }
         };
 
-        // 초기화
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            renderCalendar();
+            fetchEvents(); // 워커에서 데이터 불러오기
             renderCategoryButtons();
         });
 
-        // 달력 렌더링
+        // 워커에서 일정 불러오기 (GET)
+        async function fetchEvents() {
+            showLoading(true);
+            try {
+                const res = await fetch(WORKER_URL);
+                const data = await res.json();
+                
+                // 데이터 매핑 (혹시 모를 오류 방지)
+                events = Array.isArray(data) ? data : []; 
+                renderCalendar();
+            } catch (err) {
+                console.error("데이터 로드 실패:", err);
+                // 실패 시 조용히 넘어가거나, 콘솔에만 기록 (사용자 경험 보호)
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 워커로 일정 보내기 (POST)
+        async function addEvent() {
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            
+            if (!title || !date) return;
+            
+            const btn = document.getElementById('addBtn');
+            btn.innerText = "저장 중...";
+            btn.disabled = true;
+
+            const newEvent = {
+                title: title,
+                date: date,
+                startTime: startTime,
+                endTime: endTime,
+                category: selectedCategory
+            };
+
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newEvent)
+                });
+
+                if (res.ok) {
+                    await fetchEvents(); // 저장 후 목록 다시 갱신
+                    closeModal();
+                } else {
+                    alert("저장에 실패했어. Worker 로그를 확인해봐야 할 것 같아.");
+                }
+            } catch (err) {
+                console.error("저장 에러:", err);
+                alert("네트워크 오류가 발생했어.");
+            } finally {
+                btn.innerText = "추가하기";
+                btn.disabled = false;
+            }
+        }
+
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthTitle = document.getElementById('currentMonthYear');
@@ -116,19 +177,16 @@
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
 
-            // 빈 칸 채우기
             for (let i = 0; i < firstDay; i++) {
                 const emptyCell = document.createElement('div');
                 emptyCell.className = 'h-24';
                 grid.appendChild(emptyCell);
             }
 
-            // 날짜 채우기
             for (let i = 1; i <= lastDate; i++) {
                 const dayCell = document.createElement('div');
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 
-                // 오늘 날짜 확인
                 const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
                 const dateColor = isToday ? 'text-blue-600' : 'text-gray-700';
 
@@ -138,10 +196,12 @@
                 const daysEvents = events.filter(e => e.date === dateStr);
                 
                 daysEvents.forEach(e => {
-                    const cat = categories[e.category];
-                    // 배경색을 연하게, 텍스트 진하게
+                    const catKey = categories[e.category] ? e.category : 'work';
+                    const cat = categories[catKey];
+                    // 스타일 복구: 배경 투명도 조절
                     const bgClass = cat.class.split(' ')[0]; 
                     const textClass = cat.class.split(' ')[1];
+                    
                     eventsHtml += `
                         <div class="text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate ${bgClass} bg-opacity-40 ${textClass} font-medium">
                             ${e.title}
@@ -159,18 +219,15 @@
             }
         }
 
-        // 월 이동
         function changeMonth(delta) {
             currentDate.setMonth(currentDate.getMonth() + delta);
             renderCalendar();
         }
 
-        // 모달 관련 함수
         function openModal() {
             const modal = document.getElementById('eventModal');
-            modal.style.display = 'flex'; // flex로 설정하여 중앙 정렬
+            modal.style.display = 'flex';
             
-            // 오늘 날짜 및 시간 기본값
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('eventDate').value = todayStr;
             document.getElementById('startTime').value = '09:00';
@@ -185,7 +242,6 @@
             document.getElementById('eventModal').style.display = 'none';
         }
 
-        // 카테고리 버튼 렌더링
         function renderCategoryButtons() {
             const container = document.getElementById('categoryContainer');
             container.innerHTML = '';
@@ -206,27 +262,8 @@
             lucide.createIcons();
         }
 
-        // 일정 추가 및 저장
-        function addEvent() {
-            const title = document.getElementById('eventTitle').value;
-            const date = document.getElementById('eventDate').value;
-            
-            if (!title || !date) return;
-
-            const newEvent = {
-                id: Date.now(),
-                title: title,
-                date: date,
-                startTime: document.getElementById('startTime').value,
-                endTime: document.getElementById('endTime').value,
-                category: selectedCategory
-            };
-
-            events.push(newEvent);
-            localStorage.setItem('fortressEvents', JSON.stringify(events)); // 로컬 스토리지 저장
-            
-            closeModal();
-            renderCalendar();
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
         }
     </script>
 </body>
