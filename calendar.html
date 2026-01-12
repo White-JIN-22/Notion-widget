@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Final Fixes)</title>
+    <title>Fortress Calendar (Fixed Layout)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -26,7 +26,8 @@
 
         .widget-container {
             position: relative;
-            width: 280px; 
+            /* [수정] 가로 폭 축소 280px -> 260px */
+            width: 260px; 
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
             backdrop-filter: blur(20px);
@@ -43,14 +44,7 @@
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* [수정] 달력 영역 높이 고정 (여백 줄이고 공간 확보) */
-        .calendar-fixed-height {
-            height: 250px; /* 고정 높이 */
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; /* 위쪽 정렬 */
-        }
-
+        /* 달력 그리드 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -59,7 +53,7 @@
         }
         
         .day-cell {
-            height: 38px; /* 셀 높이 미세 조정 */
+            height: 38px;
             display: flex;
             flex-direction: column; 
             justify-content: flex-start;
@@ -74,6 +68,8 @@
             transition: all 0.2s;
         }
         .day-cell:hover { background: rgba(255,255,255,0.1); }
+        /* 빈 셀 (날짜 없는 칸)은 커서 기본 */
+        .day-cell-empty { cursor: default; pointer-events: none; }
 
         .day-today {
             background: rgba(224, 242, 254, 0.25) !important;
@@ -91,18 +87,17 @@
         .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* [수정] 색상 매핑 (Fortress Theme) */
-        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   /* SkyBlue */
-        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    /* Purple */
-        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } /* Yellow */
-        .bg-rest { background-color: #94a3b8; }                                                 /* Gray */
+        /* Colors */
+        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
+        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
+        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
+        .bg-rest { background-color: #94a3b8; }                                                 
 
         .text-rose-custom { color: #fda4af; }
         .text-blue-custom { color: #93c5fd; }
         .text-dim { color: #94a3b8; }
         .text-sky-point { color: #bae6fd; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
-        /* Event Card Styles */
         .event-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.15);
@@ -142,12 +137,11 @@
             green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    
         };
 
-        // [수정] 컬러 매핑 재설정 (요청사항 반영)
         const COLOR_MAP = { 
-            orange: 'bg-dev',     // 자기계발 -> 보라 (Purple)
-            blue:   'bg-work',    // 업무 -> 스카이블루 (SkyBlue)
-            red:    'bg-health',  // 건강 -> 옐로우 (Yellow)
-            green:  'bg-rest'     // 휴식 -> 회색 (Gray)
+            blue:   'bg-work',    
+            orange: 'bg-dev',     
+            red:    'bg-health',  
+            green:  'bg-rest'     
         };
 
         const Icons = {
@@ -177,9 +171,7 @@
                     }
                 }
 
-                if (isUTC) {
-                    return new Date(Date.UTC(year, month, day, hour, min));
-                }
+                if (isUTC) return new Date(Date.UTC(year, month, day, hour, min));
                 const d = new Date(year, month, day, hour, min);
                 if (isNaN(d.getTime())) return null;
                 return d;
@@ -332,32 +324,41 @@
                         </div>
                     </div>
 
-                    <div className="flex-1 px-4 pt-2 pb-0 relative overflow-hidden flex flex-col justify-between">
-                        {/* [수정] 달력 높이 고정 (250px) */}
-                        <div className="mb-0 shrink-0 calendar-fixed-height">
+                    <div className="flex-1 px-4 pt-1 pb-0 relative overflow-hidden flex flex-col justify-between">
+                        {/* Calendar Area: Fixed Height with 6 Rows */}
+                        <div className="mb-0 shrink-0">
                             <div className="calendar-grid mb-1">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-dim')}`}>{d}</div>
                                 ))}
                             </div>
+                            
+                            {/* [핵심 수정] 무조건 6주(42칸) 출력하여 높이 고정 */}
                             <div className="calendar-grid">
-                                {Array.from({length: startDay}, (_, i) => <div key={`empty-${i}`}></div>)}
-                                {Array.from({length: daysInMonth}, (_, i) => {
-                                    const day = i + 1;
+                                {Array.from({length: 42}).map((_, i) => {
+                                    // 날짜 계산 로직
+                                    const dayNumber = i - startDay + 1;
+                                    const isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
+                                    
+                                    if (!isValidDay) {
+                                        return <div key={i} className="day-cell day-cell-empty"></div>;
+                                    }
+
+                                    const day = dayNumber;
                                     const thisDate = new Date(year, currentDate.getMonth(), day);
                                     const isToday = isSameDay(thisDate, new Date());
                                     const isSelected = isSameDay(thisDate, selectedDate);
                                     const dayEvents = getEventTypes(day);
                                     const isHol = isHoliday(year, currentDate.getMonth(), day);
-                                    const dayOfWeek = thisDate.getDay();
+                                    const dayOfWeek = i % 7; // 0: Sun, 6: Sat
                                     
                                     let numColor = getDayColor(dayOfWeek, isHol) || 'text-dim';
                                     
-                                    // [수정] 공휴일/토요일 색상 로직
-                                    if (isHol) numColor = 'text-rose-custom'; // 공휴일은 무조건 빨강
-                                    else if (dayOfWeek === 0) numColor = 'text-rose-custom'; // 일요일 빨강
-                                    else if (dayOfWeek === 6) numColor = 'text-blue-custom'; // 토요일 파랑
-                                    else numColor = 'text-dim'; // 평일
+                                    // [수정] 공휴일 우선순위 적용 (토요일이어도 빨간색)
+                                    if (isHol) numColor = 'text-rose-custom'; 
+                                    else if (dayOfWeek === 0) numColor = 'text-rose-custom'; 
+                                    else if (dayOfWeek === 6) numColor = 'text-blue-custom'; 
+                                    else numColor = 'text-dim';
 
                                     if (isToday) numColor = 'text-white font-extrabold';
                                     else if (isSelected) numColor = 'text-white';
@@ -379,8 +380,9 @@
                                             );
                                         }
                                     };
+
                                     return (
-                                        <div key={day} onClick={() => setSelectedDate(thisDate)} className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''}`}>
+                                        <div key={i} onClick={() => setSelectedDate(thisDate)} className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''}`}>
                                             <span className={`z-10 font-bold ${numColor}`}>{day}</span>
                                             <div className="dot-wrapper">{renderDots()}</div>
                                         </div>
@@ -389,7 +391,7 @@
                             </div>
                         </div>
 
-                        {/* [수정] 목록 상단 여백 축소 (pt-1) */}
+                        {/* List Area */}
                         <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-1 relative min-h-0">
                             <button onClick={handleLoadPrev} disabled={visibleRange.start === 0} className="list-nav-btn shrink-0 mb-1">
                                 {visibleRange.start > 0 && <Icons.ArrowUp />}
