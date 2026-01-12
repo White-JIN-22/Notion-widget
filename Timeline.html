@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Block Timeline</title>
+    <title>Fortress Block Timeline (Updated Messages)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -24,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* 🧊 Icy Blue Glass Theme (Ultra Slim) */
         .widget-container {
             position: relative;
             width: 100%;
@@ -41,13 +40,10 @@
             color: #334155;
         }
 
-        /* [수정] 폰트 스타일 변경 (달력과 통일) */
         .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
-        
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         .title-text { color: #FFFFFF; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
-        /* ✨ Grid System */
         .grid-container {
             display: flex;
             flex-direction: column;
@@ -88,14 +84,10 @@
             overflow: hidden; 
         }
         
-        /* 🎨 Block Styles (Focus) */
         .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
         .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
         .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
-        
         .block-empty { background: rgba(255, 255, 255, 0.04); }
-
-        /* Switch/Rest 배경 투명화 */
         .block-action-bg { background: transparent; border: none; }
 
         .footer-blur {
@@ -104,12 +96,10 @@
             border-top: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        /* 🎨 Total Time Text Colors */
         .text-gray-custom { color: #94a3b8; } 
         .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
         .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
 
-        /* Icon Colors */
         .text-sky { color: #bae6fd; }
         .text-purple-300 { color: #d8b4fe; }
         .text-slate-400 { color: #94a3b8; }
@@ -197,28 +187,96 @@
                 );
             };
 
+            // [수정] 메시지 로직 다양화 (완전한 문장, 상태별 명확한 구분)
             const getMessage = (min) => {
                 const now = new Date();
                 const currentHour = now.getHours();
+                const randomIdx = Math.floor(Math.random() * 3); // 0, 1, 2 랜덤 선택
 
+                // 1. 아직 시작 안 함 (오후 1시 넘었는데 0분)
                 if (currentHour >= 13 && min === 0) {
-                    return "🧊 첫 번째 블록, 지금 놓으면 됩니다.";
+                    const msgs = [
+                        "🧊 첫 번째 블록, 지금 놓으면 됩니다.",
+                        "시작이 반이라는 말은 진실입니다.",
+                        "아직 늦지 않았어요, 지금 출발하세요."
+                    ];
+                    return msgs[randomIdx];
                 }
 
+                // 2. 저녁 이후 결산 메시지 (오후 6시 이후)
                 if (currentHour >= 18 && blocks.length > 0) {
                     const sunCount = blocks.filter(b => b.quality === 'Sun').length;
-                    const cloudyCount = blocks.filter(b => b.quality === 'Cloud' || b.quality === 'Rain').length;
+                    const cloudyCount = blocks.filter(b => b.quality === 'Cloud').length;
+                    const rainCount = blocks.filter(b => b.quality === 'Rain').length;
 
-                    if (sunCount > cloudyCount) return "🌟 오늘 몰입도 최고! 요새가 아주 튼튼해요.";
-                    if (cloudyCount >= sunCount && cloudyCount > 0) return "🌥️ 흐린 날도 괜찮아요. 버텨낸 것만으로도 멋집니다.";
-                    if (min > 300) return "🎖️ 긴 시간 고생 많으셨어요. 편안한 밤 보내세요.";
+                    // 맑음(Sun)이 가장 많을 때 (몰입 최상)
+                    if (sunCount >= cloudyCount && sunCount >= rainCount) {
+                        const sunMsgs = [
+                            "🌟 오늘 몰입도 최고, 요새가 아주 튼튼해요.",
+                            "눈부신 집중력, 정말 고생 많으셨어요.",
+                            "완벽한 하루였습니다, 푹 쉬세요."
+                        ];
+                        return sunMsgs[randomIdx];
+                    }
+                    
+                    // 흐림(Cloud)이 가장 많을 때 (무던함, 평타)
+                    if (cloudyCount >= sunCount && cloudyCount >= rainCount) {
+                        const cloudMsgs = [
+                            "🌥️ 무던하게 잘 버텼네요, 꾸준함이 무기입니다.",
+                            "나쁘지 않은 하루였어요, 수고했습니다.",
+                            "흐린 날도 괜찮아요, 자리를 지킨 게 중요해요."
+                        ];
+                        return cloudMsgs[randomIdx];
+                    }
+
+                    // 비(Rain)가 가장 많을 때 (집중 안됨)
+                    if (rainCount > sunCount && rainCount > cloudyCount) {
+                        const rainMsgs = [
+                            "☔ 비가 와도 괜찮아요, 내일은 맑을 거예요.",
+                            "힘든 날이었죠, 오늘은 일찍 쉬어가세요.",
+                            "이런 날도 있는 법이죠, 자책하지 마세요."
+                        ];
+                        return rainMsgs[randomIdx];
+                    }
                 }
 
+                // 3. 시간대별 진행 메시지
                 if (min === 0) return "❄️ 차근차근 점화를 준비해 볼까요?";
-                if (min < 60) return "🫧 오늘 시스템의 첫 단추를 잘 꿰었네요.";
-                if (min < 180) return "✨ 견고하게 쌓아가는 진솔 님의 시간.";
-                if (min < 300) return "🧊 몰입의 정점. 요새가 아주 탄탄해요.";
-                return "🎖️ 충분히 애쓴 오늘, 휴식을 권장합니다.";
+                
+                if (min < 60) {
+                    const startMsgs = [
+                        "🫧 오늘 시스템의 첫 단추를 잘 꿰었네요.",
+                        "좋은 시작입니다, 이대로만 가세요.",
+                        "가볍게 시작해보세요, 잘하고 있어요."
+                    ];
+                    return startMsgs[randomIdx];
+                }
+                
+                if (min < 180) {
+                    const midMsgs = [
+                        "✨ 견고하게 쌓아가는 진솔 님의 시간.",
+                        "차곡차곡 요새가 지어지고 있어요.",
+                        "흔들리지 않고 잘 나아가고 있습니다."
+                    ];
+                    return midMsgs[randomIdx];
+                }
+                
+                if (min < 300) {
+                    const highMsgs = [
+                        "🧊 몰입의 정점, 요새가 아주 탄탄해요.",
+                        "놀라운 집중력입니다, 대단해요.",
+                        "정말 깊게 빠져드셨네요, 멋집니다."
+                    ];
+                    return highMsgs[randomIdx];
+                }
+
+                // 300분 이상 (5시간 이상)
+                const maxMsgs = [
+                    "🎖️ 충분히 애쓴 오늘, 휴식을 권장합니다.",
+                    "한계 돌파, 정말 치열하게 보내셨군요.",
+                    "이제 그만 멈추셔도 됩니다, 고생했어요."
+                ];
+                return maxMsgs[randomIdx];
             };
 
             const renderGrid = () => {
@@ -292,9 +350,7 @@
                     {/* Header */}
                     <div className="px-4 pt-5 pb-2 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
                         <div>
-                            {/* [수정] Daily Blocks 색상 -> text-sky-300 */}
                             <div className="text-sky-300 text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Daily Blocks</div>
-                            {/* [수정] font-serif 적용 (Playfair Display) */}
                             <h1 className="text-lg title-text font-serif tracking-tight">Timeline</h1>
                         </div>
                     </div>
@@ -315,7 +371,6 @@
                     {/* Footer Stats */}
                     <div className="footer-blur px-4 pt-2 pb-3 z-10 shrink-0">
                         <div className="flex justify-between items-center mb-1">
-                            {/* [수정] 날짜 텍스트 색상 -> text-sky-300 (Daily Blocks와 동일) */}
                             <span className="text-sky-300 text-[10px] font-bold uppercase tracking-wide">{footerDateStr}</span>
                             <div>{formatDuration(totalDuration)}</div>
                         </div>
