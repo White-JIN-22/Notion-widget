@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Widget</title>
+    <title>Fortress Log (Unified Header)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -41,6 +41,14 @@
             flex-direction: column;
             overflow: hidden;
             color: #e0f2fe;
+        }
+
+        /* [수정] 헤더 영역 스타일 (Daily Blocks와 통일) */
+        .header-block {
+            background: rgba(255, 255, 255, 0.05); /* 불투명한 흰색 배경 느낌 */
+            border-bottom: 1px solid rgba(224, 242, 254, 0.2);
+            padding: 20px 20px 16px 20px;
+            backdrop-filter: blur(10px);
         }
 
         .glass-panel {
@@ -199,7 +207,7 @@
             transform-origin: 50% 50%;
         }
 
-        .text-sky { color: #bae6fd; }
+        .text-sky { color: #bae6fd; } /* 요청하신 스카이블루 */
         .text-sky-300 { color: #bae6fd; }
         .text-emerald-300 { color: #6ee7b7; }
         .text-dim { color: #94a3b8; }
@@ -222,12 +230,12 @@
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
-            Ticket: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+            Ticket: ({className}) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
             Zap: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Plus: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            Refresh: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-sky"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
+            Refresh: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>,
             Sun: ({className}) => <svg className={className || "text-purple-300"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: ({className}) => <svg className={className || "text-sky"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: ({className}) => <svg className={className || "text-slate-400"} width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
@@ -240,12 +248,11 @@
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
             Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
-            More: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
             Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
             Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
-            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>,
-            ChevronDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            /* [수정] Chevron 스타일 화살표 */
+            ChevronUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
             Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
             Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
             Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
@@ -806,7 +813,8 @@
                 return (
                     <div className="widget-container justify-center p-6 text-center space-y-6">
                         <div>
-                            <h1 className="text-xl font-bold text-bright mb-2 font-serif tracking-wide">༚✧ Fortress Log ✧༚</h1>
+                            {/* [수정] 타이틀 장식 제거 */}
+                            <h1 className="text-xl font-bold text-bright mb-2 font-serif tracking-wide">Fortress Log</h1>
                             <p className="text-dim text-xs">오늘의 시작 컨디션은?</p>
                         </div>
                         <div className="flex flex-col gap-2 w-full">
@@ -822,24 +830,27 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    <div className="p-4 pb-2 flex justify-between items-center">
-                        <div className="flex flex-col">
-                            <h1 className="text-lg font-bold text-bright tracking-tight font-serif">༚✧ Fortress Log ✧༚</h1>
-                            <div className="flex items-center gap-3 text-[10px] font-bold text-dim mt-0.5">
-                                <div className="flex items-center gap-1"><Icons.Ticket /><span className="text-xs">{tickets}</span></div>
-                                <div className="flex items-center gap-1"><Icons.Zap /><span className="text-sky">{energy}%</span></div>
+                    {/* [수정] 통합된 상단 헤더 영역 */}
+                    <div className="px-4 pt-4 pb-2">
+                        <div className="header-block rounded-2xl">
+                            <div className="flex justify-between items-start mb-3">
+                                <div>
+                                    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
+                                    <div className="flex items-center gap-3 text-[10px] font-bold text-sky-300 mt-1">
+                                        <div className="flex items-center gap-1"><Icons.Ticket className="text-sky-300"/><span className="text-xs">{tickets}</span></div>
+                                        <div className="flex items-center gap-1"><Icons.Zap className="text-sky-300"/><span className="text-sky-300">{energy}%</span></div>
+                                    </div>
+                                </div>
+                                <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm"><Icons.Refresh /></button>
+                            </div>
+
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div className={`h-full transition-all duration-500 rounded-full bg-sky-pastel`} style={{ width: `${energy}%` }}></div>
                             </div>
                         </div>
-                        <button onClick={openResetModal} className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sky hover:bg-white/20 transition-all shadow-sm"><Icons.Refresh /></button>
                     </div>
 
-                    <div className="px-4 mb-3">
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-pastel`} style={{ width: `${energy}%` }}></div>
-                        </div>
-                    </div>
-
-                    <div className="px-4 flex gap-2 mb-3">
+                    <div className="px-4 flex gap-2 mb-3 mt-1">
                         {['main', 'niche', 'rest'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
                                 {tab === 'main' ? '༚✧ Flow ✧༚' : tab === 'niche' ? '༚✧ Switch ✧༚' : '༚✧ Rest ✧༚'}
@@ -861,7 +872,8 @@
                                             <>
                                                 {sortedBlocks.length > visibleLogs && (
                                                     <button onClick={loadMoreLogs} className="w-full py-1 flex items-center justify-center text-dim hover:text-bright transition-colors mb-2">
-                                                        <Icons.ArrowUp />
+                                                        {/* [수정] Chevron 화살표로 변경 */}
+                                                        <Icons.ChevronUp />
                                                     </button>
                                                 )}
 
@@ -901,6 +913,7 @@
                                 </div>
                             </div>
                         )}
+                        {/* (Other tabs content remains same) */}
                         {activeTab === 'niche' && (
                             <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {fixedQuests.map((q) => (
@@ -959,83 +972,83 @@
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Add Log ✧｡</h3>
                                     
                                     <div className="flex gap-4 justify-center mb-2 shrink-0">
-                                        <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
-                                        <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
-                                        <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
+                                            <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>｡✧ Focus ✧｡</button>
+                                            <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>｡✧ Switch ✧｡</button>
+                                            <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>｡✧ Rest ✧｡</button>
                                     </div>
                                     
                                     <div className="space-y-1 mb-2 shrink-0">
-                                        <div className="flex items-center justify-between">
-                                            {manualTab === 'focus' ? (
-                                                <span className="w-12 text-xs font-bold text-slate-500 text-left pt-2 cursor-default">종료</span>
-                                            ) : (
-                                                <button 
-                                                    onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
-                                                    className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
-                                                    title="클릭하여 기준 변경"
-                                                >
-                                                    {timeRef === 'start' ? '시작' : '종료'}
-                                                </button>
-                                            )}
-
-                                            <div className="flex-1 flex gap-2">
-                                                <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
-                                                    {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
-                                                </select>
-                                                <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
-                                                    {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        
-                                        {manualTab === 'focus' && (
-                                            <>
                                             <div className="flex items-center justify-between">
-                                                <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
+                                                {manualTab === 'focus' ? (
+                                                    <span className="w-12 text-xs font-bold text-slate-500 text-left pt-2 cursor-default">종료</span>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
+                                                        className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
+                                                        title="클릭하여 기준 변경"
+                                                    >
+                                                        {timeRef === 'start' ? '시작' : '종료'}
+                                                    </button>
+                                                )}
+
                                                 <div className="flex-1 flex gap-2">
-                                                    <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
-                                                        {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
+                                                    <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
+                                                        {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
                                                     </select>
-                                                    <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
+                                                    <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
                                                         {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                     </select>
                                                 </div>
                                             </div>
-                                            <p className="text-center text-[10px] text-slate-400 opacity-80 mt-1">* 자동으로 점화 시간 3분이 추가됩니다.</p>
-                                            </>
-                                        )}
+                                            
+                                            {manualTab === 'focus' && (
+                                                <>
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
+                                                    <div className="flex-1 flex gap-2">
+                                                        <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
+                                                            {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
+                                                        </select>
+                                                        <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
+                                                            {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <p className="text-center text-[10px] text-slate-400 opacity-80 mt-1">* 자동으로 점화 시간 3분이 추가됩니다.</p>
+                                                </>
+                                            )}
                                     </div>
 
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
-                                        {manualTab === 'focus' && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                                <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                                <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                            </div>
-                                        )}
+                                            {manualTab === 'focus' && (
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <button onClick={() => addRecord('Sun', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                                    <button onClick={() => addRecord('Cloud', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                                    <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
+                                                </div>
+                                            )}
 
-                                        {manualTab === 'switch' && (
-                                            <div className="grid grid-cols-4 gap-1">
-                                                {fixedQuests.map((q) => (
-                                                    <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
-                                                        {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
-                                                        <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{q.name}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                            {manualTab === 'switch' && (
+                                                <div className="grid grid-cols-4 gap-1">
+                                                    {fixedQuests.map((q) => (
+                                                        <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
+                                                            {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
+                                                            <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{q.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
 
-                                        {manualTab === 'rest' && (
-                                            <div className="grid grid-cols-4 gap-1">
-                                                {restOptions.map((r) => (
-                                                    <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
-                                                        {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
-                                                        <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{r.name}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                            {manualTab === 'rest' && (
+                                                <div className="grid grid-cols-4 gap-1">
+                                                    {restOptions.map((r) => (
+                                                        <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
+                                                            {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
+                                                            <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{r.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                     </div>
                                     </>
                                 )}
