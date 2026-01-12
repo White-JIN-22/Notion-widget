@@ -1,267 +1,193 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calendar Widget</title>
-<style>
-  body {
-    background: #1a1a1a;
-    color: #f2f2f2;
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100vh;
-    justify-content: center;
-    margin: 0;
-  }
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortress Calendar</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  .calendar-container {
-    background: rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 18px;
-    text-align: center;
-    width: 300px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto+Mono:wght@400;500;700&display=swap');
 
-  .top-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-  .today-btn {
-    background: #5ab0ff;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 3px 12px;
-    cursor: pointer;
-  }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-  .month {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #a9c4ff;
-  }
-  .month button {
-    background: none;
-    border: none;
-    color: #a9c4ff;
-    font-size: 1.2rem;
-    cursor: pointer;
-  }
+        /* 🧊 Fortress Glass Container */
+        .widget-container {
+            position: relative;
+            width: 280px; 
+            height: 540px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            border: 1px solid rgba(224, 242, 254, 0.3);
+            box-shadow: 0 0 40px rgba(186, 230, 253, 0.1), inset 0 0 20px rgba(224, 242, 254, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #e0f2fe;
+            padding: 20px;
+        }
 
-  .days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-  }
-  .day {
-    padding: 6px 0 2px;
-    border-radius: 8px;
-    transition: background 0.2s;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .day:hover { background: rgba(255,255,255,0.1); cursor: pointer; }
-  .today { color: #5ab0ff; font-weight: 700; }
-  .holiday { color: #ff7070; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
 
-  /* 중앙 정렬된 2x2 점 */
-  .dots {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2px;
-    justify-content: center;
-    align-items: center;
-    margin-top: 2px;
-  }
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin: auto;
-  }
-  .dot.red { background: #f44336; }
-  .dot.orange { background: #ff9800; }
-  .dot.blue { background: #2196f3; }
-  .dot.green { background: #4caf50; }
+        /* 달력 그리드 스타일 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+        
+        .day-cell {
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-family: 'Roboto Mono', monospace;
+            color: #94a3b8; /* Dim text */
+            position: relative;
+        }
 
-  .plus {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    margin-top: 1px;
-  }
+        /* 오늘 날짜 */
+        .day-today {
+            background: rgba(224, 242, 254, 0.3);
+            color: #bae6fd; /* Sky highlight */
+            border: 1px solid rgba(186, 230, 253, 0.4);
+            box-shadow: 0 0 10px rgba(186, 230, 253, 0.2);
+            font-weight: bold;
+        }
 
-  /* 일정 리스트 */
-  .event-list {
-    margin-top: 10px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 10px;
-    padding: 12px;
-    width: 300px;
-    text-align: left;
-  }
-  .event-list h3 {
-    margin: 0 0 6px;
-    font-size: 1rem;
-    color: #cfd8dc;
-  }
-  .event {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
-    color: #f2f2f2;
-    margin: 3px 0;
-  }
-  .dot.small { width: 8px; height: 8px; }
-</style>
+        /* 선택/이벤트 있는 날짜 (예시) */
+        .day-event {
+            color: #e0f2fe;
+            font-weight: 600;
+        }
+        .dot {
+            position: absolute;
+            bottom: 2px;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background-color: #d8b4fe; /* Purple accent */
+        }
+
+        /* 이벤트 리스트 카드 */
+        .event-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(224, 242, 254, 0.2);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .event-time {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.7rem;
+            color: #bae6fd;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <div class="calendar-container">
-    <div class="top-bar">
-      <button id="todayBtn" class="today-btn">TODAY</button>
-    </div>
-    <div class="month">
-      <button id="prevMonth">❮</button>
-      <span id="monthYear"></span>
-      <button id="nextMonth">❯</button>
-    </div>
-    <div class="days" id="days"></div>
-  </div>
-  <div class="event-list" id="eventList" style="display:none;"></div>
 
-<script>
-const proxy = "https://ical-proxy.moonkelly601.workers.dev/";
-const calendars = {
-  red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
-  orange: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
-  blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
-  green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
-};
-const recurringHolidays = ["01-01","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
-let currentDate = new Date();
-let events = {};
+    <div id="root"></div>
 
-async function fetchCalendar(color, url) {
-  const response = await fetch(`${proxy}?url=${encodeURIComponent(url)}`);
-  const text = await response.text();
-  parseICS(color, text);
-  renderCalendar();
-}
+    <script type="text/babel">
+        const { useState } = React;
 
-function parseICS(color, text) {
-  const lines = text.split("\n");
-  let event = {};
-  for (const line of lines) {
-    if (line.startsWith("BEGIN:VEVENT")) event = {};
-    else if (line.startsWith("DTSTART")) event.start = line.split(":")[1];
-    else if (line.startsWith("SUMMARY")) event.title = line.split(":")[1];
-    else if (line.startsWith("END:VEVENT")) {
-      const dateKey = event.start?.substring(0,8);
-      if (!dateKey) continue;
-      if (!events[dateKey]) events[dateKey] = [];
-      events[dateKey].push({ title: event.title, color });
-    }
-  }
-}
+        const App = () => {
+            // 목업 데이터 (나중에 기존 코드 로직으로 대체될 부분)
+            const today = new Date();
+            const currentMonth = "January 2026";
+            
+            return (
+                <div className="widget-container">
+                    {/* Header */}
+                    <div className="mb-6 flex justify-between items-end">
+                        <div>
+                            <div className="text-purple-300 text-[9px] font-bold tracking-widest uppercase mb-1 opacity-90">Calendar</div>
+                            <h1 className="text-2xl font-bold text-white font-serif italic tracking-wide">
+                                {currentMonth}
+                            </h1>
+                        </div>
+                    </div>
 
-function renderCalendar() {
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const monthYear = document.getElementById("monthYear");
-  const daysContainer = document.getElementById("days");
-  const eventList = document.getElementById("eventList");
+                    {/* Calendar Grid */}
+                    <div className="mb-6">
+                        <div className="calendar-grid mb-2">
+                            {['S','M','T','W','T','F','S'].map((d, i) => (
+                                <div key={i} className="text-[10px] font-bold text-slate-500">{d}</div>
+                            ))}
+                        </div>
+                        <div className="calendar-grid">
+                            {/* 예시: 1일부터 31일까지 (빈칸 포함) */}
+                            {Array.from({length: 4}, (_, i) => <div key={`empty-${i}`}></div>)}
+                            {Array.from({length: 31}, (_, i) => {
+                                const day = i + 1;
+                                const isToday = day === 12; // 예시: 오늘이 12일이라 가정
+                                const hasEvent = [12, 15, 20].includes(day);
+                                
+                                return (
+                                    <div key={day} className={`day-cell ${isToday ? 'day-today' : ''} ${hasEvent ? 'day-event' : ''}`}>
+                                        {day}
+                                        {hasEvent && !isToday && <div className="dot"></div>}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
 
-  const monthNames = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
-  monthYear.textContent = `${month+1}월 :: ${monthNames[month]}`;
-  daysContainer.innerHTML = "";
+                    {/* Upcoming Events (Bottom) */}
+                    <div className="flex-1 overflow-hidden flex flex-col">
+                        <h3 className="text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-wider">Upcoming</h3>
+                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                            
+                            {/* 일정 아이템 예시 */}
+                            <div className="event-card">
+                                <div className="w-1 h-8 bg-purple-400/50 rounded-full mr-3"></div>
+                                <div>
+                                    <div className="text-xs font-bold text-white mb-0.5">건강검진 예약</div>
+                                    <div className="event-time">14:00 - 16:00</div>
+                                </div>
+                            </div>
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month+1, 0).getDate();
-  const today = new Date();
+                            <div className="event-card">
+                                <div className="w-1 h-8 bg-sky-400/50 rounded-full mr-3"></div>
+                                <div>
+                                    <div className="text-xs font-bold text-white mb-0.5">국어 수업 자료 준비</div>
+                                    <div className="event-time">19:00 - 20:00</div>
+                                </div>
+                            </div>
 
-  for (let i=0; i<firstDay; i++) daysContainer.appendChild(document.createElement("div"));
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
-  for (let d=1; d<=lastDate; d++) {
-    const dateEl = document.createElement("div");
-    dateEl.className = "day";
-    const dateKey = `${year}${String(month+1).padStart(2,"0")}${String(d).padStart(2,"0")}`;
-    
-    if (today.getFullYear()===year && today.getMonth()===month && today.getDate()===d)
-      dateEl.classList.add("today");
-
-    const monthDayKey = `${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    if (recurringHolidays.includes(monthDayKey))
-      dateEl.classList.add("holiday");
-
-    dateEl.textContent = d;
-    if (events[dateKey]) {
-      const dots = document.createElement("div");
-      dots.className = "dots";
-      const evList = events[dateKey];
-      const showCount = Math.min(4, evList.length);
-      for (let i=0; i<showCount; i++) {
-        const dot = document.createElement("div");
-        dot.className = `dot ${evList[i].color}`;
-        dots.appendChild(dot);
-      }
-      if (evList.length > 4) {
-        const plus = document.createElement("span");
-        plus.className = "plus";
-        plus.textContent = `+${evList.length-4}`;
-        dots.appendChild(plus);
-      }
-      dateEl.appendChild(dots);
-      dateEl.addEventListener("click", () => {
-        eventList.style.display = "block";
-        eventList.innerHTML = `<h3>${month+1}월 ${d}일</h3>`;
-        for (const ev of evList) {
-          eventList.innerHTML += `<div class="event"><div class="dot small ${ev.color}"></div><span>${ev.title}</span></div>`;
-        }
-      });
-    }
-    daysContainer.appendChild(dateEl);
-  }
-
-  const totalCells = firstDay + lastDate;
-  const remainder = totalCells % 7;
-  if (remainder !== 0) {
-    for (let i=0; i<7-remainder; i++) {
-      daysContainer.appendChild(document.createElement("div"));
-    }
-  }
-}
-
-document.getElementById("prevMonth").onclick = () => {
-  currentDate.setMonth(currentDate.getMonth()-1);
-  renderCalendar();
-};
-document.getElementById("nextMonth").onclick = () => {
-  currentDate.setMonth(currentDate.getMonth()+1);
-  renderCalendar();
-};
-document.getElementById("todayBtn").onclick = () => {
-  currentDate = new Date();
-  renderCalendar();
-};
-
-(async () => {
-  for (const [color, url] of Object.entries(calendars)) {
-    await fetchCalendar(color, url);
-  }
-})();
-</script>
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
