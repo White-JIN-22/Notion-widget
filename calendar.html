@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Final)</title>
+    <title>Fortress Calendar (Color Sync)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -84,9 +84,14 @@
         .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
+        /* [색상 정의] Fortress Theme Pastel Colors */
+        /* 업무(Work) - Blue -> SkyBlue */
         .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
+        /* 자기계발(Dev) - Orange/Purple -> Purple */
         .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
+        /* 건강(Health) - Red/Yellow -> Yellow */
+        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
+        /* 휴식(Rest) - Green/Gray -> Slate Gray */
         .bg-rest { background-color: #94a3b8; }                                                 
 
         .text-rose-custom { color: #fda4af; }
@@ -132,7 +137,18 @@
             blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",   
             green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    
         };
-        const COLOR_MAP = { red: 'bg-health', orange: 'bg-dev', blue: 'bg-work', green: 'bg-rest' };
+
+        // [수정] 아이클라우드 색상과 Fortress 테마 연결
+        // blue(업무) -> bg-work (스카이블루)
+        // orange(자기계발) -> bg-dev (보라)
+        // red(건강) -> bg-health (노랑)
+        // green(휴식) -> bg-rest (그레이)
+        const COLOR_MAP = { 
+            blue:   'bg-work',    // 🔵 업무 -> SkyBlue
+            orange: 'bg-dev',     // 🟣 자기계발 -> Purple
+            red:    'bg-health',  // 🟡 건강 -> Yellow
+            green:  'bg-rest'     // ⚪ 휴식 -> Gray
+        };
 
         const Icons = {
             ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
@@ -162,12 +178,13 @@
             } catch (e) { return null; }
         };
 
-        // 비상용 Mock 데이터 (연결 실패 시 보여줄 데이터)
+        // 비상용 Mock 데이터 (연결 실패 시 보여줄 데이터 - 색상 테스트용)
         const MOCK_EVENTS = {
             "20260112": [
                 { title: "[샘플] 건강검진", type: "bg-health", startTime: "09:00", endTime: "11:00", dateObj: new Date() },
                 { title: "[샘플] 디자인 작업", type: "bg-work", startTime: "13:00", endTime: "16:00", dateObj: new Date() },
-                { title: "[샘플] 휴식", type: "bg-rest", startTime: "20:00", endTime: "22:00", dateObj: new Date() }
+                { title: "[샘플] 독서 모임", type: "bg-dev", startTime: "19:00", endTime: "21:00", dateObj: new Date() },
+                { title: "[샘플] 휴식", type: "bg-rest", startTime: "22:00", endTime: "23:00", dateObj: new Date() }
             ]
         };
 
@@ -178,7 +195,6 @@
             const [events, setEvents] = useState({}); 
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
             
-            // 진단 메시지
             const [debugMsg, setDebugMsg] = useState("Initializing...");
             const [useMock, setUseMock] = useState(false);
 
@@ -201,11 +217,7 @@
                     setDebugMsg("Fetching Data...");
                     let newEvents = {};
                     let successCount = 0;
-
-                    // 3초 타임아웃
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Timeout")), 3000)
-                    );
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
 
                     try {
                         for (const [colorKey, url] of Object.entries(CALENDARS)) {
@@ -224,15 +236,10 @@
                                     if (cleanLine.startsWith("BEGIN:VEVENT")) event = {};
                                     else if (cleanLine.startsWith("DTSTART")) event.start = cleanLine.split(":")[1];
                                     else if (cleanLine.startsWith("DTEND")) event.end = cleanLine.split(":")[1];
-                                    
-                                    // [수정] 제목 파싱: 쉼표 등 이스케이프 문자 제거
                                     else if (cleanLine.startsWith("SUMMARY")) {
-                                        // "SUMMARY:" 이후의 문자열을 모두 가져옴 (제목에 :가 포함될 수 있으므로 split 대신 substring)
                                         let rawTitle = cleanLine.substring(cleanLine.indexOf(':') + 1);
-                                        // \, \; \\ 등을 원래 문자로 변환
                                         event.title = rawTitle.replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\').trim();
                                     }
-                                    
                                     else if (cleanLine.startsWith("END:VEVENT")) {
                                         if (event.start) {
                                             const startDateObj = safeParseDate(event.start);
@@ -258,7 +265,7 @@
                                 }
                                 successCount++;
                             } catch (e) {
-                                console.warn(`Skipped ${colorKey}: ${e.message}`);
+                                console.warn(`Skipped ${colorKey}`);
                             }
                         }
 
@@ -269,12 +276,10 @@
                         } else {
                             throw new Error("All fetches failed");
                         }
-
                     } catch (err) {
-                        console.error("Critical Error:", err);
                         setUseMock(true);
                         setEvents(MOCK_EVENTS); 
-                        setDebugMsg(`Connection Failed: ${err.message}. Using Sample Data.`);
+                        setDebugMsg(`Connection Failed: ${err.message}. Using Sample.`);
                     }
                 };
 
