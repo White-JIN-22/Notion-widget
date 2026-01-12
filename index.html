@@ -292,6 +292,47 @@
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
+            // [추가] 서버에서 기록 불러오기 (기기 간 동기화)
+            const syncFromServer = async () => {
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
+                
+                try {
+                    const dateStr = new Date().toDateString();
+                    // Worker에 GET 요청: "오늘 날짜 기록 줘!"
+                    const res = await fetch(`${WORKER_URL}?date=${encodeURIComponent(dateStr)}`);
+                    
+                    if (res.ok) {
+                        const data = await res.json();
+                        
+                        // 서버에 저장된 블록 기록이 있다면 가져옴
+                        if (data.blocks && Array.isArray(data.blocks) && data.blocks.length > 0) {
+                            setBlocks(prev => {
+                                // 내용이 달라졌을 때만 업데이트 (깜빡임 방지)
+                                if (JSON.stringify(prev) !== JSON.stringify(data.blocks)) {
+                                    // 1. 화면 갱신
+                                    // 2. 로컬 스토리지도 최신 상태로 덮어쓰기 (새로고침 해도 유지되게)
+                                    const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                                    localStorage.setItem('fortressData', JSON.stringify({
+                                        ...currentLocal,
+                                        blocks: data.blocks
+                                    }));
+                                    return data.blocks;
+                                }
+                                return prev;
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("Sync Load Error:", e);
+                }
+            };
+
+            // [추가] 처음 켜질 때 실행 & 1분마다 자동 동기화
+            useEffect(() => {
+                syncFromServer();
+                const interval = setInterval(syncFromServer, 60000); 
+                return () => clearInterval(interval);
+            }, []);
 
             useEffect(() => {
                 const today = new Date().toDateString();
