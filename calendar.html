@@ -4,19 +4,19 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Glass Calendar (Safe Mode)</title>
+    <title>Fortress Calendar (Diagnostic Mode)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent; /* 배경 투명 */
+            background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -24,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* 🧊 Fortress Glass Container */
         .widget-container {
             position: relative;
             width: 280px; 
@@ -44,7 +43,6 @@
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 달력 그리드 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -81,22 +79,10 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .dot-wrapper {
-            margin-top: 1px;
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .dot-plus-container {
-            display: flex;
-            align-items: center;
-            gap: 1px;
-            white-space: nowrap;
-        }
+        .dot-wrapper { margin-top: 1px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* Colors */
         .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
         .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
         .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
@@ -107,7 +93,6 @@
         .text-dim { color: #94a3b8; }
         .text-sky-point { color: #bae6fd; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
-        /* 일정 카드 */
         .event-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.15);
@@ -119,36 +104,14 @@
             position: relative;
             animation: slideUp 0.3s ease-out forwards;
         }
-        .event-past {
-            opacity: 0.4;
-            filter: grayscale(0.5);
-            border-style: dashed;
-            background: transparent;
-        }
+        .event-past { opacity: 0.4; filter: grayscale(0.5); border-style: dashed; background: transparent; }
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .nav-btn {
-            width: 24px; height: 24px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 6px;
-            color: #94a3b8;
-            transition: all 0.2s;
-        }
+        .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #94a3b8; transition: all 0.2s; }
         .nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.1); }
 
-        .list-nav-btn {
-            width: 100%;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #94a3b8;
-            font-size: 10px;
-            transition: all 0.2s;
-            cursor: pointer;
-            border-radius: 8px;
-        }
+        .list-nav-btn { width: 100%; height: 24px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; transition: all 0.2s; cursor: pointer; border-radius: 8px; }
         .list-nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.05); }
         .list-nav-btn:disabled { opacity: 0; cursor: default; }
 
@@ -161,7 +124,6 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // [설정] 기존 URL
         const PROXY_URL = "https://ical-proxy.moonkelly601.workers.dev/";
         const CALENDARS = {
             red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",    
@@ -169,10 +131,8 @@
             blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",   
             green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    
         };
-
         const COLOR_MAP = { red: 'bg-health', orange: 'bg-dev', blue: 'bg-work', green: 'bg-rest' };
 
-        // 아이콘 컴포넌트
         const Icons = {
             ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
             ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>,
@@ -181,16 +141,13 @@
             ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
-        // 안전한 파싱 함수 (에러 방지용)
         const safeParseDate = (dateStr) => {
             if (!dateStr || typeof dateStr !== 'string') return null;
             try {
-                // YYYYMMDD or YYYYMMDDTHHMMSS
                 const year = parseInt(dateStr.substring(0, 4));
                 const month = parseInt(dateStr.substring(4, 6)) - 1;
                 const day = parseInt(dateStr.substring(6, 8));
                 let hour = 0, min = 0;
-                
                 if (dateStr.includes('T')) {
                     const timePart = dateStr.split('T')[1];
                     if (timePart.length >= 4) {
@@ -199,11 +156,18 @@
                     }
                 }
                 const d = new Date(year, month, day, hour, min);
-                if (isNaN(d.getTime())) return null; // 유효하지 않은 날짜 체크
+                if (isNaN(d.getTime())) return null;
                 return d;
-            } catch (e) {
-                return null;
-            }
+            } catch (e) { return null; }
+        };
+
+        // 비상용 Mock 데이터 (연결 실패 시 보여줄 데이터)
+        const MOCK_EVENTS = {
+            "20260112": [
+                { title: "[샘플] 건강검진", type: "bg-health", startTime: "09:00", endTime: "11:00", dateObj: new Date() },
+                { title: "[샘플] 디자인 작업", type: "bg-work", startTime: "13:00", endTime: "16:00", dateObj: new Date() },
+                { title: "[샘플] 휴식", type: "bg-rest", startTime: "20:00", endTime: "22:00", dateObj: new Date() }
+            ]
         };
 
         const App = () => {
@@ -211,10 +175,12 @@
             const [currentDate, setCurrentDate] = useState(new Date()); 
             const [selectedDate, setSelectedDate] = useState(new Date()); 
             const [events, setEvents] = useState({}); 
-            const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
+            
+            // [진단] 상태 메시지
+            const [debugMsg, setDebugMsg] = useState("Initializing...");
+            const [useMock, setUseMock] = useState(false);
 
-            // 공휴일
             const holidays = ["01-01","02-17","02-18","02-19","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
@@ -228,15 +194,25 @@
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const monthStr = monthNames[currentDate.getMonth()];
 
-            // --- 데이터 가져오기 ---
+            // --- 데이터 페칭 ---
             useEffect(() => {
                 const fetchAllCalendars = async () => {
+                    setDebugMsg("Fetching Data...");
                     let newEvents = {};
+                    let successCount = 0;
+
+                    // 3초 타임아웃 설정 (너무 오래 걸리면 강제 종료)
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error("Timeout")), 3000)
+                    );
+
                     try {
                         for (const [colorKey, url] of Object.entries(CALENDARS)) {
                             try {
-                                const response = await fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
-                                if (!response.ok) throw new Error('Network response was not ok');
+                                const fetchPromise = fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
+                                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                                
+                                if (!response.ok) throw new Error('Network Error');
                                 const text = await response.text();
                                 
                                 const lines = text.split("\n");
@@ -251,11 +227,8 @@
                                     else if (cleanLine.startsWith("END:VEVENT")) {
                                         if (event.start) {
                                             const startDateObj = safeParseDate(event.start);
-                                            // 종료시간이 없거나 파싱 실패 시 시작시간 + 1시간으로 설정
                                             let endDateObj = event.end ? safeParseDate(event.end) : null;
-                                            if (!endDateObj && startDateObj) {
-                                                endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
-                                            }
+                                            if (!endDateObj && startDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
                                             
                                             if (startDateObj) {
                                                 const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
@@ -268,39 +241,44 @@
                                                     endTime: endDateObj ? formatTime(endDateObj) : "00:00",
                                                     dateObj: startDateObj
                                                 };
-
                                                 if (!newEvents[dateKey]) newEvents[dateKey] = [];
                                                 newEvents[dateKey].push(eventObj);
                                             }
                                         }
                                     }
                                 }
+                                successCount++;
                             } catch (e) {
-                                console.warn(`Failed to fetch ${colorKey} calendar`, e);
+                                console.warn(`Skipped ${colorKey}: ${e.message}`);
                             }
                         }
-                        // 정렬
-                        for (const key in newEvents) {
-                            newEvents[key].sort((a, b) => a.dateObj - b.dateObj);
+
+                        // 하나라도 성공했으면 실제 데이터 사용, 아니면 Mock 사용
+                        if (successCount > 0) {
+                            for (const key in newEvents) newEvents[key].sort((a, b) => a.dateObj - b.dateObj);
+                            setEvents(newEvents);
+                            setDebugMsg(""); // 성공 시 메시지 삭제
+                        } else {
+                            throw new Error("All fetches failed");
                         }
-                        setEvents(newEvents);
+
                     } catch (err) {
-                        console.error("Critical Fetch Error:", err);
-                    } finally {
-                        setIsLoading(false);
+                        console.error("Critical Error:", err);
+                        setUseMock(true);
+                        setEvents(MOCK_EVENTS); // 비상용 데이터 로드
+                        setDebugMsg(`Connection Failed: ${err.message}. Using Sample Data.`);
                     }
                 };
 
                 fetchAllCalendars();
             }, []);
 
-            // 현재 날짜 이벤트
+            // 이벤트 처리 로직
             const currentDayEvents = useMemo(() => {
                 const key = `${selectedDate.getFullYear()}${String(selectedDate.getMonth()+1).padStart(2,'0')}${String(selectedDate.getDate()).padStart(2,'0')}`;
                 return events[key] || [];
             }, [events, selectedDate]);
 
-            // 과거 일정 판별
             const isEventPast = (evt, date) => {
                 const now = new Date();
                 if (!isSameDay(date, now)) return date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -309,7 +287,6 @@
                 return now > evtEnd;
             };
 
-            // 피벗 로직
             useEffect(() => {
                 if (currentDayEvents.length === 0) { setVisibleRange({ start: 0, end: 0 }); return; }
                 const firstFutureIndex = currentDayEvents.findIndex(evt => !isEventPast(evt, selectedDate));
@@ -325,19 +302,14 @@
                 const key = `${year}${String(currentDate.getMonth()+1).padStart(2,'0')}${String(day).padStart(2,'0')}`;
                 return events[key] || [];
             };
+            const getColorClass = (type) => type || 'bg-slate-500';
+            const getDayColor = (dayIdx, isHol) => {
+                if (dayIdx === 0 || isHol) return 'text-rose-custom'; if (dayIdx === 6) return 'text-blue-custom'; return 'text-dim';
+            };
 
             const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
             const daysInMonth = new Date(year, currentDate.getMonth() + 1, 0).getDate();
             const startDay = firstDayOfMonth.getDay(); 
-
-            // 로딩 중일 때
-            if (isLoading) {
-                return (
-                    <div className="widget-container items-center justify-center">
-                        <div className="text-sky-point animate-pulse font-serif text-xl">Loading...</div>
-                    </div>
-                );
-            }
 
             return (
                 <div className="widget-container">
@@ -375,7 +347,6 @@
                                     if (dayOfWeek === 0 || isHol) numColor = 'text-rose-custom';
                                     else if (dayOfWeek === 6) numColor = 'text-blue-custom';
                                     else numColor = 'text-dim';
-
                                     if (isToday) numColor = 'text-white font-extrabold';
                                     else if (isSelected) numColor = 'text-white';
 
@@ -413,20 +384,27 @@
                             
                             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pb-4">
                                 {visibleEvents.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-dim text-xs italic opacity-60">일정이 없습니다.</div>
+                                    <div className="h-full flex flex-col items-center justify-center text-dim text-xs italic opacity-60">
+                                        <span>일정이 없습니다.</span>
+                                        {/* 진단 메시지 표시 (에러 발생 시에만 보임) */}
+                                        {debugMsg && <span className="text-[9px] text-rose-400 mt-2 text-center px-2">{debugMsg}</span>}
+                                    </div>
                                 ) : (
-                                    visibleEvents.map((evt, idx) => {
-                                        const isPast = isEventPast(evt, selectedDate);
-                                        return (
-                                            <div key={idx} className={`event-card ${isPast ? 'event-past !min-h-0 py-2' : 'min-h-[60px]'}`}>
-                                                <div className={`w-1.5 rounded-full mr-3 shrink-0 ${evt.type} ${isPast ? 'h-3' : 'h-8'}`}></div>
-                                                <div>
-                                                    <div className={`text-xs font-bold ${isPast ? 'text-slate-300 mb-0' : 'text-white mb-0.5'}`}>{evt.title}</div>
-                                                    {!isPast && (<div className="text-[10px] font-mono text-slate-400">{evt.startTime} - {evt.endTime}</div>)}
+                                    <>
+                                        {visibleEvents.map((evt, idx) => {
+                                            const isPast = isEventPast(evt, selectedDate);
+                                            return (
+                                                <div key={idx} className={`event-card ${isPast ? 'event-past !min-h-0 py-2' : 'min-h-[60px]'}`}>
+                                                    <div className={`w-1.5 rounded-full mr-3 shrink-0 ${evt.type} ${isPast ? 'h-3' : 'h-8'}`}></div>
+                                                    <div>
+                                                        <div className={`text-xs font-bold ${isPast ? 'text-slate-300 mb-0' : 'text-white mb-0.5'}`}>{evt.title}</div>
+                                                        {!isPast && (<div className="text-[10px] font-mono text-slate-400">{evt.startTime} - {evt.endTime}</div>)}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })
+                                            );
+                                        })}
+                                        {debugMsg && <div className="text-[8px] text-rose-400 text-center mt-2 pb-1">{debugMsg}</div>}
+                                    </>
                                 )}
                             </div>
 
