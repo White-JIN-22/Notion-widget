@@ -4,284 +4,230 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Direct Notion)</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>Fortress Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Playfair+Display:wght@700&display=swap');
-        
-        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
-        .font-serif { font-family: 'Playfair Display', serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-
-        .widget-container {
-            width: 260px; height: 540px;
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            backdrop-filter: blur(25px);
-            border-radius: 24px;
-            border: 1px solid rgba(224, 242, 254, 0.4);
-            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
-            color: #334155; position: relative; overflow: hidden; display: flex; flex-direction: column;
-        }
-
-        /* 통일된 헤더 스타일 */
-        .header-section {
-            padding: 18px 18px 14px 18px;
-            background: rgba(255, 255, 255, 0.15); /* 로그 위젯과 동일한 투명도 */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px); flex-shrink: 0;
-        }
-
-        .nav-btn { color: rgba(255,255,255,0.7); transition: color 0.2s; }
-        .nav-btn:hover { color: #fff; }
-
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 12px; flex: 1; overflow-y: auto; align-content: start; }
-        .day-cell { 
-            aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; 
-            border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative; padding-top: 4px;
-        }
-        .day-cell:hover { background: rgba(255,255,255,0.1); }
-        .day-today { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); font-weight: bold; color: #fff; }
-        .day-text { font-size: 10px; color: #94a3b8; margin-bottom: 2px; }
-        .day-today .day-text { color: #bae6fd; }
-
-        .dot-container { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; width: 100%; px: 2px; }
-        .event-dot { width: 4px; height: 4px; border-radius: 50%; }
-        
-        /* Event Types */
-        .type-work { background-color: #f87171; } /* 업무 (Red) */
-        .type-dev { background-color: #60a5fa; } /* 자기계발 (Blue) */
-        .type-health { background-color: #34d399; } /* 건강 (Green) */
-        .type-rest { background-color: #fbbf24; } /* 휴식 (Yellow) */
-
-        .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); z-index: 50; display: flex; align-items: end; }
-        .modal-content { 
-            width: 100%; background: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px; 
-            padding: 20px; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .input-field {
-            width: 100%; background: #f1f5f9; border: none; border-radius: 8px; padding: 10px; 
-            font-size: 14px; margin-bottom: 12px; outline: none;
-        }
-        .action-btn {
-            width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 14px; 
-            transition: 0.2s; border: none; cursor: pointer;
-        }
-        .btn-add { background: #bae6fd; color: #0c4a6e; }
-        .btn-add:hover { background: #7dd3fc; }
-        .btn-del { background: #fee2e2; color: #991b1b; }
-        .btn-cancel { background: #f1f5f9; color: #64748b; margin-top: 8px; }
-
-        .type-select { display: flex; gap: 8px; margin-bottom: 16px; }
-        .type-option { 
-            flex: 1; padding: 6px; border-radius: 6px; font-size: 10px; text-align: center; 
-            cursor: pointer; opacity: 0.5; transition: 0.2s; border: 1px solid transparent;
-        }
-        .type-option.selected { opacity: 1; border-color: rgba(0,0,0,0.1); transform: scale(1.05); }
+        /* 기본 폰트 설정 */
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+        /* 스크롤바 숨김 */
+        ::-webkit-scrollbar { display: none; }
+        /* 모달 제어 */
+        #eventModal { display: none; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        
-        // ★ 여기에 로그 위젯에서 쓰는 그 Worker 주소를 넣으세요!
-        const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
 
-        const Icons = {
-            Left: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>,
-            Right: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>,
-            Refresh: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+        
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <button onclick="changeMonth(-1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+                <span id="currentMonthYear" class="text-xl font-bold text-gray-800 tracking-tight">
+                    </span>
+                <button onclick="changeMonth(1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+            <button onclick="openModal()" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
+                <i data-lucide="plus"></i>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-7 mb-2 text-center">
+            <div class="text-sm text-gray-500 font-semibold">일</div>
+            <div class="text-sm text-gray-500 font-semibold">월</div>
+            <div class="text-sm text-gray-500 font-semibold">화</div>
+            <div class="text-sm text-gray-500 font-semibold">수</div>
+            <div class="text-sm text-gray-500 font-semibold">목</div>
+            <div class="text-sm text-gray-500 font-semibold">금</div>
+            <div class="text-sm text-gray-500 font-semibold">토</div>
+        </div>
+
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1">
+            </div>
+    </div>
+
+    <div id="eventModal" class="fixed inset-0 bg-black/30 items-center justify-center z-50">
+        <div class="bg-white w-80 rounded-2xl p-5 shadow-xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i data-lucide="x" width="18"></i>
+            </button>
+            
+            <h3 class="text-base font-bold text-gray-800 mb-4">새 일정 추가</h3>
+            
+            <div class="space-y-4">
+                <input type="text" id="eventTitle" placeholder="일정 내용" 
+                    class="w-full p-2 text-sm border-b border-gray-200 focus:outline-none focus:border-gray-500 placeholder-gray-400 font-medium">
+
+                <input type="date" id="eventDate" class="w-full text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
+                
+                <div class="flex gap-2 items-center">
+                    <input type="time" id="startTime" class="w-1/2 text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
+                    <span class="text-gray-400">~</span>
+                    <input type="time" id="endTime" class="w-1/2 text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2" id="categoryContainer">
+                    </div>
+
+                <button onclick="addEvent()" class="w-full py-3 mt-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-bold rounded-xl transition-colors">
+                    추가하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 초기 데이터 및 설정
+        let currentDate = new Date();
+        let events = JSON.parse(localStorage.getItem('fortressEvents')) || [];
+        let selectedCategory = 'work';
+
+        // 카테고리 정의
+        const categories = {
+            work: { label: '업무', class: 'bg-sky-100 text-sky-600 border-sky-200', icon: 'briefcase' },
+            develop: { label: '자기계발', class: 'bg-purple-100 text-purple-600 border-purple-200', icon: 'book-open' },
+            health: { label: '건강', class: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: 'heart-pulse' },
+            rest: { label: '휴식', class: 'bg-gray-100 text-gray-600 border-gray-200', icon: 'coffee' }
         };
 
-        const App = () => {
-            const [currentDate, setCurrentDate] = useState(new Date());
-            const [events, setEvents] = useState([]);
-            const [modal, setModal] = useState(null); // { type: 'add'|'view', date, event }
-            const [newEventTitle, setNewEventTitle] = useState("");
-            const [newEventType, setNewEventType] = useState("업무");
-            const [isLoading, setIsLoading] = useState(false);
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderCalendar();
+            renderCategoryButtons();
+        });
 
-            const loadEvents = async () => {
-                if (!WORKER_URL) return;
-                setIsLoading(true);
-                try {
-                    const y = currentDate.getFullYear();
-                    const m = currentDate.getMonth();
-                    // 해당 월의 1일 ~ 다음달 1일 범위
-                    const start = new Date(y, m, 1).toISOString().split('T')[0];
-                    const end = new Date(y, m + 1, 1).toISOString().split('T')[0];
-
-                    const res = await fetch(`${WORKER_URL}?mode=calendar&start=${start}&end=${end}`);
-                    const data = await res.json();
-                    if(Array.isArray(data)) setEvents(data);
-                } catch (e) { console.error(e); }
-                setIsLoading(false);
-            };
-
-            useEffect(() => { loadEvents(); }, [currentDate]);
-
-            const handleAdd = async () => {
-                if(!newEventTitle.trim()) return;
-                const dateStr = modal.date; // YYYY-MM-DD
-                
-                await fetch(`${WORKER_URL}?mode=calendar`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        title: newEventTitle,
-                        start: dateStr,
-                        type: newEventType
-                    })
-                });
-                setModal(null); setNewEventTitle("");
-                loadEvents(); // Reload
-            };
-
-            const handleDelete = async (id) => {
-                if(confirm("이 일정을 삭제할까요?")) {
-                    await fetch(`${WORKER_URL}?mode=calendar&id=${id}`, { method: "DELETE" });
-                    setModal(null);
-                    loadEvents();
-                }
-            };
-
-            // Calendar Logic
+        // 달력 렌더링
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthTitle = document.getElementById('currentMonthYear');
+            
+            grid.innerHTML = '';
+            
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
             
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const daysInMonth = lastDay.getDate();
-            const startDay = firstDay.getDay(); // 0(Sun) ~ 6(Sat)
+            monthTitle.innerText = `${year}년 ${month + 1}월`;
 
-            const days = [];
-            for (let i = 0; i < startDay; i++) days.push(null);
-            for (let i = 1; i <= daysInMonth; i++) days.push(i);
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
 
-            const getEventsForDay = (day) => {
-                if(!day) return [];
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-                return events.filter(e => e.start === dateStr);
+            // 빈 칸 채우기
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'h-24';
+                grid.appendChild(emptyCell);
+            }
+
+            // 날짜 채우기
+            for (let i = 1; i <= lastDate; i++) {
+                const dayCell = document.createElement('div');
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                // 오늘 날짜 확인
+                const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
+                const dateColor = isToday ? 'text-blue-600' : 'text-gray-700';
+
+                dayCell.className = 'h-24 border-t border-gray-100 p-1 flex flex-col gap-1 overflow-hidden hover:bg-gray-50 transition-colors';
+                
+                let eventsHtml = '';
+                const daysEvents = events.filter(e => e.date === dateStr);
+                
+                daysEvents.forEach(e => {
+                    const cat = categories[e.category];
+                    // 배경색을 연하게, 텍스트 진하게
+                    const bgClass = cat.class.split(' ')[0]; 
+                    const textClass = cat.class.split(' ')[1];
+                    eventsHtml += `
+                        <div class="text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate ${bgClass} bg-opacity-40 ${textClass} font-medium">
+                            ${e.title}
+                        </div>
+                    `;
+                });
+
+                dayCell.innerHTML = `
+                    <span class="text-sm font-bold ml-1 ${dateColor}">${i}</span>
+                    <div class="flex flex-col gap-1 w-full">
+                        ${eventsHtml}
+                    </div>
+                `;
+                grid.appendChild(dayCell);
+            }
+        }
+
+        // 월 이동
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // 모달 관련 함수
+        function openModal() {
+            const modal = document.getElementById('eventModal');
+            modal.style.display = 'flex'; // flex로 설정하여 중앙 정렬
+            
+            // 오늘 날짜 및 시간 기본값
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('eventDate').value = todayStr;
+            document.getElementById('startTime').value = '09:00';
+            document.getElementById('endTime').value = '10:00';
+            document.getElementById('eventTitle').value = '';
+            
+            selectedCategory = 'work';
+            renderCategoryButtons();
+        }
+
+        function closeModal() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+
+        // 카테고리 버튼 렌더링
+        function renderCategoryButtons() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = '';
+            
+            Object.entries(categories).forEach(([key, val]) => {
+                const isActive = key === selectedCategory;
+                const btnClass = isActive 
+                    ? `${val.class} border` 
+                    : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50';
+                
+                const btn = document.createElement('button');
+                btn.className = `flex items-center gap-2 p-2 rounded-lg text-xs transition-all ${btnClass}`;
+                btn.onclick = () => { selectedCategory = key; renderCategoryButtons(); };
+                btn.innerHTML = `<i data-lucide="${val.icon}" width="16"></i> <span>${val.label}</span>`;
+                
+                container.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        // 일정 추가 및 저장
+        function addEvent() {
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            
+            if (!title || !date) return;
+
+            const newEvent = {
+                id: Date.now(),
+                title: title,
+                date: date,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                category: selectedCategory
             };
 
-            return (
-                <div className="widget-container">
-                    {/* Header */}
-                    <div className="header-section flex justify-between items-end">
-                        <div>
-                            <div className="text-[#bae6fd] text-sm font-bold tracking-widest font-sans mb-0.5">{year}</div>
-                            <h1 className="text-xl text-white font-serif font-bold tracking-tight">{monthNames[month]}</h1>
-                        </div>
-                        <div className="flex gap-1 pb-1">
-                            <button onClick={loadEvents} className={`nav-btn ${isLoading ? 'animate-spin' : ''}`}><Icons.Refresh /></button>
-                            <button onClick={() => setCurrentDate(new Date(year, month-1, 1))} className="nav-btn"><Icons.Left /></button>
-                            <button onClick={() => setCurrentDate(new Date(year, month+1, 1))} className="nav-btn"><Icons.Right /></button>
-                        </div>
-                    </div>
-
-                    {/* Weekdays */}
-                    <div className="grid grid-cols-7 gap-1 px-4 py-2 border-b border-white/10">
-                        {['S','M','T','W','T','F','S'].map((d,i) => (
-                            <div key={i} className={`text-center text-[10px] font-bold ${i===0 ? 'text-red-300' : (i===6 ? 'text-blue-300' : 'text-slate-400')}`}>{d}</div>
-                        ))}
-                    </div>
-
-                    {/* Days */}
-                    <div className="calendar-grid no-scrollbar">
-                        {days.map((day, idx) => {
-                            if(!day) return <div key={idx}></div>;
-                            
-                            const dayEvents = getEventsForDay(day);
-                            const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
-                            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-
-                            return (
-                                <div 
-                                    key={idx} 
-                                    className={`day-cell ${isToday ? 'day-today' : ''}`}
-                                    onClick={() => {
-                                        if (dayEvents.length > 0) {
-                                            // View/Delete mode (show first event)
-                                            setModal({ type: 'view', event: dayEvents[0] });
-                                        } else {
-                                            // Add mode
-                                            setModal({ type: 'add', date: dateStr });
-                                        }
-                                    }}
-                                >
-                                    <span className="day-text">{day}</span>
-                                    <div className="dot-container">
-                                        {dayEvents.map(e => {
-                                            let colorClass = 'bg-gray-400';
-                                            if(e.type === '업무') colorClass = 'type-work';
-                                            if(e.type === '자기계발') colorClass = 'type-dev';
-                                            if(e.type === '건강') colorClass = 'type-health';
-                                            if(e.type === '휴식') colorClass = 'type-rest';
-                                            return <div key={e.id} className={`event-dot ${colorClass}`} title={e.title}></div>
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Modal */}
-                    {modal && (
-                        <div className="modal-overlay" onClick={() => setModal(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                {modal.type === 'add' ? (
-                                    <>
-                                        <h3 className="text-lg font-bold mb-4 text-slate-800">새 일정 추가</h3>
-                                        <div className="type-select">
-                                            {['업무', '자기계발', '건강', '휴식'].map(t => (
-                                                <div 
-                                                    key={t} 
-                                                    onClick={() => setNewEventType(t)}
-                                                    className={`type-option ${newEventType === t ? 'selected' : ''}`}
-                                                    style={{backgroundColor: t==='업무'?'#f87171':t==='자기계발'?'#60a5fa':t==='건강'?'#34d399':'#fbbf24', color: '#fff'}}
-                                                >
-                                                    {t}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <input 
-                                            autoFocus
-                                            className="input-field" 
-                                            placeholder="일정 제목 입력..." 
-                                            value={newEventTitle}
-                                            onChange={e => setNewEventTitle(e.target.value)}
-                                            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                                        />
-                                        <button className="action-btn btn-add" onClick={handleAdd}>추가하기</button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className={`w-3 h-3 rounded-full`} 
-                                                style={{backgroundColor: modal.event.type==='업무'?'#f87171':modal.event.type==='자기계발'?'#60a5fa':modal.event.type==='건강'?'#34d399':'#fbbf24'}}
-                                            ></div>
-                                            <span className="text-xs text-slate-500 font-bold">{modal.event.type}</span>
-                                        </div>
-                                        <h3 className="text-xl font-bold mb-6 text-slate-800">{modal.event.title}</h3>
-                                        <button className="action-btn btn-del" onClick={() => handleDelete(modal.event.id)}>삭제하기</button>
-                                    </>
-                                )}
-                                <button className="action-btn btn-cancel" onClick={() => setModal(null)}>취소</button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+            events.push(newEvent);
+            localStorage.setItem('fortressEvents', JSON.stringify(events)); // 로컬 스토리지 저장
+            
+            closeModal();
+            renderCalendar();
+        }
     </script>
 </body>
 </html>
