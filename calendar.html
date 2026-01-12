@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Glass Calendar</title>
+    <title>Fortress Glass Calendar (Real Data)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -82,32 +82,33 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* [수정] 점 컨테이너 스타일: 여백 줄이고 한 줄 정렬 */
+        /* 점 컨테이너 스타일 */
         .dot-wrapper {
-            margin-top: 1px; /* [수정] 여백 축소 (2px -> 1px) */
+            margin-top: 1px;
             flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        /* [수정] +n 표시용 컨테이너 (한 줄 정렬) */
         .dot-plus-container {
             display: flex;
             align-items: center;
-            gap: 1px; /* 점과 숫자 사이 간격 */
-            white-space: nowrap; /* 줄바꿈 방지 */
+            gap: 1px;
+            white-space: nowrap;
         }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* 🎨 Colors */
-        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }
-        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }
-        .bg-rest { background-color: #94a3b8; }
-        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); }
+        /* 🎨 Colors - Mapping from iCloud */
+        /* Red -> Health (Yellow), Blue -> Work (Sky), Orange -> Dev (Purple), Green -> Rest (Gray) */
+        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } /* Red Origin */
+        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   /* Blue Origin */
+        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    /* Orange Origin */
+        .bg-rest { background-color: #94a3b8; }                                                 /* Green Origin */
 
         .text-rose-custom { color: #fda4af; }
         .text-blue-custom { color: #93c5fd; }
         .text-dim { color: #94a3b8; }
+        .text-sky-point { color: #bae6fd; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
         /* 일정 리스트 카드 */
         .event-card {
@@ -164,6 +165,23 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
+        // [설정] 기존 코드에서 가져온 URL들
+        const PROXY_URL = "https://ical-proxy.moonkelly601.workers.dev/";
+        const CALENDARS = {
+            red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",    // Health (Yellow)
+            orange: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", // Dev (Purple)
+            blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",   // Work (Sky)
+            green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    // Rest (Gray)
+        };
+
+        // 색상 매핑 (Old -> New Fortress Theme)
+        const COLOR_MAP = {
+            red: 'bg-health',
+            orange: 'bg-dev',
+            blue: 'bg-work',
+            green: 'bg-rest'
+        };
+
         const Icons = {
             ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
             ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>,
@@ -172,19 +190,35 @@
             ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
+        // ICS 파싱 헬퍼 함수
+        const parseICSDate = (dateStr) => {
+            if (!dateStr) return null;
+            // Format: 20230101T120000Z or 20230101
+            const year = parseInt(dateStr.substring(0, 4));
+            const month = parseInt(dateStr.substring(4, 6)) - 1;
+            const day = parseInt(dateStr.substring(6, 8));
+            let hour = 0, min = 0;
+            
+            if (dateStr.length > 8) {
+                const timePart = dateStr.split('T')[1];
+                if (timePart) {
+                    hour = parseInt(timePart.substring(0, 2));
+                    min = parseInt(timePart.substring(2, 4));
+                }
+            }
+            // 단순화를 위해 로컬 시간으로 간주 (TZ 처리 복잡성 회피)
+            return new Date(year, month, day, hour, min);
+        };
+
         const App = () => {
             const today = new Date();
             const [currentDate, setCurrentDate] = useState(new Date()); 
             const [selectedDate, setSelectedDate] = useState(new Date()); 
+            const [events, setEvents] = useState({}); // { 'YYYYMMDD': [ {title, color, startTime, endTime, dateObj} ] }
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
 
-            const holidays = {
-                "2026-1-1": "신정",
-                "2026-2-17": "설날",
-                "2026-2-18": "설날",
-                "2026-2-19": "설날",
-                "2026-3-1": "삼일절"
-            };
+            // 공휴일 데이터
+            const holidays = ["01-01","02-17","02-18","02-19","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
 
             const isSameDay = (d1, d2) => {
                 return d1.getFullYear() === d2.getFullYear() &&
@@ -192,11 +226,13 @@
                        d1.getDate() === d2.getDate();
             };
 
-            const isHoliday = (year, month, day) => holidays[`${year}-${month + 1}-${day}`];
+            const isHoliday = (year, month, day) => {
+                const key = `${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                return holidays.includes(key);
+            };
 
             const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
             const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-            
             const goToday = () => {
                 const now = new Date();
                 setCurrentDate(now);
@@ -207,57 +243,105 @@
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const monthStr = monthNames[currentDate.getMonth()];
 
-            // [데이터 로직]
-            const getEventList = (date) => {
-                const day = date.getDate();
-                const list = [];
-                
-                if (isSameDay(date, today)) {
-                    list.push({ type: 'rest', title: '아침 명상', startTime: '07:00', endTime: '07:30' });
-                    list.push({ type: 'work', title: '오전 회의', startTime: '10:00', endTime: '11:00' });
-                    list.push({ type: 'health', title: '점심 식사', startTime: '12:30', endTime: '13:30' });
-                    list.push({ type: 'work', title: '수업 준비', startTime: '15:00', endTime: '17:00' });
-                    list.push({ type: 'dev', title: '독서 모임 (저녁)', startTime: '20:00', endTime: '22:00' });
-                }
-                else if (day === 12) {
-                    list.push({ type: 'health', title: '건강검진', startTime: '09:00', endTime: '11:00' });
-                    list.push({ type: 'work', title: '업무1', startTime: '13:00', endTime: '14:00' });
-                    list.push({ type: 'work', title: '업무2', startTime: '14:00', endTime: '15:00' });
-                    list.push({ type: 'dev', title: '공부', startTime: '19:00', endTime: '20:00' });
-                    list.push({ type: 'rest', title: '휴식', startTime: '21:00', endTime: '22:00' });
-                }
-                
-                return list.sort((a, b) => a.startTime.localeCompare(b.startTime));
-            };
+            // --- 데이터 페칭 로직 ---
+            useEffect(() => {
+                const fetchAllCalendars = async () => {
+                    let newEvents = {};
 
+                    for (const [colorKey, url] of Object.entries(CALENDARS)) {
+                        try {
+                            const response = await fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
+                            const text = await response.text();
+                            
+                            // ICS 파싱
+                            const lines = text.split("\n");
+                            let event = {};
+                            
+                            for (const line of lines) {
+                                const cleanLine = line.trim();
+                                if (cleanLine.startsWith("BEGIN:VEVENT")) event = {};
+                                else if (cleanLine.startsWith("DTSTART")) event.start = cleanLine.split(":")[1];
+                                else if (cleanLine.startsWith("DTEND")) event.end = cleanLine.split(":")[1]; // 종료 시간도 파싱
+                                else if (cleanLine.startsWith("SUMMARY")) event.title = cleanLine.split(":")[1];
+                                else if (cleanLine.startsWith("END:VEVENT")) {
+                                    if (event.start) {
+                                        const startDateObj = parseICSDate(event.start);
+                                        const endDateObj = event.end ? parseICSDate(event.end) : null;
+                                        
+                                        if (startDateObj) {
+                                            const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
+                                            
+                                            // 시간 포맷팅 (HH:mm)
+                                            const formatTime = (date) => `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+                                            
+                                            const eventObj = {
+                                                title: event.title || "No Title",
+                                                type: COLOR_MAP[colorKey], // 색상 매핑
+                                                startTime: formatTime(startDateObj),
+                                                endTime: endDateObj ? formatTime(endDateObj) : formatTime(new Date(startDateObj.getTime() + 60*60*1000)), // 없을 경우 1시간 뒤로
+                                                dateObj: startDateObj
+                                            };
+
+                                            if (!newEvents[dateKey]) newEvents[dateKey] = [];
+                                            newEvents[dateKey].push(eventObj);
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error(`Failed to fetch ${colorKey} calendar`, e);
+                        }
+                    }
+                    
+                    // 날짜별 시간순 정렬
+                    for (const key in newEvents) {
+                        newEvents[key].sort((a, b) => a.dateObj - b.dateObj);
+                    }
+                    
+                    setEvents(newEvents);
+                };
+
+                fetchAllCalendars();
+            }, []);
+
+            // 현재 선택된 날짜의 이벤트 가져오기
+            const currentDayEvents = useMemo(() => {
+                const key = `${selectedDate.getFullYear()}${String(selectedDate.getMonth()+1).padStart(2,'0')}${String(selectedDate.getDate()).padStart(2,'0')}`;
+                return events[key] || [];
+            }, [events, selectedDate]);
+
+
+            // 과거 일정 판별
             const isEventPast = (evt, date) => {
                 const now = new Date();
+                // 오늘이 아니면 날짜 자체로 비교
                 if (!isSameDay(date, now)) return date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
+                // 오늘이면 시간 비교
                 const [endH, endM] = evt.endTime.split(':').map(Number);
                 const evtEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
                 return now > evtEnd;
             };
 
-            const fullEvents = useMemo(() => getEventList(selectedDate), [selectedDate]);
-
+            // 스마트 피벗 로직
             useEffect(() => {
-                if (fullEvents.length === 0) { setVisibleRange({ start: 0, end: 0 }); return; }
-                const firstFutureIndex = fullEvents.findIndex(evt => !isEventPast(evt, selectedDate));
-                let startIndex = firstFutureIndex === -1 ? Math.max(0, fullEvents.length - 3) : firstFutureIndex;
-                setVisibleRange({ start: startIndex, end: Math.min(fullEvents.length, startIndex + 3) });
-            }, [fullEvents, selectedDate]);
+                if (currentDayEvents.length === 0) { setVisibleRange({ start: 0, end: 0 }); return; }
+                
+                const firstFutureIndex = currentDayEvents.findIndex(evt => !isEventPast(evt, selectedDate));
+                let startIndex = firstFutureIndex === -1 ? Math.max(0, currentDayEvents.length - 3) : firstFutureIndex;
+                
+                setVisibleRange({ start: startIndex, end: Math.min(currentDayEvents.length, startIndex + 3) });
+            }, [currentDayEvents, selectedDate]);
 
-            const visibleEvents = fullEvents.slice(visibleRange.start, visibleRange.end);
+            const visibleEvents = currentDayEvents.slice(visibleRange.start, visibleRange.end);
             const handleLoadPrev = () => setVisibleRange(prev => ({ start: Math.max(0, prev.start - 3), end: prev.end }));
-            const handleLoadNext = () => setVisibleRange(prev => ({ start: prev.start, end: Math.min(fullEvents.length, prev.end + 3) }));
+            const handleLoadNext = () => setVisibleRange(prev => ({ start: prev.start, end: Math.min(currentDayEvents.length, prev.end + 3) }));
 
-            const getColorClass = (type) => {
-                switch(type) { case 'work': return 'bg-work'; case 'dev': return 'bg-dev'; case 'health': return 'bg-health'; case 'rest': return 'bg-rest'; default: return 'bg-slate-500'; }
+            // 렌더링 헬퍼
+            const getEventTypes = (day) => {
+                const key = `${year}${String(currentDate.getMonth()+1).padStart(2,'0')}${String(day).padStart(2,'0')}`;
+                return events[key] || [];
             };
-            const getDayColor = (dayIdx, isHol) => {
-                if (dayIdx === 0 || isHol) return 'text-rose-custom'; if (dayIdx === 6) return 'text-blue-custom'; return 'text-dim';
-            };
-            const getAllEventsForDay = (day) => getEventList(new Date(year, currentDate.getMonth(), day));
 
             const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
             const daysInMonth = new Date(year, currentDate.getMonth() + 1, 0).getDate();
@@ -265,9 +349,10 @@
 
             return (
                 <div className="widget-container">
+                    {/* Header */}
                     <div className="px-5 pt-5 pb-3 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
                         <div>
-                            <div className="text-sky-300 text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Calendar</div>
+                            <div className="text-sky-point text-[8px] font-bold tracking-widest uppercase mb-0.5 opacity-90">Calendar</div>
                             <h1 className="text-xl title-text font-serif tracking-tight text-white font-bold">{monthStr} {year}</h1>
                         </div>
                         <div className="flex gap-1 items-center pb-0.5">
@@ -277,7 +362,9 @@
                         </div>
                     </div>
 
+                    {/* Body */}
                     <div className="flex-1 px-4 pt-3 pb-0 relative overflow-hidden flex flex-col justify-between">
+                        {/* Calendar Grid */}
                         <div className="mb-2 shrink-0">
                             <div className="calendar-grid mb-2">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
@@ -291,27 +378,31 @@
                                     const thisDate = new Date(year, currentDate.getMonth(), day);
                                     const isToday = isSameDay(thisDate, today);
                                     const isSelected = isSameDay(thisDate, selectedDate);
-                                    const events = getAllEventsForDay(day);
+                                    const dayEvents = getEventTypes(day);
                                     const isHol = isHoliday(year, currentDate.getMonth(), day);
                                     const dayOfWeek = thisDate.getDay();
-                                    let numColor = getDayColor(dayOfWeek, isHol);
+                                    
+                                    let numColor = getDayColor(dayOfWeek, isHol) || 'text-dim';
+                                    if (dayOfWeek === 0 || isHol) numColor = 'text-rose-custom';
+                                    else if (dayOfWeek === 6) numColor = 'text-blue-custom';
+                                    else numColor = 'text-dim';
+
                                     if (isToday) numColor = 'text-white font-extrabold';
                                     else if (isSelected) numColor = 'text-white';
 
                                     const renderDots = () => {
-                                        if (events.length === 0) return null;
-                                        if (events.length >= 5) {
-                                            /* [수정] +n 표시 시 한 줄 정렬 */
+                                        if (dayEvents.length === 0) return null;
+                                        if (dayEvents.length >= 5) {
                                             return (
                                                 <div className="dot-plus-container mt-0.5">
-                                                    <div className={`dot ${getColorClass(events[0].type)}`}></div>
-                                                    <span className="text-[9px] text-slate-400 font-mono leading-none tracking-tighter">+{events.length - 1}</span>
+                                                    <div className={`dot ${dayEvents[0].type}`}></div>
+                                                    <span className="text-[9px] text-slate-400 font-mono leading-none tracking-tighter">+{dayEvents.length - 1}</span>
                                                 </div>
                                             );
                                         } else {
                                             return (
                                                 <div className="grid grid-cols-2 gap-0.5 mt-0.5">
-                                                    {events.map((evt, idx) => (<div key={idx} className={`dot ${getColorClass(evt.type)}`}></div>))}
+                                                    {dayEvents.map((evt, idx) => (<div key={idx} className={`dot ${evt.type}`}></div>))}
                                                 </div>
                                             );
                                         }
@@ -326,12 +417,12 @@
                             </div>
                         </div>
 
+                        {/* Events List */}
                         <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-1 relative min-h-0">
                             <button onClick={handleLoadPrev} disabled={visibleRange.start === 0} className="list-nav-btn shrink-0 mb-1">
                                 {visibleRange.start > 0 && <Icons.ArrowUp />}
                             </button>
                             
-                            {/* [수정] 하단 여백 추가 (pb-4) */}
                             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pb-4">
                                 {visibleEvents.length === 0 ? (
                                     <div className="h-full flex items-center justify-center text-dim text-xs italic opacity-60">일정이 없습니다.</div>
@@ -340,7 +431,7 @@
                                         const isPast = isEventPast(evt, selectedDate);
                                         return (
                                             <div key={idx} className={`event-card ${isPast ? 'event-past !min-h-0 py-2' : 'min-h-[60px]'}`}>
-                                                <div className={`w-1.5 rounded-full mr-3 shrink-0 ${getColorClass(evt.type)} ${isPast ? 'h-3' : 'h-8'}`}></div>
+                                                <div className={`w-1.5 rounded-full mr-3 shrink-0 ${evt.type} ${isPast ? 'h-3' : 'h-8'}`}></div>
                                                 <div>
                                                     <div className={`text-xs font-bold ${isPast ? 'text-slate-300 mb-0' : 'text-white mb-0.5'}`}>{evt.title}</div>
                                                     {!isPast && (<div className="text-[10px] font-mono text-slate-400">{evt.startTime} - {evt.endTime}</div>)}
@@ -351,8 +442,8 @@
                                 )}
                             </div>
 
-                            <button onClick={handleLoadNext} disabled={visibleRange.end >= fullEvents.length} className="list-nav-btn shrink-0 mt-1">
-                                {visibleRange.end < fullEvents.length && <Icons.ArrowDown />}
+                            <button onClick={handleLoadNext} disabled={visibleRange.end >= currentDayEvents.length} className="list-nav-btn shrink-0 mt-1">
+                                {visibleRange.end < currentDayEvents.length && <Icons.ArrowDown />}
                             </button>
                         </div>
                     </div>
