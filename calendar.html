@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Timezone Fix)</title>
+    <title>Fortress Calendar (Slim & Compact)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -105,16 +105,14 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.15);
             border-radius: 14px;
-            padding: 10px 14px;
+            padding: 0 14px; /* 패딩 조정 */
             display: flex;
             align-items: center;
             transition: all 0.3s ease;
             position: relative;
             animation: slideUp 0.3s ease-out forwards;
         }
-        /* 과거 일정: 투명하고 흐림 */
         .event-past { opacity: 0.4; filter: grayscale(0.5); border-style: dashed; background: transparent; }
-        /* 미래 일정: 선명함 (기본값) */
 
         @keyframes slideUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -157,11 +155,9 @@
             ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
-        // [핵심 수정] 시간대(Timezone) 파싱 로직 강화
         const safeParseDate = (dateStr) => {
             if (!dateStr || typeof dateStr !== 'string') return null;
             try {
-                // T와 Z 처리
                 const isUTC = dateStr.endsWith('Z');
                 const cleanStr = dateStr.replace('Z', '');
                 
@@ -178,12 +174,10 @@
                     }
                 }
 
-                // Z가 있으면 UTC -> 로컬 시간(한국 시간)으로 변환
                 if (isUTC) {
                     return new Date(Date.UTC(year, month, day, hour, min));
                 }
                 
-                // 없으면 로컬 시간으로 바로 생성
                 const d = new Date(year, month, day, hour, min);
                 if (isNaN(d.getTime())) return null;
                 return d;
@@ -418,7 +412,7 @@
                                         {visibleEvents.map((evt, idx) => {
                                             const isPast = isEventPast(evt, selectedDate);
                                             return (
-                                                <div key={idx} className={`event-card ${isPast ? 'event-past !min-h-0 py-2' : 'min-h-[60px]'}`}>
+                                                <div key={idx} className={`event-card ${isPast ? 'event-past !min-h-0 py-1.5' : 'min-h-[46px]'}`}>
                                                     <div className={`w-1.5 rounded-full mr-3 shrink-0 ${evt.type} ${isPast ? 'h-3' : 'h-8'}`}></div>
                                                     <div>
                                                         <div className={`text-xs font-bold ${isPast ? 'text-slate-300 mb-0' : 'text-white mb-0.5'}`}>{evt.title}</div>
