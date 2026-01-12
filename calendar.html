@@ -54,10 +54,10 @@
         }
         
         .day-cell {
-            height: 38px;
+            height: 42px; /* [수정] 점 2줄 표시를 위해 높이 약간 확보 */
             display: flex;
             flex-direction: column; 
-            justify-content: space-between;
+            justify-content: flex-start; /* 위쪽 정렬 후 padding으로 간격 조정 */
             align-items: center;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -65,7 +65,7 @@
             position: relative;
             cursor: pointer;
             padding-top: 4px;
-            padding-bottom: 4px;
+            padding-bottom: 2px;
             transition: all 0.2s;
         }
         .day-cell:hover { background: rgba(255,255,255,0.1); }
@@ -82,7 +82,14 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .dot-container { display: flex; gap: 2px; height: 5px; }
+        /* [수정] 점 컨테이너 스타일 */
+        .dot-wrapper {
+            margin-top: 2px;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
         /* 🎨 Colors */
@@ -109,7 +116,6 @@
             animation: slideUp 0.3s ease-out forwards;
         }
         
-        /* 지난 일정: 투명도 높임 */
         .event-past {
             opacity: 0.4;
             filter: grayscale(0.5);
@@ -128,7 +134,6 @@
         }
         .nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.1); }
 
-        /* 더보기 버튼 */
         .load-more-btn {
             width: 100%;
             padding: 8px;
@@ -162,11 +167,8 @@
             const today = new Date();
             const [currentDate, setCurrentDate] = useState(new Date()); 
             const [selectedDate, setSelectedDate] = useState(new Date()); 
-            
-            // [수정] 스크롤/더보기 관리를 위한 상태 (기본 3개)
             const [visibleCount, setVisibleCount] = useState(3);
 
-            // 날짜 변경 시 더보기 상태 초기화
             useEffect(() => {
                 setVisibleCount(3);
             }, [selectedDate]);
@@ -208,7 +210,6 @@
                 const day = date.getDate();
                 const list = [];
                 
-                // [테스트용] 오늘 날짜에 일정 5개 (더보기 테스트용)
                 if (isSameDay(date, today)) {
                     list.push({ type: 'rest', title: '아침 명상', startTime: '07:00', endTime: '07:30' });
                     list.push({ type: 'work', title: '오전 회의', startTime: '10:00', endTime: '11:00' });
@@ -216,8 +217,12 @@
                     list.push({ type: 'work', title: '수업 자료 준비', startTime: '15:00', endTime: '17:00' });
                     list.push({ type: 'dev', title: '독서 모임', startTime: '20:00', endTime: '22:00' });
                 }
-                else if (day === 12) {
-                    list.push({ type: 'health', title: '건강검진 (내시경)', startTime: '14:00', endTime: '16:00' });
+                else if (day === 12) { // 5개 이상 테스트용 날짜
+                    list.push({ type: 'health', title: '건강검진', startTime: '09:00', endTime: '11:00' });
+                    list.push({ type: 'work', title: '업무1', startTime: '13:00', endTime: '14:00' });
+                    list.push({ type: 'work', title: '업무2', startTime: '14:00', endTime: '15:00' });
+                    list.push({ type: 'dev', title: '공부', startTime: '19:00', endTime: '20:00' });
+                    list.push({ type: 'rest', title: '휴식', startTime: '21:00', endTime: '22:00' });
                 }
                 else if (day === 15) {
                     list.push({ type: 'work', title: '국어 수업 자료 업로드', startTime: '19:00', endTime: '20:00' });
@@ -227,7 +232,6 @@
                 return list.sort((a, b) => a.startTime.localeCompare(b.startTime));
             };
 
-            // 지난 일정인지 확인
             const isEventPast = (evt, date) => {
                 const now = new Date();
                 if (!isSameDay(date, now)) {
@@ -261,11 +265,10 @@
                 return 'text-dim'; 
             };
 
-            // 달력 점 표시용 (중복 제거)
-            const getEventTypes = (day) => {
+            // [수정] 달력 점 표시용 (전체 이벤트)
+            const getAllEventsForDay = (day) => {
                 const d = new Date(year, currentDate.getMonth(), day);
-                const types = getEventList(d).map(e => e.type);
-                return [...new Set(types)].slice(0, 3);
+                return getEventList(d);
             };
 
             const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
@@ -308,13 +311,35 @@
                                     const thisDate = new Date(year, currentDate.getMonth(), day);
                                     const isToday = isSameDay(thisDate, today);
                                     const isSelected = isSameDay(thisDate, selectedDate);
-                                    const eventTypes = getEventTypes(day);
+                                    const events = getAllEventsForDay(day);
                                     const isHol = isHoliday(year, currentDate.getMonth(), day);
                                     const dayOfWeek = thisDate.getDay();
 
                                     let numColor = getDayColor(dayOfWeek, isHol);
                                     if (isToday) numColor = 'text-sky-300';
                                     if (isSelected && !isToday) numColor = 'text-white';
+
+                                    // [수정] 점 렌더링 로직 (4개 이하 2x2, 5개 이상 +N)
+                                    const renderDots = () => {
+                                        if (events.length === 0) return null;
+                                        
+                                        if (events.length >= 5) {
+                                            return (
+                                                <div className="flex items-center gap-0.5 mt-0.5">
+                                                    <div className={`dot ${getColorClass(events[0].type)}`}></div>
+                                                    <span className="text-[9px] text-slate-400 font-mono leading-none tracking-tighter">+{events.length - 1}</span>
+                                                </div>
+                                            );
+                                        } else {
+                                            return (
+                                                <div className="grid grid-cols-2 gap-0.5 mt-0.5">
+                                                    {events.map((evt, idx) => (
+                                                        <div key={idx} className={`dot ${getColorClass(evt.type)}`}></div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }
+                                    };
 
                                     return (
                                         <div 
@@ -323,10 +348,8 @@
                                             className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''}`}
                                         >
                                             <span className={`z-10 font-bold ${numColor}`}>{day}</span>
-                                            <div className="dot-container">
-                                                {eventTypes.map((type, idx) => (
-                                                    <div key={idx} className={`dot ${getColorClass(type)}`}></div>
-                                                ))}
+                                            <div className="dot-wrapper">
+                                                {renderDots()}
                                             </div>
                                         </div>
                                     )
@@ -334,7 +357,7 @@
                             </div>
                         </div>
 
-                        {/* Events List (Scrollable Container) */}
+                        {/* Events List */}
                         <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-3 relative min-h-0">
                             
                             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1">
@@ -357,7 +380,6 @@
                                             );
                                         })}
                                         
-                                        {/* Load More Button */}
                                         {fullEvents.length > visibleCount && (
                                             <button onClick={handleLoadMore} className="load-more-btn">
                                                 <Icons.ArrowDown />
