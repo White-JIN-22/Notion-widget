@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Fixed Layout)</title>
+    <title>Fortress Calendar (Safety First)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -26,7 +26,7 @@
 
         .widget-container {
             position: relative;
-            /* [수정] 가로 폭 축소 280px -> 260px */
+            /* 가로 폭 260px로 축소 (Fortress Log와 동일감) */
             width: 260px; 
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
@@ -44,7 +44,14 @@
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 달력 그리드 */
+        /* [핵심] 달력 높이 고정 (6주 기준) */
+        .calendar-fixed-height {
+            height: 250px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -68,8 +75,7 @@
             transition: all 0.2s;
         }
         .day-cell:hover { background: rgba(255,255,255,0.1); }
-        /* 빈 셀 (날짜 없는 칸)은 커서 기본 */
-        .day-cell-empty { cursor: default; pointer-events: none; }
+        .day-cell-empty { pointer-events: none; } /* 빈 칸 클릭 방지 */
 
         .day-today {
             background: rgba(224, 242, 254, 0.25) !important;
@@ -83,11 +89,12 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        /* 점 간격 밀착 (여백 0) */
         .dot-wrapper { margin-top: 0px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
         .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* Colors */
+        /* [색상 매핑] Fortress Theme */
         .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
         .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
         .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
@@ -98,6 +105,7 @@
         .text-dim { color: #94a3b8; }
         .text-sky-point { color: #bae6fd; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
+        /* [수정] 애니메이션 제거 (화면 안 뜨는 오류 방지) */
         .event-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.15);
@@ -105,13 +113,10 @@
             padding: 0 14px;
             display: flex;
             align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
-            animation: slideUp 0.3s ease-out forwards;
+            /* transition 외에 slideUp 애니메이션 제거 */
+            transition: all 0.2s ease; 
         }
         .event-past { opacity: 0.4; filter: grayscale(0.5); border-style: dashed; background: transparent; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #94a3b8; transition: all 0.2s; }
         .nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.1); }
@@ -137,11 +142,12 @@
             green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"    
         };
 
+        // [최종 색상 매핑]
         const COLOR_MAP = { 
-            blue:   'bg-work',    
-            orange: 'bg-dev',     
-            red:    'bg-health',  
-            green:  'bg-rest'     
+            orange: 'bg-dev',     // 자기계발 -> 보라
+            blue:   'bg-work',    // 업무 -> 스카이블루
+            red:    'bg-health',  // 건강 -> 옐로우
+            green:  'bg-rest'     // 휴식 -> 회색
         };
 
         const Icons = {
@@ -152,6 +158,7 @@
             ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
+        // [수정] 시간대 파싱 오류 수정 (미래 일정 정상 표시용)
         const safeParseDate = (dateStr) => {
             if (!dateStr || typeof dateStr !== 'string') return null;
             try {
@@ -178,6 +185,7 @@
             } catch (e) { return null; }
         };
 
+        // 비상용 샘플 데이터
         const MOCK_EVENTS = {
             "20260112": [
                 { title: "[샘플] 건강검진", type: "bg-health", startTime: "09:00", endTime: "11:00", dateObj: new Date() },
@@ -192,7 +200,7 @@
             const [selectedDate, setSelectedDate] = useState(new Date()); 
             const [events, setEvents] = useState({}); 
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
-            const [debugMsg, setDebugMsg] = useState("Initializing...");
+            const [debugMsg, setDebugMsg] = useState("Loading...");
             const [useMock, setUseMock] = useState(false);
 
             const holidays = ["01-01","02-17","02-18","02-19","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
@@ -211,17 +219,16 @@
             // --- 데이터 페칭 ---
             useEffect(() => {
                 const fetchAllCalendars = async () => {
-                    setDebugMsg("Fetching Data...");
                     let newEvents = {};
                     let successCount = 0;
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000));
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000));
 
                     try {
                         for (const [colorKey, url] of Object.entries(CALENDARS)) {
                             try {
                                 const fetchPromise = fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
                                 const response = await Promise.race([fetchPromise, timeoutPromise]);
-                                if (!response.ok) throw new Error('Network Error');
+                                if (!response.ok) throw new Error('Net Error');
                                 const text = await response.text();
                                 const lines = text.split("\n");
                                 let event = {};
@@ -258,17 +265,17 @@
                                     }
                                 }
                                 successCount++;
-                            } catch (e) { console.warn(`Skipped ${colorKey}`); }
+                            } catch (e) { console.warn(`Skip ${colorKey}`); }
                         }
                         if (successCount > 0) {
                             for (const key in newEvents) newEvents[key].sort((a, b) => a.dateObj - b.dateObj);
                             setEvents(newEvents);
                             setDebugMsg(""); 
-                        } else { throw new Error("All fetches failed"); }
+                        } else { throw new Error("All Failed"); }
                     } catch (err) {
                         setUseMock(true);
                         setEvents(MOCK_EVENTS); 
-                        setDebugMsg(`Connection Failed: ${err.message}. Using Sample.`);
+                        setDebugMsg("Connection Failed. Sample Data.");
                     }
                 };
                 fetchAllCalendars();
@@ -302,6 +309,11 @@
                 const key = `${year}${String(currentDate.getMonth()+1).padStart(2,'0')}${String(day).padStart(2,'0')}`;
                 return events[key] || [];
             };
+            const getDayColor = (dayIdx, isHol) => {
+                if (isHol || dayIdx === 0) return 'text-rose-custom'; // 공휴일, 일요일 -> 빨강
+                if (dayIdx === 6) return 'text-blue-custom'; // 토요일 -> 파랑
+                return 'text-dim';
+            };
 
             const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
             const daysInMonth = new Date(year, currentDate.getMonth() + 1, 0).getDate();
@@ -325,24 +337,19 @@
                     </div>
 
                     <div className="flex-1 px-4 pt-1 pb-0 relative overflow-hidden flex flex-col justify-between">
-                        {/* Calendar Area: Fixed Height with 6 Rows */}
-                        <div className="mb-0 shrink-0">
+                        {/* Calendar Grid (6 Rows Fixed) */}
+                        <div className="mb-0 shrink-0 calendar-fixed-height">
                             <div className="calendar-grid mb-1">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-dim')}`}>{d}</div>
                                 ))}
                             </div>
-                            
-                            {/* [핵심 수정] 무조건 6주(42칸) 출력하여 높이 고정 */}
                             <div className="calendar-grid">
                                 {Array.from({length: 42}).map((_, i) => {
-                                    // 날짜 계산 로직
                                     const dayNumber = i - startDay + 1;
                                     const isValidDay = dayNumber > 0 && dayNumber <= daysInMonth;
                                     
-                                    if (!isValidDay) {
-                                        return <div key={i} className="day-cell day-cell-empty"></div>;
-                                    }
+                                    if (!isValidDay) return <div key={i} className="day-cell day-cell-empty"></div>;
 
                                     const day = dayNumber;
                                     const thisDate = new Date(year, currentDate.getMonth(), day);
@@ -350,16 +357,9 @@
                                     const isSelected = isSameDay(thisDate, selectedDate);
                                     const dayEvents = getEventTypes(day);
                                     const isHol = isHoliday(year, currentDate.getMonth(), day);
-                                    const dayOfWeek = i % 7; // 0: Sun, 6: Sat
+                                    const dayOfWeek = i % 7; 
                                     
-                                    let numColor = getDayColor(dayOfWeek, isHol) || 'text-dim';
-                                    
-                                    // [수정] 공휴일 우선순위 적용 (토요일이어도 빨간색)
-                                    if (isHol) numColor = 'text-rose-custom'; 
-                                    else if (dayOfWeek === 0) numColor = 'text-rose-custom'; 
-                                    else if (dayOfWeek === 6) numColor = 'text-blue-custom'; 
-                                    else numColor = 'text-dim';
-
+                                    let numColor = getDayColor(dayOfWeek, isHol);
                                     if (isToday) numColor = 'text-white font-extrabold';
                                     else if (isSelected) numColor = 'text-white';
 
@@ -391,7 +391,7 @@
                             </div>
                         </div>
 
-                        {/* List Area */}
+                        {/* Event List */}
                         <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-1 relative min-h-0">
                             <button onClick={handleLoadPrev} disabled={visibleRange.start === 0} className="list-nav-btn shrink-0 mb-1">
                                 {visibleRange.start > 0 && <Icons.ArrowUp />}
@@ -400,8 +400,7 @@
                             <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pb-4">
                                 {visibleEvents.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-dim text-xs italic opacity-60">
-                                        <span>일정이 없습니다.</span>
-                                        {debugMsg && <span className="text-[9px] text-rose-400 mt-2 text-center px-2">{debugMsg}</span>}
+                                        <span>{debugMsg ? debugMsg : "일정이 없습니다."}</span>
                                     </div>
                                 ) : (
                                     <>
@@ -417,7 +416,6 @@
                                                 </div>
                                             );
                                         })}
-                                        {debugMsg && <div className="text-[8px] text-rose-400 text-center mt-2 pb-1">{debugMsg}</div>}
                                     </>
                                 )}
                             </div>
