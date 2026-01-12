@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Log (Width 260px)</title>
+    <title>Fortress Log (Smart Modal)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -30,7 +30,7 @@
 
         .widget-container {
             position: relative;
-            /* [수정] 캘린더와 동일한 260px */
+            /* 캘린더와 동일한 260px */
             width: 260px; 
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
@@ -44,11 +44,11 @@
             color: #334155;
         }
 
-        /* 헤더 스타일: 상단 고정 불투명 블록 */
+        /* 헤더 스타일 */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 18px 18px 14px 18px; /* 여백 260px에 맞게 조정 */
+            padding: 18px 18px 14px 18px;
             backdrop-filter: blur(5px);
             flex-shrink: 0;
         }
@@ -64,7 +64,7 @@
             transition: all 0.2s;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 0.75rem; /* 폰트 크기 복구 */
+            font-size: 0.75rem;
             color: #94a3b8;
             letter-spacing: -0.02em;
             padding: 6px 0;
@@ -195,9 +195,9 @@
             transform-origin: 50% 50%;
         }
 
+        /* 색상 통일 */
         .text-sky-300 { color: #7dd3fc; text-shadow: 0 0 10px rgba(14, 165, 233, 0.3); } 
         .bg-sky-300 { background-color: #7dd3fc; box-shadow: 0 0 8px rgba(125, 211, 252, 0.6); }
-        
         .text-dim { color: #94a3b8; }
         .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
@@ -718,7 +718,7 @@
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
             const renderTimerPanel = () => {
-                const radius = 30; /* 260px 폭에 맞게 타이머 크기 복구 */
+                const radius = 30; 
                 const circumference = 2 * Math.PI * radius;
                 let progress;
                 let strokeColor;
@@ -818,6 +818,7 @@
                                 <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
                                 <div className="flex items-center gap-3 text-[10px] font-bold text-sky-300 mt-1">
                                     <div className="flex items-center gap-1"><Icons.Ticket className="text-sky-300"/><span className="text-xs">{tickets}</span></div>
+                                    {/* [수정] 에너지 글씨 크기 통일 */}
                                     <div className="flex items-center gap-1"><Icons.Zap className="text-sky-300"/><span className="text-sky-300">{energy}%</span></div>
                                 </div>
                             </div>
@@ -852,6 +853,7 @@
                                             <>
                                                 {sortedBlocks.length > visibleLogs && (
                                                     <button onClick={loadMoreLogs} className="w-full py-1 flex items-center justify-center text-dim hover:text-bright transition-colors mb-2">
+                                                        {/* [수정] Chevron 화살표로 변경 */}
                                                         <Icons.ChevronUp />
                                                     </button>
                                                 )}
@@ -892,7 +894,7 @@
                                 </div>
                             </div>
                         )}
-                        
+                        {/* (Other tabs content remains same) */}
                         {activeTab === 'niche' && (
                             <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {fixedQuests.map((q) => (
@@ -908,6 +910,7 @@
                                 {restOptions.map(rest => (
                                     <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
                                         {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
+                                        
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="text-xs font-bold text-bright">{rest.name}</span>
                                             <div className="text-[11px] font-bold text-sky-300">
@@ -922,10 +925,11 @@
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className="w-full modal-content rounded-t-3xl p-5 animate-slide-up shadow-2xl h-[340px] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            {/* [수정] 모달 높이 자동화: manual만 340px, 나머지는 auto + padding */}
+                            <div className={`w-full modal-content rounded-t-2xl p-4 animate-slide-up shadow-2xl flex flex-col ${modalType === 'manual' ? 'h-[340px]' : 'h-auto pb-8'}`} onClick={(e) => e.stopPropagation()}>
                                 
                                 {modalType === 'delete' && (
-                                    <div className="text-center">
+                                    <div className="text-center mt-2">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">기록 삭제</h3>
                                         <div className="flex gap-2 mt-4">
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
@@ -935,7 +939,7 @@
                                 )}
 
                                 {modalType === 'reset' && (
-                                    <div className="text-center">
+                                    <div className="text-center mt-2">
                                         <h3 className="text-base font-bold mb-2 text-slate-700">하루 초기화</h3>
                                         <p className="text-xs text-slate-500 mb-4">오늘의 모든 기록이 삭제되고<br/>컨디션 체크 화면으로 돌아갑니다.</p>
                                         <div className="flex gap-2">
@@ -948,11 +952,13 @@
                                 {modalType === 'manual' && (
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Add Log ✧｡</h3>
+                                    
                                     <div className="flex gap-4 justify-center mb-2 shrink-0">
                                             <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>Focus</button>
                                             <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>Switch</button>
                                             <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>Rest</button>
                                     </div>
+                                    
                                     <div className="space-y-1 mb-2 shrink-0">
                                             <div className="flex items-center justify-between">
                                                 {manualTab === 'focus' ? (
@@ -1003,7 +1009,7 @@
                                                     <button onClick={() => addRecord('Rain', 'manual')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                                 </div>
                                             )}
-                                            {/* ... (switch/rest buttons layout preserved) ... */}
+
                                             {manualTab === 'switch' && (
                                                 <div className="grid grid-cols-4 gap-1">
                                                     {fixedQuests.map((q) => (
@@ -1014,6 +1020,7 @@
                                                     ))}
                                                 </div>
                                             )}
+
                                             {manualTab === 'rest' && (
                                                 <div className="grid grid-cols-4 gap-1">
                                                     {restOptions.map((r) => (
