@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar (Overnight Fix)</title>
+    <title>Fortress Calendar (Final Spacing Fix)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -43,11 +43,12 @@
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* [수정] 달력 높이 250px -> 260px로 늘리고, 중앙 정렬(center) 적용 */
         .calendar-fixed-height {
-            height: 250px; 
+            height: 260px; 
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center; /* 위아래 중앙 정렬 */
         }
 
         .calendar-grid {
@@ -91,7 +92,7 @@
         .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
         .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* [색상 매핑] Fortress Theme */
+        /* Colors */
         .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
         .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
         .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
@@ -102,6 +103,7 @@
         .text-dim { color: #94a3b8; }
         .text-sky-point { color: #bae6fd; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
+        /* Event Card Styles (애니메이션 제거됨) */
         .event-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(224, 242, 254, 0.15);
@@ -178,7 +180,6 @@
             } catch (e) { return null; }
         };
 
-        // 비상용 샘플 데이터
         const MOCK_EVENTS = {
             "20260112": [
                 { title: "[샘플] 건강검진", type: "bg-health", startTime: "09:00", endTime: "11:00", dateObj: new Date() },
@@ -280,28 +281,18 @@
                 return events[key] || [];
             }, [events, selectedDate]);
 
-            // [수정] 자정 넘김(Overnight) 처리 포함한 과거 판별 로직
+            // 자정 넘김(Overnight) 처리 포함
             const isEventPast = (evt, date) => {
                 const now = new Date();
+                if (!isSameDay(date, now)) return date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 
-                // 선택된 날짜가 오늘이 아니면 날짜만 비교
-                if (!isSameDay(date, now)) {
-                    return date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                }
-
-                // 선택된 날짜가 오늘일 때: 시간 정밀 비교
                 const [startH, startM] = evt.startTime.split(':').map(Number);
                 const [endH, endM] = evt.endTime.split(':').map(Number);
-
-                // 기본 종료 시간 (오늘 날짜 기준)
                 let evtEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
 
-                // [핵심] 종료 시간이 시작 시간보다 빠르면(예: 22:00 ~ 01:00), 종료일은 내일이다.
                 if (endH < startH || (endH === startH && endM < startM)) {
                     evtEnd.setDate(evtEnd.getDate() + 1);
                 }
-
-                // 현재 시간이 종료 시간보다 지났으면 과거(true)
                 return now > evtEnd;
             };
 
@@ -348,8 +339,8 @@
                     </div>
 
                     <div className="flex-1 px-4 pt-1 pb-0 relative overflow-hidden flex flex-col justify-between">
-                        {/* Calendar Grid (6 Rows Fixed) */}
-                        <div className="mb-0 shrink-0 calendar-fixed-height">
+                        {/* [수정] Calendar Grid (Fixed Height 260px & Top Margin) */}
+                        <div className="mb-0 shrink-0 calendar-fixed-height mt-2">
                             <div className="calendar-grid mb-1">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-dim')}`}>{d}</div>
