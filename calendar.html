@@ -49,15 +49,15 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 2px; /* 간격 미세 조정 */
+            gap: 2px;
             text-align: center;
         }
         
         .day-cell {
-            height: 38px; /* 높이 확보 */
+            height: 38px;
             display: flex;
             flex-direction: column; 
-            justify-content: space-between; /* 위아래 분산 정렬 (겹침 방지 핵심) */
+            justify-content: space-between;
             align-items: center;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -70,7 +70,6 @@
         }
         .day-cell:hover { background: rgba(255,255,255,0.1); }
 
-        /* 오늘 날짜 */
         .day-today {
             background: rgba(224, 242, 254, 0.25) !important;
             border: 1px solid rgba(186, 230, 253, 0.4);
@@ -78,33 +77,22 @@
             font-weight: 700;
         }
 
-        /* 선택된 날짜 */
         .day-selected {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        /* 일정 점 (Dot) */
-        .dot-container {
-            display: flex;
-            gap: 2px;
-            height: 5px; /* 높이 고정 */
-        }
-        .dot {
-            width: 5px; 
-            height: 5px; 
-            border-radius: 50%;
-        }
+        .dot-container { display: flex; gap: 2px; height: 5px; }
+        .dot { width: 5px; height: 5px; border-radius: 50%; }
 
-        /* 🎨 Fortress Color Palette */
-        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); } /* Sky */
-        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); } /* Purple */
-        .bg-rest { background-color: #94a3b8; } /* Slate (Gray) */
-        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } /* Pastel Yellow */
+        /* 🎨 Colors */
+        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }
+        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }
+        .bg-rest { background-color: #94a3b8; }
+        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); }
 
-        /* 요일 컬러 */
-        .text-rose-custom { color: #fda4af; } /* Pastel Red (Sun/Holiday) */
-        .text-blue-custom { color: #93c5fd; } /* Pastel Blue (Sat) */
+        .text-rose-custom { color: #fda4af; }
+        .text-blue-custom { color: #93c5fd; }
         .text-dim { color: #94a3b8; }
 
         /* 일정 리스트 카드 */
@@ -113,18 +101,24 @@
             border: 1px solid rgba(224, 242, 254, 0.15);
             border-radius: 14px;
             padding: 10px 14px;
-            margin-bottom: 6px;
+            min-height: 60px; /* 높이 고정 */
             display: flex;
             align-items: center;
-            transition: all 0.2s;
-            animation: slideUp 0.3s ease-out forwards;
+            transition: all 0.3s ease;
+            position: relative;
         }
-        .event-card:hover { background: rgba(255, 255, 255, 0.1); }
         
-        @keyframes slideUp {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        /* 지난 일정 스타일 (투명도) */
+        .event-past {
+            opacity: 0.3;
+            filter: grayscale(0.6);
+            border-style: dashed;
+            background: transparent;
         }
+
+        /* 리스트 애니메이션 */
+        .list-enter { animation: fadeIn 0.3s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .nav-btn {
             width: 24px; height: 24px;
@@ -135,6 +129,21 @@
         }
         .nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.1); }
 
+        /* 리스트 위아래 이동 버튼 */
+        .list-nav-btn {
+            width: 100%;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .list-nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.05); }
+        .list-nav-btn:disabled { opacity: 0; cursor: default; }
+
     </style>
 </head>
 <body>
@@ -142,20 +151,23 @@
     <div id="root" style="width: 100%; display: flex; justify-content: center;"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useEffect, useMemo } = React;
 
         const Icons = {
             ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
             ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>,
-            RotateCcw: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+            RotateCcw: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
+            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
+            ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
         const App = () => {
-            const today = new Date(); // 실제 오늘
-            const [currentDate, setCurrentDate] = useState(new Date()); // 달력에 보여지는 월
-            const [selectedDate, setSelectedDate] = useState(new Date()); // 사용자가 클릭한 날짜
+            const today = new Date();
+            const [currentDate, setCurrentDate] = useState(new Date()); 
+            const [selectedDate, setSelectedDate] = useState(new Date()); 
+            const [viewOffset, setViewOffset] = useState(0); // 리스트 스크롤용 인덱스
 
-            // 임시 공휴일 데이터 (YYYY-M-D 형식 - 월은 0부터 시작 아님, 1부터)
+            // 1. 목업 공휴일
             const holidays = {
                 "2026-1-1": "신정",
                 "2026-2-17": "설날",
@@ -171,15 +183,12 @@
             };
 
             const isHoliday = (year, month, day) => {
-                // month is 0-indexed in JS Date, but we assume 1-indexed for key
                 return holidays[`${year}-${month + 1}-${day}`];
             };
 
-            // 월 이동 핸들러
             const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
             const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
             
-            // 오늘로 복귀
             const goToday = () => {
                 const now = new Date();
                 setCurrentDate(now);
@@ -190,35 +199,66 @@
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const monthStr = monthNames[currentDate.getMonth()];
 
-            // 목업 이벤트 데이터
-            const getEventsForDay = (day) => {
-                // 예시 로직: 12일(건강), 15일(업무+개발), 20일(휴식)
-                if (day === 12) return ['health'];
-                if (day === 15) return ['work', 'dev'];
-                if (day === 20) return ['rest'];
-                return [];
-            };
-
-            // 선택된 날짜의 일정 목록 가져오기 (목업)
+            // 2. 목업 일정 데이터 생성기
             const getEventList = (date) => {
                 const day = date.getDate();
                 const list = [];
                 
-                // 실제 코드에서는 여기서 fetch된 데이터에서 날짜 비교해서 가져오면 됨
-                if (day === 12) {
-                    list.push({ type: 'health', title: '건강검진 (내시경)', time: '14:00 - 16:00' });
+                // [테스트용] 오늘 날짜에 다양한 시간대 일정 추가 (과거/현재/미래 테스트)
+                if (isSameDay(date, today)) {
+                    list.push({ type: 'rest', title: '아침 명상', startTime: '07:00', endTime: '07:30' });
+                    list.push({ type: 'work', title: '오전 회의', startTime: '10:00', endTime: '11:00' });
+                    list.push({ type: 'health', title: '점심 식사 & 산책', startTime: '12:30', endTime: '13:30' });
+                    list.push({ type: 'work', title: '수업 자료 준비', startTime: '15:00', endTime: '17:00' });
+                    list.push({ type: 'dev', title: '독서 모임', startTime: '20:00', endTime: '22:00' });
                 }
-                if (day === 15) {
-                    list.push({ type: 'work', title: '국어 수업 자료 업로드', time: '19:00 - 20:00' });
-                    list.push({ type: 'dev', title: '독서 모임 발제', time: '21:00 - 22:00' });
+                // 다른 날짜 예시
+                else if (day === 12) {
+                    list.push({ type: 'health', title: '건강검진 (내시경)', startTime: '14:00', endTime: '16:00' });
                 }
-                if (day === 20) {
-                    list.push({ type: 'rest', title: '완전 휴식', time: 'All Day' });
+                else if (day === 15) {
+                    list.push({ type: 'work', title: '국어 수업 자료 업로드', startTime: '19:00', endTime: '20:00' });
+                    list.push({ type: 'dev', title: '독서 모임 발제', startTime: '21:00', endTime: '22:00' });
                 }
-                return list;
+                
+                // 시간순 정렬
+                return list.sort((a, b) => a.startTime.localeCompare(b.startTime));
             };
 
-            const selectedEvents = getEventList(selectedDate);
+            // 3. 현재 시간과 비교하여 상태 판별 (past, future)
+            const getEventStatus = (evt, date) => {
+                const now = new Date(); // 실제 현재 시간
+                
+                // 선택된 날짜가 오늘이 아니면, 날짜 기준으로 과거/미래 판단
+                if (!isSameDay(date, now)) {
+                    if (date < new Date(now.getFullYear(), now.getMonth(), now.getDate())) return 'past';
+                    return 'future';
+                }
+
+                // 오늘이라면 시간까지 비교
+                const [endH, endM] = evt.endTime.split(':').map(Number);
+                const evtEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
+                
+                return now > evtEnd ? 'past' : 'future';
+            };
+
+            const fullEvents = useMemo(() => getEventList(selectedDate), [selectedDate]);
+
+            // 4. 자동 스크롤 로직: "미래" 일정 중 가장 빠른 것이 맨 위에 오도록
+            useEffect(() => {
+                const firstFutureIndex = fullEvents.findIndex(evt => getEventStatus(evt, selectedDate) === 'future');
+                if (firstFutureIndex > 0) {
+                    // 미래 일정이 있다면 그게 첫 번째로 보이게, 단 3개 단위라 끝부분 처리는 clamp
+                    setViewOffset(Math.min(firstFutureIndex, Math.max(0, fullEvents.length - 3)));
+                } else {
+                    setViewOffset(0);
+                }
+            }, [fullEvents, selectedDate]);
+
+            const visibleEvents = fullEvents.slice(viewOffset, viewOffset + 3);
+
+            const handlePrev = () => setViewOffset(prev => Math.max(0, prev - 1));
+            const handleNext = () => setViewOffset(prev => Math.min(fullEvents.length - 3, prev + 1));
 
             const getColorClass = (type) => {
                 switch(type) {
@@ -231,15 +271,20 @@
             };
 
             const getDayColor = (dayIdx, isHol) => {
-                if (dayIdx === 0 || isHol) return 'text-rose-custom'; // 일요일 or 공휴일
-                if (dayIdx === 6) return 'text-blue-custom'; // 토요일
-                return 'text-dim'; // 평일
+                if (dayIdx === 0 || isHol) return 'text-rose-custom'; 
+                if (dayIdx === 6) return 'text-blue-custom'; 
+                return 'text-dim'; 
             };
 
-            // 달력 생성 로직
+            // 달력용 점 데이터 (전체 요약)
+            const getEventsForDay = (day) => {
+                const d = new Date(year, currentDate.getMonth(), day);
+                return getEventList(d).map(e => e.type); // 타입만 배열로 반환
+            };
+
             const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
             const daysInMonth = new Date(year, currentDate.getMonth() + 1, 0).getDate();
-            const startDay = firstDayOfMonth.getDay(); // 0(Sun) ~ 6(Sat)
+            const startDay = firstDayOfMonth.getDay(); 
 
             return (
                 <div className="widget-container">
@@ -259,18 +304,16 @@
                     </div>
 
                     {/* Scrollable Body */}
-                    <div className="flex-1 px-4 pt-3 pb-4 relative overflow-hidden flex flex-col">
+                    <div className="flex-1 px-4 pt-3 pb-0 relative overflow-hidden flex flex-col justify-between">
                         
                         {/* Calendar Grid */}
-                        <div className="mb-4 shrink-0">
-                            {/* 요일 헤더 */}
+                        <div className="mb-2 shrink-0">
                             <div className="calendar-grid mb-2">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-slate-500')}`}>{d}</div>
                                 ))}
                             </div>
                             
-                            {/* 날짜 그리드 */}
                             <div className="calendar-grid">
                                 {Array.from({length: startDay}, (_, i) => <div key={`empty-${i}`}></div>)}
                                 
@@ -279,11 +322,12 @@
                                     const thisDate = new Date(year, currentDate.getMonth(), day);
                                     const isToday = isSameDay(thisDate, today);
                                     const isSelected = isSameDay(thisDate, selectedDate);
-                                    const events = getEventsForDay(day);
+                                    const eventTypes = getEventsForDay(day);
+                                    // 중복 제거 및 최대 3개 점만 표시
+                                    const uniqueTypes = [...new Set(eventTypes)].slice(0, 3);
                                     const isHol = isHoliday(year, currentDate.getMonth(), day);
                                     const dayOfWeek = thisDate.getDay();
 
-                                    // 날짜 색상 결정 (선택/오늘이 아닐 때만 적용)
                                     let numColor = getDayColor(dayOfWeek, isHol);
                                     if (isToday) numColor = 'text-sky-300';
                                     if (isSelected && !isToday) numColor = 'text-white';
@@ -296,9 +340,8 @@
                                         >
                                             <span className={`z-10 font-bold ${numColor}`}>{day}</span>
                                             
-                                            {/* 일정 점 */}
                                             <div className="dot-container">
-                                                {events.map((type, idx) => (
+                                                {uniqueTypes.map((type, idx) => (
                                                     <div key={idx} className={`dot ${getColorClass(type)}`}></div>
                                                 ))}
                                             </div>
@@ -308,29 +351,50 @@
                             </div>
                         </div>
 
-                        {/* Events List (Variable Height) */}
-                        <div className="flex-1 overflow-hidden flex flex-col border-t border-white/10 pt-3">
-                            <div className="flex justify-between items-end mb-2 px-1">
-                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                    {isSameDay(selectedDate, today) ? "Today's Schedule" : `Events on ${selectedDate.getMonth()+1}/${selectedDate.getDate()}`}
-                                </h3>
-                            </div>
+                        {/* Events List (3 items max) */}
+                        <div className="flex-1 flex flex-col justify-center border-t border-white/10 relative">
                             
-                            <div className="flex-1 overflow-y-auto no-scrollbar space-y-1">
-                                {selectedEvents.length === 0 ? (
-                                    <div className="text-center text-dim text-xs py-4 italic opacity-60">일정이 없습니다.</div>
+                            {/* Up Button */}
+                            <button 
+                                onClick={handlePrev} 
+                                disabled={viewOffset === 0} 
+                                className="list-nav-btn"
+                            >
+                                {viewOffset > 0 && <Icons.ArrowUp />}
+                            </button>
+
+                            <div className="space-y-1 h-[190px]"> {/* 3개 아이템 높이 고정 */}
+                                {visibleEvents.length === 0 ? (
+                                    <div className="h-full flex items-center justify-center text-dim text-xs italic opacity-60">일정이 없습니다.</div>
                                 ) : (
-                                    selectedEvents.map((evt, idx) => (
-                                        <div key={idx} className="event-card">
-                                            <div className={`w-1.5 h-8 rounded-full mr-3 shrink-0 ${getColorClass(evt.type)}`}></div>
-                                            <div>
-                                                <div className="text-xs font-bold text-white mb-0.5">{evt.title}</div>
-                                                <div className="text-[10px] text-slate-400 font-mono">{evt.time}</div>
+                                    visibleEvents.map((evt, idx) => {
+                                        const status = getEventStatus(evt, selectedDate);
+                                        const isPast = status === 'past';
+                                        
+                                        return (
+                                            <div key={idx} className={`event-card list-enter ${isPast ? 'event-past' : ''}`}>
+                                                <div className={`w-1.5 h-8 rounded-full mr-3 shrink-0 ${getColorClass(evt.type)}`}></div>
+                                                <div>
+                                                    <div className={`text-xs font-bold mb-0.5 ${isPast ? 'text-slate-300' : 'text-white'}`}>{evt.title}</div>
+                                                    <div className={`text-[10px] font-mono ${isPast ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                        {evt.startTime} - {evt.endTime}
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </div>
+
+                            {/* Down Button */}
+                            <button 
+                                onClick={handleNext} 
+                                disabled={viewOffset + 3 >= fullEvents.length} 
+                                className="list-nav-btn"
+                            >
+                                {viewOffset + 3 < fullEvents.length && <Icons.ArrowDown />}
+                            </button>
+
                         </div>
 
                     </div>
