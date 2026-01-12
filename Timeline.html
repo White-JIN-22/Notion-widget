@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Block Timeline (Date Header)</title>
+    <title>Fortress Block Timeline (Final Layout)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -110,6 +110,7 @@
 <body>
 
     <div id="root" style="width: 100%; display: flex; justify-content: center;"></div>
+
     <script type="text/babel">
         const { useState, useEffect } = React;
 
@@ -186,37 +187,30 @@
                 );
             };
 
-            // [수정] 메시지 로직: { main, sub } 객체 반환으로 변경 (두 줄 표시)
             const getMessage = (min) => {
                 const now = new Date();
                 const currentHour = now.getHours();
 
-                // 1. 오후 1시 넘었는데 0분 (미시작)
                 if (currentHour >= 13 && min === 0) {
                     return { main: "🧊 아직 시작 전이네요.", sub: "지금 바로 첫 블록을 쌓아보세요." };
                 }
 
-                // 2. 저녁 6시 이후 (하루 결산)
                 if (currentHour >= 18 && blocks.length > 0) {
                     const sunCount = blocks.filter(b => b.quality === 'Sun').length;
                     const cloudyCount = blocks.filter(b => b.quality === 'Cloud').length;
                     const rainCount = blocks.filter(b => b.quality === 'Rain').length;
 
-                    // 맑음(Sun) 우세: 몰입 최상
                     if (sunCount >= cloudyCount && sunCount >= rainCount) {
                         return { main: "🌟 오늘 몰입도 최고조!", sub: "단단한 요새가 완성되었습니다." };
                     }
-                    // 흐림(Cloud) 우세: 무던함/꾸준함 (칭찬 강화)
                     if (cloudyCount >= sunCount && cloudyCount >= rainCount) {
                         return { main: "☁️ 무던하게 잘 버텼습니다.", sub: "꾸준함이 가장 강력한 무기입니다." };
                     }
-                    // 비(Rain) 우세: 위로
                     if (rainCount > sunCount && rainCount > cloudyCount) {
                         return { main: "☔ 비가 와도 괜찮습니다.", sub: "내일은 조금 더 맑아질 거예요." };
                     }
                 }
 
-                // 3. 진행 중 메시지 (시간대별)
                 if (min === 0) return { main: "❄️ 준비 되셨나요?", sub: "차근차근 점화를 시작해 봅시다." };
                 
                 if (min < 60) {
@@ -227,11 +221,10 @@
                     return { main: "🧱 견고하게 쌓는 중입니다.", sub: "흔들리지 않는 시간이 멋져요." };
                 }
                 
-                if (min < 300) { // 300분(5시간) 미만: 4.5시간도 포함 (칭찬)
+                if (min < 300) {
                     return { main: "🔥 뜨거운 몰입의 시간.", sub: "이미 충분히 훌륭한 하루예요." };
                 }
 
-                // 300분 이상 (5시간 이상)
                 return { main: "🎖️ 한계를 넘은 성취입니다.", sub: "충분히 애썼으니, 휴식을 권장해요." };
             };
 
@@ -290,16 +283,19 @@
                 });
             };
 
-            // 메시지 가져오기
             const msg = getMessage(totalDuration);
 
             return (
                 <div className="widget-container">
                     <div className="px-4 pt-5 pb-2 flex justify-between items-end border-b border-white/20 bg-white/5 backdrop-blur-sm z-10 shrink-0">
                         <div>
-                            {/* 상단으로 이동한 날짜 */}
+                            {/* 날짜 (White) */}
                             <div className="text-white text-[10px] font-bold tracking-widest uppercase mb-0.5 opacity-90 font-mono-nums">{dateStr}</div>
                             <h1 className="text-lg title-text font-serif tracking-tight">Timeline</h1>
+                        </div>
+                        {/* [수정] 시간 표시 (우측 상단으로 이동) */}
+                        <div className="mb-0.5">
+                            {formatDuration(totalDuration)}
                         </div>
                     </div>
 
@@ -312,14 +308,11 @@
                         <div className="grid-container">{renderGrid()}</div>
                     </div>
 
-                    <div className="footer-blur px-4 pt-2 pb-3 z-10 shrink-0">
-                        <div className="flex justify-center items-center mb-2">
-                            <div>{formatDuration(totalDuration)}</div>
-                        </div>
-                        {/* [수정] 박스 제거 및 2줄 메시지 표시 */}
-                        <div className="text-center flex flex-col justify-center h-10">
-                            <p className="text-sm font-bold text-white leading-tight drop-shadow-md">{msg.main}</p>
-                            <p className="text-[10px] text-sky-200 leading-tight mt-0.5 opacity-90">{msg.sub}</p>
+                    <div className="footer-blur px-4 pt-3 pb-3 z-10 shrink-0">
+                        {/* [수정] 오직 메시지만 표시 (글자 크기 text-xs로 축소) */}
+                        <div className="text-center flex flex-col justify-center h-auto">
+                            <p className="text-xs font-bold text-white leading-tight drop-shadow-md mb-1">{msg.main}</p>
+                            <p className="text-[10px] text-sky-200 leading-tight opacity-90">{msg.sub}</p>
                         </div>
                     </div>
                 </div>
