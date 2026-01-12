@@ -4,77 +4,92 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Calendar</title>
+    <title>Fortress Glass Calendar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+        /* 폰트: 시스템 기본 중 가독성 좋은 순서 */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, "Malgun Gothic", sans-serif; }
+        
+        /* 글라스모피즘 배경 */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65); /* 반투명 흰색 */
+            backdrop-filter: blur(16px); /* 블러 효과 */
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        /* 스크롤바 숨김 */
         ::-webkit-scrollbar { display: none; }
-        #eventModal { display: none; }
-        /* 로딩 스피너 애니메이션 */
+        
+        /* 로딩 스피너 */
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { animation: spin 1s linear infinite; }
+        
+        /* 텍스트 가독성 강화 */
+        .font-reading { font-weight: 600; letter-spacing: -0.02em; }
     </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm border border-gray-200 relative">
+    <div class="w-full max-w-md glass-panel rounded-3xl p-6 relative">
         
-        <div id="loadingIndicator" class="absolute top-4 right-14 hidden">
-            <i data-lucide="loader-2" class="spinner text-gray-400" width="16"></i>
+        <div id="loadingIndicator" class="absolute top-6 right-16 hidden">
+            <i data-lucide="loader-2" class="spinner text-gray-500" width="18"></i>
         </div>
 
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-2">
-                <button onclick="changeMonth(-1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
+            <div class="flex items-center gap-3">
+                <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-white/50 rounded-full text-gray-700 transition">
                     <i data-lucide="chevron-left"></i>
                 </button>
-                <span id="currentMonthYear" class="text-xl font-bold text-gray-800 tracking-tight"></span>
-                <button onclick="changeMonth(1)" class="p-1 hover:bg-gray-100 rounded-full text-gray-600">
+                <span id="currentMonthYear" class="text-xl font-reading text-gray-800"></span>
+                <button onclick="changeMonth(1)" class="p-1.5 hover:bg-white/50 rounded-full text-gray-700 transition">
                     <i data-lucide="chevron-right"></i>
                 </button>
             </div>
-            <button onclick="openModal()" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors">
-                <i data-lucide="plus"></i>
+            <button onclick="openModal()" class="p-2.5 bg-white/60 hover:bg-white rounded-full text-gray-700 shadow-sm transition border border-white">
+                <i data-lucide="plus" width="20"></i>
             </button>
         </div>
 
-        <div class="grid grid-cols-7 mb-2 text-center">
-            <div class="text-sm text-gray-500 font-semibold">일</div>
-            <div class="text-sm text-gray-500 font-semibold">월</div>
-            <div class="text-sm text-gray-500 font-semibold">화</div>
-            <div class="text-sm text-gray-500 font-semibold">수</div>
-            <div class="text-sm text-gray-500 font-semibold">목</div>
-            <div class="text-sm text-gray-500 font-semibold">금</div>
-            <div class="text-sm text-gray-500 font-semibold">토</div>
+        <div class="grid grid-cols-7 mb-3 text-center">
+            <div class="text-sm text-red-500 font-bold">일</div>
+            <div class="text-sm text-gray-600 font-bold">월</div>
+            <div class="text-sm text-gray-600 font-bold">화</div>
+            <div class="text-sm text-gray-600 font-bold">수</div>
+            <div class="text-sm text-gray-600 font-bold">목</div>
+            <div class="text-sm text-gray-600 font-bold">금</div>
+            <div class="text-sm text-gray-500 font-bold">토</div>
         </div>
 
         <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
     </div>
 
-    <div id="eventModal" class="fixed inset-0 bg-black/30 items-center justify-center z-50">
-        <div class="bg-white w-80 rounded-2xl p-5 shadow-xl relative">
+    <div id="eventModal" class="fixed inset-0 bg-black/20 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass-panel w-80 rounded-2xl p-6 shadow-2xl relative bg-white/90">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i data-lucide="x" width="18"></i>
+                <i data-lucide="x" width="20"></i>
             </button>
             
-            <h3 class="text-base font-bold text-gray-800 mb-4">새 일정 추가</h3>
+            <h3 class="text-lg font-reading text-gray-800 mb-5">일정 추가</h3>
             
             <div class="space-y-4">
-                <input type="text" id="eventTitle" placeholder="일정 내용" 
-                    class="w-full p-2 text-sm border-b border-gray-200 focus:outline-none focus:border-gray-500 placeholder-gray-400 font-medium">
+                <input type="text" id="eventTitle" placeholder="내용을 입력하세요" 
+                    class="w-full p-2.5 bg-gray-50/50 border-b-2 border-gray-200 focus:border-purple-400 outline-none text-gray-800 font-medium placeholder-gray-400 transition-colors">
 
-                <input type="date" id="eventDate" class="w-full text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
+                <input type="date" id="eventDate" class="w-full p-2 bg-gray-100 rounded-lg text-gray-700 font-medium outline-none">
                 
                 <div class="flex gap-2 items-center">
-                    <input type="time" id="startTime" class="w-1/2 text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
-                    <span class="text-gray-400">~</span>
-                    <input type="time" id="endTime" class="w-1/2 text-xs p-2 bg-gray-50 rounded-lg text-gray-700 outline-none font-medium">
+                    <input type="time" id="startTime" class="w-1/2 p-2 bg-gray-100 rounded-lg text-gray-700 font-medium outline-none">
+                    <span class="text-gray-400 font-bold">~</span>
+                    <input type="time" id="endTime" class="w-1/2 p-2 bg-gray-100 rounded-lg text-gray-700 font-medium outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-2" id="categoryContainer"></div>
 
-                <button onclick="addEvent()" id="addBtn" class="w-full py-3 mt-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-bold rounded-xl transition-colors">
+                <button onclick="addEvent()" id="addBtn" class="w-full py-3.5 mt-2 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl shadow-md transition-transform active:scale-95">
                     추가하기
                 </button>
             </div>
@@ -82,62 +97,66 @@
     </div>
 
     <script>
-        // ✅ 진솔이의 Worker 주소 적용 완료!
+        // ✅ 여기에 Worker 주소 입력
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev/"; 
 
         let currentDate = new Date();
         let events = [];
         let selectedCategory = 'work';
 
+        // 카테고리 설정 (아이콘, 라벨, 스타일)
         const categories = {
-            work: { label: '업무', class: 'bg-sky-100 text-sky-600 border-sky-200', icon: 'briefcase' },
-            develop: { label: '자기계발', class: 'bg-purple-100 text-purple-600 border-purple-200', icon: 'book-open' },
-            health: { label: '건강', class: 'bg-yellow-100 text-yellow-600 border-yellow-200', icon: 'heart-pulse' },
-            rest: { label: '휴식', class: 'bg-gray-100 text-gray-600 border-gray-200', icon: 'coffee' }
+            work: { label: '업무', class: 'bg-sky-100 text-sky-700 border-sky-200', icon: 'briefcase' },
+            develop: { label: '자기계발', class: 'bg-purple-100 text-purple-700 border-purple-200', icon: 'book-open' },
+            health: { label: '건강', class: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: 'heart-pulse' },
+            rest: { label: '휴식', class: 'bg-gray-100 text-gray-700 border-gray-200', icon: 'coffee' }
         };
 
+        // 초기 실행
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            fetchEvents(); // 워커에서 데이터 불러오기
+            fetchEvents(); 
             renderCategoryButtons();
         });
 
-        // 워커에서 일정 불러오기 (GET)
+        // 1. 데이터 불러오기
         async function fetchEvents() {
             showLoading(true);
             try {
                 const res = await fetch(WORKER_URL);
+                if (!res.ok) throw new Error("Network response was not ok");
                 const data = await res.json();
-                
-                // 데이터 매핑 (혹시 모를 오류 방지)
-                events = Array.isArray(data) ? data : []; 
+                events = Array.isArray(data) ? data : [];
                 renderCalendar();
             } catch (err) {
-                console.error("데이터 로드 실패:", err);
-                // 실패 시 조용히 넘어가거나, 콘솔에만 기록 (사용자 경험 보호)
+                console.error("Fetch Error:", err);
+                // 에러나도 달력은 그리도록
+                renderCalendar(); 
             } finally {
                 showLoading(false);
             }
         }
 
-        // 워커로 일정 보내기 (POST)
+        // 2. 데이터 추가하기
         async function addEvent() {
             const title = document.getElementById('eventTitle').value;
             const date = document.getElementById('eventDate').value;
-            const startTime = document.getElementById('startTime').value;
-            const endTime = document.getElementById('endTime').value;
             
-            if (!title || !date) return;
-            
+            if (!title || !date) {
+                alert("내용과 날짜를 입력해주세요.");
+                return;
+            }
+
             const btn = document.getElementById('addBtn');
+            const originalText = btn.innerText;
             btn.innerText = "저장 중...";
             btn.disabled = true;
 
             const newEvent = {
                 title: title,
                 date: date,
-                startTime: startTime,
-                endTime: endTime,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
                 category: selectedCategory
             };
 
@@ -149,20 +168,21 @@
                 });
 
                 if (res.ok) {
-                    await fetchEvents(); // 저장 후 목록 다시 갱신
+                    await fetchEvents(); // 목록 갱신
                     closeModal();
                 } else {
-                    alert("저장에 실패했어. Worker 로그를 확인해봐야 할 것 같아.");
+                    alert("저장에 실패했습니다. Worker 로그를 확인해주세요.");
                 }
             } catch (err) {
-                console.error("저장 에러:", err);
-                alert("네트워크 오류가 발생했어.");
+                console.error("Add Error:", err);
+                alert("네트워크 오류가 발생했습니다.");
             } finally {
-                btn.innerText = "추가하기";
+                btn.innerText = originalText;
                 btn.disabled = false;
             }
         }
 
+        // 3. 달력 그리기
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             const monthTitle = document.getElementById('currentMonthYear');
@@ -177,41 +197,43 @@
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
 
+            // 빈 칸 (지난달)
             for (let i = 0; i < firstDay; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'h-24';
-                grid.appendChild(emptyCell);
+                grid.innerHTML += `<div class="h-24 bg-white/20 rounded-lg"></div>`;
             }
 
+            // 날짜 칸
             for (let i = 1; i <= lastDate; i++) {
-                const dayCell = document.createElement('div');
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 
-                const isToday = new Date().toDateString() === new Date(year, month, i).toDateString();
-                const dateColor = isToday ? 'text-blue-600' : 'text-gray-700';
+                // 오늘인지 확인
+                const todayObj = new Date();
+                const isToday = todayObj.getFullYear() === year && todayObj.getMonth() === month && todayObj.getDate() === i;
+                
+                const dateColorClass = isToday 
+                    ? 'bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md' 
+                    : 'text-gray-700';
 
-                dayCell.className = 'h-24 border-t border-gray-100 p-1 flex flex-col gap-1 overflow-hidden hover:bg-gray-50 transition-colors';
+                // 해당 날짜 일정 필터링
+                const dayEvents = events.filter(e => e.date === dateStr);
                 
                 let eventsHtml = '';
-                const daysEvents = events.filter(e => e.date === dateStr);
-                
-                daysEvents.forEach(e => {
+                dayEvents.forEach(e => {
                     const catKey = categories[e.category] ? e.category : 'work';
                     const cat = categories[catKey];
-                    // 스타일 복구: 배경 투명도 조절
-                    const bgClass = cat.class.split(' ')[0]; 
-                    const textClass = cat.class.split(' ')[1];
-                    
+                    // 글라스 스타일에 맞는 태그 디자인
                     eventsHtml += `
-                        <div class="text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 truncate ${bgClass} bg-opacity-40 ${textClass} font-medium">
+                        <div class="text-[10px] px-2 py-1 rounded-md mb-1 truncate font-medium border ${cat.class} bg-opacity-70 backdrop-blur-sm">
                             ${e.title}
                         </div>
                     `;
                 });
 
+                const dayCell = document.createElement('div');
+                dayCell.className = `h-24 bg-white/40 border border-white/50 rounded-lg p-1.5 flex flex-col gap-1 transition hover:bg-white/60 hover:shadow-sm overflow-hidden`;
                 dayCell.innerHTML = `
-                    <span class="text-sm font-bold ml-1 ${dateColor}">${i}</span>
-                    <div class="flex flex-col gap-1 w-full">
+                    <div class="text-sm font-bold ${dateColorClass}">${i}</div>
+                    <div class="flex flex-col w-full mt-1 overflow-y-auto custom-scrollbar">
                         ${eventsHtml}
                     </div>
                 `;
@@ -228,6 +250,7 @@
             const modal = document.getElementById('eventModal');
             modal.style.display = 'flex';
             
+            // 오늘 날짜 자동 입력
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('eventDate').value = todayStr;
             document.getElementById('startTime').value = '09:00';
@@ -248,12 +271,12 @@
             
             Object.entries(categories).forEach(([key, val]) => {
                 const isActive = key === selectedCategory;
-                const btnClass = isActive 
-                    ? `${val.class} border` 
+                const activeClass = isActive 
+                    ? `${val.class} border shadow-inner ring-1 ring-offset-1 ring-gray-200` 
                     : 'bg-white text-gray-400 border border-gray-200 hover:bg-gray-50';
                 
                 const btn = document.createElement('button');
-                btn.className = `flex items-center gap-2 p-2 rounded-lg text-xs transition-all ${btnClass}`;
+                btn.className = `flex items-center justify-center gap-2 p-2 rounded-xl text-xs font-bold transition-all ${activeClass}`;
                 btn.onclick = () => { selectedCategory = key; renderCategoryButtons(); };
                 btn.innerHTML = `<i data-lucide="${val.icon}" width="16"></i> <span>${val.label}</span>`;
                 
@@ -261,7 +284,7 @@
             });
             lucide.createIcons();
         }
-
+        
         function showLoading(show) {
             document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
         }
