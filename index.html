@@ -30,7 +30,6 @@
 
         .widget-container {
             position: relative;
-            /* 캘린더와 동일한 260px */
             width: 260px; 
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
@@ -44,7 +43,6 @@
             color: #334155;
         }
 
-        /* 헤더 스타일 */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -195,7 +193,6 @@
             transform-origin: 50% 50%;
         }
 
-        /* 색상 통일 */
         .text-sky-300 { color: #7dd3fc; text-shadow: 0 0 10px rgba(14, 165, 233, 0.3); } 
         .bg-sky-300 { background-color: #7dd3fc; box-shadow: 0 0 8px rgba(125, 211, 252, 0.6); }
         .text-dim { color: #94a3b8; }
@@ -209,6 +206,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+        // Worker URL (환경에 맞게 수정됨)
         const WORKER_URL = "https://flat-thunder-3821.moonkelly601.workers.dev"; 
 
         const Icons = {
@@ -292,25 +290,20 @@
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
-            // [추가] 서버에서 기록 불러오기 (기기 간 동기화)
+            
             const syncFromServer = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
                 
                 try {
                     const dateStr = new Date().toDateString();
-                    // Worker에 GET 요청: "오늘 날짜 기록 줘!"
                     const res = await fetch(`${WORKER_URL}?date=${encodeURIComponent(dateStr)}`);
                     
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // 서버에 저장된 블록 기록이 있다면 가져옴
                         if (data.blocks && Array.isArray(data.blocks) && data.blocks.length > 0) {
                             setBlocks(prev => {
-                                // 내용이 달라졌을 때만 업데이트 (깜빡임 방지)
                                 if (JSON.stringify(prev) !== JSON.stringify(data.blocks)) {
-                                    // 1. 화면 갱신
-                                    // 2. 로컬 스토리지도 최신 상태로 덮어쓰기 (새로고침 해도 유지되게)
                                     const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
                                     localStorage.setItem('fortressData', JSON.stringify({
                                         ...currentLocal,
@@ -327,7 +320,6 @@
                 }
             };
 
-            // [추가] 처음 켜질 때 실행 & 1분마다 자동 동기화
             useEffect(() => {
                 syncFromServer();
                 const interval = setInterval(syncFromServer, 60000); 
@@ -683,30 +675,21 @@
 
                 // [새로 추가됨] 통계 계산 함수 (우선순위: Sun > Cloud > Rain)
                 const calculateStats = (targetBlocks) => {
-                    // 1. 집중(Focus) 블록만 골라내기
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
-                    
-                    // 2. 총 공부 시간 계산 (분 단위)
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
-                    // 3. 최빈값(Mode) 계산 헬퍼 함수
                     const getMode = (items) => {
-                        if (items.length === 0) return "Cloud"; // 데이터 없으면 기본값
-                        
+                        if (items.length === 0) return "Cloud";
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
                         items.forEach(b => { 
                             if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
                         });
-
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
-                        
-                        // 동점 처리 로직 (Sun > Cloud > Rain)
                         if (counts.Sun === maxVal) return "Sun";
                         if (counts.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
 
-                    // 4. 시간대별 분류 (0~12시 / 12~18시 / 18~24시)
                     const morn = focusBlocks.filter(b => {
                         const h = new Date(b.startTime).getHours();
                         return h >= 0 && h < 12;
@@ -722,7 +705,7 @@
 
                     return {
                         total: totalDuration,
-                        quality: getMode(focusBlocks), // 하루 전체 대표 날씨
+                        quality: getMode(focusBlocks),
                         q_morn: getMode(morn),
                         q_aft: getMode(aft),
                         q_night: getMode(night)
@@ -738,68 +721,16 @@
                         return `${y}-${m}-${day}`;
                     };
 
-                    // [수정됨] 여기서 위에서 만든 계산기를 돌림
                     const stats = calculateStats(dataset.blocks);
 
                     const payload = {
                         date: formatLocalYMD(dataset.date),
                         blocks: dataset.blocks,
-                        // [추가됨] 계산된 통계 데이터를 같이 보냄
                         total: stats.total,
                         quality: stats.quality,
                         q_morn: stats.q_morn,
                         q_aft: stats.q_aft,
                         q_night: stats.q_night
-                    };
-
-                    await fetch(WORKER_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                    });
-                };
-
-                try {
-                    // 오늘 데이터 전송
-                    await sendDataset({ date: new Date().toDateString(), blocks: blocks });
-                    successCount++;
-
-                    // 과거 데이터(어제, 그저께)도 전송 시 똑같이 계산해서 보냄
-                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const today = new Date();
-                    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                    const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    
-                    const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
-
-                    for (const data of pastData) {
-                        if (data.blocks && data.blocks.length > 0) {
-                            await sendDataset(data);
-                            successCount++;
-                        }
-                    }
-                    triggerToast(`☁️ 총 ${successCount}건 전송 완료!`);
-                } catch(e) { 
-                    triggerToast("⚠️ 전송 중 에러"); 
-                    console.error(e);
-                } finally { setIsSending(false); }
-            };
-
-                setIsSending(true);
-                let successCount = 0;
-
-                const sendDataset = async (dataset) => {
-                    const formatLocalYMD = (dateStr) => {
-                        const d = new Date(dateStr);
-                        const y = d.getFullYear();
-                        const m = String(d.getMonth() + 1).padStart(2, '0');
-                        const day = String(d.getDate()).padStart(2, '0');
-                        return `${y}-${m}-${day}`;
-                    };
-
-                    const payload = {
-                        date: formatLocalYMD(dataset.date),
-                        blocks: dataset.blocks
                     };
 
                     await fetch(WORKER_URL, {
