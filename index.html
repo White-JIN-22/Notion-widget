@@ -743,7 +743,7 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
-            // [수정] 전송 결과를 엄격하게 확인하는 함수
+            // [수정] 통계 계산 및 전송 로직 (시간대별 분리 + 빈 값 처리)
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -755,76 +755,67 @@
                 setIsSending(true);
                 let successCount = 0;
 
-                // [수정됨] 통계 계산 로직 (하루 전체: 횟수 / 시간대별: 누적 시간)
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
+                    
+                    // 전체 총합 계산
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
-                    // [Logic A] 횟수 기준 최빈값 (하루 전체 Quality용)
+                    // [Logic A] 횟수 기준 최빈값 (하루 전체)
                     const getCountMode = (items) => {
-                        if (items.length === 0) return "Cloud";
+                        if (items.length === 0) return null; // 데이터 없으면 null 반환
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
                         items.forEach(b => { 
                             if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
                         });
                         
-                        // 1. 3개가 모두 동률인 경우 (예: 각 1개씩) -> Cloud (중간값)
-                        if (counts.Sun > 0 && counts.Sun === counts.Cloud && counts.Cloud === counts.Rain) {
-                            return "Cloud";
-                        }
-
-                        // 2. 최빈값 찾기
+                        if (counts.Sun > 0 && counts.Sun === counts.Cloud && counts.Cloud === counts.Rain) return "Cloud";
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
-                        
-                        // 3. 동률 처리 우선순위: Sun > Cloud > Rain
                         if (counts.Sun === maxVal) return "Sun";
                         if (counts.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
 
-                    // [Logic B] 누적 시간 기준 우세값 (아침/오후/밤용)
+                    // [Logic B] 누적 시간 기준 우세값 (시간대별)
                     const getDurationMode = (items) => {
-                        if (items.length === 0) return "Cloud";
+                        if (items.length === 0) return null; // 데이터 없으면 null
                         const durations = { Sun: 0, Cloud: 0, Rain: 0 };
+                        let totalDur = 0;
                         
                         items.forEach(b => {
                             const q = b.quality || "Cloud";
                             const d = b.duration || 0;
                             if (durations[q] !== undefined) durations[q] += d;
+                            totalDur += d;
                         });
 
-                        // 1. 총합이 0이면 기본값
-                        if (durations.Sun === 0 && durations.Cloud === 0 && durations.Rain === 0) return "Cloud";
+                        if (totalDur === 0) return null; // 시간 합이 0이면 null
 
-                        // 2. 시간이 가장 긴 날씨 찾기
                         const maxVal = Math.max(durations.Sun, durations.Cloud, durations.Rain);
-                        
-                        // 3. 시간 동률일 경우 우선순위: Sun > Cloud > Rain
                         if (durations.Sun === maxVal) return "Sun";
                         if (durations.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
 
-                    // 시간대별 분류
-                    const morn = focusBlocks.filter(b => {
-                        const h = new Date(b.startTime).getHours();
-                        return h >= 0 && h < 12;
-                    });
-                    const aft = focusBlocks.filter(b => {
-                        const h = new Date(b.startTime).getHours();
-                        return h >= 12 && h < 18;
-                    });
-                    const night = focusBlocks.filter(b => {
-                        const h = new Date(b.startTime).getHours();
-                        return h >= 18; 
-                    });
+                    // 시간대별 블록 분류
+                    const morn = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 0 && h < 12; });
+                    const aft = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
+                    const night = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18; });
+
+                    // [추가] 시간대별 총 시간 계산
+                    const mornDur = morn.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+                    const aftDur = aft.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+                    const nightDur = night.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
                     return {
                         total: totalDuration,
-                        quality: getCountMode(focusBlocks), // 하루 전체는 '갯수' 기준
-                        q_morn: getDurationMode(morn),      // 시간대는 '시간' 기준
-                        q_aft: getDurationMode(aft),
-                        q_night: getDurationMode(night)
+                        morn_total: mornDur, // 아침 총 시간
+                        aft_total: aftDur,   // 오후 총 시간
+                        night_total: nightDur, // 밤 총 시간
+                        quality: getCountMode(focusBlocks) || "Cloud", // 전체는 없으면 Cloud 기본
+                        q_morn: getDurationMode(morn), // 없으면 null
+                        q_aft: getDurationMode(aft),   // 없으면 null
+                        q_night: getDurationMode(night)// 없으면 null
                     };
                 };
 
@@ -844,20 +835,23 @@
                         blocks: dataset.blocks,
                         title: "Fortress Log",
                         total: stats.total,
+                        // [추가] 시간대별 분 데이터 전송
+                        morn_total: stats.morn_total,
+                        aft_total: stats.aft_total,
+                        night_total: stats.night_total,
+                        // 퀄리티 데이터 (null이면 전송되지만 워커에서 처리해야 함)
                         quality: stats.quality,
                         q_morn: stats.q_morn,
                         q_aft: stats.q_aft,
                         q_night: stats.q_night
                     };
 
-                    // Fetch 요청
                     const res = await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
                     });
 
-                    // [핵심] 실패(500, 400 등)하면 에러를 던져서 catch로 보냄
                     if (!res.ok) {
                         let errorMsg = `서버 오류 (${res.status})`;
                         try {
@@ -871,11 +865,9 @@
                 };
 
                 try {
-                    // 오늘 데이터 전송
                     await sendDataset({ date: new Date().toDateString(), blocks: blocks });
                     successCount++;
 
-                    // 과거 데이터 전송 (옵션)
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     const today = new Date();
                     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
@@ -885,24 +877,16 @@
 
                     for (const data of pastData) {
                         if (data.blocks && data.blocks.length > 0) {
-                            try {
-                                await sendDataset(data);
-                                successCount++;
-                            } catch (e) {
-                                console.error("과거 데이터 전송 실패:", e);
-                            }
+                            try { await sendDataset(data); successCount++; } catch (e) { console.error(e); }
                         }
                     }
                     triggerToast(`☁️ 총 ${successCount}건 저장 완료!`);
                 } catch(e) { 
-                    // [핵심] 여기서 에러 메시지를 화면에 띄움
                     triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
-                    console.error("전송 에러 상세:", e);
                 } finally { 
                     setIsSending(false); 
                 }
             };
-
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
             const formatDuration = (min) => {
