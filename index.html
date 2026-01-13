@@ -206,7 +206,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-        // Worker URL (환경에 맞게 수정됨)
+        // [설정] 수정된 Log Worker 주소 (네가 준 주소 적용)
         const WORKER_URL = "https://log-worker.moonkelly601.workers.dev"; 
 
         const Icons = {
@@ -665,6 +665,7 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
+            // [수정] 전송 결과를 엄격하게 확인하는 함수
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -676,7 +677,6 @@
                 setIsSending(true);
                 let successCount = 0;
 
-                // [새로 추가됨] 통계 계산 함수 (우선순위: Sun > Cloud > Rain)
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
@@ -729,6 +729,7 @@
                     const payload = {
                         date: formatLocalYMD(dataset.date),
                         blocks: dataset.blocks,
+                        title: "Fortress Log",
                         total: stats.total,
                         quality: stats.quality,
                         q_morn: stats.q_morn,
@@ -736,17 +737,32 @@
                         q_night: stats.q_night
                     };
 
-                    await fetch(WORKER_URL, {
+                    // Fetch 요청
+                    const res = await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
                     });
+
+                    // [핵심] 실패(500, 400 등)하면 에러를 던져서 catch로 보냄
+                    if (!res.ok) {
+                        let errorMsg = `서버 오류 (${res.status})`;
+                        try {
+                            const errData = await res.json();
+                            errorMsg = errData.error || JSON.stringify(errData);
+                        } catch (e) {
+                            errorMsg = await res.text();
+                        }
+                        throw new Error(errorMsg);
+                    }
                 };
 
                 try {
+                    // 오늘 데이터 전송
                     await sendDataset({ date: new Date().toDateString(), blocks: blocks });
                     successCount++;
 
+                    // 과거 데이터 전송 (옵션)
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     const today = new Date();
                     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
@@ -756,15 +772,22 @@
 
                     for (const data of pastData) {
                         if (data.blocks && data.blocks.length > 0) {
-                            await sendDataset(data);
-                            successCount++;
+                            try {
+                                await sendDataset(data);
+                                successCount++;
+                            } catch (e) {
+                                console.error("과거 데이터 전송 실패:", e);
+                            }
                         }
                     }
-                    triggerToast(`☁️ 총 ${successCount}건 전송 완료!`);
+                    triggerToast(`☁️ 총 ${successCount}건 저장 완료!`);
                 } catch(e) { 
-                    triggerToast("⚠️ 전송 중 에러"); 
-                    console.error(e);
-                } finally { setIsSending(false); }
+                    // [핵심] 여기서 에러 메시지를 화면에 띄움
+                    triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
+                    console.error("전송 에러 상세:", e);
+                } finally { 
+                    setIsSending(false); 
+                }
             };
 
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
