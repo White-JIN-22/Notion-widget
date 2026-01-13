@@ -374,28 +374,23 @@
                 }
             }, [toast]);
 
-useEffect(() => {
-    const checkInterval = setInterval(() => {
-        const now = Date.now();
-        // 1. 마지막 저장 시간을 로컬 스토리지에서 가져옴 (없으면 0)
-        const lastSyncTime = parseInt(localStorage.getItem('lastSyncTime') || '0');
-        const elapsedSinceLastSync = now - lastSyncTime;
-        const SYNC_INTERVAL = 60 * 60 * 1000; // 1시간
+            useEffect(() => {
+                const checkInterval = setInterval(() => {
+                    const now = Date.now();
+                    const lastSyncTime = parseInt(localStorage.getItem('lastSyncTime') || '0');
+                    const elapsedSinceLastSync = now - lastSyncTime;
+                    
+                    // [테스트 모드] 5분 (테스트 끝나면 60 * 60 * 1000 으로 변경할 것)
+                    const SYNC_INTERVAL = 5 * 60 * 1000; 
 
-        // 2. 1시간이 지났고 + 보낼 데이터(blocks)가 있고 + 현재 전송 중이 아니라면
-        if (elapsedSinceLastSync >= SYNC_INTERVAL) {
-            if (blocks.length > 0 && !isSending) {
-                triggerToast("☁️ 정기 데이터 동기화 중...");
-                sendToNotion();
-                
-                // 3. 저장 후 현재 시간을 '마지막 저장 시간'으로 기록
-                localStorage.setItem('lastSyncTime', now.toString());
-            }
-        }
-    }, 10000); // 10초마다 검사
-
-    return () => clearInterval(checkInterval);
-}, [blocks, isSending]);
+                    if (elapsedSinceLastSync >= SYNC_INTERVAL) {
+                        if (blocks.length > 0 && !isSending) {
+                            triggerToast("☁️ 정기 데이터 동기화 중...");
+                            sendToNotion();
+                            localStorage.setItem('lastSyncTime', now.toString());
+                        }
+                    }
+                }, 10000); 
 
                 return () => clearInterval(checkInterval);
             }, [blocks, isSending]); 
