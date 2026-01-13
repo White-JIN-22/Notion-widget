@@ -677,31 +677,57 @@
                 setIsSending(true);
                 let successCount = 0;
 
+                // [수정됨] 통계 계산 로직 (하루 전체: 횟수 / 시간대별: 누적 시간)
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
-                    const getMode = (items) => {
+                    // [Logic A] 횟수 기준 최빈값 (하루 전체 Quality용)
+                    const getCountMode = (items) => {
                         if (items.length === 0) return "Cloud";
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
                         items.forEach(b => { 
                             if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
                         });
                         
-                        // [NEW] 3개가 모두 동률인 경우 (예: 각 1개씩 나옴) -> Cloud (중간값) 선택
+                        // 1. 3개가 모두 동률인 경우 (예: 각 1개씩) -> Cloud (중간값)
                         if (counts.Sun > 0 && counts.Sun === counts.Cloud && counts.Cloud === counts.Rain) {
                             return "Cloud";
                         }
 
-                        // 최빈값 찾기
+                        // 2. 최빈값 찾기
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
                         
-                        // 우선순위: Sun > Cloud > Rain (동률일 때만 적용됨)
+                        // 3. 동률 처리 우선순위: Sun > Cloud > Rain
                         if (counts.Sun === maxVal) return "Sun";
                         if (counts.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
 
+                    // [Logic B] 누적 시간 기준 우세값 (아침/오후/밤용)
+                    const getDurationMode = (items) => {
+                        if (items.length === 0) return "Cloud";
+                        const durations = { Sun: 0, Cloud: 0, Rain: 0 };
+                        
+                        items.forEach(b => {
+                            const q = b.quality || "Cloud";
+                            const d = b.duration || 0;
+                            if (durations[q] !== undefined) durations[q] += d;
+                        });
+
+                        // 1. 총합이 0이면 기본값
+                        if (durations.Sun === 0 && durations.Cloud === 0 && durations.Rain === 0) return "Cloud";
+
+                        // 2. 시간이 가장 긴 날씨 찾기
+                        const maxVal = Math.max(durations.Sun, durations.Cloud, durations.Rain);
+                        
+                        // 3. 시간 동률일 경우 우선순위: Sun > Cloud > Rain
+                        if (durations.Sun === maxVal) return "Sun";
+                        if (durations.Cloud === maxVal) return "Cloud";
+                        return "Rain";
+                    };
+
+                    // 시간대별 분류
                     const morn = focusBlocks.filter(b => {
                         const h = new Date(b.startTime).getHours();
                         return h >= 0 && h < 12;
@@ -717,10 +743,10 @@
 
                     return {
                         total: totalDuration,
-                        quality: getMode(focusBlocks),
-                        q_morn: getMode(morn),
-                        q_aft: getMode(aft),
-                        q_night: getMode(night)
+                        quality: getCountMode(focusBlocks), // 하루 전체는 '갯수' 기준
+                        q_morn: getDurationMode(morn),      // 시간대는 '시간' 기준
+                        q_aft: getDurationMode(aft),
+                        q_night: getDurationMode(night)
                     };
                 };
 
