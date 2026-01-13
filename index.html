@@ -687,7 +687,16 @@
                         items.forEach(b => { 
                             if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
                         });
+                        
+                        // [NEW] 3개가 모두 동률인 경우 (예: 각 1개씩 나옴) -> Cloud (중간값) 선택
+                        if (counts.Sun > 0 && counts.Sun === counts.Cloud && counts.Cloud === counts.Rain) {
+                            return "Cloud";
+                        }
+
+                        // 최빈값 찾기
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
+                        
+                        // 우선순위: Sun > Cloud > Rain (동률일 때만 적용됨)
                         if (counts.Sun === maxVal) return "Sun";
                         if (counts.Cloud === maxVal) return "Cloud";
                         return "Rain";
