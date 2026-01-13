@@ -743,7 +743,7 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
-            // [수정] 통계 계산 및 전송 로직 (시간대별 분리 + 빈 값 처리)
+            // [수정 완료] 통계 계산 및 전송 로직 (시간대별 분리 + 빈 값 처리)
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
                 
@@ -761,9 +761,9 @@
                     // 전체 총합 계산
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
-                    // [Logic A] 횟수 기준 최빈값 (하루 전체)
+                    // [Logic A] 횟수 기준 최빈값 (하루 전체) -> 데이터 없으면 null
                     const getCountMode = (items) => {
-                        if (items.length === 0) return null; // 데이터 없으면 null 반환
+                        if (items.length === 0) return null; 
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
                         items.forEach(b => { 
                             if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
@@ -776,9 +776,9 @@
                         return "Rain";
                     };
 
-                    // [Logic B] 누적 시간 기준 우세값 (시간대별)
+                    // [Logic B] 누적 시간 기준 우세값 (시간대별) -> 데이터 없으면 null
                     const getDurationMode = (items) => {
-                        if (items.length === 0) return null; // 데이터 없으면 null
+                        if (items.length === 0) return null; 
                         const durations = { Sun: 0, Cloud: 0, Rain: 0 };
                         let totalDur = 0;
                         
@@ -789,7 +789,7 @@
                             totalDur += d;
                         });
 
-                        if (totalDur === 0) return null; // 시간 합이 0이면 null
+                        if (totalDur === 0) return null; 
 
                         const maxVal = Math.max(durations.Sun, durations.Cloud, durations.Rain);
                         if (durations.Sun === maxVal) return "Sun";
@@ -802,20 +802,20 @@
                     const aft = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
                     const night = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18; });
 
-                    // [추가] 시간대별 총 시간 계산
+                    // [추가됨] 시간대별 총 시간(분) 계산
                     const mornDur = morn.reduce((acc, cur) => acc + (cur.duration || 0), 0);
                     const aftDur = aft.reduce((acc, cur) => acc + (cur.duration || 0), 0);
                     const nightDur = night.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
                     return {
                         total: totalDuration,
-                        morn_total: mornDur, // 아침 총 시간
-                        aft_total: aftDur,   // 오후 총 시간
-                        night_total: nightDur, // 밤 총 시간
-                        quality: getCountMode(focusBlocks) || "Cloud", // 전체는 없으면 Cloud 기본
-                        q_morn: getDurationMode(morn), // 없으면 null
-                        q_aft: getDurationMode(aft),   // 없으면 null
-                        q_night: getDurationMode(night)// 없으면 null
+                        morn_total: mornDur, 
+                        aft_total: aftDur,   
+                        night_total: nightDur,
+                        quality: getCountMode(focusBlocks) || "Cloud", 
+                        q_morn: getDurationMode(morn), 
+                        q_aft: getDurationMode(aft),   
+                        q_night: getDurationMode(night)
                     };
                 };
 
@@ -835,11 +835,11 @@
                         blocks: dataset.blocks,
                         title: "Fortress Log",
                         total: stats.total,
-                        // [추가] 시간대별 분 데이터 전송
+                        // [추가됨] 시간대별 분 데이터 전송
                         morn_total: stats.morn_total,
                         aft_total: stats.aft_total,
                         night_total: stats.night_total,
-                        // 퀄리티 데이터 (null이면 전송되지만 워커에서 처리해야 함)
+                        // 퀄리티 (null이면 전송되지만 워커에서 비워둠)
                         quality: stats.quality,
                         q_morn: stats.q_morn,
                         q_aft: stats.q_aft,
@@ -887,6 +887,7 @@
                     setIsSending(false); 
                 }
             };
+            
             const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
             
             const formatDuration = (min) => {
