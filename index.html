@@ -381,7 +381,7 @@
                     const elapsedSinceLastSync = now - lastSyncTime;
                     
                     // [테스트 모드] 5분 (테스트 끝나면 60 * 60 * 1000 으로 변경할 것)
-                    const SYNC_INTERVAL = 5 * 60 * 1000; 
+                    const SYNC_INTERVAL = 2 * 60 * 1000; 
 
                     if (elapsedSinceLastSync >= SYNC_INTERVAL) {
                         if (blocks.length > 0 && !isSending) {
