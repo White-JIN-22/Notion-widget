@@ -1073,21 +1073,28 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    {/* [수정] 통합된 상단 헤더 영역 */}
+                    {/* [수정] 헤더 영역: 수동 저장 버튼 추가 */}
                     <div className="header-section">
                         <div className="flex justify-between items-start mb-3">
                             <div>
                                 <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
                                 <div className="flex items-center gap-3 text-[10px] font-bold text-sky-300 mt-1">
                                     <div className="flex items-center gap-1"><Icons.Ticket className="text-sky-300"/><span className="text-xs">{tickets}</span></div>
-                                    {/* [수정] 에너지 글씨 크기 통일 */}
                                     <div className="flex items-center gap-1"><Icons.Zap className="text-sky-300"/><span className="text-sky-300">{energy}%</span></div>
                                 </div>
                             </div>
-                            <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm"><Icons.Refresh /></button>
+                            
+                            {/* 버튼 그룹: 저장 & 초기화 */}
+                            <div className="flex gap-2">
+                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                    {isSending ? <span className="text-xs animate-spin">⏳</span> : <Icons.Cloud className="w-4 h-4" />}
+                                </button>
+                                <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                    <Icons.Refresh />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* [수정] 에너지 바: 진한 스카이블루(#7dd3fc) 적용 */}
                         <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
                             <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
                         </div>
