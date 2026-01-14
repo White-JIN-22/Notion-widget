@@ -291,8 +291,7 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
             
-            // [수정 완료] 동기화 함수: 로컬 데이터 증발 방지 로직 적용
-const syncFromServer = async () => {
+            const syncFromServer = async () => {
     if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
     
     try {
@@ -302,33 +301,35 @@ const syncFromServer = async () => {
         if (res.ok) {
             const data = await res.json();
             
-            // 서버에 데이터가 있다면?
             if (data.blocks && Array.isArray(data.blocks)) {
                 const serverBlocks = data.blocks;
 
-                // 1. [핵심] 로컬 스토리지의 최신 데이터를 먼저 꺼낸다
+                // 1. [핵심] 로컬 스토리지의 최신 데이터를 꺼냄
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                const localBlocks = savedData.blocks || [];
+                
+                // ▼▼▼ [수정된 부분] ▼▼▼
+                // 로컬 데이터의 날짜가 오늘(dateStr)과 일치할 때만 가져오고, 
+                // 아니면 빈 배열로 처리 (어제 데이터가 오늘로 둔갑하는 것 방지)
+                const localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
+                // ▲▲▲ [수정된 부분 끝] ▲▲▲
 
                 if (serverBlocks.length > 0) {
                     setShowIntro(false);
                 }
 
-                // 2. [핵심] 여기서 병합을 먼저 수행 (로컬 + 서버)
+                // 2. 병합 수행 (유효한 로컬 데이터 + 서버)
                 const blockMap = new Map();
-                localBlocks.forEach(b => blockMap.set(b.id, b)); // 내 주머니(로컬) 깔고
-                serverBlocks.forEach(b => blockMap.set(b.id, b)); // 서버 데이터로 갱신 (ID 같으면)
+                localBlocks.forEach(b => blockMap.set(b.id, b)); 
+                serverBlocks.forEach(b => blockMap.set(b.id, b)); 
                 
-                const mergedBlocks = Array.from(blockMap.values()); // 이게 진짜 최종 데이터!
+                const mergedBlocks = Array.from(blockMap.values());
 
-                // 3. 상태 업데이트 (병합된 데이터로)
+                // (이하 로직 동일)
                 setBlocks(mergedBlocks);
 
-                // 4. 티켓/에너지 재계산 (병합된 데이터 기준)
                 let calcTickets = 0;
                 let calcEnergy = 100; 
 
-                // 계산을 위해 시간순 정렬
                 const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
 
                 sorted.forEach(b => {
@@ -352,12 +353,9 @@ const syncFromServer = async () => {
                     }
                 });
 
-                // 상태 적용
                 setTickets(calcTickets);
                 setEnergy(calcEnergy);
                 
-                // 5. [버그 수정완료] 로컬 스토리지에 '병합된 데이터(mergedBlocks)'를 저장
-                // (이전에는 serverBlocks를 저장해서 수동기록이 날아갔음)
                 localStorage.setItem('fortressData', JSON.stringify({
                     date: dateStr,
                     tickets: calcTickets,
