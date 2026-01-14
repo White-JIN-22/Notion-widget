@@ -569,6 +569,7 @@
                 }
             };
 
+            // [수정 완료] 자정 기준 분리 저장 기능 추가된 addRecord
             const addRecord = (quality, type, itemData) => {
                 let newBlock;
                 let totalDuration = 0;
@@ -609,6 +610,54 @@
                     ? 'focus' 
                     : (type.includes('switch') ? 'switch' : 'rest');
 
+                // [NEW] 자정(00:00) 기준 분리 로직
+                const sDate = new Date(startTs);
+                const eDate = new Date(endTs);
+
+                if (sDate.getDate() !== eDate.getDate()) {
+                    // 날짜가 다르면 자정 기준으로 분리
+                    const midnight = new Date(eDate.getFullYear(), eDate.getMonth(), eDate.getDate()).getTime();
+                    
+                    // 1. 어제 부분 (Yesterday Part)
+                    const prevDuration = Math.floor((midnight - startTs) / 1000 / 60);
+                    if (prevDuration > 0) {
+                        const prevBlock = {
+                            id: startTs, 
+                            startTime: startTs,
+                            endTime: midnight,
+                            duration: prevDuration,
+                            quality: quality || 'Cloud',
+                            type: resolvedType,
+                            icon: itemData?.icon,
+                            name: itemData?.name,
+                            color: itemData?.color
+                        };
+
+                        // 히스토리(과거 기록)에 몰래 추가
+                        const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
+                        const yStr = sDate.toDateString();
+                        const targetDay = history.find(h => h.date === yStr);
+                        
+                        if (targetDay) {
+                            targetDay.blocks.push(prevBlock);
+                        } else {
+                            // 어제 기록이 없으면 새로 생성 (티켓/에너지는 0으로 placeholder)
+                            history.push({
+                                date: yStr,
+                                blocks: [prevBlock],
+                                tickets: 0, energy: 0
+                            });
+                        }
+                        localStorage.setItem('fortressHistory', JSON.stringify(history));
+                    }
+
+                    // 2. 오늘 부분 (Today Part) - 시작 시간을 자정으로 조정
+                    startTs = midnight;
+                    totalDuration = Math.floor((endTs - midnight) / 1000 / 60);
+                    triggerToast("✂️ 자정 걸침: 기록이 자동으로 분리되었습니다.");
+                }
+
+                // (여기서부터는 조정된 startTs와 totalDuration으로 오늘 기록 생성)
                 newBlock = {
                     id: Date.now(),
                     startTime: startTs,
@@ -647,8 +696,8 @@
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : resolvedType === 'focus' ? 1 : 0);
                 
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
+                if (!toast) triggerToast(msg); // 분리 메시지가 없으면 기본 메시지
                 setShowModal(false);
-                triggerToast(msg);
 
                 if (type === 'auto') {
                     setElapsed(0);
