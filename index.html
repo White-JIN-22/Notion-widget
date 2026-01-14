@@ -771,7 +771,7 @@
                         morn_total: morn.reduce((acc, cur) => acc + (cur.duration || 0), 0), 
                         aft_total: aft.reduce((acc, cur) => acc + (cur.duration || 0), 0),   
                         night_total: night.reduce((acc, cur) => acc + (cur.duration || 0), 0),
-                        quality: getCountMode(focusBlocks) || "Cloud", 
+                        quality: getCountMode(focusBlocks), 
                         q_morn: getDurationMode(morn), q_aft: getDurationMode(aft), q_night: getDurationMode(night)
                     };
                 };
