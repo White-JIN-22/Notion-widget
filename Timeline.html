@@ -458,12 +458,12 @@
                         </div>
                     </div>
 
-                    <div className="flex-1 px-2 pt-2 pb-4 relative bg-white/5 overflow-hidden flex flex-col">
-                         <div className="flex mb-0.5 pl-5 pr-2 shrink-0">
-                            {[10, 20, 30, 40, 50, 60].map(m => (
-                                <div key={m} className="flex-1 text-center text-[6px] text-white/40 font-mono-nums">{m}</div>
-                            ))}
-                         </div>
+                    {/* [수정] flex -> grid로 변경하여 아래 블록과 간격(2px) 동기화 & 오른쪽 정렬 */}
+                     <div className="grid grid-cols-6 gap-[2px] mb-0.5 pl-[20px] pr-[6px] shrink-0">
+                        {[10, 20, 30, 40, 50, 60].map(m => (
+                            <div key={m} className="text-right text-[6px] text-white/40 font-mono-nums">{m}</div>
+                        ))}
+                     </div>
                         <div className="grid-container">{renderGrid()}</div>
                     </div>
 
