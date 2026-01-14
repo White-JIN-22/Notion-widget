@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Logic Updated)</title>
+    <title>Daily Flow (Auto-Log Integrated)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -44,7 +44,6 @@
             color: #334155;
         }
 
-        /* 할 일 아이템 스타일 */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.15);
@@ -57,7 +56,7 @@
             transform: translateY(-1px);
         }
         .todo-done {
-            opacity: 0.5;
+            opacity: 0.6;
             background: rgba(0, 0, 0, 0.02);
             border: 1px dashed rgba(255, 255, 255, 0.1);
             box-shadow: none;
@@ -85,12 +84,9 @@
             font-size: 8px;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.7); } 70% { box-shadow: 0 0 0 4px rgba(125, 211, 252, 0); } 100% { box-shadow: 0 0 0 0 rgba(125, 211, 252, 0); } }
 
-        /* 토스트 메시지 */
         .toast-message {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
@@ -105,7 +101,6 @@
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        /* 새로운 하루 모달 */
         .new-day-modal {
             position: absolute; inset: 0;
             background: rgba(15, 23, 42, 0.6);
@@ -125,12 +120,26 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .section-header { display: flex; align-items: center; gap: 8px; padding: 10px 4px 6px 4px; }
-        .section-line { flex: 1; height: 1px; }
+        /* [수정] 그라데이션 제거, 단색 라인 적용 */
+        .section-line { flex: 1; height: 1px; background: rgba(255, 255, 255, 0.4); } 
         .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
         .add-btn { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; background: rgba(255,255,255,0.2); }
         .add-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); }
-        
         .edit-input { width: 100%; background: transparent; border: none; outline: none; font-size: 0.75rem; font-weight: 700; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; }
+
+        .timer-btn {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+            color: #94a3b8;
+            background: rgba(255,255,255,0.3);
+        }
+        .timer-btn:hover { color: #0ea5e9; background: white; }
+        .timer-active { 
+            color: white; background: #7dd3fc; 
+            animation: pulse-ring 2s infinite;
+        }
 
     </style>
 </head>
@@ -139,6 +148,7 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
         const Icons = {
             Plus: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
@@ -147,7 +157,9 @@
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
             X: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
-            Sparkle: () => <svg className="w-6 h-6 text-sky-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+            Sparkle: () => <svg className="w-6 h-6 text-sky-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>,
+            Play: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Pause: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
         };
 
         const App = () => {
@@ -157,98 +169,239 @@
             const [toast, setToast] = useState(null);
             const [showNewDayModal, setShowNewDayModal] = useState(false);
             const [currentDateDisplay, setCurrentDateDisplay] = useState('');
+            const [isSending, setIsSending] = useState(false);
 
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
             
+            const [ticker, setTicker] = useState(0);
+
             const inputRef = useRef(null);
             const editInputRef = useRef(null);
 
             const zoneConfig = {
                 morning: { 
                     label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300',
-                    lineGradient: 'linear-gradient(90deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0))', checkboxColor: '#d8b4fe'
+                    checkboxColor: '#d8b4fe'
                 },
                 afternoon: { 
                     label: 'Afternoon', icon: Icons.Cloud, colorClass: 'text-sky-300', textClass: 'text-sky-300',
-                    lineGradient: 'linear-gradient(90deg, rgba(125, 211, 252, 0.5), rgba(255, 255, 255, 0))', checkboxColor: '#7dd3fc'
+                    checkboxColor: '#7dd3fc'
                 },
                 night: { 
                     label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300',
-                    lineGradient: 'linear-gradient(90deg, rgba(148, 163, 184, 0.5), rgba(255, 255, 255, 0))', checkboxColor: '#cbd5e1'
+                    checkboxColor: '#cbd5e1'
                 }
             };
 
-            // [초기화 및 날짜 감시 로직]
             useEffect(() => {
                 const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                 setTodos(savedTodos);
                 
-                // 현재 날짜 설정
                 const now = new Date();
                 setCurrentDateDisplay(now.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
 
-                // "마지막 접속 날짜" 확인
                 const todayStr = now.toDateString();
                 const lastDate = localStorage.getItem('lastDate');
 
                 if (lastDate && lastDate !== todayStr) {
-                    // 날짜가 다르면 리셋 실행
                     handleNewDayReset(todayStr, savedTodos);
                 } else {
                     localStorage.setItem('lastDate', todayStr);
                 }
 
-                // 1초마다 날짜 변경 감시 (켜놓고 자정 넘길 경우 대비)
                 const timer = setInterval(() => {
                     const currentNow = new Date();
                     const currentTodayStr = currentNow.toDateString();
-                    const storedLastDate = localStorage.getItem('lastDate');
-
-                    if (storedLastDate !== currentTodayStr) {
-                        handleNewDayReset(currentTodayStr, JSON.parse(localStorage.getItem('jinsolTodos') || '[]'));
-                        setCurrentDateDisplay(currentNow.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
+                    if (localStorage.getItem('lastDate') !== currentTodayStr) {
+                        window.location.reload(); 
                     }
-                }, 1000);
+                    setTicker(prev => prev + 1);
+                }, 30000); 
 
                 return () => clearInterval(timer);
             }, []);
 
-            // [자정 리셋 함수]
             const handleNewDayReset = (todayStr, currentTodos) => {
-                // 완료된(Done) 항목 제거, 미완료는 유지
-                const remainingTodos = currentTodos.filter(t => !t.done);
-                
+                const remainingTodos = currentTodos.filter(t => !t.done).map(t => ({...t, elapsed: 0, isRunning: false, lastStartTime: null}));
                 setTodos(remainingTodos);
                 localStorage.setItem('jinsolTodos', JSON.stringify(remainingTodos));
                 localStorage.setItem('lastDate', todayStr);
-                
-                setShowNewDayModal(true); // 모달 띄우기
-                setTimeout(() => setShowNewDayModal(false), 3000); // 3초 뒤 자동 닫기
+                setShowNewDayModal(true);
+                setTimeout(() => setShowNewDayModal(false), 3000);
             };
 
             useEffect(() => {
                 localStorage.setItem('jinsolTodos', JSON.stringify(todos));
             }, [todos]);
 
-            // ... (기존 포커스 로직 유지)
             useEffect(() => { if (activeInputZone && inputRef.current) inputRef.current.focus(); }, [activeInputZone]);
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
 
             const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
             const startAdding = (zone) => { if (activeInputZone === zone) setActiveInputZone(null); else { setActiveInputZone(zone); setInputText(''); } };
+            
             const confirmAdd = () => {
                 if (!inputText.trim()) { setActiveInputZone(null); return; }
-                const newTodo = { id: Date.now(), text: inputText, zone: activeInputZone, done: false, date: new Date().toDateString() };
+                const newTodo = { 
+                    id: Date.now(), 
+                    text: inputText, 
+                    zone: activeInputZone, 
+                    done: false, 
+                    date: new Date().toDateString(),
+                    elapsed: 0, 
+                    isRunning: false,
+                    lastStartTime: null 
+                };
                 setTodos([...todos, newTodo]); setInputText(''); triggerToast("✨ 저장됨!");
             };
+
             const startEditing = (todo) => { setEditingId(todo.id); setEditText(todo.text); };
             const saveEdit = () => { if (editText.trim()) { setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t)); } setEditingId(null); };
-            const toggleTodo = (id) => { setTodos(todos.map(t => t.id === id ? { ...t, done: !t.done } : t)); };
+            
+            const toggleTodo = (id) => { 
+                setTodos(todos.map(t => {
+                    if (t.id === id) {
+                        const nextDone = !t.done;
+                        if (nextDone && t.isRunning) {
+                            const now = Date.now();
+                            const sessionDuration = now - t.lastStartTime;
+                            saveSessionToLog(t.text, t.lastStartTime, now, sessionDuration); // 완료 시에도 로그 저장
+                            return { ...t, done: nextDone, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
+                        }
+                        return { ...t, done: nextDone };
+                    }
+                    return t;
+                })); 
+            };
+            
             const deleteTodo = (id) => { setTodos(todos.filter(t => t.id !== id)); };
             const handleKeyDown = (e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') confirmAdd(); if (e.key === 'Escape') setActiveInputZone(null); };
             const handleEditKeyDown = (e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); };
-            const sendToNotion = async () => { triggerToast("☁️ 노션에 저장 중..."); setTimeout(() => { triggerToast("✅ 저장 완료!"); }, 800); };
+            
+            // [핵심] 로그 위젯(localStorage 'fortressData')에 집중 기록 자동 전송
+            const saveSessionToLog = (todoText, startTime, endTime, durationMs) => {
+                // 1분 미만은 기록하지 않음 (선택사항, 너무 짧은 기록 방지)
+                if (durationMs < 60000) {
+                    triggerToast("⚠️ 1분 미만은 기록되지 않아요.");
+                    return;
+                }
+
+                try {
+                    const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    
+                    // fortressData 초기화 (없을 경우 대비)
+                    const todayStr = new Date().toDateString();
+                    if (!savedData.date || savedData.date !== todayStr) {
+                        savedData.date = todayStr;
+                        savedData.tickets = 0;
+                        savedData.energy = 100;
+                        savedData.blocks = [];
+                    }
+
+                    // 새로운 블록 생성 (Log 위젯 포맷 준수)
+                    const newBlock = {
+                        id: Date.now(),
+                        startTime: startTime,
+                        endTime: endTime,
+                        duration: Math.floor(durationMs / 1000 / 60), // 분 단위 변환
+                        quality: 'Cloud', // 기본값
+                        type: 'focus',    // 집중 타입
+                        name: todoText    // 할 일 이름을 로그 이름으로 사용
+                    };
+
+                    // 티켓/에너지 정산 (Log 위젯 로직 참고: Focus는 티켓+1, 에너지 차감)
+                    const consumption = Math.floor(newBlock.duration / 10) * 5;
+                    savedData.tickets = (savedData.tickets || 0) + 1;
+                    savedData.energy = Math.max(0, (savedData.energy || 100) - consumption);
+                    
+                    // 최신순 정렬을 위해 앞에 추가
+                    savedData.blocks = [newBlock, ...(savedData.blocks || [])];
+
+                    localStorage.setItem('fortressData', JSON.stringify(savedData));
+                    triggerToast(`💾 로그에 자동 기록됨 (${newBlock.duration}분)`);
+                    
+                } catch (e) {
+                    console.error("Auto-log failed:", e);
+                }
+            };
+
+            const toggleTimer = (e, id) => {
+                e.stopPropagation();
+                const now = Date.now();
+                setTodos(todos.map(t => {
+                    if (t.id === id) {
+                        if (t.isRunning) {
+                            // [정지] 경과 시간 계산 및 로그 자동 저장
+                            const sessionDuration = now - t.lastStartTime;
+                            
+                            // 여기서 로그 위젯으로 데이터 전송
+                            saveSessionToLog(t.text, t.lastStartTime, now, sessionDuration);
+
+                            return { ...t, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
+                        } else {
+                            // [시작]
+                            return { ...t, isRunning: true, lastStartTime: now };
+                        }
+                    }
+                    return t;
+                }));
+            };
+
+            const formatTime = (ms) => {
+                if (!ms) return null;
+                const totalMin = Math.floor(ms / 1000 / 60);
+                const h = Math.floor(totalMin / 60);
+                const m = totalMin % 60;
+                if (totalMin === 0) return null;
+                if (h > 0) return `${h}h ${m}m`;
+                return `${m}m`;
+            };
+
+            const sendToNotion = async () => {
+                if (isSending) return;
+                setIsSending(true);
+                triggerToast("☁️ 노션에 저장 중...");
+
+                try {
+                    const todoSummary = todos.map(t => {
+                        let totalMs = t.elapsed;
+                        if (t.isRunning && t.lastStartTime) {
+                            totalMs += (Date.now() - t.lastStartTime);
+                        }
+                        const timeStr = formatTime(totalMs);
+                        const status = t.done ? "✅" : "⬜";
+                        return `${status} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
+                    }).join('\n');
+
+                    const payload = {
+                        date: formatLocalYMD(new Date()),
+                        todos: todoSummary, 
+                        isTodoUpdate: true 
+                    };
+
+                    const res = await fetch(WORKER_URL, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) triggerToast("✅ 저장 완료!");
+                    else throw new Error("전송 실패");
+
+                } catch (e) {
+                    console.error(e);
+                    triggerToast("⚠️ 저장 실패 (Worker 확인)");
+                } finally {
+                    setIsSending(false);
+                }
+            };
+            
+            const formatLocalYMD = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
 
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
@@ -260,27 +413,49 @@
                         <div className="section-header">
                             <Icon className={`w-4 h-4 ${config.colorClass}`} />
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
-                            <div className="section-line" style={{ background: config.lineGradient }}></div>
+                            <div className="section-line"></div> {/* 단색 라인 적용됨 */}
                             <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
                                 {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
                             </button>
                         </div>
                         {activeInputZone === zone && (
                             <div className="px-1 mb-2 animate-slideIn">
-                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white/40 transition-all font-bold text-white" />
+                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-bold" />
                             </div>
                         )}
                         <div className="space-y-2 px-1">
                             {zoneTodos.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
-                            {zoneTodos.map(todo => (
+                            {zoneTodos.map(todo => {
+                                let currentMs = todo.elapsed;
+                                if (todo.isRunning && todo.lastStartTime) {
+                                    currentMs += (Date.now() - todo.lastStartTime);
+                                }
+                                const timeDisplay = formatTime(currentMs);
+
+                                return (
                                 <div key={todo.id} className={`todo-item flex items-center p-2 gap-2 ${todo.done ? 'todo-done' : ''}`}>
                                     <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
-                                    <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
-                                        {editingId === todo.id ? ( <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> ) : ( <div className={`text-xs font-bold truncate transition-colors cursor-text ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정"> {todo.text} </div> )}
+                                    
+                                    <div className="flex-1 min-w-0 flex items-center gap-2" onDoubleClick={() => startEditing(todo)}>
+                                        {editingId === todo.id ? ( 
+                                            <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
+                                        ) : ( 
+                                            <>
+                                                <div className={`text-xs font-bold truncate transition-colors cursor-text flex-1 ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정"> {todo.text} </div>
+                                                {timeDisplay && <span className="text-[10px] text-slate-400 font-medium shrink-0">{timeDisplay}</span>}
+                                            </>
+                                        )}
                                     </div>
-                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50"> <Icons.Trash /> </button>
+
+                                    {!todo.done && (
+                                        <button onClick={(e) => toggleTimer(e, todo.id)} className={`timer-btn shrink-0 ${todo.isRunning ? 'timer-active' : ''}`} title={todo.isRunning ? "기록 중지 (자동 저장)" : "기록 시작"}>
+                                            {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
+                                        </button>
+                                    )}
+
+                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50 shrink-0"> <Icons.Trash /> </button>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 );
@@ -290,7 +465,6 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
                     
-                    {/* 새로운 하루 모달 */}
                     {showNewDayModal && (
                         <div className="new-day-modal">
                             <div className="modal-content">
@@ -302,14 +476,13 @@
                     )}
 
                     <div className="p-5 pb-1 shrink-0">
-                        {/* [수정] 날짜 색상을 연한 스카이블루(#E0F7FA)로 변경, 살짝 투명도 적용 */}
                         <p className="text-xs font-bold mb-0.5" style={{ color: '#E0F7FA', opacity: 0.9 }}>
                             {currentDateDisplay}
                         </p>
                         <div className="flex justify-between items-center mb-2">
                             <h1 className="text-xl font-bold text-white font-serif tracking-tight">Daily Flow</h1>
-                            <button onClick={sendToNotion} className="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/30 transition-all shadow-sm">
-                                <Icons.Cloud className="w-4 h-4"/>
+                            <button onClick={sendToNotion} disabled={isSending} className="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/30 transition-all shadow-sm">
+                                {isSending ? <span className="text-xs animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4"/>}
                             </button>
                         </div>
                         <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
