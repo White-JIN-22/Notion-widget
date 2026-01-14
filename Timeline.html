@@ -109,13 +109,9 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // [설정] 캘린더 데이터 가져오는 워커 주소
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
-        
-        // 아까 만든 워커 주소를 여기에 복사해 넣으세요 (예: https://log-worker.어쩌구.workers.dev)
-const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
-        // [디자인] 카테고리별 라인 컬러 시스템 (Jinsol's Style)
         const categoryColors = {
             '업무': 'bg-[#7dd3fc]',      
             '자기계발': 'bg-[#d8b4fe]', 
@@ -125,6 +121,8 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
         };
 
         const Icons = {
+            // [추가] 선 두께 3인 해 아이콘
+            Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Refresh: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bae6fd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
             Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
@@ -145,9 +143,10 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
         const App = () => {
             const [blocks, setBlocks] = useState([]);
-            const [events, setEvents] = useState([]); // 캘린더 이벤트 상태
+            const [events, setEvents] = useState([]);
             const [dateStr, setDateStr] = useState('');
             const [totalDuration, setTotalDuration] = useState(0);
+            const [wakeUpTime, setWakeUpTime] = useState(null); // [추가] 기상 시간 상태
 
             // 로컬 데이터 로드
             const loadData = () => {
@@ -160,9 +159,11 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                     const focusBlocks = savedData.blocks.filter(b => !b.type || b.type === 'focus');
                     const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
                     setTotalDuration(total);
+                    setWakeUpTime(savedData.wakeUpTime || null); // [추가] 기상 시간 불러오기
                 } else {
                     setBlocks([]);
                     setTotalDuration(0);
+                    setWakeUpTime(null);
                 }
                 
                 const month = now.getMonth() + 1;
@@ -180,57 +181,65 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                 return () => clearInterval(interval);
             }, []);
 
-            // [동기화] 포트리스 블록 & 캘린더 일정
-        const syncFromServer = async () => {
-            // [수정] 메인 위젯과 날짜 포맷 통일 (YYYY-MM-DD)
-            const now = new Date();
-            const y = now.getFullYear();
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const d = String(now.getDate()).padStart(2, '0');
-            const dateYMD = `${y}-${m}-${d}`;
+            // [동기화]
+            const syncFromServer = async () => {
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                const dateYMD = `${y}-${m}-${d}`;
 
-            // 1. 캘린더 데이터 패치 (여긴 그대로)
-            try {
-                const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
-                if (calRes.ok) {
-                    const calData = await calRes.json();
-                    if (Array.isArray(calData)) {
-                        setEvents(calData);
-                    }
-                }
-            } catch (e) {
-                console.error("Calendar Sync Error:", e);
-            }
-
-            // 2. 포트리스 기록 패치 (날짜 변수 변경)
-            if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
+                // 1. 캘린더
                 try {
-                    // [수정] dateStr 대신 dateYMD 사용
-                    const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.blocks && Array.isArray(data.blocks)) { // length 체크 제거 (빈 배열일 수도 있으므로)
-                            setBlocks(prev => {
-                                // 데이터가 다를 때만 업데이트 (무한 렌더링 방지)
-                                if (JSON.stringify(prev) !== JSON.stringify(data.blocks)) {
-                                    const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                                    localStorage.setItem('fortressData', JSON.stringify({
-                                        ...currentLocal,
-                                        blocks: data.blocks
-                                    }));
-                                    return data.blocks;
-                                }
-                                return prev;
-                            });
+                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
+                    if (calRes.ok) {
+                        const calData = await calRes.json();
+                        if (Array.isArray(calData)) {
+                            setEvents(calData);
                         }
                     }
                 } catch (e) {
-                    console.error("Block Sync Error:", e);
+                    console.error("Calendar Sync Error:", e);
                 }
-            }
-        };
 
-            // 처음 켜질 때 실행 & 1분마다 자동 동기화
+                // 2. 포트리스 기록
+                if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
+                    try {
+                        const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.blocks && Array.isArray(data.blocks)) {
+                                setBlocks(prev => {
+                                    const prevStr = JSON.stringify(prev);
+                                    const newStr = JSON.stringify(data.blocks);
+                                    // 데이터가 다르거나, 기상시간 업데이트가 필요하면 저장
+                                    const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                                    const savedWakeUp = currentLocal.wakeUpTime;
+                                    
+                                    // 기상 시간이나 블록이 다르면 업데이트
+                                    if (prevStr !== newStr || savedWakeUp !== data.wakeUpTime) {
+                                        localStorage.setItem('fortressData', JSON.stringify({
+                                            ...currentLocal,
+                                            blocks: data.blocks,
+                                            wakeUpTime: data.wakeUpTime || savedWakeUp // [추가] 기상 시간 업데이트
+                                        }));
+                                        // 리턴값은 blocks 상태 갱신용
+                                        return data.blocks;
+                                    }
+                                    return prev;
+                                });
+                                // state에 wakeUpTime 반영 (loadData에서 처리하지만 즉시 반영을 위해)
+                                if (data.wakeUpTime && data.wakeUpTime !== "-") {
+                                    setWakeUpTime(data.wakeUpTime);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Block Sync Error:", e);
+                    }
+                }
+            };
+
             useEffect(() => {
                 syncFromServer();
                 const interval = setInterval(syncFromServer, 60000); 
@@ -312,11 +321,35 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                         const slotStartTime = new Date();
                         slotStartTime.setHours(hour, slotStartMin, 0, 0);
                         const slotStartTs = slotStartTime.getTime();
+                        
+                        // [추가] 기상 시간 로직 (투명화 & 아이콘)
+                        let isBeforeWakeUp = false;
+                        let isWakeUpSlot = false;
+
+                        if (wakeUpTime) {
+                            const [wH, wM] = wakeUpTime.split(':').map(Number);
+                            const wakeUpDate = new Date();
+                            wakeUpDate.setHours(wH, wM, 0, 0);
+                            const wakeUpTs = wakeUpDate.getTime();
+                            const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
+
+                            // 1. 투명화 체크: 슬롯 시작이 기상시간보다 전일 때
+                            if (slotStartTs < wakeUpTs) {
+                                isBeforeWakeUp = true;
+                            }
+
+                            // 2. 해 아이콘 체크: 기상 시간이 이 슬롯 안에 포함될 때 (06:32 -> 06:30 슬롯)
+                            // (슬롯시작 <= 기상시간 < 슬롯종료)
+                            if (wakeUpTs >= slotStartTs && wakeUpTs < slotEndTimeTmp) {
+                                isWakeUpSlot = true;
+                                isBeforeWakeUp = false; // 아이콘이 떠야 하니까 투명화 해제
+                            }
+                        }
+
                         const slotEndTime = new Date();
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
-                        // 1. 기존 블록 로직
                         const bgBlock = blocks.find(b => {
                             if (b.type !== 'focus' && b.type) return false;
                             if (b.endTime <= slotStartTs || b.startTime >= slotEndTs) return false;
@@ -330,10 +363,6 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                             return b.endTime > slotStartTs && b.endTime <= slotEndTs;
                         });
 
-                        // 2. [NEW] 캘린더 일정 라인 로직
-                        // 해당 10분 슬롯의 '중앙(5분)' 지점이 일정 기간 내에 포함되는지 확인
-                        // 예: 1:13 종료 -> 1:15(중앙) 포함 X -> 표시 안 함
-                        // 예: 1:15 종료 -> 1:15(중앙) 포함 O -> 표시 함
                         const slotCenter = slotStartTs + (5 * 60 * 1000); 
                         const calendarEvent = events.find(ev => ev.startTime <= slotCenter && ev.endTime >= slotCenter);
 
@@ -342,7 +371,10 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                         let lineOverlay = null;
 
                         // 배경 처리
-                        if (bgBlock) {
+                        if (isBeforeWakeUp && !bgBlock && !isWakeUpSlot) {
+                            cellClass = 'opacity-0'; // 기상 전이면 투명
+                        }
+                        else if (bgBlock) {
                             if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
                             else if (bgBlock.quality === 'Cloud') cellClass = 'block-cloud';
                             else cellClass = 'block-rain';
@@ -352,19 +384,22 @@ const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
                         }
 
                         // 아이콘 처리
-                        if (iconBlock) {
+                        if (isWakeUpSlot) {
+                            // [추가] 기상 아이콘 표시
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+                            content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
+                        }
+                        else if (iconBlock) {
                             const IconComp = Icons[iconBlock.icon] || (iconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
                             const iconColor = bgBlock ? 'text-white' : (iconBlock.color || 'text-white');
                             if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
                             content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
                         }
 
-                        // [NEW] 라인 렌더링
                         if (calendarEvent) {
                             const category = calendarEvent.category || 'default';
                             const colorClass = categoryColors[category] || categoryColors['default'];
                             
-                            // 선 디자인: 중앙 관통, 얇고 은은한 Glow
                             lineOverlay = (
                                 <div className={`absolute w-[80%] h-[2px] rounded-full left-[10%] top-[48%] z-20 ${colorClass}`} 
                                      title={calendarEvent.title} 
