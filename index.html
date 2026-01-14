@@ -291,7 +291,7 @@
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
             
-            // [수정] 서버 데이터 동기화 함수 (인트로 자동 닫기 기능 추가)
+            // [수정 완료] 동기화 함수 (인트로 닫기 우선순위 상향)
             const syncFromServer = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
                 
@@ -302,62 +302,59 @@
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // 서버에 데이터가 있고, 로컬과 다르면 업데이트
+                        // 서버에 데이터가 있다면?
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const serverBlocks = data.blocks;
-                            
+
+                            // [핵심] 기록이 하나라도 있으면, 무조건 인트로 화면부터 닫아버림 (최우선)
+                            if (serverBlocks.length > 0) {
+                                setShowIntro(false);
+                            }
+
+                            // 블록 업데이트 (내용이 다를 때만 수행해서 깜빡임 방지)
                             setBlocks(prev => {
-                                // 데이터가 같으면 굳이 업데이트 안 함
-                                if (JSON.stringify(prev) === JSON.stringify(serverBlocks)) {
-                                    // [추가] 데이터는 같은데 혹시 인트로가 켜져 있다면 꺼준다.
-                                    if (serverBlocks.length > 0) setShowIntro(false);
-                                    return prev;
-                                }
-
-                                // 티켓/에너지 재계산
-                                let calcTickets = 0;
-                                let calcEnergy = 100;
-
-                                const sorted = [...serverBlocks].sort((a, b) => a.startTime - b.startTime);
-
-                                sorted.forEach(b => {
-                                    if (b.type === 'focus' || !b.type) calcTickets += 1;
-                                    if (b.type === 'switch') calcTickets -= 1;
-
-                                    if (b.type === 'rest') {
-                                        let recovery = 0;
-                                        if (b.recovery) {
-                                            recovery = b.recovery;
-                                        } else {
-                                            const rOption = restOptions.find(r => r.name === b.name);
-                                            recovery = rOption ? rOption.recovery : 0;
-                                        }
-                                        calcEnergy = Math.min(100, calcEnergy + recovery);
-                                    } else if (b.type === 'switch') {
-                                        calcEnergy = Math.max(0, calcEnergy - 5);
-                                    } else {
-                                        const cost = Math.floor((b.duration || 0) / 10) * 5;
-                                        calcEnergy = Math.max(0, calcEnergy - cost);
-                                    }
-                                });
-
-                                // [핵심] 기록이 하나라도 있으면 인트로 화면을 닫는다!
-                                if (serverBlocks.length > 0) {
-                                    setShowIntro(false);
-                                }
-
-                                setTickets(calcTickets);
-                                setEnergy(calcEnergy);
-                                
-                                localStorage.setItem('fortressData', JSON.stringify({
-                                    date: dateStr,
-                                    tickets: calcTickets,
-                                    energy: calcEnergy,
-                                    blocks: serverBlocks
-                                }));
-
+                                if (JSON.stringify(prev) === JSON.stringify(serverBlocks)) return prev;
                                 return serverBlocks;
                             });
+
+                            // 티켓/에너지 재계산 로직 (항상 최신 데이터 기준)
+                            let calcTickets = 0;
+                            let calcEnergy = 100; 
+
+                            const sorted = [...serverBlocks].sort((a, b) => a.startTime - b.startTime);
+
+                            sorted.forEach(b => {
+                                if (b.type === 'focus' || !b.type) calcTickets += 1;
+                                if (b.type === 'switch') calcTickets -= 1;
+
+                                if (b.type === 'rest') {
+                                    let recovery = 0;
+                                    if (b.recovery) {
+                                        recovery = b.recovery;
+                                    } else {
+                                        const rOption = restOptions.find(r => r.name === b.name);
+                                        recovery = rOption ? rOption.recovery : 0;
+                                    }
+                                    calcEnergy = Math.min(100, calcEnergy + recovery);
+                                } else if (b.type === 'switch') {
+                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                } else {
+                                    const cost = Math.floor((b.duration || 0) / 10) * 5;
+                                    calcEnergy = Math.max(0, calcEnergy - cost);
+                                }
+                            });
+
+                            // 상태 적용
+                            setTickets(calcTickets);
+                            setEnergy(calcEnergy);
+                            
+                            // 로컬 스토리지 최신화
+                            localStorage.setItem('fortressData', JSON.stringify({
+                                date: dateStr,
+                                tickets: calcTickets,
+                                energy: calcEnergy,
+                                blocks: serverBlocks
+                            }));
                         }
                     }
                 } catch (e) {
