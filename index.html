@@ -1100,10 +1100,10 @@
                             
                             {/* 버튼 그룹: 저장 & 초기화 */}
                             <div className="flex gap-2">
-                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                    {isSending ? <span className="text-xs animate-spin">⏳</span> : <Icons.Cloud className="w-4 h-4" />}
+                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                    {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
                                 </button>
-                                <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-dim hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
                                     <Icons.Refresh />
                                 </button>
                             </div>
