@@ -204,9 +204,7 @@
 
     <div id="root" style="width: 100%; height: 100%; display: flex; justify-content: center;"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        // [설정] 수정된 Log Worker 주소 (네가 준 주소 적용)
+    const { useState, useEffect, useRef } = React;
         const WORKER_URL = "https://log-worker.moonkelly601.workers.dev"; 
 
         const Icons = {
@@ -265,8 +263,12 @@
             const [manualDurMin, setManualDurMin] = useState(30);
 
             const [isSending, setIsSending] = useState(false);
-            
             const lastAutoSyncRef = useRef(Date.now());
+
+            // [New State] 기상 시간 상태
+            const [wakeUpTime, setWakeUpTime] = useState(null);
+            const [wakeUpHour, setWakeUpHour] = useState(7);
+            const [wakeUpMin, setWakeUpMin] = useState(0);
 
             const fixedQuests = [
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-slate-400' }, 
@@ -292,91 +294,72 @@
             const durationHours = [0, 1, 2, 3, 4, 5];
             
             const syncFromServer = async () => {
-    if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
-    
-    try {
-        const dateStr = new Date().toDateString();
-        const res = await fetch(`${WORKER_URL}?date=${encodeURIComponent(dateStr)}`);
-        
-        if (res.ok) {
-            const data = await res.json();
-            
-            if (data.blocks && Array.isArray(data.blocks)) {
-                const serverBlocks = data.blocks;
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
+                try {
+                    const dateStr = new Date().toDateString();
+                    const res = await fetch(`${WORKER_URL}?date=${encodeURIComponent(dateStr)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.blocks && Array.isArray(data.blocks)) {
+                            const serverBlocks = data.blocks;
+                            const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                            const localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
 
-                // 1. [핵심] 로컬 스토리지의 최신 데이터를 꺼냄
-                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                
-                // ▼▼▼ [수정된 부분] ▼▼▼
-                // 로컬 데이터의 날짜가 오늘(dateStr)과 일치할 때만 가져오고, 
-                // 아니면 빈 배열로 처리 (어제 데이터가 오늘로 둔갑하는 것 방지)
-                const localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
-                // ▲▲▲ [수정된 부분 끝] ▲▲▲
+                            if (serverBlocks.length > 0) setShowIntro(false);
 
-                if (serverBlocks.length > 0) {
-                    setShowIntro(false);
-                }
+                            const blockMap = new Map();
+                            localBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            serverBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            const mergedBlocks = Array.from(blockMap.values());
 
-                // 2. 병합 수행 (유효한 로컬 데이터 + 서버)
-                const blockMap = new Map();
-                localBlocks.forEach(b => blockMap.set(b.id, b)); 
-                serverBlocks.forEach(b => blockMap.set(b.id, b)); 
-                
-                const mergedBlocks = Array.from(blockMap.values());
+                            setBlocks(mergedBlocks);
 
-                // (이하 로직 동일)
-                setBlocks(mergedBlocks);
+                            let calcTickets = 0;
+                            let calcEnergy = 100; 
+                            const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
 
-                let calcTickets = 0;
-                let calcEnergy = 100; 
+                            sorted.forEach(b => {
+                                if (b.type === 'focus' || !b.type) calcTickets += 1;
+                                if (b.type === 'switch') calcTickets -= 1;
 
-                const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
-
-                sorted.forEach(b => {
-                    if (b.type === 'focus' || !b.type) calcTickets += 1;
-                    if (b.type === 'switch') calcTickets -= 1;
-
-                    if (b.type === 'rest') {
-                        let recovery = 0;
-                        if (b.recovery) {
-                            recovery = b.recovery;
-                        } else {
-                            const rOption = restOptions.find(r => r.name === b.name);
-                            recovery = rOption ? rOption.recovery : 0;
+                                if (b.type === 'rest') {
+                                    let recovery = 0;
+                                    if (b.recovery) recovery = b.recovery;
+                                    else {
+                                        const rOption = restOptions.find(r => r.name === b.name);
+                                        recovery = rOption ? rOption.recovery : 0;
+                                    }
+                                    calcEnergy = Math.min(100, calcEnergy + recovery);
+                                } else if (b.type === 'switch') {
+                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                } else {
+                                    const cost = Math.floor((b.duration || 0) / 10) * 5;
+                                    calcEnergy = Math.max(0, calcEnergy - cost);
+                                }
+                            });
+                            setTickets(calcTickets);
+                            setEnergy(calcEnergy);
+                            
+                            localStorage.setItem('fortressData', JSON.stringify({
+                                date: dateStr,
+                                tickets: calcTickets,
+                                energy: calcEnergy,
+                                blocks: mergedBlocks,
+                                wakeUpTime: savedData.wakeUpTime || wakeUpTime
+                            }));
                         }
-                        calcEnergy = Math.min(100, calcEnergy + recovery);
-                    } else if (b.type === 'switch') {
-                        calcEnergy = Math.max(0, calcEnergy - 5);
-                    } else {
-                        const cost = Math.floor((b.duration || 0) / 10) * 5;
-                        calcEnergy = Math.max(0, calcEnergy - cost);
                     }
-                });
+                } catch (e) { console.error("Sync Load Error:", e); }
+            };
 
-                setTickets(calcTickets);
-                setEnergy(calcEnergy);
-                
-                localStorage.setItem('fortressData', JSON.stringify({
-                    date: dateStr,
-                    tickets: calcTickets,
-                    energy: calcEnergy,
-                    blocks: mergedBlocks 
-                }));
-            }
-        }
-    } catch (e) {
-        console.error("Sync Load Error:", e);
-    }
-};
-            // [기존 유지] 최초 실행 및 주기적 동기화 (1분마다)
             useEffect(() => {
                 syncFromServer();
                 const interval = setInterval(syncFromServer, 60000); 
                 return () => clearInterval(interval);
             }, []);
 
+            // [수정 완료] 통합된 초기 로딩 및 자정 체크
             useEffect(() => {
-                useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
@@ -389,68 +372,46 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
                     }
-                    // [수정] 초기화 시 기상 시간도 null로 리셋
                     setTickets(0); setEnergy(100); setBlocks([]); setWakeUpTime(null); setShowIntro(true);
                 } else {
                     setTickets(savedData.tickets || 0);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
-                    // [수정] 저장된 기상 시간 불러오기
                     setWakeUpTime(savedData.wakeUpTime || null);
                     setShowIntro(savedData.date !== today);
                 }
             }, []);
 
-            // [수정] 자정 감지 및 자동 마감/리셋 시스템
             useEffect(() => {
                 const checkMidnight = setInterval(() => {
                     const now = new Date();
                     const currentToday = now.toDateString();
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
-                    // 날짜가 바뀌었는지 확인
                     if (savedData.date && savedData.date !== currentToday) {
-                        
-                        // 1. 만약 기록 중이었다면? -> 강제로 저장하고 끊어버림
                         if (isRecording && startTime) {
                             const endTime = Date.now();
-                            const duration = Math.floor((endTime - startTime) / 1000 / 60); // 분 단위 계산
-
-                            // 3분 이상일 때만 저장 (짧은 건 버림)
+                            const duration = Math.floor((endTime - startTime) / 1000 / 60);
                             if (duration >= 3) {
                                 const newBlock = {
-                                    id: endTime,
-                                    startTime: startTime,
-                                    endTime: endTime,
-                                    duration: duration,
-                                    quality: 'Cloud', // 자동 마감은 보통(Cloud)으로 처리
-                                    type: 'focus'
+                                    id: endTime, startTime: startTime, endTime: endTime, duration: duration, quality: 'Cloud', type: 'focus'
                                 };
-
-                                // 로컬 스토리지에 강제 주입 (어제 기록으로 남음)
                                 const currentBlocks = savedData.blocks || [];
                                 savedData.blocks = [newBlock, ...currentBlocks];
-                                
-                                // (티켓/에너지는 어제 거라 계산 안 하고 일단 블록만 저장)
                                 localStorage.setItem('fortressData', JSON.stringify(savedData));
                             }
                         }
-
-                        // 2. 어제 데이터를 히스토리에 백업 (안전장치)
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         if (!history.some(h => h.date === savedData.date)) {
                             history.push(savedData);
                             if (history.length > 7) history.shift();
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
-
-                        // 3. 페이지 새로고침 -> 위젯이 켜지면서 날짜 다름을 감지하고 [Intro] 화면 띄움
                         window.location.reload();
                     }
-                }, 10000); // 10초마다 체크
-
+                }, 10000); 
                 return () => clearInterval(checkMidnight);
-            }, [isRecording, startTime]); // 기록 상태가 바뀔 때마다 갱신
+            }, [isRecording, startTime]); 
 
             useEffect(() => {
                 if (toast) {
@@ -464,8 +425,6 @@
                     const now = Date.now();
                     const lastSyncTime = parseInt(localStorage.getItem('lastSyncTime') || '0');
                     const elapsedSinceLastSync = now - lastSyncTime;
-                    
-                    // [테스트 모드] 5분 (테스트 끝나면 60 * 60 * 1000 으로 변경할 것)
                     const SYNC_INTERVAL = 60 * 60 * 1000; 
 
                     if (elapsedSinceLastSync >= SYNC_INTERVAL) {
@@ -476,47 +435,50 @@
                         }
                     }
                 }, 10000); 
-
                 return () => clearInterval(checkInterval);
             }, [blocks, isSending]); 
 
             const triggerToast = (msg) => { setToast(msg); };
 
-            // [1] 상태 선언부에 추가
-const [wakeUpTime, setWakeUpTime] = useState(null); // 기상 시간 (문자열 "07:00")
-const [wakeUpHour, setWakeUpHour] = useState(7);
-const [wakeUpMin, setWakeUpMin] = useState(0);
+            const saveData = (newTickets, newEnergy, newBlocks, newWakeUpTime) => {
+                setTickets(newTickets);
+                setEnergy(newEnergy);
+                setBlocks(newBlocks);
+                
+                const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
+                if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
 
-// [2] saveData 함수 수정 (4번째 인자로 newWakeUpTime 추가)
-const saveData = (newTickets, newEnergy, newBlocks, newWakeUpTime) => {
-    setTickets(newTickets);
-    setEnergy(newEnergy);
-    setBlocks(newBlocks);
-    
-    // 인자가 없으면 기존 상태 유지, 있으면 업데이트
-    const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
-    if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
+                localStorage.setItem('fortressData', JSON.stringify({
+                    date: new Date().toDateString(),
+                    tickets: newTickets,
+                    energy: newEnergy,
+                    blocks: newBlocks,
+                    wakeUpTime: finalWakeUpTime
+                }));
+            };
 
-    localStorage.setItem('fortressData', JSON.stringify({
-        date: new Date().toDateString(),
-        tickets: newTickets,
-        energy: newEnergy,
-        blocks: newBlocks,
-        wakeUpTime: finalWakeUpTime // 저장 포함
-    }));
-};
+            const handleIntro = (initialEnergy) => {
+                setTickets(0); 
+                setEnergy(initialEnergy); 
+                setShowIntro(false);
+                saveData(0, initialEnergy, [], null); 
+            };
 
-// [3] 리셋 함수(executeReset)에도 초기화 추가
-const executeReset = () => {
-    setShowIntro(true); 
-    setTickets(0);
-    setEnergy(100);
-    setBlocks([]);
-    setWakeUpTime(null); // 추가
-    saveData(0, 100, [], null); // 저장 반영
-    setShowModal(false);
-    triggerToast("🔄 하루가 초기화되었습니다.");
-};
+            const openResetModal = () => {
+                setModalType('reset');
+                setShowModal(true);
+            };
+
+            const executeReset = () => {
+                setShowIntro(true); 
+                setTickets(0);
+                setEnergy(100);
+                setBlocks([]); 
+                setWakeUpTime(null);
+                saveData(0, 100, [], null); 
+                setShowModal(false);
+                triggerToast("🔄 하루가 초기화되었습니다.");
+            };
 
             useEffect(() => {
                 let interval = null;
@@ -578,11 +540,9 @@ const executeReset = () => {
                 }
             };
 
-            // [수정 완료] 자정 기준 분리 저장 기능 추가된 addRecord
             const addRecord = (quality, type, itemData) => {
                 let newBlock;
                 let totalDuration = 0;
-
                 const now = new Date();
                 const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
                 
@@ -619,64 +579,32 @@ const executeReset = () => {
                     ? 'focus' 
                     : (type.includes('switch') ? 'switch' : 'rest');
 
-                // [NEW] 자정(00:00) 기준 분리 로직
                 const sDate = new Date(startTs);
                 const eDate = new Date(endTs);
 
                 if (sDate.getDate() !== eDate.getDate()) {
-                    // 날짜가 다르면 자정 기준으로 분리
                     const midnight = new Date(eDate.getFullYear(), eDate.getMonth(), eDate.getDate()).getTime();
-                    
-                    // 1. 어제 부분 (Yesterday Part)
                     const prevDuration = Math.floor((midnight - startTs) / 1000 / 60);
                     if (prevDuration > 0) {
                         const prevBlock = {
-                            id: startTs, 
-                            startTime: startTs,
-                            endTime: midnight,
-                            duration: prevDuration,
-                            quality: quality || 'Cloud',
-                            type: resolvedType,
-                            icon: itemData?.icon,
-                            name: itemData?.name,
-                            color: itemData?.color
+                            id: startTs, startTime: startTs, endTime: midnight, duration: prevDuration,
+                            quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color
                         };
-
-                        // 히스토리(과거 기록)에 몰래 추가
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         const yStr = sDate.toDateString();
                         const targetDay = history.find(h => h.date === yStr);
-                        
-                        if (targetDay) {
-                            targetDay.blocks.push(prevBlock);
-                        } else {
-                            // 어제 기록이 없으면 새로 생성 (티켓/에너지는 0으로 placeholder)
-                            history.push({
-                                date: yStr,
-                                blocks: [prevBlock],
-                                tickets: 0, energy: 0
-                            });
-                        }
+                        if (targetDay) targetDay.blocks.push(prevBlock);
+                        else history.push({ date: yStr, blocks: [prevBlock], tickets: 0, energy: 0 });
                         localStorage.setItem('fortressHistory', JSON.stringify(history));
                     }
-
-                    // 2. 오늘 부분 (Today Part) - 시작 시간을 자정으로 조정
                     startTs = midnight;
                     totalDuration = Math.floor((endTs - midnight) / 1000 / 60);
                     triggerToast("✂️ 자정 걸침: 기록이 자동으로 분리되었습니다.");
                 }
 
-                // (여기서부터는 조정된 startTs와 totalDuration으로 오늘 기록 생성)
                 newBlock = {
-                    id: Date.now(),
-                    startTime: startTs,
-                    endTime: endTs,
-                    duration: totalDuration,
-                    quality: quality || 'Cloud',
-                    type: resolvedType,
-                    icon: itemData?.icon,
-                    name: itemData?.name,
-                    color: itemData?.color
+                    id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
+                    quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color
                 };
 
                 let newEnergy = energy;
@@ -703,16 +631,12 @@ const executeReset = () => {
                 }
 
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : resolvedType === 'focus' ? 1 : 0);
-                
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
-                if (!toast) triggerToast(msg); // 분리 메시지가 없으면 기본 메시지
+                if (!toast) triggerToast(msg); 
                 setShowModal(false);
 
                 if (type === 'auto') {
-                    setElapsed(0);
-                    setStartTime(null);
-                    setIsRecording(false);
-                    setTempSession(null);
+                    setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null);
                 }
             };
 
@@ -746,13 +670,9 @@ const executeReset = () => {
                     }
 
                     saveData(newTickets, newEnergy, newBlocks);
-setDeleteTargetId(null); setShowModal(false); 
-triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
-
-// [추가] 방금 지운 상태를 서버에 즉시 전송 (0.5초 뒤 실행)
-setTimeout(() => {
-    sendToNotion();
-}, 500);
+                    setDeleteTargetId(null); setShowModal(false); 
+                    triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
+                    setTimeout(() => { sendToNotion(); }, 500);
                 }
             };
 
@@ -763,15 +683,8 @@ setTimeout(() => {
                     const startTs = now - (duration * 60 * 1000);
                     
                     const newBlock = {
-                        id: now,
-                        startTime: startTs,
-                        endTime: now, 
-                        duration: duration,
-                        quality: 'Cloud',
-                        type: 'switch',
-                        icon: quest.icon,
-                        name: quest.name,
-                        color: quest.color 
+                        id: now, startTime: startTs, endTime: now, duration: duration,
+                        quality: 'Cloud', type: 'switch', icon: quest.icon, name: quest.name, color: quest.color 
                     };
 
                     const newBlocks = [newBlock, ...blocks];
@@ -788,15 +701,8 @@ setTimeout(() => {
                 const startTs = now - (duration * 60 * 1000);
 
                 const newBlock = {
-                    id: now,
-                    startTime: startTs,
-                    endTime: now, 
-                    duration: duration,
-                    quality: 'Cloud',
-                    type: 'rest',
-                    icon: rest.icon,
-                    name: rest.name,
-                    color: rest.color 
+                    id: now, startTime: startTs, endTime: now, duration: duration,
+                    quality: 'Cloud', type: 'rest', icon: rest.icon, name: rest.name, color: rest.color 
                 };
 
                 const newEnergy = Math.min(energy + rest.recovery, 100);
@@ -806,7 +712,6 @@ setTimeout(() => {
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
-            // [수정 완료] 통계 계산 및 전송 로직 (시간대별 분리 + 빈 값 처리)
             const sendToNotion = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
 
@@ -815,17 +720,12 @@ setTimeout(() => {
 
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
-                    
-                    // 전체 총합 계산
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
 
-                    // [Logic A] 횟수 기준 최빈값 (하루 전체) -> 데이터 없으면 null
                     const getCountMode = (items) => {
                         if (items.length === 0) return null; 
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
-                        items.forEach(b => { 
-                            if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++;
-                        });
+                        items.forEach(b => { if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++; });
                         
                         if (counts.Sun > 0 && counts.Sun === counts.Cloud && counts.Cloud === counts.Rain) return "Cloud";
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
@@ -834,46 +734,33 @@ setTimeout(() => {
                         return "Rain";
                     };
 
-                    // [Logic B] 누적 시간 기준 우세값 (시간대별) -> 데이터 없으면 null
                     const getDurationMode = (items) => {
                         if (items.length === 0) return null; 
                         const durations = { Sun: 0, Cloud: 0, Rain: 0 };
                         let totalDur = 0;
-                        
                         items.forEach(b => {
-                            const q = b.quality || "Cloud";
-                            const d = b.duration || 0;
+                            const q = b.quality || "Cloud"; const d = b.duration || 0;
                             if (durations[q] !== undefined) durations[q] += d;
                             totalDur += d;
                         });
-
                         if (totalDur === 0) return null; 
-
                         const maxVal = Math.max(durations.Sun, durations.Cloud, durations.Rain);
                         if (durations.Sun === maxVal) return "Sun";
                         if (durations.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
 
-                    // 시간대별 블록 분류
                     const morn = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 0 && h < 12; });
                     const aft = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
                     const night = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18; });
 
-                    // [추가됨] 시간대별 총 시간(분) 계산
-                    const mornDur = morn.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                    const aftDur = aft.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                    const nightDur = night.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-
                     return {
                         total: totalDuration,
-                        morn_total: mornDur, 
-                        aft_total: aftDur,   
-                        night_total: nightDur,
+                        morn_total: morn.reduce((acc, cur) => acc + (cur.duration || 0), 0), 
+                        aft_total: aft.reduce((acc, cur) => acc + (cur.duration || 0), 0),   
+                        night_total: night.reduce((acc, cur) => acc + (cur.duration || 0), 0),
                         quality: getCountMode(focusBlocks) || "Cloud", 
-                        q_morn: getDurationMode(morn), 
-                        q_aft: getDurationMode(aft),   
-                        q_night: getDurationMode(night)
+                        q_morn: getDurationMode(morn), q_aft: getDurationMode(aft), q_night: getDurationMode(night)
                     };
                 };
 
@@ -887,37 +774,19 @@ setTimeout(() => {
                     };
 
                     const stats = calculateStats(dataset.blocks);
-
                     const payload = {
-                        date: formatLocalYMD(dataset.date),
-                        blocks: dataset.blocks,
-                        title: "Fortress Log",
-                        total: stats.total,
-                        // [추가됨] 시간대별 분 데이터 전송
-                        morn_total: stats.morn_total,
-                        aft_total: stats.aft_total,
-                        night_total: stats.night_total,
-                        // 퀄리티 (null이면 전송되지만 워커에서 비워둠)
-                        quality: stats.quality,
-                        q_morn: stats.q_morn,
-                        q_aft: stats.q_aft,
-                        q_night: stats.q_night
+                        date: formatLocalYMD(dataset.date), blocks: dataset.blocks, title: "Fortress Log",
+                        total: stats.total, morn_total: stats.morn_total, aft_total: stats.aft_total, night_total: stats.night_total,
+                        quality: stats.quality, q_morn: stats.q_morn, q_aft: stats.q_aft, q_night: stats.q_night
                     };
 
                     const res = await fetch(WORKER_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
                     });
 
                     if (!res.ok) {
                         let errorMsg = `서버 오류 (${res.status})`;
-                        try {
-                            const errData = await res.json();
-                            errorMsg = errData.error || JSON.stringify(errData);
-                        } catch (e) {
-                            errorMsg = await res.text();
-                        }
+                        try { const errData = await res.json(); errorMsg = errData.error || JSON.stringify(errData); } catch (e) { errorMsg = await res.text(); }
                         throw new Error(errorMsg);
                     }
                 };
@@ -925,14 +794,11 @@ setTimeout(() => {
                 try {
                     await sendDataset({ date: new Date().toDateString(), blocks: blocks });
                     successCount++;
-
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     const today = new Date();
                     const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
                     const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    
                     const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
-
                     for (const data of pastData) {
                         if (data.blocks && data.blocks.length > 0) {
                             try { await sendDataset(data); successCount++; } catch (e) { console.error(e); }
@@ -964,6 +830,22 @@ setTimeout(() => {
                 setManualTab('focus'); 
                 setTimeRef('end'); 
             };
+            
+            const openWakeUpModal = () => {
+                const now = new Date();
+                setWakeUpHour(now.getHours()); 
+                setWakeUpMin(Math.floor(now.getMinutes() / 5) * 5);
+                setModalType('wakeup');
+                setShowModal(true);
+            };
+
+            const handleWakeUpSave = () => {
+                const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
+                setWakeUpTime(timeStr);
+                saveData(tickets, energy, blocks, timeStr); 
+                setShowModal(false);
+                triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
+            };
 
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
@@ -977,22 +859,6 @@ setTimeout(() => {
             };
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
-
-            const openWakeUpModal = () => {
-    const now = new Date();
-    setWakeUpHour(now.getHours()); // 현재 시간으로 기본 세팅
-    setWakeUpMin(Math.floor(now.getMinutes() / 5) * 5);
-    setModalType('wakeup');
-    setShowModal(true);
-};
-
-const handleWakeUpSave = () => {
-    const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
-    setWakeUpTime(timeStr);
-    saveData(tickets, energy, blocks, timeStr); // 저장
-    setShowModal(false);
-    triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
-};
 
             const renderTimerPanel = () => {
                 const radius = 30; 
@@ -1105,44 +971,43 @@ const handleWakeUpSave = () => {
                     <div className="header-section">
                         <div className="flex justify-between items-start mb-3">
                             <div>
-    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
-    
-    {/* [수정] mt-1 -> mt-2 (아래로 내림), text-[10px] -> text-xs (글자 키움) */}
-    <div className="flex justify-between items-center mt-2 w-full min-w-[120px] text-sky-300 text-xs font-bold">
-        {/* 1. 좌측: 에너지 % (아이콘도 w-3 -> w-4로 키움) */}
-        <div className="flex items-center gap-1">
-            <Icons.Zap className="w-4 h-4"/>
-            <span>{energy}%</span>
-        </div>
+                                <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
+                                
+                                <div className="flex justify-between items-center mt-2 w-full min-w-[120px] text-sky-300 text-xs font-bold">
+                                    <div className="flex items-center gap-1">
+                                        <Icons.Zap className="w-4 h-4"/>
+                                        <span>{energy}%</span>
+                                    </div>
 
-        {/* 2. 우측: 티켓 개수 (아이콘도 w-3 -> w-4로 키움) */}
-        <div className="flex items-center gap-1">
-            <Icons.Ticket className="w-4 h-4"/>
-            <span>{tickets}</span>
-        </div>
-    </div>
-</div>
+                                    <div className="flex items-center gap-1">
+                                        <Icons.Ticket className="w-4 h-4"/>
+                                        <span>{tickets}</span>
+                                    </div>
+                                </div>
+                            </div>
                             
-                            {/* 버튼 그룹: 저장 & 기상시간 */}
-<div className="flex gap-2 items-start"> 
-    {/* 저장(구름) 버튼 */}
-    <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-        {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
-    </button>
-    
-    {/* [수정됨] 기상 시간 버튼 (흰색 해) */}
-    <div className="flex flex-col items-center gap-1">
-        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
-            <Icons.Sun className="w-4 h-4 text-white" />
-        </button>
-        {/* 기상 시간 표시 (입력되었을 때만) */}
-        {wakeUpTime && (
-            <span className="text-[9px] font-bold text-white/80 tracking-tight font-serif">
-                {wakeUpTime}
-            </span>
-        )}
-    </div>
-</div>
+                            <div className="flex gap-2 items-start"> 
+                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                    {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
+                                </button>
+                                
+                                <div className="flex flex-col items-center gap-1">
+                                    <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
+                                        <Icons.Sun className="w-4 h-4 text-white" />
+                                    </button>
+                                    {wakeUpTime && (
+                                        <span className="text-[9px] font-bold text-white/80 tracking-tight font-serif">
+                                            {wakeUpTime}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
+                        </div>
+                    </div>
 
                     <div className="px-4 flex gap-2 mb-3 mt-3">
                         {['main', 'niche', 'rest'].map(tab => (
@@ -1166,7 +1031,6 @@ const handleWakeUpSave = () => {
                                             <>
                                                 {sortedBlocks.length > visibleLogs && (
                                                     <button onClick={loadMoreLogs} className="w-full py-1 flex items-center justify-center text-dim hover:text-bright transition-colors mb-2">
-                                                        {/* [수정] Chevron 화살표로 변경 */}
                                                         <Icons.ChevronUp />
                                                     </button>
                                                 )}
@@ -1207,7 +1071,6 @@ const handleWakeUpSave = () => {
                                 </div>
                             </div>
                         )}
-                        {/* (Other tabs content remains same) */}
                         {activeTab === 'niche' && (
                             <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {fixedQuests.map((q) => (
@@ -1238,29 +1101,7 @@ const handleWakeUpSave = () => {
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            {/* [수정] 모달 높이 자동화: manual만 340px, 나머지는 auto + padding */}
                             <div className={`w-full modal-content rounded-t-2xl p-4 animate-slide-up shadow-2xl flex flex-col ${modalType === 'manual' ? 'h-[340px]' : 'h-auto pb-8'}`} onClick={(e) => e.stopPropagation()}>
-
-                                {modalType === 'wakeup' && (
-    <div className="text-center mt-2">
-        <h3 className="text-base font-bold mb-4 text-slate-700 font-serif">Wake Up Time</h3>
-        
-        <div className="flex justify-center gap-2 mb-6">
-            <select value={wakeUpHour} onChange={(e)=>setWakeUpHour(Number(e.target.value))} className="custom-select text-lg w-20">
-                {hours24.map(h => <option key={h} value={h}>{h}</option>)}
-            </select>
-            <span className="self-center font-bold text-slate-400">:</span>
-            <select value={wakeUpMin} onChange={(e)=>setWakeUpMin(Number(e.target.value))} className="custom-select text-lg w-20">
-                {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
-            </select>
-        </div>
-
-        <div className="flex gap-2">
-            <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">Cancel</button>
-            <button onClick={handleWakeUpSave} className="flex-1 py-3 rounded-xl bg-sky-100/50 hover:bg-sky-200/80 text-sky-600 font-bold border border-sky-200/50 transition-all text-sm">Confirm</button>
-        </div>
-    </div>
-)}
                                 
                                 {modalType === 'delete' && (
                                     <div className="text-center mt-2">
@@ -1279,6 +1120,27 @@ const handleWakeUpSave = () => {
                                         <div className="flex gap-2">
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
                                             <button onClick={executeReset} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">초기화</button>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {modalType === 'wakeup' && (
+                                    <div className="text-center mt-2">
+                                        <h3 className="text-base font-bold mb-4 text-slate-700 font-serif">Wake Up Time</h3>
+                                        
+                                        <div className="flex justify-center gap-2 mb-6">
+                                            <select value={wakeUpHour} onChange={(e)=>setWakeUpHour(Number(e.target.value))} className="custom-select text-lg w-20">
+                                                {hours24.map(h => <option key={h} value={h}>{h}</option>)}
+                                            </select>
+                                            <span className="self-center font-bold text-slate-400">:</span>
+                                            <select value={wakeUpMin} onChange={(e)=>setWakeUpMin(Number(e.target.value))} className="custom-select text-lg w-20">
+                                                {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
+                                            </select>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">Cancel</button>
+                                            <button onClick={handleWakeUpSave} className="flex-1 py-3 rounded-xl bg-sky-100/50 hover:bg-sky-200/80 text-sky-600 font-bold border border-sky-200/50 transition-all text-sm">Confirm</button>
                                         </div>
                                     </div>
                                 )}
