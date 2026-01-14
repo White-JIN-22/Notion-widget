@@ -316,8 +316,12 @@
                         <div className="flex gap-1 items-center pb-0.5">
                             {/* (+ 버튼 삭제됨) */}
                             <button onClick={goToday} className="nav-btn mr-1" title="Go Today"><Icons.RotateCcw /></button>
-                            <button onClick={prevMonth} className="nav-btn"><Icons.ChevronLeft /></button>
-                            <button onClick={nextMonth} className="nav-btn"><Icons.ChevronRight /></button>
+                            <button onClick={prevMonth} className="nav-btn text-white/60 hover:text-white">
+                            <Icons.ChevronLeft />
+                        </button>
+                            <button onClick={nextMonth} className="nav-btn text-white/60 hover:text-white">
+                                <Icons.ChevronRight />
+                            </button>
                         </div>
                     </div>
 
