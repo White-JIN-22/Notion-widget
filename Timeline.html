@@ -322,7 +322,6 @@
                         slotStartTime.setHours(hour, slotStartMin, 0, 0);
                         const slotStartTs = slotStartTime.getTime();
                         
-                        // [추가] 기상 시간 로직 (투명화 & 아이콘)
                         let isBeforeWakeUp = false;
                         let isWakeUpSlot = false;
 
@@ -333,16 +332,17 @@
                             const wakeUpTs = wakeUpDate.getTime();
                             const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
 
-                            // 1. 투명화 체크: 슬롯 시작이 기상시간보다 전일 때
+                            // 1. 투명화 체크
                             if (slotStartTs < wakeUpTs) {
                                 isBeforeWakeUp = true;
                             }
 
-                            // 2. 해 아이콘 체크: 기상 시간이 이 슬롯 안에 포함될 때 (06:32 -> 06:30 슬롯)
-                            // (슬롯시작 <= 기상시간 < 슬롯종료)
-                            if (wakeUpTs >= slotStartTs && wakeUpTs < slotEndTimeTmp) {
+                            // 2. [수정] 해 아이콘 체크 로직 변경
+                            // 기존: wakeUpTs >= slotStartTs && wakeUpTs < slotEndTimeTmp (20분이면 20~30칸으로 감)
+                            // 변경: wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp (20분이면 10~20칸에 남음)
+                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) {
                                 isWakeUpSlot = true;
-                                isBeforeWakeUp = false; // 아이콘이 떠야 하니까 투명화 해제
+                                isBeforeWakeUp = false; 
                             }
                         }
 
@@ -370,9 +370,8 @@
                         let content = null;
                         let lineOverlay = null;
 
-                        // 배경 처리
                         if (isBeforeWakeUp && !bgBlock && !isWakeUpSlot) {
-                            cellClass = 'opacity-0'; // 기상 전이면 투명
+                            cellClass = 'opacity-0'; 
                         }
                         else if (bgBlock) {
                             if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
@@ -383,9 +382,7 @@
                             cellClass = 'block-action-bg';
                         }
 
-                        // 아이콘 처리
                         if (isWakeUpSlot) {
-                            // [추가] 기상 아이콘 표시
                             if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
                             content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
                         }
