@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final)</title>
+    <title>Daily Flow (Color Fixed)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -47,13 +47,13 @@
         /* 할 일 아이템 스타일 */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            background: rgba(255, 255, 255, 0.2); /* 배경 조금 더 진하게 */
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15); /* 배경 투명도 조정 */
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 10px;
             transition: all 0.2s ease;
         }
         .todo-item:hover {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.3);
             transform: translateY(-1px);
         }
         /* 완료된 항목 */
@@ -109,7 +109,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 4px 6px 4px; /* 패딩 축소로 공간 확보 */
+            padding: 10px 4px 6px 4px;
         }
         .section-line {
             flex: 1;
@@ -131,16 +131,16 @@
         }
         .add-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); }
         
-        /* 수정 모드 인풋 스타일 */
         .edit-input {
             width: 100%;
             background: transparent;
             border: none;
             outline: none;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700; /* 수정 시에도 굵게 */
             color: inherit;
-            border-bottom: 1px solid rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            padding-bottom: 2px;
         }
 
     </style>
@@ -166,38 +166,37 @@
             const [inputText, setInputText] = useState('');
             const [toast, setToast] = useState(null);
             
-            // [추가] 수정 모드 상태
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
             
             const inputRef = useRef(null);
             const editInputRef = useRef(null);
 
-            // [수정] 글자색을 명확하게(진하게) 변경
+            // [수정 완료] 이제 글씨가 칙칙하지 않고 맑고 쨍하게 나옵니다!
             const zoneConfig = {
                 morning: { 
                     label: 'Morning', 
                     icon: Icons.Sun, 
-                    colorClass: 'text-purple-400', 
-                    textClass: 'text-purple-600', // 할 일 텍스트 색상
+                    colorClass: 'text-purple-300',      // 헤더 색상 (밝음)
+                    textClass: 'text-purple-300',       // [수정] 할 일 텍스트도 밝게 통일!
                     lineGradient: 'linear-gradient(90deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#a855f7' // purple-500
+                    checkboxColor: '#d8b4fe'
                 },
                 afternoon: { 
                     label: 'Afternoon', 
                     icon: Icons.Cloud, 
-                    colorClass: 'text-sky-400', 
-                    textClass: 'text-sky-600', // 할 일 텍스트 색상
+                    colorClass: 'text-sky-300',         // 헤더 색상 (밝음)
+                    textClass: 'text-sky-300',          // [수정] 할 일 텍스트도 밝게 통일!
                     lineGradient: 'linear-gradient(90deg, rgba(125, 211, 252, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#0ea5e9' // sky-500
+                    checkboxColor: '#7dd3fc'
                 },
                 night: { 
                     label: 'Night', 
                     icon: Icons.Moon, 
-                    colorClass: 'text-slate-400', 
-                    textClass: 'text-slate-500', // 할 일 텍스트 색상
+                    colorClass: 'text-slate-300',       // 헤더 색상 (밝음)
+                    textClass: 'text-slate-300',        // [수정] 할 일 텍스트도 밝게 통일!
                     lineGradient: 'linear-gradient(90deg, rgba(148, 163, 184, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#64748b' // slate-500
+                    checkboxColor: '#cbd5e1'
                 }
             };
 
@@ -248,13 +247,11 @@
                 triggerToast("✨ 저장됨!");
             };
 
-            // [추가] 수정 모드 시작
             const startEditing = (todo) => {
                 setEditingId(todo.id);
                 setEditText(todo.text);
             };
 
-            // [추가] 수정 저장
             const saveEdit = () => {
                 if (editText.trim()) {
                     setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t));
@@ -270,9 +267,8 @@
                 setTodos(todos.filter(t => t.id !== id));
             };
 
-            // [핵심] 한글 중복 입력 방지 로직 (isComposing)
             const handleKeyDown = (e) => {
-                if (e.nativeEvent.isComposing) return; // 한글 조합 중이면 무시
+                if (e.nativeEvent.isComposing) return; 
                 if (e.key === 'Enter') confirmAdd();
                 if (e.key === 'Escape') setActiveInputZone(null);
             };
@@ -320,7 +316,7 @@
                                     onKeyDown={handleKeyDown}
                                     onBlur={() => { if(!inputText) setActiveInputZone(null); }}
                                     placeholder={`${config.label} 할 일 입력...`}
-                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white/40 transition-all"
+                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white/40 transition-all font-bold text-white"
                                 />
                             </div>
                         )}
