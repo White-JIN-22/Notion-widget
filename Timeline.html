@@ -112,8 +112,8 @@
         // [설정] 캘린더 데이터 가져오는 워커 주소
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
         
-        // [설정] 기록용 워커 주소 (기존 코드에 있던 변수, 필요시 실제 주소로 변경하세요)
-        const WORKER_URL = ""; 
+        // 아까 만든 워커 주소를 여기에 복사해 넣으세요 (예: https://log-worker.어쩌구.workers.dev)
+const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
         // [디자인] 카테고리별 라인 컬러 시스템 (Jinsol's Style)
         const categoryColors = {
@@ -181,47 +181,54 @@
             }, []);
 
             // [동기화] 포트리스 블록 & 캘린더 일정
-            const syncFromServer = async () => {
-                const dateStr = new Date().toDateString();
+        const syncFromServer = async () => {
+            // [수정] 메인 위젯과 날짜 포맷 통일 (YYYY-MM-DD)
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const dateYMD = `${y}-${m}-${d}`;
 
-                // 1. 캘린더 데이터 패치
+            // 1. 캘린더 데이터 패치 (여긴 그대로)
+            try {
+                const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
+                if (calRes.ok) {
+                    const calData = await calRes.json();
+                    if (Array.isArray(calData)) {
+                        setEvents(calData);
+                    }
+                }
+            } catch (e) {
+                console.error("Calendar Sync Error:", e);
+            }
+
+            // 2. 포트리스 기록 패치 (날짜 변수 변경)
+            if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                 try {
-                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
-                    if (calRes.ok) {
-                        const calData = await calRes.json();
-                        if (Array.isArray(calData)) {
-                            setEvents(calData);
+                    // [수정] dateStr 대신 dateYMD 사용
+                    const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.blocks && Array.isArray(data.blocks)) { // length 체크 제거 (빈 배열일 수도 있으므로)
+                            setBlocks(prev => {
+                                // 데이터가 다를 때만 업데이트 (무한 렌더링 방지)
+                                if (JSON.stringify(prev) !== JSON.stringify(data.blocks)) {
+                                    const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                                    localStorage.setItem('fortressData', JSON.stringify({
+                                        ...currentLocal,
+                                        blocks: data.blocks
+                                    }));
+                                    return data.blocks;
+                                }
+                                return prev;
+                            });
                         }
                     }
                 } catch (e) {
-                    console.error("Calendar Sync Error:", e);
+                    console.error("Block Sync Error:", e);
                 }
-
-                // 2. 포트리스 기록 패치 (기존 로직)
-                if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
-                    try {
-                        const res = await fetch(`${WORKER_URL}?date=${encodeURIComponent(dateStr)}`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data.blocks && Array.isArray(data.blocks) && data.blocks.length > 0) {
-                                setBlocks(prev => {
-                                    if (JSON.stringify(prev) !== JSON.stringify(data.blocks)) {
-                                        const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                                        localStorage.setItem('fortressData', JSON.stringify({
-                                            ...currentLocal,
-                                            blocks: data.blocks
-                                        }));
-                                        return data.blocks;
-                                    }
-                                    return prev;
-                                });
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Block Sync Error:", e);
-                    }
-                }
-            };
+            }
+        };
 
             // 처음 켜질 때 실행 & 1분마다 자동 동기화
             useEffect(() => {
