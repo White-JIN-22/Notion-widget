@@ -478,39 +478,53 @@
 
             const triggerToast = (msg) => { setToast(msg); };
 
-            const saveData = (newTickets, newEnergy, newBlocks) => {
-                setTickets(newTickets);
-                setEnergy(newEnergy);
-                setBlocks(newBlocks);
-                localStorage.setItem('fortressData', JSON.stringify({
-                    date: new Date().toDateString(),
-                    tickets: newTickets,
-                    energy: newEnergy,
-                    blocks: newBlocks
-                }));
-            };
+            // [1] 상태 선언부에 추가
+const [wakeUpTime, setWakeUpTime] = useState(null); // 기상 시간 (문자열 "07:00")
+const [wakeUpHour, setWakeUpHour] = useState(7);
+const [wakeUpMin, setWakeUpMin] = useState(0);
 
-            const handleIntro = (initialEnergy) => {
-                setTickets(0); 
-                setEnergy(initialEnergy); 
-                setShowIntro(false);
-                saveData(0, initialEnergy, []); 
-            };
+// [2] saveData 함수 수정 (4번째 인자로 newWakeUpTime 추가)
+const saveData = (newTickets, newEnergy, newBlocks, newWakeUpTime) => {
+    setTickets(newTickets);
+    setEnergy(newEnergy);
+    setBlocks(newBlocks);
+    
+    // 인자가 없으면 기존 상태 유지, 있으면 업데이트
+    const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
+    if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
 
-            const openResetModal = () => {
-                setModalType('reset');
-                setShowModal(true);
-            };
+    localStorage.setItem('fortressData', JSON.stringify({
+        date: new Date().toDateString(),
+        tickets: newTickets,
+        energy: newEnergy,
+        blocks: newBlocks,
+        wakeUpTime: finalWakeUpTime // 저장 포함
+    }));
+};
 
-            const executeReset = () => {
-                setShowIntro(true); 
-                setTickets(0);
-                setEnergy(100);
-                setBlocks([]); 
-                saveData(0, 100, []); 
-                setShowModal(false);
-                triggerToast("🔄 하루가 초기화되었습니다.");
-            };
+// [3] 초기 로딩 useEffect 수정 (wakeUpTime 불러오기)
+useEffect(() => {
+    // ... (기존 날짜 비교 로직) ...
+    if (savedData.date && savedData.date !== today) {
+        // ... (날짜 바뀌면 초기화)
+        setWakeUpTime(null); // 기상 시간도 초기화
+    } else {
+        // ...
+        setWakeUpTime(savedData.wakeUpTime || null); // 저장된 기상 시간 로드
+    }
+}, []);
+
+// [4] 리셋 함수(executeReset)에도 초기화 추가
+const executeReset = () => {
+    setShowIntro(true); 
+    setTickets(0);
+    setEnergy(100);
+    setBlocks([]);
+    setWakeUpTime(null); // 추가
+    saveData(0, 100, [], null); // 저장 반영
+    setShowModal(false);
+    triggerToast("🔄 하루가 초기화되었습니다.");
+};
 
             useEffect(() => {
                 let interval = null;
@@ -972,6 +986,22 @@ setTimeout(() => {
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
+            const openWakeUpModal = () => {
+    const now = new Date();
+    setWakeUpHour(now.getHours()); // 현재 시간으로 기본 세팅
+    setWakeUpMin(Math.floor(now.getMinutes() / 5) * 5);
+    setModalType('wakeup');
+    setShowModal(true);
+};
+
+const handleWakeUpSave = () => {
+    const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
+    setWakeUpTime(timeStr);
+    saveData(tickets, energy, blocks, timeStr); // 저장
+    setShowModal(false);
+    triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
+};
+
             const renderTimerPanel = () => {
                 const radius = 30; 
                 const circumference = 2 * Math.PI * radius;
@@ -1101,21 +1131,26 @@ setTimeout(() => {
     </div>
 </div>
                             
-                            {/* 버튼 그룹: 저장 & 초기화 */}
-                            <div className="flex gap-2">
-                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                    {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
-                                </button>
-                                <button onClick={openResetModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                    <Icons.Refresh />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-                        </div>
-                    </div>
+                            {/* 버튼 그룹: 저장 & 기상시간 */}
+<div className="flex gap-2 items-start"> 
+    {/* 저장(구름) 버튼 */}
+    <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+        {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
+    </button>
+    
+    {/* [수정됨] 기상 시간 버튼 (흰색 해) */}
+    <div className="flex flex-col items-center gap-1">
+        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
+            <Icons.Sun className="w-4 h-4 text-white" />
+        </button>
+        {/* 기상 시간 표시 (입력되었을 때만) */}
+        {wakeUpTime && (
+            <span className="text-[9px] font-bold text-white/80 tracking-tight font-serif">
+                {wakeUpTime}
+            </span>
+        )}
+    </div>
+</div>
 
                     <div className="px-4 flex gap-2 mb-3 mt-3">
                         {['main', 'niche', 'rest'].map(tab => (
