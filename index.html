@@ -786,8 +786,13 @@
                     };
 
                     const stats = calculateStats(dataset.blocks);
+                    
+                    // [수정됨] wakeUpTime 추가
                     const payload = {
-                        date: formatLocalYMD(dataset.date), blocks: dataset.blocks, title: "Fortress Log",
+                        date: formatLocalYMD(dataset.date), 
+                        blocks: dataset.blocks, 
+                        wakeUpTime: dataset.wakeUpTime || "-", // 기상 시간 전달
+                        title: "Fortress Log",
                         total: stats.total, morn_total: stats.morn_total, aft_total: stats.aft_total, night_total: stats.night_total,
                         quality: stats.quality, q_morn: stats.q_morn, q_aft: stats.q_aft, q_night: stats.q_night
                     };
@@ -804,7 +809,8 @@
                 };
 
                 try {
-                    await sendDataset({ date: new Date().toDateString(), blocks: blocks });
+                    // [수정됨] 현재 데이터 보낼 때 wakeUpTime 상태값 전달
+                    await sendDataset({ date: new Date().toDateString(), blocks: blocks, wakeUpTime: wakeUpTime });
                     successCount++;
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     const today = new Date();
