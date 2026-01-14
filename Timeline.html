@@ -314,6 +314,18 @@
 
             const renderGrid = () => {
                 const hours = Array.from({length: 18}, (_, i) => i + 6); 
+
+                // [추가] 10분 단위 반올림 함수 (0~4분: 내림, 5~9분: 올림)
+                const roundTime = (ts) => {
+                    const d = new Date(ts);
+                    const m = d.getMinutes();
+                    const rem = m % 10;
+                    if (rem < 5) d.setMinutes(m - rem);      // 4분 이하는 내림 (예: 22분 -> 20분)
+                    else d.setMinutes(m + (10 - rem));       // 5분 이상은 올림 (예: 45분 -> 50분)
+                    d.setSeconds(0); d.setMilliseconds(0);
+                    return d.getTime();
+                };
+
                 return hours.map(hour => {
                     const slots = Array.from({length: 6}, (_, i) => {
                         const slotStartMin = i * 10;
@@ -337,9 +349,8 @@
                                 isBeforeWakeUp = true;
                             }
 
-                            // 2. [수정] 해 아이콘 체크 로직 변경
-                            // 기존: wakeUpTs >= slotStartTs && wakeUpTs < slotEndTimeTmp (20분이면 20~30칸으로 감)
-                            // 변경: wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp (20분이면 10~20칸에 남음)
+                            // 2. 해 아이콘 체크 (이전 요청사항 유지)
+                            // 기상 시간이 이 슬롯 범위(초과~이하)에 해당하면 아이콘 표시
                             if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) {
                                 isWakeUpSlot = true;
                                 isBeforeWakeUp = false; 
@@ -350,12 +361,15 @@
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
+                        // [수정] 배경 블록 로직: 반올림된 시간(Rounded Time)을 기준으로 판정
                         const bgBlock = blocks.find(b => {
                             if (b.type !== 'focus' && b.type) return false;
-                            if (b.endTime <= slotStartTs || b.startTime >= slotEndTs) return false;
-                            const overlapStart = Math.max(b.startTime, slotStartTs);
-                            const overlapEnd = Math.min(b.endTime, slotEndTs);
-                            return (overlapEnd - overlapStart) / (1000 * 60) >= 5;
+                            
+                            const roundedStart = roundTime(b.startTime);
+                            const roundedEnd = roundTime(b.endTime);
+
+                            // 현재 슬롯이 [반올림된 시작시간, 반올림된 종료시간) 범위 안에 있는지 체크
+                            return slotStartTs >= roundedStart && slotStartTs < roundedEnd;
                         });
 
                         const iconBlock = blocks.find(b => {
@@ -370,6 +384,7 @@
                         let content = null;
                         let lineOverlay = null;
 
+                        // 클래스 적용 로직
                         if (isBeforeWakeUp && !bgBlock && !isWakeUpSlot) {
                             cellClass = 'opacity-0'; 
                         }
