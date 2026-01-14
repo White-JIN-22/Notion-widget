@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Section Input)</title>
+    <title>Daily Flow (Final)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -47,16 +47,16 @@
         /* 할 일 아이템 스타일 */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2); /* 배경 조금 더 진하게 */
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
         .todo-item:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.4);
             transform: translateY(-1px);
         }
-        /* 완료된 항목 스타일 (맨 아래로 가면서 흐릿해짐) */
+        /* 완료된 항목 */
         .todo-done {
             opacity: 0.5;
             background: rgba(0, 0, 0, 0.02);
@@ -74,7 +74,7 @@
             transition: all 0.2s;
         }
         .custom-checkbox:checked {
-            background-color: currentColor; /* 부모 색상 따라감 */
+            background-color: currentColor;
             border-color: currentColor;
         }
         .custom-checkbox:checked::after {
@@ -105,17 +105,15 @@
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        /* 섹션 구분선 스타일 */
         .section-header {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 16px 4px 8px 4px;
+            padding: 10px 4px 6px 4px; /* 패딩 축소로 공간 확보 */
         }
         .section-line {
             flex: 1;
             height: 1px;
-            background: #e2e8f0; /* 기본값, JS에서 오버라이드 됨 */
         }
         .section-title {
             font-size: 0.7rem;
@@ -123,7 +121,6 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        /* 섹션별 플러스 버튼 */
         .add-btn {
             width: 20px; height: 20px;
             border-radius: 6px;
@@ -133,6 +130,18 @@
             background: rgba(255,255,255,0.2);
         }
         .add-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); }
+        
+        /* 수정 모드 인풋 스타일 */
+        .edit-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: inherit;
+            border-bottom: 1px solid rgba(0,0,0,0.2);
+        }
 
     </style>
 </head>
@@ -153,34 +162,42 @@
 
         const App = () => {
             const [todos, setTodos] = useState([]);
-            const [activeInputZone, setActiveInputZone] = useState(null); // 현재 입력 중인 섹션
+            const [activeInputZone, setActiveInputZone] = useState(null);
             const [inputText, setInputText] = useState('');
             const [toast, setToast] = useState(null);
             
+            // [추가] 수정 모드 상태
+            const [editingId, setEditingId] = useState(null);
+            const [editText, setEditText] = useState('');
+            
             const inputRef = useRef(null);
+            const editInputRef = useRef(null);
 
-            // 테마 설정 (색상/아이콘)
+            // [수정] 글자색을 명확하게(진하게) 변경
             const zoneConfig = {
                 morning: { 
                     label: 'Morning', 
                     icon: Icons.Sun, 
-                    colorClass: 'text-purple-300', 
+                    colorClass: 'text-purple-400', 
+                    textClass: 'text-purple-600', // 할 일 텍스트 색상
                     lineGradient: 'linear-gradient(90deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#d8b4fe'
+                    checkboxColor: '#a855f7' // purple-500
                 },
                 afternoon: { 
                     label: 'Afternoon', 
                     icon: Icons.Cloud, 
-                    colorClass: 'text-sky-300', 
+                    colorClass: 'text-sky-400', 
+                    textClass: 'text-sky-600', // 할 일 텍스트 색상
                     lineGradient: 'linear-gradient(90deg, rgba(125, 211, 252, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#7dd3fc'
+                    checkboxColor: '#0ea5e9' // sky-500
                 },
                 night: { 
                     label: 'Night', 
                     icon: Icons.Moon, 
                     colorClass: 'text-slate-400', 
+                    textClass: 'text-slate-500', // 할 일 텍스트 색상
                     lineGradient: 'linear-gradient(90deg, rgba(148, 163, 184, 0.5), rgba(255, 255, 255, 0))',
-                    checkboxColor: '#94a3b8'
+                    checkboxColor: '#64748b' // slate-500
                 }
             };
 
@@ -194,10 +211,12 @@
             }, [todos]);
 
             useEffect(() => {
-                if (activeInputZone && inputRef.current) {
-                    inputRef.current.focus();
-                }
+                if (activeInputZone && inputRef.current) inputRef.current.focus();
             }, [activeInputZone]);
+
+            useEffect(() => {
+                if (editingId && editInputRef.current) editInputRef.current.focus();
+            }, [editingId]);
 
             const triggerToast = (msg) => {
                 setToast(msg);
@@ -205,9 +224,8 @@
             };
 
             const startAdding = (zone) => {
-                if (activeInputZone === zone) {
-                    setActiveInputZone(null); // 토글
-                } else {
+                if (activeInputZone === zone) setActiveInputZone(null);
+                else {
                     setActiveInputZone(zone);
                     setInputText('');
                 }
@@ -218,7 +236,6 @@
                     setActiveInputZone(null);
                     return;
                 }
-                
                 const newTodo = {
                     id: Date.now(),
                     text: inputText,
@@ -226,12 +243,23 @@
                     done: false,
                     date: new Date().toDateString()
                 };
-
                 setTodos([...todos, newTodo]);
                 setInputText('');
-                // 연속 입력을 원하면 아래 주석 해제, 아니면 닫기
-                // setActiveInputZone(null); 
                 triggerToast("✨ 저장됨!");
+            };
+
+            // [추가] 수정 모드 시작
+            const startEditing = (todo) => {
+                setEditingId(todo.id);
+                setEditText(todo.text);
+            };
+
+            // [추가] 수정 저장
+            const saveEdit = () => {
+                if (editText.trim()) {
+                    setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t));
+                }
+                setEditingId(null);
             };
 
             const toggleTodo = (id) => {
@@ -242,50 +270,46 @@
                 setTodos(todos.filter(t => t.id !== id));
             };
 
+            // [핵심] 한글 중복 입력 방지 로직 (isComposing)
             const handleKeyDown = (e) => {
+                if (e.nativeEvent.isComposing) return; // 한글 조합 중이면 무시
                 if (e.key === 'Enter') confirmAdd();
                 if (e.key === 'Escape') setActiveInputZone(null);
             };
 
-            // 노션 전송 (가짜 함수)
-            const sendToNotion = async () => {
-                triggerToast("☁️ 노션에 저장 중...");
-                setTimeout(() => {
-                    triggerToast("✅ 저장 완료!");
-                }, 800);
+            const handleEditKeyDown = (e) => {
+                if (e.nativeEvent.isComposing) return;
+                if (e.key === 'Enter') saveEdit();
+                if (e.key === 'Escape') setEditingId(null);
             };
 
-            // 섹션 렌더링
+            const sendToNotion = async () => {
+                triggerToast("☁️ 노션에 저장 중...");
+                setTimeout(() => { triggerToast("✅ 저장 완료!"); }, 800);
+            };
+
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
                 const Icon = config.icon;
                 
-                // [정렬 로직] 완료 안 된 것 위로, 완료된 것 아래로
                 const zoneTodos = todos
                     .filter(t => t.zone === zone)
                     .sort((a, b) => {
-                        if (a.done === b.done) return b.id - a.id; // 최신순
-                        return a.done ? 1 : -1; // 완료된 게 뒤로
+                        if (a.done === b.done) return b.id - a.id; 
+                        return a.done ? 1 : -1; 
                     });
                 
                 return (
                     <div className="mb-2">
-                        {/* 헤더 + 라인 + 추가 버튼 */}
                         <div className="section-header">
                             <Icon className={`w-4 h-4 ${config.colorClass}`} />
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
                             <div className="section-line" style={{ background: config.lineGradient }}></div>
-                            
-                            <button 
-                                onClick={() => startAdding(zone)} 
-                                className={`add-btn ${config.colorClass}`}
-                                title="할 일 추가"
-                            >
+                            <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
                                 {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
                             </button>
                         </div>
 
-                        {/* 입력창 (활성화 시에만 등장) */}
                         {activeInputZone === zone && (
                             <div className="px-1 mb-2 animate-slideIn">
                                 <input 
@@ -301,12 +325,9 @@
                             </div>
                         )}
                         
-                        {/* 할 일 리스트 */}
-                        <div className="space-y-1.5 px-1">
+                        <div className="space-y-2 px-1">
                             {zoneTodos.length === 0 && !activeInputZone && (
-                                <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">
-                                    Empty
-                                </div>
+                                <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div>
                             )}
                             
                             {zoneTodos.map(todo => (
@@ -319,14 +340,25 @@
                                         style={{ color: config.checkboxColor }}
                                     />
                                     
-                                    <div className="flex-1 min-w-0">
-                                        <div className={`text-xs font-medium truncate transition-colors ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : 'text-slate-700'}`}>
-                                            {todo.text}
-                                        </div>
+                                    <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
+                                        {editingId === todo.id ? (
+                                            <input 
+                                                ref={editInputRef}
+                                                type="text" 
+                                                value={editText}
+                                                onChange={(e) => setEditText(e.target.value)}
+                                                onKeyDown={handleEditKeyDown}
+                                                onBlur={saveEdit}
+                                                className={`edit-input ${config.textClass}`}
+                                            />
+                                        ) : (
+                                            <div className={`text-xs font-bold truncate transition-colors cursor-text ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정">
+                                                {todo.text}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* 삭제 버튼: 완료된 항목이거나 마우스 호버 시에만 잘 보임 */}
-                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-50 hover:opacity-100">
+                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50">
                                         <Icons.Trash />
                                     </button>
                                 </div>
@@ -340,30 +372,20 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    {/* 헤더 영역 (순서 변경 및 컬러 적용) */}
-                    <div className="p-5 pb-2 shrink-0">
-                        {/* 1. 날짜가 맨 위로 */}
+                    <div className="p-5 pb-1 shrink-0">
                         <p className="text-xs text-sky-400 font-bold mb-0.5">{new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}</p>
-                        
-                        {/* 2. 타이틀은 흰색 */}
-                        <div className="flex justify-between items-center mb-3">
+                        <div className="flex justify-between items-center mb-2">
                             <h1 className="text-xl font-bold text-white font-serif tracking-tight">Daily Flow</h1>
                             <button onClick={sendToNotion} className="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/30 transition-all shadow-sm">
                                 <Icons.Cloud className="w-4 h-4"/>
                             </button>
                         </div>
-                        
-                        {/* 진행률 바 */}
                         <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                            <div 
-                                className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]"
-                                style={{ width: `${(todos.filter(t=>t.done).length / Math.max(todos.length, 1)) * 100}%` }}
-                            ></div>
+                            <div className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]" style={{ width: `${(todos.filter(t=>t.done).length / Math.max(todos.length, 1)) * 100}%` }}></div>
                         </div>
                     </div>
 
-                    {/* 메인 리스트 영역 (스크롤) */}
-                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-6 pt-1">
+                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-6 pt-0">
                         {renderSection('morning')}
                         {renderSection('afternoon')}
                         {renderSection('night')}
