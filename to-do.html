@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow</title>
+    <title>Daily Flow (Timeline)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -16,7 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent; /* 배경 투명 (Notion Embed용) */
+            background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -29,7 +29,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 유리 질감 컨테이너 */
         .widget-container {
             position: relative;
             width: 260px; 
@@ -43,23 +42,6 @@
             flex-direction: column;
             overflow: hidden;
             color: #334155;
-        }
-
-        /* 탭 버튼 스타일 */
-        .tab-btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.75rem;
-            color: #94a3b8;
-            position: relative;
-            overflow: hidden;
-        }
-        .tab-active {
-            background: rgba(255, 255, 255, 0.3);
-            color: #0ea5e9;
-            box-shadow: 0 2px 10px rgba(125, 211, 252, 0.2);
-            border: 1px solid rgba(255,255,255,0.4);
         }
 
         /* 할 일 아이템 애니메이션 */
@@ -80,12 +62,11 @@
             border-style: dashed;
         }
 
-        /* 체크박스 커스텀 */
         .custom-checkbox {
             appearance: none;
-            width: 18px; height: 18px;
+            width: 16px; height: 16px;
             border: 2px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
             position: relative;
             transition: all 0.2s;
@@ -100,7 +81,7 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 10px;
+            font-size: 9px;
         }
 
         @keyframes slideIn {
@@ -109,18 +90,61 @@
         }
 
         .toast-message {
-            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(186, 230, 253, 0.5); 
             color: #0ea5e9;
-            padding: 8px 16px; border-radius: 30px; 
-            font-size: 0.8rem; font-weight: 700;
+            padding: 6px 14px; border-radius: 20px; 
+            font-size: 0.75rem; font-weight: 700;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             pointer-events: none; z-index: 100;
             animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+        /* 섹션 구분선 스타일 */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 4px 8px 4px;
+            margin-top: 4px;
+        }
+        .section-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(125, 211, 252, 0.5), rgba(255, 255, 255, 0));
+        }
+        .section-title {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #7dd3fc;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* 입력창 상단 타임존 선택기 */
+        .zone-selector {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            justify-content: center;
+        }
+        .zone-btn {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 8px;
+            color: #94a3b8;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .zone-active {
+            color: #0ea5e9;
+            background: rgba(255, 255, 255, 0.6);
+            border-color: rgba(125, 211, 252, 0.5);
+            font-weight: 700;
+        }
 
     </style>
 </head>
@@ -130,41 +154,32 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // 아이콘 컴포넌트
         const Icons = {
             Plus: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             Trash: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
             Cloud: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
-            Check: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         };
 
         const App = () => {
-            // [상태] Morning(오전), Afternoon(오후), Night(저녁)
-            const [timeZone, setTimeZone] = useState('morning');
+            const [targetZone, setTargetZone] = useState('morning'); // 입력 시 저장될 위치
             const [todos, setTodos] = useState([]);
             const [inputText, setInputText] = useState('');
-            const [priority, setPriority] = useState('normal'); // fire(높음), normal(보통), leaf(낮음)
+            const [priority, setPriority] = useState('normal'); 
             const [toast, setToast] = useState(null);
 
-            // 시간대에 맞춰 자동 탭 선택 (초기 로드 시)
+            // 초기 로드 시 현재 시간대로 타겟 설정
             useEffect(() => {
                 const hour = new Date().getHours();
-                if (hour >= 6 && hour < 12) setTimeZone('morning');
-                else if (hour >= 12 && hour < 18) setTimeZone('afternoon');
-                else setTimeZone('night');
+                if (hour >= 6 && hour < 12) setTargetZone('morning');
+                else if (hour >= 12 && hour < 18) setTargetZone('afternoon');
+                else setTargetZone('night');
 
-                // 로컬 스토리지 불러오기
                 const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                const today = new Date().toDateString();
-                
-                // 날짜가 다르면 리셋할지 말지는 선택인데, 일단 유지하되 '완료된 것'만 청소하는 옵션도 가능
-                // 여기서는 일단 다 불러옴
                 setTodos(savedTodos);
             }, []);
 
-            // 투두 변경될 때마다 로컬 스토리지 저장
             useEffect(() => {
                 localStorage.setItem('jinsolTodos', JSON.stringify(todos));
             }, [todos]);
@@ -180,7 +195,7 @@
                 const newTodo = {
                     id: Date.now(),
                     text: inputText,
-                    zone: timeZone, // 현재 선택된 탭에 추가
+                    zone: targetZone, 
                     priority: priority,
                     done: false,
                     date: new Date().toDateString()
@@ -203,39 +218,69 @@
                 if (e.key === 'Enter') addTodo();
             };
 
-            // 완료율 계산 및 칭찬 메시지 생성
-            const getPraise = () => {
-                const todayTodos = todos.filter(t => t.date === new Date().toDateString());
-                const doneCount = todayTodos.filter(t => t.done).length;
-                
-                if (todayTodos.length === 0) return "오늘의 여정을 시작해볼까요? 🌱";
-                if (doneCount === 0) return "천천히 하나씩 시작해요 ✨";
-                if (doneCount < 3) return `좋은 흐름이에요! (${doneCount}개 완료)`;
-                if (doneCount < 6) return "속도가 붙었어요! 멋져요 💪";
-                return "오늘 하루 정말 알차게 보내셨네요! ☁️";
-            };
-
-            // 노션 전송 (가짜 함수 - 나중에 Worker URL 연결하면 됨)
             const sendToNotion = async () => {
                 triggerToast("☁️ 노션에 저장 중...");
-                // 여기에 fetch 로직 추가하면 됨
-                // const payload = { date: new Date(), todos: todos };
-                // await fetch(WORKER_URL, ... );
-                
                 setTimeout(() => {
                     triggerToast("✅ 저장 완료!");
                 }, 800);
             };
 
-            // 현재 탭에 맞는 리스트 필터링
-            const filteredTodos = todos.filter(t => t.zone === timeZone);
+            // 섹션 렌더링 함수
+            const renderSection = (zone, Icon, title) => {
+                const zoneTodos = todos.filter(t => t.zone === zone);
+                
+                return (
+                    <div className="mb-4">
+                        <div className="section-header">
+                            <Icon className="w-4 h-4 text-sky-300" />
+                            <span className="section-title">{title}</span>
+                            <div className="section-line"></div>
+                        </div>
+                        
+                        <div className="space-y-2 pl-1 pr-1 mt-1">
+                            {zoneTodos.length === 0 ? (
+                                <div className="text-[10px] text-slate-400 opacity-40 italic pl-6 py-1">
+                                    비어있음
+                                </div>
+                            ) : (
+                                zoneTodos.map(todo => (
+                                    <div key={todo.id} className={`todo-item flex items-center p-2 gap-2 ${todo.done ? 'todo-done' : ''}`}>
+                                        <input 
+                                            type="checkbox" 
+                                            checked={todo.done} 
+                                            onChange={() => toggleTodo(todo.id)}
+                                            className="custom-checkbox shrink-0"
+                                        />
+                                        
+                                        <div className="flex-1 min-w-0">
+                                            <div className={`text-xs font-medium truncate ${todo.done ? 'text-slate-400 line-through decoration-slate-400' : 'text-slate-700'}`}>
+                                                {todo.text}
+                                            </div>
+                                        </div>
+
+                                        <div className="shrink-0">
+                                            {todo.priority === 'fire' && <span className="text-[10px]">🔥</span>}
+                                            {todo.priority === 'normal' && <span className="text-[10px] opacity-30">☁️</span>}
+                                            {todo.priority === 'leaf' && <span className="text-[10px]">🌱</span>}
+                                        </div>
+
+                                        <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1">
+                                            <Icons.Trash />
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                );
+            };
 
             return (
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
                     {/* 헤더 */}
-                    <div className="p-5 pb-2 border-b border-white/20">
+                    <div className="p-5 pb-2 border-b border-white/20 shrink-0">
                         <div className="flex justify-between items-center mb-1">
                             <h1 className="text-xl font-bold text-slate-700 font-serif tracking-tight">Daily Flow</h1>
                             <button onClick={sendToNotion} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/30 transition-all shadow-sm">
@@ -244,7 +289,6 @@
                         </div>
                         <p className="text-xs text-sky-400 font-bold mb-3">{new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}</p>
                         
-                        {/* 진행률 바 */}
                         <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
                             <div 
                                 className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]"
@@ -253,78 +297,33 @@
                         </div>
                     </div>
 
-                    {/* 탭 버튼 */}
-                    <div className="px-4 flex gap-2 mt-4 mb-2">
-                        <button onClick={() => setTimeZone('morning')} className={`flex-1 py-2 tab-btn ${timeZone === 'morning' ? 'tab-active' : 'hover:bg-white/10'}`}>
-                            Morning
-                        </button>
-                        <button onClick={() => setTimeZone('afternoon')} className={`flex-1 py-2 tab-btn ${timeZone === 'afternoon' ? 'tab-active' : 'hover:bg-white/10'}`}>
-                            Afternoon
-                        </button>
-                        <button onClick={() => setTimeZone('night')} className={`flex-1 py-2 tab-btn ${timeZone === 'night' ? 'tab-active' : 'hover:bg-white/10'}`}>
-                            Night
-                        </button>
-                    </div>
-
-                    {/* 할 일 리스트 영역 */}
-                    <div className="flex-1 px-4 overflow-y-auto no-scrollbar space-y-2 pb-20">
-                        <div className="text-center py-2">
-                            <span className="text-[10px] text-slate-400 font-bold bg-white/20 px-2 py-1 rounded-full">
-                                {timeZone === 'morning' && "🌅 회복과 준비의 시간"}
-                                {timeZone === 'afternoon' && "☀️ 골든타임 & 에너지 방어"}
-                                {timeZone === 'night' && "🌙 정리와 휴식"}
-                            </span>
-                        </div>
-
-                        {filteredTodos.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-32 text-slate-400 text-xs opacity-60">
-                                <span>비어있어요.</span>
-                                <span>가벼운 것부터 하나 적어볼까요?</span>
-                            </div>
-                        ) : (
-                            filteredTodos.map(todo => (
-                                <div key={todo.id} className={`todo-item flex items-center p-3 gap-3 ${todo.done ? 'todo-done' : ''}`}>
-                                    <input 
-                                        type="checkbox" 
-                                        checked={todo.done} 
-                                        onChange={() => toggleTodo(todo.id)}
-                                        className="custom-checkbox shrink-0"
-                                    />
-                                    
-                                    <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-medium truncate ${todo.done ? 'text-slate-400 line-through decoration-slate-400' : 'text-slate-700'}`}>
-                                            {todo.text}
-                                        </div>
-                                    </div>
-
-                                    {/* 우선순위 표시 */}
-                                    <div className="shrink-0">
-                                        {todo.priority === 'fire' && <span className="text-xs">🔥</span>}
-                                        {todo.priority === 'normal' && <span className="text-xs opacity-50">☁️</span>}
-                                        {todo.priority === 'leaf' && <span className="text-xs">🌱</span>}
-                                    </div>
-
-                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors">
-                                        <Icons.Trash />
-                                    </button>
-                                </div>
-                            ))
-                        )}
+                    {/* 메인 리스트 영역 (스크롤) */}
+                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-24 pt-2">
+                        {renderSection('morning', Icons.Sun, 'Morning')}
+                        {renderSection('afternoon', Icons.Cloud, 'Afternoon')}
+                        {renderSection('night', Icons.Moon, 'Night')}
                     </div>
 
                     {/* 입력창 (하단 고정) */}
-                    <div className="absolute bottom-0 w-full bg-white/40 backdrop-filter blur-md border-t border-white/40 p-3">
-                        {/* 칭찬 메시지 */}
-                        <div className="text-center mb-2">
-                            <span className="text-[11px] font-bold text-sky-500 animate-pulse">{getPraise()}</span>
+                    <div className="absolute bottom-0 w-full bg-white/60 backdrop-filter blur-xl border-t border-white/40 p-3 z-10">
+                        
+                        {/* 타겟 존 선택기 */}
+                        <div className="zone-selector">
+                            <button onClick={()=>setTargetZone('morning')} className={`zone-btn flex items-center gap-1 ${targetZone==='morning'?'zone-active':''}`}>
+                                <Icons.Sun className="w-3 h-3"/> 아침
+                            </button>
+                            <button onClick={()=>setTargetZone('afternoon')} className={`zone-btn flex items-center gap-1 ${targetZone==='afternoon'?'zone-active':''}`}>
+                                <Icons.Cloud className="w-3 h-3"/> 오후
+                            </button>
+                            <button onClick={()=>setTargetZone('night')} className={`zone-btn flex items-center gap-1 ${targetZone==='night'?'zone-active':''}`}>
+                                <Icons.Moon className="w-3 h-3"/> 저녁
+                            </button>
                         </div>
 
                         <div className="flex gap-2 items-center">
-                            {/* 우선순위 선택 버튼 */}
                             <button 
                                 onClick={() => setPriority(p => p === 'fire' ? 'normal' : p === 'normal' ? 'leaf' : 'fire')}
                                 className="w-8 h-8 rounded-lg bg-white/50 border border-white/40 flex items-center justify-center text-sm shadow-sm hover:bg-white"
-                                title="우선순위 변경"
                             >
                                 {priority === 'fire' ? '🔥' : priority === 'normal' ? '☁️' : '🌱'}
                             </button>
@@ -334,8 +333,8 @@
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="할 일을 입력하세요..."
-                                className="flex-1 bg-white/60 border border-white/40 rounded-xl px-3 py-1.5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white/80 focus:border-sky-300 transition-all shadow-inner"
+                                placeholder={`${targetZone === 'morning' ? '아침' : targetZone === 'afternoon' ? '오후' : '밤'}에 할 일은?`}
+                                className="flex-1 bg-white/60 border border-white/40 rounded-xl px-3 py-1.5 text-xs text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white/80 focus:border-sky-300 transition-all shadow-inner"
                             />
                             
                             <button 
