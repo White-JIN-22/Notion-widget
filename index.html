@@ -266,7 +266,6 @@
             const [isSending, setIsSending] = useState(false);
             const lastAutoSyncRef = useRef(Date.now());
 
-            // [New State] 기상 시간 상태
             const [wakeUpTime, setWakeUpTime] = useState(null);
             const [wakeUpHour, setWakeUpHour] = useState(7);
             const [wakeUpMin, setWakeUpMin] = useState(0);
@@ -304,13 +303,21 @@
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const serverBlocks = data.blocks;
                             const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                            const localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
-
+                            
+                            // [수정] 오염된 데이터(날짜는 오늘인데 내용은 어제인 경우) 필터링
+                            // 로컬 스토리지 데이터도 검증
+                            let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
+                            localBlocks = localBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
+                            
                             if (serverBlocks.length > 0) setShowIntro(false);
 
                             const blockMap = new Map();
                             localBlocks.forEach(b => blockMap.set(b.id, b)); 
-                            serverBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            
+                            // [수정] 서버에서 가져온 데이터도 오늘 날짜인지 2중 체크 (버그 방지)
+                            const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
+                            cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            
                             const mergedBlocks = Array.from(blockMap.values());
 
                             setBlocks(mergedBlocks);
@@ -359,7 +366,7 @@
                 return () => clearInterval(interval);
             }, []);
 
-            // [수정 완료] 통합된 초기 로딩 및 자정 체크
+            // [수정] 초기 로딩 시에도 날짜 필터링 적용 (오염된 데이터 즉시 청소)
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
@@ -377,7 +384,11 @@
                 } else {
                     setTickets(savedData.tickets || 0);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
-                    setBlocks(savedData.blocks || []);
+                    
+                    // [중요] 저장된 블록 중 날짜가 다른(어제) 기록이 섞여있으면 제거
+                    const validBlocks = (savedData.blocks || []).filter(b => new Date(b.startTime).toDateString() === today);
+                    setBlocks(validBlocks);
+                    
                     setWakeUpTime(savedData.wakeUpTime || null);
                     setShowIntro(savedData.date !== today);
                 }
@@ -1102,7 +1113,7 @@
 
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
-                            <div className={`w-full modal-content rounded-t-2xl p-4 animate-slide-up shadow-2xl flex flex-col ${modalType === 'manual' ? 'h-[340px]' : 'h-auto pb-8'}`} onClick={(e) => e.stopPropagation()}>
+                            <div className={`w-full modal-content rounded-t-2xl p-4 animate-slide-up shadow-2xl flex flex-col ${modalType === 'manual' ? 'h-[340px]' : 'h-auto pb-6'}`} onClick={(e) => e.stopPropagation()}>
                                 
                                 {modalType === 'delete' && (
                                     <div className="text-center mt-2">
@@ -1125,11 +1136,12 @@
                                     </div>
                                 )}
                                 
+                                {/* [수정완료] WakeUp 모달: 높이 압축, 반짝이 제목, 버튼 색상/텍스트 변경 */}
                                 {modalType === 'wakeup' && (
-                                    <div className="text-center mt-2">
-                                        <h3 className="text-base font-bold mb-4 text-slate-700 font-serif">Wake Up Time</h3>
+                                    <div className="text-center">
+                                        <h3 className="text-base font-bold mb-3 text-slate-700 font-serif">｡✧ Wake Up Time ✧｡</h3>
                                         
-                                        <div className="flex justify-center gap-2 mb-6">
+                                        <div className="flex justify-center gap-2 mb-5">
                                             <select value={wakeUpHour} onChange={(e)=>setWakeUpHour(Number(e.target.value))} className="custom-select text-lg w-20">
                                                 {hours24.map(h => <option key={h} value={h}>{h}</option>)}
                                             </select>
@@ -1140,8 +1152,8 @@
                                         </div>
 
                                         <div className="flex gap-2">
-                                            <button onClick={() => setShowModal(false)} className="flex-1 py-3 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">Cancel</button>
-                                            <button onClick={handleWakeUpSave} className="flex-1 py-3 rounded-xl bg-sky-100/50 hover:bg-sky-200/80 text-sky-600 font-bold border border-sky-200/50 transition-all text-sm">Confirm</button>
+                                            <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
+                                            <button onClick={handleWakeUpSave} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">확인</button>
                                         </div>
                                     </div>
                                 )}
