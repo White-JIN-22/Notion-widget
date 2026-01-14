@@ -376,6 +376,7 @@
             }, []);
 
             useEffect(() => {
+                useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
@@ -388,11 +389,14 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
                     }
-                    setTickets(0); setEnergy(100); setBlocks([]); setShowIntro(true);
+                    // [수정] 초기화 시 기상 시간도 null로 리셋
+                    setTickets(0); setEnergy(100); setBlocks([]); setWakeUpTime(null); setShowIntro(true);
                 } else {
                     setTickets(savedData.tickets || 0);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
+                    // [수정] 저장된 기상 시간 불러오기
+                    setWakeUpTime(savedData.wakeUpTime || null);
                     setShowIntro(savedData.date !== today);
                 }
             }, []);
@@ -502,19 +506,7 @@ const saveData = (newTickets, newEnergy, newBlocks, newWakeUpTime) => {
     }));
 };
 
-// [3] 초기 로딩 useEffect 수정 (wakeUpTime 불러오기)
-useEffect(() => {
-    // ... (기존 날짜 비교 로직) ...
-    if (savedData.date && savedData.date !== today) {
-        // ... (날짜 바뀌면 초기화)
-        setWakeUpTime(null); // 기상 시간도 초기화
-    } else {
-        // ...
-        setWakeUpTime(savedData.wakeUpTime || null); // 저장된 기상 시간 로드
-    }
-}, []);
-
-// [4] 리셋 함수(executeReset)에도 초기화 추가
+// [3] 리셋 함수(executeReset)에도 초기화 추가
 const executeReset = () => {
     setShowIntro(true); 
     setTickets(0);
