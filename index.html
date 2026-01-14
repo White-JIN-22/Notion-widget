@@ -748,8 +748,13 @@
                     }
 
                     saveData(newTickets, newEnergy, newBlocks);
-                    setDeleteTargetId(null); setShowModal(false); 
-                    triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
+setDeleteTargetId(null); setShowModal(false); 
+triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
+
+// [추가] 방금 지운 상태를 서버에 즉시 전송 (0.5초 뒤 실행)
+setTimeout(() => {
+    sendToNotion();
+}, 500);
                 }
             };
 
