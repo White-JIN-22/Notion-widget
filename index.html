@@ -311,10 +311,24 @@
                                 setShowIntro(false);
                             }
 
-                            // 블록 업데이트 (내용이 다를 때만 수행해서 깜빡임 방지)
+                            // [수정 완료] 덮어쓰기 방지 & 데이터 병합(Merge) 로직
                             setBlocks(prev => {
-                                if (JSON.stringify(prev) === JSON.stringify(serverBlocks)) return prev;
-                                return serverBlocks;
+                                // 1. 지도(Map)를 펼쳐서 데이터를 하나씩 올린다. (ID가 같으면 하나만 남음)
+                                const blockMap = new Map();
+                                
+                                // (1) 내 주머니(로컬)에 있던 거 먼저 올리고
+                                prev.forEach(b => blockMap.set(b.id, b));
+                                
+                                // (2) 서버에서 가져온 걸 위에 덧올린다 (서버 정보가 최신이라 가정)
+                                serverBlocks.forEach(b => blockMap.set(b.id, b));
+                                
+                                // 3. 합쳐진 결과물을 리스트로 변환
+                                const mergedBlocks = Array.from(blockMap.values());
+
+                                // 변화가 없으면 가만히 있는다 (깜빡임 방지)
+                                if (JSON.stringify(prev) === JSON.stringify(mergedBlocks)) return prev;
+                                
+                                return mergedBlocks;
                             });
 
                             // 티켓/에너지 재계산 로직 (항상 최신 데이터 기준)
