@@ -449,6 +449,7 @@
 
             return (
                 <div className="widget-container">
+                    {/* 1. 헤더 영역 */}
                     <div className="px-4 pt-5 pb-2 flex justify-between items-end border-b border-white/20 bg-white/15 backdrop-blur-sm z-10 shrink-0">
                         <div>
                             <div className="text-white text-[10px] font-bold tracking-widest uppercase mb-0.5 opacity-90 font-mono-nums">{dateStr}</div>
@@ -458,15 +459,19 @@
                         </div>
                     </div>
 
-                    {/* [수정] flex -> grid로 변경하여 아래 블록과 간격(2px) 동기화 & 오른쪽 정렬 */}
-                     <div className="grid grid-cols-6 gap-[2px] mb-0.5 pl-[20px] pr-[6px] shrink-0">
-                        {[10, 20, 30, 40, 50, 60].map(m => (
-                            <div key={m} className="text-right text-[6px] text-white/40 font-mono-nums">{m}</div>
-                        ))}
-                     </div>
+                    {/* 2. 메인 컨텐츠 영역 (여기가 지워졌었어!) */}
+                    <div className="flex-1 px-2 pt-2 pb-4 relative bg-white/5 overflow-hidden flex flex-col">
+                         {/* 숫자 라벨 (수정한 부분) */}
+                         <div className="grid grid-cols-6 gap-[2px] mb-0.5 pl-[20px] pr-[6px] shrink-0">
+                            {[10, 20, 30, 40, 50, 60].map(m => (
+                                <div key={m} className="text-right text-[6px] text-white/40 font-mono-nums">{m}</div>
+                            ))}
+                         </div>
+                         {/* 그리드 */}
                         <div className="grid-container">{renderGrid()}</div>
                     </div>
 
+                    {/* 3. 푸터 영역 */}
                     <div className="footer-blur px-4 pt-3 pb-3 z-10 shrink-0">
                         <div className="text-center flex flex-col justify-center h-auto">
                             <p className="text-xs font-bold text-white leading-tight drop-shadow-md mb-1">{msg.main}</p>
@@ -475,7 +480,6 @@
                     </div>
                 </div>
             );
-        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
