@@ -469,6 +469,9 @@
                 if (fortressData.date === todayStr && fortressData.blocks) {
                     const focusBlocks = fortressData.blocks.filter(b => b.type === 'focus' || !b.type);
                     if (focusBlocks.length > 0) {
+                        // [수정] 00시가 위로 오도록 오름차순 정렬 (a - b)
+                        focusBlocks.sort((a, b) => a.startTime - b.startTime);
+                        
                         setTodayLogBlocks(focusBlocks);
                         setLinkingTodoId(id);
                         setSelectedBlockIds([]);
@@ -764,7 +767,7 @@
                                     <h3 className="text-sm font-bold text-slate-700 font-serif">｡✧ Link Logs ✧｡</h3>
                                     <p className="text-[10px] text-slate-500 mt-1">기록된 시간을 이 할 일에 추가할까요?<br/>(복수 선택 가능)</p>
                                 </div>
-                                <div className="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1">
+                                <div className="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1 max-h-[220px]">
                                     {todayLogBlocks.map(block => {
                                         const isSelected = selectedBlockIds.includes(block.id);
                                         return (
@@ -783,7 +786,7 @@
                                 </div>
                                 <div className="mt-4 flex gap-2">
                                     <button onClick={cancelLinkLog} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">기록 없이 완료</button>
-                                    <button onClick={confirmLinkLog} className="flex-1 py-2 rounded-xl bg-sky-100 border border-sky-200 text-sky-600 text-xs font-bold hover:bg-sky-200">연동하기</button>
+                                    <button onClick={confirmLinkLog} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-xs">연동하기</button>
                                 </div>
                             </div>
                         </div>
