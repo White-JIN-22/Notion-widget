@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final Fix)</title>
+    <title>Daily Flow (Integrated Fix)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -54,7 +54,7 @@
 
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            padding: 6px 4px; 
+            padding: 3px 4px; /* 여백 축소 */
             border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
             transition: all 0.2s ease;
         }
@@ -237,11 +237,11 @@
 
             const getCategoryColor = (category) => {
                 switch(category) {
-                    case '업무': return 'bg-sky-300 shadow-[0_0_8px_rgba(125,211,252,0.8)]'; 
-                    case '휴식': return 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.6)]'; 
-                    case '자기계발': return 'bg-purple-300 shadow-[0_0_8px_rgba(216,180,254,0.8)]'; 
-                    case '건강': return 'bg-yellow-200 shadow-[0_0_8px_rgba(253,230,138,0.8)]'; 
-                    default: return 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]';
+                    case '업무': return 'bg-sky-300'; 
+                    case '휴식': return 'bg-slate-400'; 
+                    case '자기계발': return 'bg-purple-300'; 
+                    case '건강': return 'bg-yellow-200'; 
+                    default: return 'bg-white';
                 }
             };
 
@@ -335,22 +335,17 @@
                 });
             };
 
-            // [수정] 캐시 방지 및 데이터 파싱 로직 강화
             const fetchCalendarData = async (targetDate) => {
                 try {
-                    // [핵심] &t=${Date.now()} 추가 -> 매번 새로운 요청으로 인식해서 캐시 무시!
                     const res = await fetch(`${WORKER_URL}?type=calendar&t=${Date.now()}`);
                     if (res.ok) {
                         const data = await res.json();
-                        
-                        // 데이터가 배열인지 확인
                         if (!Array.isArray(data)) {
                             console.warn("⚠️ Data is NOT an array:", data);
                             setCalendarEvents([]);
                             return;
                         }
 
-                        // 날짜 문자열 비교
                         const targetYMD = formatLocalYMD(targetDate);
                         
                         const processedEvents = data
@@ -364,7 +359,6 @@
                                 const hour = start.getHours();
                                 let zone = 'night';
                                 
-                                // 11시는 hour가 11이므로 'morning'으로 분류됨
                                 if (hour < 12) zone = 'morning';
                                 else if (hour < 18) zone = 'afternoon';
                                 
@@ -618,8 +612,8 @@
                 const sortedNormalTodos = normalTodos.sort((a, b) => a.done === b.done ? (b.id - a.id) : a.done ? 1 : -1);
 
                 const mixedItems = [
-                    ...importantTodos.map(t => ({...t, type: 'todo'})),
                     ...sortedEvents,
+                    ...importantTodos.map(t => ({...t, type: 'todo'})),
                     ...sortedNormalTodos.map(t => ({...t, type: 'todo'}))
                 ];
                 
@@ -652,14 +646,16 @@
                                     
                                     return (
                                         <div key={item.id} className={`todo-item flex items-center gap-3 opacity-90 ${isPassed ? 'event-passed' : ''}`}>
-                                            <div className={`shrink-0 w-2 h-2 rounded-full ${dotColorClass} mx-0.5`}></div>
+                                            <div className="shrink-0 w-3.5 flex justify-center">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${dotColorClass}`}></div>
+                                            </div>
+                                            <div className="shrink-0 text-[10px] font-bold text-slate-300 font-mono tracking-tight leading-none">
+                                                {item.time}
+                                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className={`text-xs font-bold text-white ${isPassed ? 'line-through decoration-slate-400/50' : ''}`}>
                                                     {item.title}
                                                 </div>
-                                            </div>
-                                            <div className="shrink-0 text-[9px] font-bold text-slate-400 text-center leading-none">
-                                                {item.time}
                                             </div>
                                         </div>
                                     );
