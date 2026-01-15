@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final H/M)</title>
+    <title>Daily Flow (Final Fix)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -318,7 +318,7 @@
                     const timeMatch = text.match(/\((.*?)\)$/);
                     let timeDisplay = null;
                     if (timeMatch) {
-                        timeDisplay = timeMatch[1];
+                        timeDisplay = timeMatch[1].toUpperCase(); // 대문자 처리
                         text = text.replace(timeMatch[0], '').trim();
                     }
 
@@ -418,7 +418,6 @@
             };
             const saveEdit = () => { if (editText.trim()) { setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t)); } setEditingId(null); };
             
-            // [수정] 체크박스 토글 로직 개선
             const toggleTodo = (id) => { 
                 const targetTodo = todos.find(t => t.id === id);
                 if (!targetTodo || targetTodo.isRemote) return; 
@@ -433,12 +432,11 @@
                     if (t.id === id) {
                         const nextDone = !t.done;
                         
-                        // 2. 체크 해제 시 -> 시간을 0으로 초기화 (재체크 시 모달 뜨게 하기 위함)
+                        // [수정] 체크 해제 시 -> 시간 리셋
                         if (!nextDone) {
                             return { ...t, done: nextDone, elapsed: 0, isRunning: false };
                         }
 
-                        // 3. 타이머 도중 체크 시 -> 시간 저장하고 완료
                         if (nextDone && t.isRunning) {
                             const now = Date.now();
                             const sessionDuration = now - t.lastStartTime;
@@ -628,7 +626,7 @@
                         
                         {activeInputZone === zone && isToday(viewDate) && (
                             <div className="px-1 mb-2 animate-slideIn">
-                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-bold" />
+                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-medium" />
                             </div>
                         )}
                         
@@ -722,7 +720,6 @@
                                                     <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)} ~ {formatSimpleTime(block.endTime)}</div>
                                                     <div className="text-xs font-bold text-slate-600">{block.name || '집중 시간'}</div>
                                                 </div>
-                                                {/* [수정] 모달 시간 포맷 H M 적용 */}
                                                 <div className={`text-xs font-bold ${isSelected ? 'text-sky-500' : 'text-slate-400'}`}>{formatDurationHM(block.duration)}</div>
                                             </div>
                                         );
