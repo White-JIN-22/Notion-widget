@@ -628,7 +628,7 @@
                         
                         {activeInputZone === zone && isToday(viewDate) && (
                             <div className="px-1 mb-2 animate-slideIn">
-                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-bold" />
+                                <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} placeholder={`${config.label} 할 일 입력...`} className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-medium" />
                             </div>
                         )}
                         
