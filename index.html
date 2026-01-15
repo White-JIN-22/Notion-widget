@@ -605,11 +605,9 @@ const formatLocalYMD = (d) => {
                     totalDuration = tempSession.duration;
                 } else if (type === 'manual') {
                     totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
-                } else if (type === 'manual-switch') {
-                    totalDuration = itemData.duration || 5; 
-                } else if (type === 'manual-rest') {
-                    totalDuration = itemData.duration || 20; 
-                }
+                } else {
+    totalDuration = 10; // 휴식이나 전환행동은 무조건 10분으로 통일
+}
 
                 if (type === 'auto') {
                     startTs = tempSession.startTime;
