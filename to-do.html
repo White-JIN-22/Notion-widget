@@ -262,26 +262,40 @@
 
             const returnToday = () => setViewDate(new Date());
 
+            // 1. 날짜 변경 시 데이터를 불러오는 로직
             useEffect(() => {
                 setCurrentDateDisplay(viewDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
                 
                 if (isToday(viewDate)) {
+                    // 오늘일 때만 로컬 스토리지에서 데이터 로드
                     const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    setTodos(savedTodos);
+                    // 리모트 데이터가 섞여있지 않도록 보장
+                    const localOnly = savedTodos.filter(t => !t.isRemote);
+                    setTodos(localOnly);
                     
                     const lastDate = localStorage.getItem('lastDate');
                     if (lastDate && lastDate !== viewDate.toDateString()) {
-                        handleNewDayReset(viewDate.toDateString(), savedTodos);
+                        handleNewDayReset(viewDate.toDateString(), localOnly);
                     } else {
                         localStorage.setItem('lastDate', viewDate.toDateString());
                     }
                 } else {
+                    // 과거 날짜는 서버(Worker) 데이터만 표시 (로컬 저장소 보호)
                     fetchRemoteTodos(viewDate);
                 }
 
                 fetchCalendarData(viewDate);
-
             }, [viewDate]);
+
+            // 2. 할 일이 변경될 때 로컬 저장소에 저장하는 로직
+            useEffect(() => {
+                // '오늘' 날짜를 보고 있을 때만 로컬 스토리지 업데이트
+                if (isToday(viewDate)) {
+                    // 리모트 데이터(과거 기록)는 제외하고 순수 오늘 할 일만 저장
+                    const toSave = todos.filter(t => !t.isRemote);
+                    localStorage.setItem('jinsolTodos', JSON.stringify(toSave));
+                }
+            }, [todos, viewDate]);
 
             const fetchRemoteTodos = async (date) => {
                 setIsLoading(true);
