@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final Polish)</title>
+    <title>Daily Flow (Design Polish)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -215,7 +215,8 @@
             const zoneConfig = {
                 morning: { label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300', checkboxColor: '#d8b4fe' },
                 afternoon: { label: 'Afternoon', icon: Icons.SunCloud, colorClass: 'text-sky-300', textClass: 'text-sky-300', checkboxColor: '#7dd3fc' },
-                night: { label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300', checkboxColor: '#cbd5e1' }
+                // [수정] Night 색상 짙게 변경 (slate-300 -> slate-400 / #94a3b8)
+                night: { label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-400', textClass: 'text-slate-400', checkboxColor: '#94a3b8' }
             };
 
             const getCategoryColor = (category) => {
@@ -444,6 +445,14 @@
                 setPendingLog(null);
             };
 
+            // [추가] 모달용 시간 포맷터 (H M)
+            const formatDurationHM = (m) => {
+                const hours = Math.floor(m / 60);
+                const mins = m % 60;
+                if (hours > 0) return `${hours}h ${mins}m`;
+                return `${mins}m`;
+            };
+
             const formatTime = (ms) => {
                 if (!ms) return null;
                 const totalMin = Math.floor(ms / 1000 / 60);
@@ -523,11 +532,11 @@
                                         <div key={item.id} className={`todo-item flex items-center gap-3 opacity-90 ${isPassed ? 'event-passed' : ''}`}>
                                             <div className={`shrink-0 w-2 h-2 rounded-full ${dotColorClass} mx-0.5`}></div>
                                             <div className="flex-1 min-w-0">
-                                                <div className={`text-xs font-bold ${config.textClass} ${isPassed ? 'line-through decoration-slate-400/50' : ''}`}>
+                                                {/* [수정] 캘린더 일정 글자색: text-white로 고정 */}
+                                                <div className={`text-xs font-bold text-white ${isPassed ? 'line-through decoration-slate-400/50' : ''}`}>
                                                     {item.title}
                                                 </div>
                                             </div>
-                                            {/* [수정] 캘린더 시간: 10:00 형태로 전체 표시 (맨 오른쪽 정렬) */}
                                             <div className="shrink-0 text-[9px] font-bold text-slate-400 text-center leading-none">
                                                 {item.time}
                                             </div>
@@ -560,7 +569,6 @@
                                         )}
                                     </div>
                                     
-                                    {/* [수정] 버튼 위치 변경: 삭제 -> 시간 -> 타이머 (타이머가 맨 우측에 오도록) */}
                                     <div className="flex items-center gap-3 shrink-0">
                                         <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50"> <Icons.Trash /> </button>
                                         
@@ -602,13 +610,13 @@
                                                     <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)} ~ {formatSimpleTime(block.endTime)}</div>
                                                     <div className="text-xs font-bold text-slate-600">{block.name || '집중 시간'}</div>
                                                 </div>
-                                                <div className={`text-xs font-bold ${isSelected ? 'text-sky-500' : 'text-slate-400'}`}>{block.duration}m</div>
+                                                {/* [수정] 모달 내 시간 포맷: 90m -> 1h 30m */}
+                                                <div className={`text-xs font-bold ${isSelected ? 'text-sky-500' : 'text-slate-400'}`}>{formatDurationHM(block.duration)}</div>
                                             </div>
                                         );
                                     })}
                                 </div>
                                 <div className="mt-4 flex gap-2">
-                                    {/* [수정] 건너뛰기 -> 기록 없이 완료로 명칭 변경 */}
                                     <button onClick={cancelLinkLog} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">기록 없이 완료</button>
                                     <button onClick={confirmLinkLog} className="flex-1 py-2 rounded-xl bg-sky-100 border border-sky-200 text-sky-600 text-xs font-bold hover:bg-sky-200">연동하기</button>
                                 </div>
