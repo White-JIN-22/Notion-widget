@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final Fix)</title>
+    <title>Daily Flow (Final Fix 2)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -235,7 +235,6 @@
             };
 
             const getCategoryColor = (category) => {
-                // [수정] Worker의 키값("업무", "건강" 등)과 정확히 매칭 및 색상 지정
                 switch(category) {
                     case '업무': return 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]'; 
                     case '휴식': return 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.6)]'; 
@@ -279,7 +278,6 @@
                     fetchRemoteTodos(viewDate);
                 }
                 
-                // [수정] 날짜가 바뀔 때마다 캘린더를 새로고침
                 fetchCalendarData(viewDate);
 
             }, [viewDate]);
@@ -336,18 +334,30 @@
                 });
             };
 
+            // [수정: 핵심] 에러 방지 및 데이터 검증 추가
             const fetchCalendarData = async (targetDate) => {
                 try {
                     const res = await fetch(`${WORKER_URL}?type=calendar`);
                     if (res.ok) {
-                        const events = await res.json();
+                        const data = await res.json();
                         
-                        // [수정] 날짜 비교 로직을 '연-월-일' 문자열 비교로 단순화하여 타임존 오류 최소화
+                        // [안전장치] 만약 데이터가 배열이 아니면(에러 객체면) 빈 배열로 처리하고 로그 출력
+                        let events = [];
+                        if (Array.isArray(data)) {
+                            events = data;
+                        } else {
+                            console.warn("⚠️ Calendar Data is NOT an array. Check Worker response:", data);
+                            // 화면이 멈추지 않게 빈 배열 유지
+                            setCalendarEvents([]);
+                            return;
+                        }
+                        
                         const targetYMD = formatLocalYMD(targetDate);
 
                         const processedEvents = events
                             .filter(e => {
-                                // Worker에서 받은 시간(e.startTime)을 날짜 객체로 변환 후 YMD 비교
+                                // 데이터 유효성 검사 추가
+                                if (!e || !e.startTime) return false;
                                 const eDate = new Date(e.startTime);
                                 return formatLocalYMD(eDate) === targetYMD;
                             })
@@ -355,6 +365,8 @@
                                 const start = new Date(e.startTime);
                                 const hour = start.getHours();
                                 let zone = 'night';
+                                
+                                // [오전/오후/밤 로직: 11시는 < 12 이므로 Morning에 뜸]
                                 if (hour < 12) zone = 'morning';
                                 else if (hour < 18) zone = 'afternoon';
                                 
@@ -374,7 +386,8 @@
                         setCalendarEvents(processedEvents);
                     }
                 } catch (e) {
-                    console.error("Calendar fetch failed:", e);
+                    console.error("Calendar fetch failed fully:", e);
+                    setCalendarEvents([]);
                 }
             };
 
@@ -635,7 +648,6 @@
                             {mixedItems.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
                             {mixedItems.map(item => {
                                 if (item.type === 'calendar') {
-                                    // [수정] 점 색상 로직 적용
                                     const dotColorClass = getCategoryColor(item.category);
                                     const isPassed = Date.now() > item.endTime;
                                     
