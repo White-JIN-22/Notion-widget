@@ -1448,7 +1448,7 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                      <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
 
                                          {manualTab === 'focus' && (
-    <div className="px-1 mb-3 relative"> {/* relative 추가 중요! */}
+    <div className="px-1 mb-3 relative"> {/* 여기도 relative 필수! */}
         <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
             <input 
                 type="text" 
@@ -1470,7 +1470,7 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
             </button>
         </div>
 
-        {/* 할 일 목록 드롭다운 */}
+        {/* 목록이 div 안으로 이동 */}
         {showTodoSelect && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[120px] overflow-y-auto no-scrollbar p-1">
                 {todoList.length === 0 ? (
