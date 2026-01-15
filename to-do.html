@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Design Updated)</title>
+    <title>Daily Flow (Star & Link)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -44,7 +44,7 @@
             color: #334155;
         }
 
-        /* [수정] 헤더 패널 스타일: 반투명 하양 배경 + 하단 흰색 실선 */
+        /* 헤더 패널 스타일 */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 1px solid rgba(255, 255, 255, 0.4);
@@ -126,13 +126,18 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             width: 85%;
         }
+        /* [추가] 로그 연동 모달 스타일 */
+        .log-link-modal-content {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 16px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            width: 90%; max-height: 70%; display: flex; flex-direction: column;
+        }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* [수정] 섹션 헤더 스타일 조정 (정렬) */
         .section-header { display: flex; align-items: center; gap: 8px; padding: 10px 4px 6px 4px; }
         .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-        
-        /* [수정] 섹션 라인: flex-1로 남은 공간 채우고 높이 1px */
         .section-line { flex: 1; height: 1px; }
 
         .add-btn { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; background: rgba(255,255,255,0.2); }
@@ -162,6 +167,11 @@
             transition: all 0.2s;
         }
         .weather-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        /* 스크롤바 커스텀 */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
     </style>
 </head>
@@ -175,13 +185,7 @@
         const Icons = {
             Plus: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             Trash: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            SunCloud: ({className}) => (
-                <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path>
-                    <path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path>
-                    <path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path>
-                </svg>
-            ),
+            SunCloud: ({className}) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>),
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
@@ -190,6 +194,8 @@
             Sparkle: () => <svg className="w-6 h-6 text-sky-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>,
             Play: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Pause: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
+            // [추가] 별 아이콘 (Outline & Fill)
+            Star: ({filled, className}) => <svg className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
         };
 
         const App = () => {
@@ -202,6 +208,11 @@
             const [isSending, setIsSending] = useState(false);
             const [pendingLog, setPendingLog] = useState(null);
 
+            // [추가] 로그 연동 모달 상태
+            const [linkingTodoId, setLinkingTodoId] = useState(null);
+            const [todayLogBlocks, setTodayLogBlocks] = useState([]);
+            const [selectedBlockIds, setSelectedBlockIds] = useState([]);
+
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
             const [ticker, setTicker] = useState(0);
@@ -210,18 +221,9 @@
             const editInputRef = useRef(null);
 
             const zoneConfig = {
-                morning: { 
-                    label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300',
-                    checkboxColor: '#d8b4fe'
-                },
-                afternoon: { 
-                    label: 'Afternoon', icon: Icons.SunCloud, colorClass: 'text-sky-300', textClass: 'text-sky-300',
-                    checkboxColor: '#7dd3fc'
-                },
-                night: { 
-                    label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300',
-                    checkboxColor: '#cbd5e1'
-                }
+                morning: { label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300', checkboxColor: '#d8b4fe' },
+                afternoon: { label: 'Afternoon', icon: Icons.SunCloud, colorClass: 'text-sky-300', textClass: 'text-sky-300', checkboxColor: '#7dd3fc' },
+                night: { label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300', checkboxColor: '#cbd5e1' }
             };
 
             useEffect(() => {
@@ -242,9 +244,7 @@
 
                 const timer = setInterval(() => {
                     const currentNow = new Date();
-                    if (localStorage.getItem('lastDate') !== currentNow.toDateString()) {
-                        window.location.reload(); 
-                    }
+                    if (localStorage.getItem('lastDate') !== currentNow.toDateString()) window.location.reload(); 
                     setTicker(prev => prev + 1);
                 }, 30000); 
 
@@ -260,10 +260,7 @@
                 setTimeout(() => setShowNewDayModal(false), 3000);
             };
 
-            useEffect(() => {
-                localStorage.setItem('jinsolTodos', JSON.stringify(todos));
-            }, [todos]);
-
+            useEffect(() => { localStorage.setItem('jinsolTodos', JSON.stringify(todos)); }, [todos]);
             useEffect(() => { if (activeInputZone && inputRef.current) inputRef.current.focus(); }, [activeInputZone]);
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
 
@@ -277,6 +274,7 @@
                     text: inputText, 
                     zone: activeInputZone, 
                     done: false, 
+                    isImportant: false, // [추가] 중요도 플래그
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
@@ -288,7 +286,17 @@
             const startEditing = (todo) => { setEditingId(todo.id); setEditText(todo.text); };
             const saveEdit = () => { if (editText.trim()) { setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t)); } setEditingId(null); };
             
+            // [수정] 완료 체크 시 사후 시간 연동 로직
             const toggleTodo = (id) => { 
+                const targetTodo = todos.find(t => t.id === id);
+                if (!targetTodo) return;
+
+                // [추가] 완료로 변경하는데, 기록된 시간이 0인 경우 -> 연동 모달 띄우기
+                if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
+                    openLogLinkModal(id);
+                    return; // 바로 토글하지 않고 모달로 넘어감
+                }
+
                 setTodos(todos.map(t => {
                     if (t.id === id) {
                         const nextDone = !t.done;
@@ -302,7 +310,61 @@
                     return t;
                 })); 
             };
-            
+
+            // [추가] 중요도 토글
+            const toggleImportant = (id) => {
+                setTodos(todos.map(t => t.id === id ? { ...t, isImportant: !t.isImportant } : t));
+            };
+
+            // [추가] 로그 연동 모달 열기
+            const openLogLinkModal = (id) => {
+                // 로그 위젯 데이터 가져오기
+                const fortressData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const todayStr = new Date().toDateString();
+                
+                if (fortressData.date === todayStr && fortressData.blocks) {
+                    // Focus 타입 블록만 필터링
+                    const focusBlocks = fortressData.blocks.filter(b => b.type === 'focus' || !b.type);
+                    if (focusBlocks.length > 0) {
+                        setTodayLogBlocks(focusBlocks);
+                        setLinkingTodoId(id);
+                        setSelectedBlockIds([]);
+                        return;
+                    }
+                }
+                
+                // 로그가 없으면 그냥 완료 처리
+                setTodos(todos.map(t => t.id === id ? { ...t, done: true } : t));
+                triggerToast("ℹ️ 연동할 로그가 없어서 바로 완료했어요.");
+            };
+
+            // [추가] 로그 연동 확정
+            const confirmLinkLog = () => {
+                if (!linkingTodoId) return;
+
+                const selectedDuration = todayLogBlocks
+                    .filter(b => selectedBlockIds.includes(b.id))
+                    .reduce((acc, b) => acc + (b.duration || 0), 0);
+                
+                const msToAdd = selectedDuration * 60 * 1000;
+
+                setTodos(todos.map(t => {
+                    if (t.id === linkingTodoId) {
+                        return { ...t, done: true, elapsed: t.elapsed + msToAdd };
+                    }
+                    return t;
+                }));
+
+                triggerToast(`🔗 ${selectedDuration}분 연동 완료!`);
+                setLinkingTodoId(null);
+            };
+
+            // [추가] 로그 연동 취소 (그냥 완료 처리)
+            const cancelLinkLog = () => {
+                setTodos(todos.map(t => t.id === linkingTodoId ? { ...t, done: true } : t));
+                setLinkingTodoId(null);
+            };
+
             const deleteTodo = (id) => { setTodos(todos.filter(t => t.id !== id)); };
             const handleKeyDown = (e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') confirmAdd(); if (e.key === 'Escape') setActiveInputZone(null); };
             const handleEditKeyDown = (e) => { if (e.nativeEvent.isComposing) return; if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); };
@@ -312,32 +374,16 @@
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     const todayStr = new Date().toDateString();
                     if (!savedData.date || savedData.date !== todayStr) {
-                        savedData.date = todayStr;
-                        savedData.tickets = 0;
-                        savedData.energy = 100;
-                        savedData.blocks = [];
+                        savedData.date = todayStr; savedData.tickets = 0; savedData.energy = 100; savedData.blocks = [];
                     }
-
-                    const newBlock = {
-                        id: Date.now(),
-                        startTime: startTime,
-                        endTime: endTime,
-                        duration: Math.floor(durationMs / 1000 / 60), 
-                        quality: quality,
-                        type: 'focus',    
-                        name: todoText    
-                    };
-
+                    const newBlock = { id: Date.now(), startTime: startTime, endTime: endTime, duration: Math.floor(durationMs / 1000 / 60), quality: quality, type: 'focus', name: todoText };
                     const consumption = Math.floor(newBlock.duration / 10) * 5;
                     savedData.tickets = (savedData.tickets || 0) + 1;
                     savedData.energy = Math.max(0, (savedData.energy || 100) - consumption);
                     savedData.blocks = [newBlock, ...(savedData.blocks || [])];
-
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
                     triggerToast(`💾 기록 완료 (${newBlock.duration}분)`);
-                } catch (e) {
-                    console.error("Auto-log failed:", e);
-                }
+                } catch (e) { console.error("Auto-log failed:", e); }
             };
 
             const handleTimerClick = (e, todo) => {
@@ -345,19 +391,12 @@
                 if (todo.isRunning) {
                     const now = Date.now();
                     const duration = now - todo.lastStartTime;
-                    
                     if (duration < 60000) {
                         triggerToast("⚠️ 1분 미만은 기록 안 됨");
                         setTodos(todos.map(t => t.id === todo.id ? { ...t, isRunning: false, lastStartTime: null } : t));
                         return;
                     }
-                    setPendingLog({
-                        id: todo.id,
-                        text: todo.text,
-                        startTime: todo.lastStartTime,
-                        endTime: now,
-                        duration: duration
-                    });
+                    setPendingLog({ id: todo.id, text: todo.text, startTime: todo.lastStartTime, endTime: now, duration: duration });
                 } else {
                     setTodos(todos.map(t => {
                         if (t.id === todo.id) return { ...t, isRunning: true, lastStartTime: Date.now() };
@@ -370,9 +409,7 @@
                 if (!pendingLog) return;
                 saveSessionToLog(pendingLog.text, pendingLog.startTime, pendingLog.endTime, pendingLog.duration, quality);
                 setTodos(todos.map(t => {
-                    if (t.id === pendingLog.id) {
-                        return { ...t, isRunning: false, elapsed: t.elapsed + pendingLog.duration, lastStartTime: null };
-                    }
+                    if (t.id === pendingLog.id) { return { ...t, isRunning: false, elapsed: t.elapsed + pendingLog.duration, lastStartTime: null }; }
                     return t;
                 }));
                 setPendingLog(null);
@@ -388,55 +425,46 @@
                 return `${m}m`;
             };
 
+            const formatSimpleTime = (ts) => {
+                const d = new Date(ts);
+                return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            };
+
             const sendToNotion = async () => {
                 if (isSending) return;
                 setIsSending(true);
                 triggerToast("☁️ 노션에 저장 중...");
-
                 try {
                     const todoSummary = todos.map(t => {
                         let totalMs = t.elapsed;
-                        if (t.isRunning && t.lastStartTime) {
-                            totalMs += (Date.now() - t.lastStartTime);
-                        }
+                        if (t.isRunning && t.lastStartTime) totalMs += (Date.now() - t.lastStartTime);
                         const timeStr = formatTime(totalMs);
                         const status = t.done ? "✅" : "⬜";
-                        return `${status} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
+                        const star = t.isImportant ? "⭐" : "";
+                        return `${status}${star} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
                     }).join('\n');
-
-                    const payload = {
-                        date: new Date().toISOString().split('T')[0],
-                        todos: todoSummary, 
-                        isTodoUpdate: true 
-                    };
-
-                    const res = await fetch(WORKER_URL, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (res.ok) triggerToast("✅ 저장 완료!");
-                    else throw new Error("전송 실패");
-
-                } catch (e) {
-                    console.error(e);
-                    triggerToast("⚠️ 저장 실패 (Worker 확인)");
-                } finally {
-                    setIsSending(false);
-                }
+                    const payload = { date: new Date().toISOString().split('T')[0], todos: todoSummary, isTodoUpdate: true };
+                    const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+                    if (res.ok) triggerToast("✅ 저장 완료!"); else throw new Error("전송 실패");
+                } catch (e) { console.error(e); triggerToast("⚠️ 저장 실패 (Worker 확인)"); } finally { setIsSending(false); }
             };
 
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
                 const Icon = config.icon;
-                const zoneTodos = todos.filter(t => t.zone === zone).sort((a, b) => { if (a.done === b.done) return b.id - a.id; return a.done ? 1 : -1; });
+                
+                // [수정] 정렬 로직: 미완료 > 완료, 중요 > 안중요, 최신 > 과거
+                const zoneTodos = todos.filter(t => t.zone === zone).sort((a, b) => { 
+                    if (a.done !== b.done) return a.done ? 1 : -1; 
+                    if (a.isImportant !== b.isImportant) return b.isImportant ? 1 : -1;
+                    return b.id - a.id; 
+                });
                 
                 return (
                     <div className="mb-2">
                         <div className="section-header">
                             <Icon className={`w-4 h-4 ${config.colorClass}`} />
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
-                            {/* [복구] 섹션 라인: 단색 실선 */}
                             <div className="section-line" style={{ background: config.checkboxColor }}></div>
                             <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
                                 {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
@@ -451,13 +479,16 @@
                             {zoneTodos.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
                             {zoneTodos.map(todo => {
                                 let currentMs = todo.elapsed;
-                                if (todo.isRunning && todo.lastStartTime) {
-                                    currentMs += (Date.now() - todo.lastStartTime);
-                                }
+                                if (todo.isRunning && todo.lastStartTime) currentMs += (Date.now() - todo.lastStartTime);
                                 const timeDisplay = formatTime(currentMs);
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center p-2 gap-2 ${todo.done ? 'todo-done' : ''}`}>
+                                    {/* [추가] 중요도 별 아이콘 */}
+                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-yellow-300' : 'text-slate-400/50 hover:text-yellow-100'}`}>
+                                        <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
+                                    </button>
+
                                     <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
                                     <div className="flex-1 min-w-0 flex items-center gap-2" onDoubleClick={() => startEditing(todo)}>
                                         {editingId === todo.id ? ( 
@@ -470,15 +501,7 @@
                                         )}
                                     </div>
                                     {!todo.done && (
-                                        <button 
-                                            onClick={(e) => handleTimerClick(e, todo)} 
-                                            className={`timer-btn shrink-0 ${todo.isRunning ? 'timer-active' : ''}`} 
-                                            style={{ 
-                                                color: todo.isRunning ? '#fff' : config.checkboxColor,
-                                                backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)',
-                                                borderColor: config.checkboxColor
-                                            }}
-                                        >
+                                        <button onClick={(e) => handleTimerClick(e, todo)} className={`timer-btn shrink-0 ${todo.isRunning ? 'timer-active' : ''}`} style={{ color: todo.isRunning ? '#fff' : config.checkboxColor, backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)', borderColor: config.checkboxColor }}>
                                             {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
                                         </button>
                                     )}
@@ -493,27 +516,60 @@
             return (
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
+                    
+                    {/* 로그 연동 모달 */}
+                    {linkingTodoId && (
+                        <div className="modal-overlay" onClick={cancelLinkLog}>
+                            <div className="log-link-modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="mb-3 text-center">
+                                    <h3 className="text-sm font-bold text-slate-700 font-serif">｡✧ Link Logs ✧｡</h3>
+                                    <p className="text-[10px] text-slate-500 mt-1">기록된 시간을 이 할 일에 추가할까요?<br/>(복수 선택 가능)</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1">
+                                    {todayLogBlocks.map(block => {
+                                        const isSelected = selectedBlockIds.includes(block.id);
+                                        return (
+                                            <div key={block.id} onClick={() => {
+                                                if (isSelected) setSelectedBlockIds(prev => prev.filter(id => id !== block.id));
+                                                else setSelectedBlockIds(prev => [...prev, block.id]);
+                                            }} className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'bg-sky-50 border-sky-300' : 'bg-white/50 border-slate-200 hover:bg-white'}`}>
+                                                <div>
+                                                    <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)} ~ {formatSimpleTime(block.endTime)}</div>
+                                                    <div className="text-xs font-bold text-slate-600">{block.name || '집중 시간'}</div>
+                                                </div>
+                                                <div className={`text-xs font-bold ${isSelected ? 'text-sky-500' : 'text-slate-400'}`}>{block.duration}m</div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <button onClick={cancelLinkLog} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">건너뛰기</button>
+                                    <button onClick={confirmLinkLog} className="flex-1 py-2 rounded-xl bg-sky-100 border border-sky-200 text-sky-600 text-xs font-bold hover:bg-sky-200">연동하기</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 몰입도 선택 모달 */}
                     {pendingLog && (
                         <div className="modal-overlay" onClick={() => setPendingLog(null)}>
                             <div className="weather-modal-content" onClick={e => e.stopPropagation()}>
                                 <h3 className="text-sm font-bold text-slate-700 mb-3 font-serif">｡✧ How was it? ✧｡</h3>
                                 <div className="grid grid-cols-3 gap-2">
                                     <button onClick={() => confirmLog('Sun')} className="weather-btn">
-                                        <Icons.Sun className="w-8 h-8 text-purple-300 mx-auto mb-1"/>
-                                        <span className="text-[10px] font-bold text-slate-600">Clear</span>
+                                        <Icons.Sun className="w-8 h-8 text-purple-300 mx-auto mb-1"/><span className="text-[10px] font-bold text-slate-600">Clear</span>
                                     </button>
                                     <button onClick={() => confirmLog('Cloud')} className="weather-btn">
-                                        <Icons.Cloud className="w-8 h-8 text-sky-300 mx-auto mb-1"/>
-                                        <span className="text-[10px] font-bold text-slate-600">Cloudy</span>
+                                        <Icons.Cloud className="w-8 h-8 text-sky-300 mx-auto mb-1"/><span className="text-[10px] font-bold text-slate-600">Cloudy</span>
                                     </button>
                                     <button onClick={() => confirmLog('Rain')} className="weather-btn">
-                                        <Icons.Rain className="w-8 h-8 text-slate-400 mx-auto mb-1"/>
-                                        <span className="text-[10px] font-bold text-slate-600">Heavy</span>
+                                        <Icons.Rain className="w-8 h-8 text-slate-400 mx-auto mb-1"/><span className="text-[10px] font-bold text-slate-600">Heavy</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     )}
+
                     {showNewDayModal && (
                         <div className="new-day-modal">
                             <div className="modal-content">
@@ -524,7 +580,6 @@
                         </div>
                     )}
 
-                    {/* [수정] 헤더 영역 패널 디자인 적용 */}
                     <div className="header-section">
                         <div className="flex justify-between items-start mb-1">
                             <h1 className="text-lg font-bold text-white font-serif tracking-tight">Daily Flow</h1>
@@ -532,11 +587,9 @@
                                 {isSending ? <span className="text-xs animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4"/>}
                             </button>
                         </div>
-                        {/* [수정] 날짜 스카이블루 색상 적용 */}
                         <p className="text-xs font-bold mb-2 text-sky-300">
                             {currentDateDisplay}
                         </p>
-                        {/* [수정] 프로그래스 바 스카이블루 적용 */}
                         <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                             <div className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]" style={{ width: `${(todos.filter(t=>t.done).length / Math.max(todos.length, 1)) * 100}%` }}></div>
                         </div>
