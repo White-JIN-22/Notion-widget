@@ -263,6 +263,7 @@
             const [manualEndMin, setManualEndMin] = useState(0);
             const [manualDurHour, setManualDurHour] = useState(0);
             const [manualDurMin, setManualDurMin] = useState(30);
+            const [focusMemo, setFocusMemo] = useState('');
 
             const [isSending, setIsSending] = useState(false);
             const lastAutoSyncRef = useRef(Date.now());
@@ -654,7 +655,8 @@
 
                 newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
-                    quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color
+                    quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color,
+                    memo: (type === 'auto' || type === 'manual') ? focusMemo : null
                 };
 
                 let newEnergy = energy;
@@ -688,6 +690,7 @@
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
 
+                setFocusMemo('');
                 if (type === 'auto') {
                     setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null);
                 }
@@ -1078,46 +1081,48 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    <div className="header-section">
-                        <div className="flex justify-between items-start mb-2">
-                            <div>
-                                <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
-                                
-                                <div className="flex justify-between items-center mt-4 w-full min-w-[120px] text-sky-300 text-xs font-bold">
-                                    <div className="flex items-center gap-1">
-                                        <Icons.Zap className="w-4 h-4"/>
-                                        <span>{energy}%</span>
-                                    </div>
+                    // [바꿀 코드 전체] header-section 내부
+<div className="header-section">
+    <div className="flex justify-between items-start mb-2">
+        <div className="w-full">
+            {/* 상단: 제목 + 버튼들 */}
+            <div className="flex justify-between items-center">
+                <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
+                <div className="flex gap-2 items-center"> 
+                    <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                        {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
+                    </button>
+                    <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
+                        <Icons.Sun className="w-4 h-4 text-white" />
+                    </button>
+                </div>
+            </div>
 
-                                    <div className="flex items-center gap-1">
-                                        <Icons.Ticket className="w-4 h-4"/>
-                                        <span>{tickets}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="flex gap-2 items-start"> 
-                                <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                    {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
-                                </button>
-                                
-                                <div className="flex flex-col items-center gap-1">
-                                    <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
-                                        <Icons.Sun className="w-4 h-4 text-white" />
-                                    </button>
-                                    {wakeUpTime && (
-                                        <span className="text-xs font-bold text-white tracking-tight">
-                                            {wakeUpTime}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                            <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-                        </div>
+            {/* 하단: 상태바 (에너지 | 티켓 | 기상시간 한 줄 정렬) */}
+            <div className="flex items-center gap-4 mt-3 text-sky-300 text-xs font-bold">
+                <div className="flex items-center gap-1">
+                    <Icons.Zap className="w-4 h-4"/>
+                    <span>{energy}%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Icons.Ticket className="w-4 h-4"/>
+                    <span>{tickets}</span>
+                </div>
+                {/* 기상시간을 여기로 이동 */}
+                {wakeUpTime && (
+                    <div className="flex items-center gap-1 text-white/80 border-l border-white/20 pl-4">
+                        <Icons.Sun className="w-3 h-3" />
+                        <span className="tracking-tight">{wakeUpTime}</span>
                     </div>
+                )}
+            </div>
+        </div>
+    </div>
+
+    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
+    </div>
+</div>
 
                     <div className="px-4 flex gap-2 mb-3 mt-3">
                         {['main', 'niche', 'rest'].map(tab => (
@@ -1167,6 +1172,14 @@
                                                                         <div className="text-sm font-bold text-bright mb-0.5">
                                                                             {formatDuration(block.duration)}
                                                                         </div>
+
+                                                                        {/* 메모가 있으면 보여주기 */}
+    {block.memo && (
+        <div className="text-xs text-sky-300 font-bold truncate mb-0.5">
+            {block.memo}
+        </div>
+    )}
+                                                                        
                                                                         <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                                                     </div>
                                                                 )}
@@ -1317,6 +1330,18 @@
                                             )}
                                     </div>
 
+                                        {manualTab === 'focus' && (
+    <div className="px-1 mb-3">
+        <input 
+            type="text" 
+            placeholder="어떤 일에 집중했나요?" 
+            value={focusMemo}
+            onChange={(e) => setFocusMemo(e.target.value)}
+            className="w-full bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
+        />
+    </div>
+)}
+
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
                                             {manualTab === 'focus' && (
                                                 <div className="grid grid-cols-3 gap-2">
@@ -1354,6 +1379,18 @@
                                 {modalType === 'check' && (
                                      <>
                                      <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
+
+                                         {/* [추가할 코드] 버튼들 위에 입력창 삽입 */}
+     <div className="px-1 mb-4">
+        <input 
+            type="text" 
+            placeholder="방금 무엇을 하셨나요?" 
+            value={focusMemo}
+            onChange={(e) => setFocusMemo(e.target.value)}
+            className="w-full bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
+        />
+    </div>
+                                         
                                      <div className="grid grid-cols-3 gap-2">
                                          <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
                                          <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky-300"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
