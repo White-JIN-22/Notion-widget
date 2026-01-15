@@ -772,15 +772,17 @@
                                         const isSelected = selectedBlockIds.includes(block.id);
                                         return (
                                             <div key={block.id} onClick={() => {
-                                                if (isSelected) setSelectedBlockIds(prev => prev.filter(id => id !== block.id));
-                                                else setSelectedBlockIds(prev => [...prev, block.id]);
-                                            }} className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'bg-sky-50 border-sky-300' : 'bg-white/50 border-slate-200 hover:bg-white'}`}>
-                                                <div>
-                                                    <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)} ~ {formatSimpleTime(block.endTime)}</div>
-                                                    <div className="text-xs font-bold text-slate-600">{block.name || '집중 시간'}</div>
-                                                </div>
-                                                <div className={`text-xs font-bold ${isSelected ? 'text-sky-500' : 'text-slate-400'}`}>{formatDurationHM(block.duration)}</div>
-                                            </div>
+    if (isSelected) setSelectedBlockIds(prev => prev.filter(id => id !== block.id));
+    else setSelectedBlockIds(prev => [...prev, block.id]);
+/* ▼ bg-sky-50, border-sky-300을 bg-purple-50, border-purple-300으로 변경 */
+}} className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'bg-purple-50 border-purple-300' : 'bg-white/50 border-slate-200 hover:bg-white'}`}>
+    <div>
+        <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)} ~ {formatSimpleTime(block.endTime)}</div>
+        <div className="text-xs font-bold text-slate-600">{block.name || '집중 시간'}</div>
+    </div>
+    {/* ▼ text-sky-500을 text-purple-500으로 변경 */}
+    <div className={`text-xs font-bold ${isSelected ? 'text-purple-500' : 'text-slate-400'}`}>{formatDurationHM(block.duration)}</div>
+</div>
                                         );
                                     })}
                                 </div>
