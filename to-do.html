@@ -511,19 +511,47 @@
             
             const saveSessionToLog = (todoText, startTime, endTime, durationMs, quality) => {
                 try {
-                    const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    // 1. 저장 직전에 최신 데이터를 다시 로드 (덮어쓰기 방지)
+                    const rawData = localStorage.getItem('fortressData');
+                    const savedData = rawData ? JSON.parse(rawData) : {};
+                    
                     const todayStr = new Date().toDateString();
+
+                    // 날짜가 바뀌었거나 데이터가 없으면 초기화
                     if (!savedData.date || savedData.date !== todayStr) {
-                        savedData.date = todayStr; savedData.tickets = 0; savedData.energy = 100; savedData.blocks = [];
+                        savedData.date = todayStr;
+                        savedData.tickets = 0;
+                        savedData.energy = 100;
+                        savedData.blocks = [];
                     }
-                    const newBlock = { id: Date.now(), startTime: startTime, endTime: endTime, duration: Math.floor(durationMs / 1000 / 60), quality: quality, type: 'focus', name: todoText };
+
+                    // 2. 블록 추가
+                    const newBlock = { 
+                        id: Date.now(), 
+                        startTime: startTime, 
+                        endTime: endTime, 
+                        duration: Math.floor(durationMs / 1000 / 60), 
+                        quality: quality, 
+                        type: 'focus', 
+                        name: todoText 
+                    };
+
+                    // 3. 에너지/티켓 계산
                     const consumption = Math.floor(newBlock.duration / 10) * 5;
                     savedData.tickets = (savedData.tickets || 0) + 1;
-                    savedData.energy = Math.max(0, (savedData.energy || 100) - consumption);
+                    savedData.energy = Math.max(0, (savedData.energy !== undefined ? savedData.energy : 100) - consumption);
+                    
+                    // 기존 블록 앞에 새 블록 추가 (최신순)
                     savedData.blocks = [newBlock, ...(savedData.blocks || [])];
+
+                    // 4. 저장
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
                     triggerToast(`💾 기록 완료 (${newBlock.duration}분)`);
-                } catch (e) { console.error("Auto-log failed:", e); }
+                    
+                } catch (e) { 
+                    console.error("Auto-log failed:", e); 
+                    triggerToast("⚠️ 저장 실패");
+                }
             };
 
             const handleTimerClick = (e, todo) => {
