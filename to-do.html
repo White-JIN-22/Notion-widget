@@ -626,6 +626,25 @@
                 } catch (e) { console.error(e); triggerToast("⚠️ 저장 실패 (Worker 확인)"); } finally { setIsSending(false); }
             };
 
+            // [추가] 60분 간격 자동 동기화 (to-do 전용)
+            useEffect(() => {
+                const checkInterval = setInterval(() => {
+                    const now = Date.now();
+                    // index.html과 겹치지 않도록 'lastTodoSyncTime'이라는 별도의 키를 사용
+                    const lastSync = parseInt(localStorage.getItem('lastTodoSyncTime') || '0');
+                    const ONE_HOUR = 60 * 60 * 1000; // 60분 (밀리초 단위)
+
+                    // 조건: 60분이 지났고 + 오늘 날짜를 보고 있으며 + 현재 전송 중이 아니고 + 데이터가 있을 때
+                    if (now - lastSync >= ONE_HOUR && isToday(viewDate) && !isSending && todos.length > 0) {
+                        triggerToast("☁️ 정기 데이터 동기화 중...");
+                        sendToNotion();
+                        localStorage.setItem('lastTodoSyncTime', now.toString());
+                    }
+                }, 60000); // 1분마다 조건 검사
+
+                return () => clearInterval(checkInterval);
+            }, [todos, viewDate, isSending]); // 데이터가 변경될 때마다 최신 상태를 반영해 검사
+
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
                 const Icon = config.icon;
