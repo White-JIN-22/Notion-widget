@@ -1361,54 +1361,54 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                     </div>
 
                                         {manualTab === 'focus' && (
-    <div className="px-1 mb-3"> {/* mb-3 정도 여백 줌 */}
-        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
-            <input 
-                type="text" 
-                placeholder="어떤 일에 집중했나요?" 
-                value={focusMemo}
-                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
-            />
-            {/* 버튼을 입력창 안으로 이동 & 아이콘 변경 */}
-            <button 
-                onClick={() => {
-                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    const todays = saved.filter(t => !t.isRemote); 
-                    setTodoList(todays);
-                    setShowTodoSelect(!showTodoSelect);
-                }}
-                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
-            >
-                <Icons.CheckCircle className="w-5 h-5" /> 
-            </button>
+    <>
+        <div className="px-1 mb-3"> 
+            <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+                <input 
+                    type="text" 
+                    placeholder="어떤 일에 집중했나요?" 
+                    value={focusMemo}
+                    onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                    className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+                />
+                <button 
+                    onClick={() => {
+                        const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                        const todays = saved.filter(t => !t.isRemote); 
+                        setTodoList(todays);
+                        setShowTodoSelect(!showTodoSelect);
+                    }}
+                    className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+                >
+                    <Icons.CheckCircle className="w-5 h-5" /> 
+                </button>
+            </div>
         </div>
 
-                                                    {showTodoSelect && (
-                                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
-                                                            {todoList.length === 0 ? (
-                                                                <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
-                                                            ) : (
-                                                                todoList.map(todo => (
-                                                                    <button 
-                                                                        key={todo.id}
-                                                                        onClick={() => {
-                                                                            setFocusMemo(todo.text);
-                                                                            setSelectedTodoId(todo.id);
-                                                                            setShowTodoSelect(false);
-                                                                        }}
-                                                                        className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
-                                                                    >
-                                                                        <span className="truncate">{todo.text}</span>
-                                                                        {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
-                                                                    </button>
-                                                                ))
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
+        {showTodoSelect && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
+                {todoList.length === 0 ? (
+                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                ) : (
+                    todoList.map(todo => (
+                        <button 
+                            key={todo.id}
+                            onClick={() => {
+                                setFocusMemo(todo.text);
+                                setSelectedTodoId(todo.id);
+                                setShowTodoSelect(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
+                        >
+                            <span className="truncate">{todo.text}</span>
+                            {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
+                        </button>
+                    ))
+                )}
+            </div>
+        )}
+    </>
+)}
 
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
                                             {manualTab === 'focus' && (
@@ -1449,53 +1449,54 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                      <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
 
                                          {manualTab === 'focus' && (
-    <div className="px-1 mb-3"> {/* mb-3 정도 여백 줌 */}
-        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
-            <input 
-                type="text" 
-                placeholder="어떤 일에 집중했나요?" 
-                value={focusMemo}
-                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
-            />
-            {/* 버튼을 입력창 안으로 이동 & 아이콘 변경 */}
-            <button 
-                onClick={() => {
-                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    const todays = saved.filter(t => !t.isRemote); 
-                    setTodoList(todays);
-                    setShowTodoSelect(!showTodoSelect);
-                }}
-                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
-            >
-                <Icons.CheckCircle className="w-5 h-5" /> 
-            </button>
+    <>
+        <div className="px-1 mb-3"> 
+            <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+                <input 
+                    type="text" 
+                    placeholder="어떤 일에 집중했나요?" 
+                    value={focusMemo}
+                    onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                    className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+                />
+                <button 
+                    onClick={() => {
+                        const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                        const todays = saved.filter(t => !t.isRemote); 
+                        setTodoList(todays);
+                        setShowTodoSelect(!showTodoSelect);
+                    }}
+                    className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+                >
+                    <Icons.CheckCircle className="w-5 h-5" /> 
+                </button>
+            </div>
         </div>
 
-                                        {showTodoSelect && (
-                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
-                                                {todoList.length === 0 ? (
-                                                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
-                                                ) : (
-                                                    todoList.map(todo => (
-                                                        <button 
-                                                            key={todo.id}
-                                                            onClick={() => {
-                                                                setFocusMemo(todo.text);
-                                                                setSelectedTodoId(todo.id);
-                                                                setShowTodoSelect(false);
-                                                            }}
-                                                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
-                                                        >
-                                                            <span className="truncate">{todo.text}</span>
-                                                            {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
-                                                        </button>
-                                                    ))
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
+        {showTodoSelect && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
+                {todoList.length === 0 ? (
+                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                ) : (
+                    todoList.map(todo => (
+                        <button 
+                            key={todo.id}
+                            onClick={() => {
+                                setFocusMemo(todo.text);
+                                setSelectedTodoId(todo.id);
+                                setShowTodoSelect(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
+                        >
+                            <span className="truncate">{todo.text}</span>
+                            {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
+                        </button>
+                    ))
+                )}
+            </div>
+        )}
+    </>
+)}
                                          
                                      <div className="grid grid-cols-3 gap-2">
                                          <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
