@@ -264,6 +264,10 @@
             const [manualDurHour, setManualDurHour] = useState(0);
             const [manualDurMin, setManualDurMin] = useState(30);
             const [focusMemo, setFocusMemo] = useState('');
+            // [추가] 할 일 연동을 위한 상태
+const [todoList, setTodoList] = useState([]); // 불러온 할 일 목록
+const [selectedTodoId, setSelectedTodoId] = useState(null); // 선택한 할 일 ID
+const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림 여부
 
             const [isSending, setIsSending] = useState(false);
             const lastAutoSyncRef = useRef(Date.now());
@@ -685,12 +689,38 @@
                 // [수정] 티켓 획득 로직: focus일 때 40분마다 1장
                 const earned = (resolvedType === 'focus') ? Math.floor(totalDuration / 30) : 0;
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
-                
+                {/* ▼▼▼ 여기서부터 붙여넣기 ▼▼▼ */}
+                // [추가] 선택된 할 일이 있다면 Flow 위젯 데이터(jinsolTodos) 직접 업데이트
+                if (selectedTodoId) {
+                    try {
+                        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                        const updatedTodos = savedTodos.map(t => {
+                            if (t.id === selectedTodoId) {
+                                // 기존 시간(elapsed)에 이번 집중 시간(ms) 추가
+                                const addedMs = totalDuration * 60 * 1000;
+                                return { 
+                                    ...t, 
+                                    done: true, // 완료 처리
+                                    elapsed: (t.elapsed || 0) + addedMs, // 시간 누적
+                                    isRunning: false 
+                                };
+                            }
+                            return t;
+                        });
+                        localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+                    } catch (e) {
+                        console.error("Todo update failed", e);
+                    }
+                }
+                {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
 
                 setFocusMemo('');
+                // [추가] 선택 상태 초기화
+                setSelectedTodoId(null);
+                setShowTodoSelect(false);
                 if (type === 'auto') {
                     setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null);
                 }
@@ -1329,17 +1359,56 @@
                                             )}
                                     </div>
 
-                                        {manualTab === 'focus' && (
-    <div className="px-1 mb-3">
-        <input 
-            type="text" 
-            placeholder="어떤 일에 집중했나요?" 
-            value={focusMemo}
-            onChange={(e) => setFocusMemo(e.target.value)}
-            className="w-full bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
-        />
-    </div>
-)}
+                                        {/* ▼▼▼ 여기서부터 붙여넣기 ▼▼▼ */}
+                                            {manualTab === 'focus' && (
+                                                <div className="px-1 mb-3 relative">
+                                                    <div className="flex gap-2">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="어떤 일에 집중했나요?" 
+                                                            value={focusMemo}
+                                                            onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                                                            className="flex-1 bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
+                                                        />
+                                                        <button 
+                                                            onClick={() => {
+                                                                const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                                                                const todayStr = new Date().toDateString();
+                                                                const todays = saved.filter(t => !t.isRemote); 
+                                                                setTodoList(todays);
+                                                                setShowTodoSelect(!showTodoSelect);
+                                                            }}
+                                                            className={`w-10 rounded-xl border flex items-center justify-center transition-all ${selectedTodoId ? 'bg-sky-100 border-sky-300 text-sky-500' : 'bg-white/50 border-white/60 text-slate-400 hover:bg-white'}`}
+                                                        >
+                                                            <Icons.Ticket className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+
+                                                    {showTodoSelect && (
+                                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
+                                                            {todoList.length === 0 ? (
+                                                                <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                                                            ) : (
+                                                                todoList.map(todo => (
+                                                                    <button 
+                                                                        key={todo.id}
+                                                                        onClick={() => {
+                                                                            setFocusMemo(todo.text);
+                                                                            setSelectedTodoId(todo.id);
+                                                                            setShowTodoSelect(false);
+                                                                        }}
+                                                                        className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
+                                                                    >
+                                                                        <span className="truncate">{todo.text}</span>
+                                                                        {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
+                                                                    </button>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
 
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
                                             {manualTab === 'focus' && (
@@ -1379,16 +1448,53 @@
                                      <>
                                      <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
 
-                                         {/* [추가할 코드] 버튼들 위에 입력창 삽입 */}
-     <div className="px-1 mb-4">
-        <input 
-            type="text" 
-            placeholder="방금 무엇을 하셨나요?" 
-            value={focusMemo}
-            onChange={(e) => setFocusMemo(e.target.value)}
-            className="w-full bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
-        />
-    </div>
+                                         {/* ▼▼▼ 여기서부터 붙여넣기 (위와 동일한 코드) ▼▼▼ */}
+                                     <div className="px-1 mb-4 relative">
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                placeholder="방금 무엇을 하셨나요?" 
+                                                value={focusMemo}
+                                                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                                                className="flex-1 bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
+                                            />
+                                            <button 
+                                                onClick={() => {
+                                                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                                                    const todays = saved.filter(t => !t.isRemote); 
+                                                    setTodoList(todays);
+                                                    setShowTodoSelect(!showTodoSelect);
+                                                }}
+                                                className={`w-10 rounded-xl border flex items-center justify-center transition-all ${selectedTodoId ? 'bg-sky-100 border-sky-300 text-sky-500' : 'bg-white/50 border-white/60 text-slate-400 hover:bg-white'}`}
+                                            >
+                                                <Icons.Ticket className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        {showTodoSelect && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
+                                                {todoList.length === 0 ? (
+                                                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                                                ) : (
+                                                    todoList.map(todo => (
+                                                        <button 
+                                                            key={todo.id}
+                                                            onClick={() => {
+                                                                setFocusMemo(todo.text);
+                                                                setSelectedTodoId(todo.id);
+                                                                setShowTodoSelect(false);
+                                                            }}
+                                                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between"
+                                                        >
+                                                            <span className="truncate">{todo.text}</span>
+                                                            {todo.done && <span className="text-[9px] text-sky-400 ml-2">완료됨</span>}
+                                                        </button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
                                          
                                      <div className="grid grid-cols-3 gap-2">
                                          <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
