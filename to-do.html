@@ -334,39 +334,46 @@
                 });
             };
 
-            // [수정: 핵심] 에러 방지 및 데이터 검증 추가
+            // [수정: 데이터 검증 로직 강화 및 디버깅 로그 추가]
             const fetchCalendarData = async (targetDate) => {
                 try {
                     const res = await fetch(`${WORKER_URL}?type=calendar`);
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // [안전장치] 만약 데이터가 배열이 아니면(에러 객체면) 빈 배열로 처리하고 로그 출력
-                        let events = [];
-                        if (Array.isArray(data)) {
-                            events = data;
-                        } else {
-                            console.warn("⚠️ Calendar Data is NOT an array. Check Worker response:", data);
-                            // 화면이 멈추지 않게 빈 배열 유지
+                        // [Debug] 받아온 전체 데이터 개수 확인
+                        console.log(`📆 Calendar Loaded: ${Array.isArray(data) ? data.length : 0} events found.`);
+                        
+                        if (!Array.isArray(data)) {
+                            console.warn("⚠️ Calendar data is not an array:", data);
                             setCalendarEvents([]);
                             return;
                         }
-                        
-                        const targetYMD = formatLocalYMD(targetDate);
 
-                        const processedEvents = events
+                        const targetYMD = formatLocalYMD(targetDate);
+                        
+                        // [Debug] 타겟 날짜 확인
+                        console.log(`🎯 Filtering for date: ${targetYMD}`);
+
+                        const processedEvents = data
                             .filter(e => {
-                                // 데이터 유효성 검사 추가
                                 if (!e || !e.startTime) return false;
                                 const eDate = new Date(e.startTime);
-                                return formatLocalYMD(eDate) === targetYMD;
+                                const eventYMD = formatLocalYMD(eDate);
+                                
+                                // [Debug] 오늘 날짜 데이터만 로그 찍어보기 (너무 많으면 주석 처리)
+                                if (eventYMD === targetYMD) {
+                                    console.log(`✅ Event Match: ${e.title} (${e.category}) at ${eDate.toLocaleTimeString()}`);
+                                }
+                                
+                                return eventYMD === targetYMD;
                             })
                             .map((e, idx) => {
                                 const start = new Date(e.startTime);
                                 const hour = start.getHours();
                                 let zone = 'night';
                                 
-                                // [오전/오후/밤 로직: 11시는 < 12 이므로 Morning에 뜸]
+                                // [시간 구분] 00~11:59 Morning, 12:00~17:59 Afternoon, 18:00~ Night
                                 if (hour < 12) zone = 'morning';
                                 else if (hour < 18) zone = 'afternoon';
                                 
@@ -383,7 +390,9 @@
                                     category: e.category 
                                 };
                             });
+                        
                         setCalendarEvents(processedEvents);
+                        console.log(`✨ Final processed events for widget: ${processedEvents.length}`);
                     }
                 } catch (e) {
                     console.error("Calendar fetch failed fully:", e);
