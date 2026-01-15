@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Weather Selector)</title>
+    <title>Daily Flow (Design Updated)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -42,6 +42,15 @@
             flex-direction: column;
             overflow: hidden;
             color: #334155;
+        }
+
+        /* [수정] 헤더 패널 스타일: 반투명 하양 배경 + 하단 흰색 실선 */
+        .header-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 20px 20px 16px 20px;
+            backdrop-filter: blur(5px);
+            flex-shrink: 0;
         }
 
         .todo-item {
@@ -119,8 +128,13 @@
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        /* [수정] 섹션 헤더 스타일 조정 (정렬) */
         .section-header { display: flex; align-items: center; gap: 8px; padding: 10px 4px 6px 4px; }
         .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        /* [수정] 섹션 라인: flex-1로 남은 공간 채우고 높이 1px */
+        .section-line { flex: 1; height: 1px; }
+
         .add-btn { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; background: rgba(255,255,255,0.2); }
         .add-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); }
         .edit-input { width: 100%; background: transparent; border: none; outline: none; font-size: 0.75rem; font-weight: 700; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; }
@@ -161,8 +175,6 @@
         const Icons = {
             Plus: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             Trash: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            
-            // [수정] Afternoon용 해가 있는 구름 아이콘
             SunCloud: ({className}) => (
                 <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path>
@@ -170,7 +182,6 @@
                     <path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path>
                 </svg>
             ),
-            
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
@@ -189,9 +200,7 @@
             const [showNewDayModal, setShowNewDayModal] = useState(false);
             const [currentDateDisplay, setCurrentDateDisplay] = useState('');
             const [isSending, setIsSending] = useState(false);
-
-            // [추가] 몰입도 선택 모달 관련 상태
-            const [pendingLog, setPendingLog] = useState(null); // { id, text, startTime, endTime, duration }
+            const [pendingLog, setPendingLog] = useState(null);
 
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
@@ -203,16 +212,15 @@
             const zoneConfig = {
                 morning: { 
                     label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300',
-                    checkboxColor: '#d8b4fe' // 보라
+                    checkboxColor: '#d8b4fe'
                 },
                 afternoon: { 
-                    // [수정] Afternoon 아이콘 변경
                     label: 'Afternoon', icon: Icons.SunCloud, colorClass: 'text-sky-300', textClass: 'text-sky-300',
-                    checkboxColor: '#7dd3fc' // 하늘
+                    checkboxColor: '#7dd3fc'
                 },
                 night: { 
                     label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300',
-                    checkboxColor: '#cbd5e1' // 회색
+                    checkboxColor: '#cbd5e1'
                 }
             };
 
@@ -285,8 +293,6 @@
                     if (t.id === id) {
                         const nextDone = !t.done;
                         if (nextDone && t.isRunning) {
-                            // 체크박스로 완료 시에는 강제 저장 (기본값 Cloud) 혹은 저장 안함 정책
-                            // 여기서는 편의상 자동 저장 없이 그냥 타이머만 끄고 시간 합산
                             const now = Date.now();
                             const sessionDuration = now - t.lastStartTime;
                             return { ...t, done: nextDone, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
@@ -304,7 +310,6 @@
             const saveSessionToLog = (todoText, startTime, endTime, durationMs, quality) => {
                 try {
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    
                     const todayStr = new Date().toDateString();
                     if (!savedData.date || savedData.date !== todayStr) {
                         savedData.date = todayStr;
@@ -318,7 +323,7 @@
                         startTime: startTime,
                         endTime: endTime,
                         duration: Math.floor(durationMs / 1000 / 60), 
-                        quality: quality, // [수정] 선택한 몰입도 반영
+                        quality: quality,
                         type: 'focus',    
                         name: todoText    
                     };
@@ -326,33 +331,26 @@
                     const consumption = Math.floor(newBlock.duration / 10) * 5;
                     savedData.tickets = (savedData.tickets || 0) + 1;
                     savedData.energy = Math.max(0, (savedData.energy || 100) - consumption);
-                    
                     savedData.blocks = [newBlock, ...(savedData.blocks || [])];
 
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
                     triggerToast(`💾 기록 완료 (${newBlock.duration}분)`);
-                    
                 } catch (e) {
                     console.error("Auto-log failed:", e);
                 }
             };
 
-            // [수정] 타이머 토글 로직 분리
             const handleTimerClick = (e, todo) => {
                 e.stopPropagation();
-                
                 if (todo.isRunning) {
-                    // [정지 시도] -> 모달 오픈
                     const now = Date.now();
                     const duration = now - todo.lastStartTime;
                     
                     if (duration < 60000) {
                         triggerToast("⚠️ 1분 미만은 기록 안 됨");
-                        // 그냥 끄기
                         setTodos(todos.map(t => t.id === todo.id ? { ...t, isRunning: false, lastStartTime: null } : t));
                         return;
                     }
-
                     setPendingLog({
                         id: todo.id,
                         text: todo.text,
@@ -360,9 +358,7 @@
                         endTime: now,
                         duration: duration
                     });
-
                 } else {
-                    // [시작] -> 즉시 시작
                     setTodos(todos.map(t => {
                         if (t.id === todo.id) return { ...t, isRunning: true, lastStartTime: Date.now() };
                         return t; 
@@ -370,19 +366,15 @@
                 }
             };
 
-            // [추가] 모달에서 몰입도 선택 시 확정 처리
             const confirmLog = (quality) => {
                 if (!pendingLog) return;
-                
                 saveSessionToLog(pendingLog.text, pendingLog.startTime, pendingLog.endTime, pendingLog.duration, quality);
-
                 setTodos(todos.map(t => {
                     if (t.id === pendingLog.id) {
                         return { ...t, isRunning: false, elapsed: t.elapsed + pendingLog.duration, lastStartTime: null };
                     }
                     return t;
                 }));
-
                 setPendingLog(null);
             };
 
@@ -444,8 +436,8 @@
                         <div className="section-header">
                             <Icon className={`w-4 h-4 ${config.colorClass}`} />
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
-                            {/* [수정] 라인 색상을 섹션 테마색으로, 단색 실선 적용 */}
-                            <div className="section-line" style={{ height: '1px', background: config.checkboxColor, opacity: 0.8 }}></div>
+                            {/* [복구] 섹션 라인: 단색 실선 */}
+                            <div className="section-line" style={{ background: config.checkboxColor }}></div>
                             <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
                                 {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
                             </button>
@@ -467,24 +459,20 @@
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center p-2 gap-2 ${todo.done ? 'todo-done' : ''}`}>
                                     <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
-                                    
                                     <div className="flex-1 min-w-0 flex items-center gap-2" onDoubleClick={() => startEditing(todo)}>
                                         {editingId === todo.id ? ( 
                                             <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
                                         ) : ( 
                                             <>
-                                                {/* [수정] 폰트 두께 normal~medium으로 얇게 변경 */}
                                                 <div className={`text-xs font-medium truncate transition-colors cursor-text flex-1 ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정"> {todo.text} </div>
                                                 {timeDisplay && <span className="text-[10px] text-slate-400 font-medium shrink-0">{timeDisplay}</span>}
                                             </>
                                         )}
                                     </div>
-
                                     {!todo.done && (
                                         <button 
                                             onClick={(e) => handleTimerClick(e, todo)} 
                                             className={`timer-btn shrink-0 ${todo.isRunning ? 'timer-active' : ''}`} 
-                                            // [수정] 버튼 색상도 영역별 색상 따라감 (활성화 시엔 흰색/배경색, 비활성 시엔 텍스트색)
                                             style={{ 
                                                 color: todo.isRunning ? '#fff' : config.checkboxColor,
                                                 backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)',
@@ -494,7 +482,6 @@
                                             {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
                                         </button>
                                     )}
-
                                     <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50 shrink-0"> <Icons.Trash /> </button>
                                 </div>
                             )})}
@@ -506,8 +493,6 @@
             return (
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
-                    
-                    {/* [추가] 몰입도 선택 모달 */}
                     {pendingLog && (
                         <div className="modal-overlay" onClick={() => setPendingLog(null)}>
                             <div className="weather-modal-content" onClick={e => e.stopPropagation()}>
@@ -529,7 +514,6 @@
                             </div>
                         </div>
                     )}
-
                     {showNewDayModal && (
                         <div className="new-day-modal">
                             <div className="modal-content">
@@ -540,22 +524,25 @@
                         </div>
                     )}
 
-                    <div className="p-5 pb-1 shrink-0">
-                        <p className="text-xs font-bold mb-0.5" style={{ color: '#E0F7FA', opacity: 0.9 }}>
-                            {currentDateDisplay}
-                        </p>
-                        <div className="flex justify-between items-center mb-2">
-                            <h1 className="text-xl font-bold text-white font-serif tracking-tight">Daily Flow</h1>
+                    {/* [수정] 헤더 영역 패널 디자인 적용 */}
+                    <div className="header-section">
+                        <div className="flex justify-between items-start mb-1">
+                            <h1 className="text-lg font-bold text-white font-serif tracking-tight">Daily Flow</h1>
                             <button onClick={sendToNotion} disabled={isSending} className="w-7 h-7 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/30 transition-all shadow-sm">
                                 {isSending ? <span className="text-xs animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4"/>}
                             </button>
                         </div>
+                        {/* [수정] 날짜 스카이블루 색상 적용 */}
+                        <p className="text-xs font-bold mb-2 text-sky-300">
+                            {currentDateDisplay}
+                        </p>
+                        {/* [수정] 프로그래스 바 스카이블루 적용 */}
                         <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
                             <div className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]" style={{ width: `${(todos.filter(t=>t.done).length / Math.max(todos.length, 1)) * 100}%` }}></div>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-6 pt-0">
+                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-6 pt-2">
                         {renderSection('morning')}
                         {renderSection('afternoon')}
                         {renderSection('night')}
