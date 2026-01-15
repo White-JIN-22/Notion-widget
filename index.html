@@ -691,6 +691,36 @@ const formatLocalYMD = (d) => {
                 }
             };
 
+            // [추가] 집중 시간 연장 함수
+            const extendDuration = (id) => {
+                const now = Date.now();
+                const targetBlock = blocks.find(b => b.id === id);
+                
+                if (!targetBlock) return;
+
+                // 새로운 지속시간 계산 (현재시간 - 시작시간)
+                const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
+                
+                if (newDuration <= targetBlock.duration) {
+                    triggerToast("⚠️ 이미 지난 시간입니다.");
+                    return;
+                }
+
+                // 에너지 재계산 (늘어난 시간만큼 추가 소모)
+                const oldCost = Math.floor(targetBlock.duration / 10) * 5;
+                const newCost = Math.floor(newDuration / 10) * 5;
+                const costDiff = newCost - oldCost;
+                const newEnergy = Math.max(0, energy - costDiff);
+
+                // 블록 업데이트
+                const newBlocks = blocks.map(b => 
+                    b.id === id ? { ...b, endTime: now, duration: newDuration } : b
+                );
+
+                saveData(tickets, newEnergy, newBlocks);
+                triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
+            };
+
             const confirmDelete = (id) => {
                 setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
             };
@@ -1090,6 +1120,8 @@ const formatLocalYMD = (d) => {
                                                 ) : (
                                                     visibleData.map((block) => {
                                                         const isCompact = block.type === 'switch' || block.type === 'rest';
+                                                        // [추가] 집중 기록인지 확인 (집중 기록에만 연장 버튼 표시)
+                                                        const isFocus = block.type === 'focus' || !block.type;
                                                         
                                                         return (
                                                             <div key={block.id} className={isCompact ? "log-item-compact" : "log-item"}>
@@ -1108,6 +1140,16 @@ const formatLocalYMD = (d) => {
                                                                         </div>
                                                                         <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                                                     </div>
+                                                                )}
+
+                                                                {/* [추가] 시간 연장 버튼 (집중 기록일 때만 보임, 쓰레기통 왼쪽 배치) */}
+                                                                {isFocus && (
+                                                                    <button 
+                                                                        onClick={() => extendDuration(block.id)} 
+                                                                        className="absolute right-9 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-[#bae6fd] p-1 transition-colors"
+                                                                    >
+                                                                        <Icons.Plus />
+                                                                    </button>
                                                                 )}
 
                                                                 <button onClick={() => confirmDelete(block.id)} className="universal-delete-btn"><Icons.Trash /></button>
