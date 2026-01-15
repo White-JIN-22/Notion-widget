@@ -381,6 +381,32 @@ const formatLocalYMD = (d) => {
                 return () => clearInterval(interval);
             }, []);
 
+            // [추가] 다른 탭(To-Do)에서 데이터가 변경되면 즉시 감지하여 반영
+            useEffect(() => {
+                const handleStorageChange = (e) => {
+                    if (e.key === 'fortressData' && e.newValue) {
+                        try {
+                            const newData = JSON.parse(e.newValue);
+                            // 날짜가 오늘인 경우에만 즉시 UI 반영
+                            if (newData.date === new Date().toDateString()) {
+                                setBlocks(newData.blocks || []);
+                                setTickets(newData.tickets || 0);
+                                setEnergy(newData.energy || 0);
+                                if (newData.wakeUpTime) setWakeUpTime(newData.wakeUpTime);
+                                
+                                // 변경사항이 감지되면 서버 동기화 로직도 조용히 한 번 실행 (데이터 보정)
+                                triggerToast("🔄 외부 기록 연동됨");
+                            }
+                        } catch (err) {
+                            console.error("Storage sync error:", err);
+                        }
+                    }
+                };
+
+                window.addEventListener('storage', handleStorageChange);
+                return () => window.removeEventListener('storage', handleStorageChange);
+            }, []);
+
             // [수정] 초기 로딩 시에도 날짜 필터링 적용 (오염된 데이터 즉시 청소)
             useEffect(() => {
                 const today = new Date().toDateString();
