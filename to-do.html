@@ -224,8 +224,7 @@
 
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
-            const [ticker, setTicker] = useState(0);
-
+            
             const inputRef = useRef(null);
             const editInputRef = useRef(null);
 
@@ -236,11 +235,12 @@
             };
 
             const getCategoryColor = (category) => {
+                // [수정] Worker의 키값("업무", "건강" 등)과 정확히 매칭 및 색상 지정
                 switch(category) {
-                    case '업무': return 'bg-sky-300 shadow-[0_0_8px_rgba(125,211,252,0.8)]'; 
+                    case '업무': return 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]'; 
                     case '휴식': return 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.6)]'; 
-                    case '자기계발': return 'bg-purple-300 shadow-[0_0_8px_rgba(216,180,254,0.8)]'; 
-                    case '건강': return 'bg-yellow-200 shadow-[0_0_8px_rgba(253,230,138,0.8)]'; 
+                    case '자기계발': return 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.8)]'; 
+                    case '건강': return 'bg-yellow-300 shadow-[0_0_8px_rgba(253,224,71,0.8)]'; 
                     default: return 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]';
                 }
             };
@@ -278,7 +278,8 @@
                 } else {
                     fetchRemoteTodos(viewDate);
                 }
-
+                
+                // [수정] 날짜가 바뀔 때마다 캘린더를 새로고침
                 fetchCalendarData(viewDate);
 
             }, [viewDate]);
@@ -318,7 +319,7 @@
                     const timeMatch = text.match(/\((.*?)\)$/);
                     let timeDisplay = null;
                     if (timeMatch) {
-                        timeDisplay = timeMatch[1].toUpperCase(); // 대문자 처리
+                        timeDisplay = timeMatch[1].toUpperCase();
                         text = text.replace(timeMatch[0], '').trim();
                     }
 
@@ -335,15 +336,21 @@
                 });
             };
 
-            const fetchCalendarData = async (targetDate = new Date()) => {
+            const fetchCalendarData = async (targetDate) => {
                 try {
                     const res = await fetch(`${WORKER_URL}?type=calendar`);
                     if (res.ok) {
                         const events = await res.json();
-                        const targetDateStr = targetDate.toDateString();
                         
+                        // [수정] 날짜 비교 로직을 '연-월-일' 문자열 비교로 단순화하여 타임존 오류 최소화
+                        const targetYMD = formatLocalYMD(targetDate);
+
                         const processedEvents = events
-                            .filter(e => new Date(e.startTime).toDateString() === targetDateStr)
+                            .filter(e => {
+                                // Worker에서 받은 시간(e.startTime)을 날짜 객체로 변환 후 YMD 비교
+                                const eDate = new Date(e.startTime);
+                                return formatLocalYMD(eDate) === targetYMD;
+                            })
                             .map((e, idx) => {
                                 const start = new Date(e.startTime);
                                 const hour = start.getHours();
@@ -422,7 +429,6 @@
                 const targetTodo = todos.find(t => t.id === id);
                 if (!targetTodo || targetTodo.isRemote) return; 
 
-                // 1. 체크하려는데 시간이 없으면 -> 모달 오픈
                 if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
                     openLogLinkModal(id);
                     return; 
@@ -431,18 +437,14 @@
                 setTodos(todos.map(t => {
                     if (t.id === id) {
                         const nextDone = !t.done;
-                        
-                        // [수정] 체크 해제 시 -> 시간 리셋
                         if (!nextDone) {
                             return { ...t, done: nextDone, elapsed: 0, isRunning: false };
                         }
-
                         if (nextDone && t.isRunning) {
                             const now = Date.now();
                             const sessionDuration = now - t.lastStartTime;
                             return { ...t, done: nextDone, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
                         }
-                        
                         return { ...t, done: nextDone };
                     }
                     return t;
@@ -549,7 +551,6 @@
                 setPendingLog(null);
             };
 
-            // [수정] 대문자 H M 적용
             const formatDurationHM = (m) => {
                 const hours = Math.floor(m / 60);
                 const mins = m % 60;
@@ -634,6 +635,7 @@
                             {mixedItems.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
                             {mixedItems.map(item => {
                                 if (item.type === 'calendar') {
+                                    // [수정] 점 색상 로직 적용
                                     const dotColorClass = getCategoryColor(item.category);
                                     const isPassed = Date.now() > item.endTime;
                                     
