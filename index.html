@@ -234,7 +234,8 @@
             Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
             Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
             Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
-            Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>
+            Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>,
+            CheckCircle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
         };
 
         const App = () => {
@@ -1359,30 +1360,29 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                             )}
                                     </div>
 
-                                        {/* ▼▼▼ 여기서부터 붙여넣기 ▼▼▼ */}
-                                            {manualTab === 'focus' && (
-                                                <div className="px-1 mb-3 relative">
-                                                    <div className="flex gap-2">
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="어떤 일에 집중했나요?" 
-                                                            value={focusMemo}
-                                                            onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                                                            className="flex-1 bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
-                                                        />
-                                                        <button 
-                                                            onClick={() => {
-                                                                const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                                                                const todayStr = new Date().toDateString();
-                                                                const todays = saved.filter(t => !t.isRemote); 
-                                                                setTodoList(todays);
-                                                                setShowTodoSelect(!showTodoSelect);
-                                                            }}
-                                                            className={`w-10 rounded-xl border flex items-center justify-center transition-all ${selectedTodoId ? 'bg-sky-100 border-sky-300 text-sky-500' : 'bg-white/50 border-white/60 text-slate-400 hover:bg-white'}`}
-                                                        >
-                                                            <Icons.Ticket className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
+                                        {manualTab === 'focus' && (
+    <div className="px-1 mb-3"> {/* mb-3 정도 여백 줌 */}
+        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+            <input 
+                type="text" 
+                placeholder="어떤 일에 집중했나요?" 
+                value={focusMemo}
+                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+            />
+            {/* 버튼을 입력창 안으로 이동 & 아이콘 변경 */}
+            <button 
+                onClick={() => {
+                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                    const todays = saved.filter(t => !t.isRemote); 
+                    setTodoList(todays);
+                    setShowTodoSelect(!showTodoSelect);
+                }}
+                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+            >
+                <Icons.CheckCircle className="w-5 h-5" /> 
+            </button>
+        </div>
 
                                                     {showTodoSelect && (
                                                         <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
@@ -1448,28 +1448,29 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                      <>
                                      <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
 
-                                         {/* ▼▼▼ 여기서부터 붙여넣기 (위와 동일한 코드) ▼▼▼ */}
-                                     <div className="px-1 mb-4 relative">
-                                        <div className="flex gap-2">
-                                            <input 
-                                                type="text" 
-                                                placeholder="방금 무엇을 하셨나요?" 
-                                                value={focusMemo}
-                                                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                                                className="flex-1 bg-white/50 border border-white/60 rounded-xl px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-sky-300 focus:bg-white/80 transition-all font-bold"
-                                            />
-                                            <button 
-                                                onClick={() => {
-                                                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                                                    const todays = saved.filter(t => !t.isRemote); 
-                                                    setTodoList(todays);
-                                                    setShowTodoSelect(!showTodoSelect);
-                                                }}
-                                                className={`w-10 rounded-xl border flex items-center justify-center transition-all ${selectedTodoId ? 'bg-sky-100 border-sky-300 text-sky-500' : 'bg-white/50 border-white/60 text-slate-400 hover:bg-white'}`}
-                                            >
-                                                <Icons.Ticket className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                         {manualTab === 'focus' && (
+    <div className="px-1 mb-3"> {/* mb-3 정도 여백 줌 */}
+        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+            <input 
+                type="text" 
+                placeholder="어떤 일에 집중했나요?" 
+                value={focusMemo}
+                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+            />
+            {/* 버튼을 입력창 안으로 이동 & 아이콘 변경 */}
+            <button 
+                onClick={() => {
+                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                    const todays = saved.filter(t => !t.isRemote); 
+                    setTodoList(todays);
+                    setShowTodoSelect(!showTodoSelect);
+                }}
+                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+            >
+                <Icons.CheckCircle className="w-5 h-5" /> 
+            </button>
+        </div>
 
                                         {showTodoSelect && (
                                             <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-20 max-h-[120px] overflow-y-auto no-scrollbar p-1">
