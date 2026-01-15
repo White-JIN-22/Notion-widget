@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Final Design)</title>
+    <title>Daily Flow (Calendar Integration)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -44,7 +44,6 @@
             color: #334155;
         }
 
-        /* 헤더 패널 스타일 */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 1px solid rgba(255, 255, 255, 0.4);
@@ -53,22 +52,17 @@
             flex-shrink: 0;
         }
 
-        /* [수정] 박스 스타일 제거 (투명 배경) */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            /* background, border 제거됨 */
-            padding: 6px 4px; /* 간격 미세 조정 */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 얇은 구분선만 살짝 (선택 사항) */
+            padding: 6px 4px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
             transition: all 0.2s ease;
         }
         .todo-item:hover {
-            background: rgba(255, 255, 255, 0.1); /* 호버 시에만 살짝 표시 */
+            background: rgba(255, 255, 255, 0.1); 
             border-radius: 8px;
         }
-        
-        .todo-done {
-            opacity: 0.5;
-        }
+        .todo-done { opacity: 0.5; }
 
         .custom-checkbox {
             appearance: none;
@@ -117,6 +111,13 @@
             z-index: 200;
             animation: fadeIn 0.3s ease-out;
         }
+        .log-link-modal-content {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 16px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            width: 90%; max-height: 70%; display: flex; flex-direction: column;
+        }
         .weather-modal-content {
             background: rgba(255, 255, 255, 0.95);
             padding: 16px; border-radius: 20px;
@@ -124,13 +125,6 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.8);
             width: 85%;
-        }
-        .log-link-modal-content {
-            background: rgba(255, 255, 255, 0.98);
-            padding: 16px; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            width: 90%; max-height: 70%; display: flex; flex-direction: column;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
@@ -196,6 +190,14 @@
 
         const App = () => {
             const [todos, setTodos] = useState([]);
+            // [추가] 캘린더 이벤트 상태 (여기서 가짜 데이터를 넣어둠)
+            const [calendarEvents, setCalendarEvents] = useState([
+                { id: 'c1', title: '팀 미팅', time: '10:00', type: 'calendar', zone: 'morning', category: 'work' },
+                { id: 'c2', title: '점심 약속', time: '12:30', type: 'calendar', zone: 'afternoon', category: 'rest' },
+                { id: 'c3', title: '필라테스', time: '19:00', type: 'calendar', zone: 'night', category: 'health' },
+                { id: 'c4', title: '영어 공부', time: '21:00', type: 'calendar', zone: 'night', category: 'self' },
+            ]);
+
             const [activeInputZone, setActiveInputZone] = useState(null);
             const [inputText, setInputText] = useState('');
             const [toast, setToast] = useState(null);
@@ -219,6 +221,17 @@
                 morning: { label: 'Morning', icon: Icons.Sun, colorClass: 'text-purple-300', textClass: 'text-purple-300', checkboxColor: '#d8b4fe' },
                 afternoon: { label: 'Afternoon', icon: Icons.SunCloud, colorClass: 'text-sky-300', textClass: 'text-sky-300', checkboxColor: '#7dd3fc' },
                 night: { label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300', checkboxColor: '#cbd5e1' }
+            };
+
+            // [추가] 카테고리별 색상 점 매핑
+            const getCategoryColor = (category) => {
+                switch(category) {
+                    case 'work': return 'bg-sky-300 shadow-[0_0_8px_rgba(125,211,252,0.8)]'; // 업무: 스카이블루
+                    case 'rest': return 'bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.6)]'; // 휴식: 회색
+                    case 'self': return 'bg-purple-300 shadow-[0_0_8px_rgba(216,180,254,0.8)]'; // 자기계발: 보라
+                    case 'health': return 'bg-yellow-200 shadow-[0_0_8px_rgba(253,230,138,0.8)]'; // 건강: 노랑
+                    default: return 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]';
+                }
             };
 
             useEffect(() => {
@@ -273,7 +286,8 @@
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
-                    lastStartTime: null 
+                    lastStartTime: null,
+                    type: 'todo' // 타입 명시
                 };
                 setTodos([...todos, newTodo]); setInputText(''); triggerToast("✨ 저장됨!");
             };
@@ -431,10 +445,23 @@
                 const config = zoneConfig[zone];
                 const Icon = config.icon;
                 
-                const zoneTodos = todos.filter(t => t.zone === zone).sort((a, b) => { 
-                    if (a.done !== b.done) return a.done ? 1 : -1; 
-                    if (a.isImportant !== b.isImportant) return b.isImportant ? 1 : -1;
-                    return b.id - a.id; 
+                // [수정] 캘린더 이벤트와 할 일을 합쳐서 보여줌
+                const zoneTodos = todos.filter(t => t.zone === zone);
+                const zoneEvents = calendarEvents.filter(e => e.zone === zone);
+                
+                // 정렬: 중요 > 이벤트 > 할일
+                // 여기서는 단순히 합쳐서 보여주는 예시
+                const mixedItems = [...zoneEvents, ...zoneTodos].sort((a, b) => {
+                    // 이벤트(calendar)가 할일(todo)보다 위로? 혹은 시간순? 
+                    // 일단 사용자가 '할일'은 중요도 정렬을 원하니 할 일 끼리는 중요도 정렬
+                    if (a.type === 'calendar' && b.type === 'calendar') return a.time.localeCompare(b.time); // 시간순
+                    if (a.type === 'todo' && b.type === 'todo') {
+                        if (a.done !== b.done) return a.done ? 1 : -1; 
+                        if (a.isImportant !== b.isImportant) return b.isImportant ? 1 : -1;
+                        return b.id - a.id; 
+                    }
+                    // 캘린더 이벤트를 할 일보다 위에 둘지 아래 둘지 (일단 캘린더 위로)
+                    return a.type === 'calendar' ? -1 : 1;
                 });
                 
                 return (
@@ -453,37 +480,58 @@
                             </div>
                         )}
                         <div className="space-y-2 px-1">
-                            {zoneTodos.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
-                            {zoneTodos.map(todo => {
+                            {mixedItems.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
+                            {mixedItems.map(item => {
+                                // [캘린더 아이템 렌더링]
+                                if (item.type === 'calendar') {
+                                    const dotColorClass = getCategoryColor(item.category);
+                                    return (
+                                        <div key={item.id} className="todo-item flex items-center gap-3 opacity-90">
+                                            {/* 별 위치에 컬러 점 */}
+                                            <div className={`shrink-0 w-2 h-2 rounded-full ${dotColorClass} mx-0.5`}></div>
+                                            
+                                            {/* 체크박스 위치 비워두기 (혹은 시간 표시) */}
+                                            <div className="shrink-0 w-3.5 text-[9px] font-bold text-slate-400 text-center leading-none">
+                                                {item.time.split(':')[0]}
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`text-xs font-bold ${config.textClass}`}>
+                                                    {item.title}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                // [기존 할 일 렌더링]
+                                const todo = item;
                                 let currentMs = todo.elapsed;
                                 if (todo.isRunning && todo.lastStartTime) currentMs += (Date.now() - todo.lastStartTime);
                                 const timeDisplay = formatTime(currentMs);
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-3 ${todo.done ? 'todo-done' : ''}`}>
-                                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                                        {/* [수정] 중요도 별 아이콘: 흰색으로 변경 */}
-                                        <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-white' : 'text-slate-400/50 hover:text-white'}`}>
-                                            <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
-                                        </button>
+                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-white' : 'text-slate-400/50 hover:text-white'}`}>
+                                        <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
+                                    </button>
 
-                                        <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
-                                        
-                                        <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
-                                            {editingId === todo.id ? ( 
-                                                <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
-                                            ) : ( 
-                                                <div className="flex flex-col">
-                                                    {/* [수정] 텍스트 줄바꿈 허용 */}
-                                                    <div className={`text-xs font-medium transition-colors cursor-text whitespace-pre-wrap break-all ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정">
-                                                        {todo.text}
-                                                    </div>
+                                    <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
+                                    
+                                    <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
+                                        {editingId === todo.id ? ( 
+                                            <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
+                                        ) : ( 
+                                            <div className="flex flex-col">
+                                                <div className={`text-xs font-medium transition-colors cursor-text whitespace-pre-wrap break-all ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정">
+                                                    {todo.text}
                                                 </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    {/* [수정] 타이머 버튼 간격 확보 및 위치 조정 */}
+                                    <div className="flex items-center gap-3 shrink-0">
                                         {timeDisplay && <span className="text-[10px] text-slate-400 font-medium">{timeDisplay}</span>}
                                         
                                         {!todo.done && (
