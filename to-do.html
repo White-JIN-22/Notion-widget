@@ -338,7 +338,7 @@
             // [수정] 캐시 방지 및 데이터 파싱 로직 강화
             const fetchCalendarData = async (targetDate) => {
                 try {
-                    // [핵심] &t=${Date.now()} 추가 -> 매번 새로운 요청으로 인식
+                    // [핵심] &t=${Date.now()} 추가 -> 매번 새로운 요청으로 인식해서 캐시 무시!
                     const res = await fetch(`${WORKER_URL}?type=calendar&t=${Date.now()}`);
                     if (res.ok) {
                         const data = await res.json();
@@ -364,6 +364,7 @@
                                 const hour = start.getHours();
                                 let zone = 'night';
                                 
+                                // 11시는 hour가 11이므로 'morning'으로 분류됨
                                 if (hour < 12) zone = 'morning';
                                 else if (hour < 18) zone = 'afternoon';
                                 
