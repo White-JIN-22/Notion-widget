@@ -333,8 +333,13 @@ const formatLocalYMD = (d) => {
                         localBlocks.forEach(b => blockMap.set(b.id, b)); 
 
                         const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-                        cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
 
+                        // [수정] 좀비 부활 방지: 로컬에 이미 오늘 데이터가 초기화되어 있다면(date가 오늘이면), 서버 데이터를 굳이 가져와 섞지 않음.
+                        // 즉, 내가 방금 지운 게 서버에서 다시 돌아오는 것을 막습니다.
+                        if (savedData.date !== dateStr) {
+                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
+                        }
+                        
                         const mergedBlocks = Array.from(blockMap.values());
                         setBlocks(mergedBlocks);
 
