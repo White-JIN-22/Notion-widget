@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Calendar Sync)</title>
+    <title>Daily Flow (Final Polish)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -62,10 +62,7 @@
             background: rgba(255, 255, 255, 0.1); 
             border-radius: 8px;
         }
-        /* 완료된 할 일 (투명도 0.5 적용) */
         .todo-done { opacity: 0.5; }
-        
-        /* 지난 일정 (투명도 0.5 적용) */
         .event-passed { opacity: 0.5; }
 
         .custom-checkbox {
@@ -194,7 +191,6 @@
 
         const App = () => {
             const [todos, setTodos] = useState([]);
-            // [수정] 워커에서 받아올 캘린더 이벤트 상태
             const [calendarEvents, setCalendarEvents] = useState([]);
 
             const [activeInputZone, setActiveInputZone] = useState(null);
@@ -222,7 +218,6 @@
                 night: { label: 'Night', icon: Icons.Moon, colorClass: 'text-slate-300', textClass: 'text-slate-300', checkboxColor: '#cbd5e1' }
             };
 
-            // 카테고리별 색상 점 매핑
             const getCategoryColor = (category) => {
                 switch(category) {
                     case '업무': return 'bg-sky-300 shadow-[0_0_8px_rgba(125,211,252,0.8)]'; 
@@ -249,7 +244,6 @@
                     localStorage.setItem('lastDate', todayStr);
                 }
 
-                // [추가] 캘린더 데이터 가져오기 (통합 워커 사용)
                 fetchCalendarData();
 
                 const timer = setInterval(() => {
@@ -258,7 +252,6 @@
                     setTicker(prev => prev + 1);
                 }, 30000); 
 
-                // 5분마다 캘린더 갱신
                 const calTimer = setInterval(fetchCalendarData, 300000);
 
                 return () => {
@@ -267,14 +260,11 @@
                 };
             }, []);
 
-            // [추가] 캘린더 데이터 Fetch 함수
             const fetchCalendarData = async () => {
                 try {
-                    // ?type=calendar 파라미터 추가
                     const res = await fetch(`${WORKER_URL}?type=calendar`);
                     if (res.ok) {
                         const events = await res.json();
-                        // 오늘 날짜의 이벤트만 필터링하고 필요한 속성 가공
                         const todayStr = new Date().toDateString();
                         
                         const processedEvents = events
@@ -286,18 +276,17 @@
                                 if (hour < 12) zone = 'morning';
                                 else if (hour < 18) zone = 'afternoon';
                                 
-                                // 시간 문자열 (HH:MM)
                                 const timeStr = start.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
                                 
                                 return {
                                     id: `cal-${idx}-${e.startTime}`,
                                     title: e.title,
                                     time: timeStr,
-                                    startTime: e.startTime, // 원본 타임스탬프 (정렬 및 지난 일정 확인용)
+                                    startTime: e.startTime, 
                                     endTime: e.endTime,
                                     type: 'calendar',
                                     zone: zone,
-                                    category: e.category // 업무, 휴식 등
+                                    category: e.category 
                                 };
                             });
                         setCalendarEvents(processedEvents);
@@ -496,18 +485,10 @@
                 const zoneTodos = todos.filter(t => t.zone === zone);
                 const zoneEvents = calendarEvents.filter(e => e.zone === zone);
                 
-                // [정렬] 시간순으로 섞어서 보여줌 (할 일은 생성 시간 기준 ID를 가지므로 대략적인 시간 흐름 반영)
-                // 중요 할 일은 맨 위로 올리기 위해 별도 처리
                 const importantTodos = zoneTodos.filter(t => t.isImportant).sort((a,b) => b.id - a.id);
                 const normalTodos = zoneTodos.filter(t => !t.isImportant);
                 
-                // 일반 할 일과 일정을 시간순 등으로 섞을 수 있으나, 여기서는 일정을 먼저, 그 다음 할 일 순서로 배치
-                // 혹은 '마감 시간' 개념이 없으므로 일정을 상단에 배치하는 것이 깔끔함.
-                // 중요 할 일 -> 일정(시간순) -> 일반 할 일(최신순)
-                
-                // 캘린더 이벤트 시간순 정렬
                 const sortedEvents = zoneEvents.sort((a, b) => a.startTime - b.startTime);
-                // 일반 할 일 최신순 정렬
                 const sortedNormalTodos = normalTodos.sort((a, b) => a.done === b.done ? b.id - a.id : a.done ? 1 : -1);
 
                 const mixedItems = [
@@ -534,33 +515,26 @@
                         <div className="space-y-2 px-1">
                             {mixedItems.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
                             {mixedItems.map(item => {
-                                // [캘린더 아이템 렌더링]
                                 if (item.type === 'calendar') {
                                     const dotColorClass = getCategoryColor(item.category);
-                                    // [수정] 지난 일정 확인 (반투명 & 취소선 처리)
                                     const isPassed = Date.now() > item.endTime;
                                     
                                     return (
                                         <div key={item.id} className={`todo-item flex items-center gap-3 opacity-90 ${isPassed ? 'event-passed' : ''}`}>
-                                            {/* 별 위치에 컬러 점 (지난 일정은 점도 흐릿해짐) */}
                                             <div className={`shrink-0 w-2 h-2 rounded-full ${dotColorClass} mx-0.5`}></div>
-                                            
-                                            {/* 시간 표시 */}
-                                            <div className="shrink-0 w-3.5 text-[9px] font-bold text-slate-400 text-center leading-none">
-                                                {item.time.split(':')[0]}
-                                            </div>
-
                                             <div className="flex-1 min-w-0">
-                                                {/* [수정] 지난 일정 취소선 적용 */}
                                                 <div className={`text-xs font-bold ${config.textClass} ${isPassed ? 'line-through decoration-slate-400/50' : ''}`}>
                                                     {item.title}
                                                 </div>
+                                            </div>
+                                            {/* [수정] 캘린더 시간: 10:00 형태로 전체 표시 (맨 오른쪽 정렬) */}
+                                            <div className="shrink-0 text-[9px] font-bold text-slate-400 text-center leading-none">
+                                                {item.time}
                                             </div>
                                         </div>
                                     );
                                 }
 
-                                // [기존 할 일 렌더링]
                                 const todo = item;
                                 let currentMs = todo.elapsed;
                                 if (todo.isRunning && todo.lastStartTime) currentMs += (Date.now() - todo.lastStartTime);
@@ -586,7 +560,10 @@
                                         )}
                                     </div>
                                     
+                                    {/* [수정] 버튼 위치 변경: 삭제 -> 시간 -> 타이머 (타이머가 맨 우측에 오도록) */}
                                     <div className="flex items-center gap-3 shrink-0">
+                                        <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50"> <Icons.Trash /> </button>
+                                        
                                         {timeDisplay && <span className="text-[10px] text-slate-400 font-medium">{timeDisplay}</span>}
                                         
                                         {!todo.done && (
@@ -594,7 +571,6 @@
                                                 {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
                                             </button>
                                         )}
-                                        <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50"> <Icons.Trash /> </button>
                                     </div>
                                 </div>
                             )})}
@@ -632,7 +608,8 @@
                                     })}
                                 </div>
                                 <div className="mt-4 flex gap-2">
-                                    <button onClick={cancelLinkLog} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">건너뛰기</button>
+                                    {/* [수정] 건너뛰기 -> 기록 없이 완료로 명칭 변경 */}
+                                    <button onClick={cancelLinkLog} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">기록 없이 완료</button>
                                     <button onClick={confirmLinkLog} className="flex-1 py-2 rounded-xl bg-sky-100 border border-sky-200 text-sky-600 text-xs font-bold hover:bg-sky-200">연동하기</button>
                                 </div>
                             </div>
