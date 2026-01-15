@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Star & Link)</title>
+    <title>Daily Flow (Final Design)</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -53,22 +53,21 @@
             flex-shrink: 0;
         }
 
+        /* [수정] 박스 스타일 제거 (투명 배경) */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 10px;
+            /* background, border 제거됨 */
+            padding: 6px 4px; /* 간격 미세 조정 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 얇은 구분선만 살짝 (선택 사항) */
             transition: all 0.2s ease;
         }
         .todo-item:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.1); /* 호버 시에만 살짝 표시 */
+            border-radius: 8px;
         }
+        
         .todo-done {
-            opacity: 0.6;
-            background: rgba(0, 0, 0, 0.02);
-            border: 1px dashed rgba(255, 255, 255, 0.1);
-            box-shadow: none;
+            opacity: 0.5;
         }
 
         .custom-checkbox {
@@ -126,7 +125,6 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             width: 85%;
         }
-        /* [추가] 로그 연동 모달 스타일 */
         .log-link-modal-content {
             background: rgba(255, 255, 255, 0.98);
             padding: 16px; border-radius: 20px;
@@ -168,7 +166,6 @@
         }
         .weather-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         
-        /* 스크롤바 커스텀 */
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
@@ -194,7 +191,6 @@
             Sparkle: () => <svg className="w-6 h-6 text-sky-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>,
             Play: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Pause: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
-            // [추가] 별 아이콘 (Outline & Fill)
             Star: ({filled, className}) => <svg className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
         };
 
@@ -208,7 +204,6 @@
             const [isSending, setIsSending] = useState(false);
             const [pendingLog, setPendingLog] = useState(null);
 
-            // [추가] 로그 연동 모달 상태
             const [linkingTodoId, setLinkingTodoId] = useState(null);
             const [todayLogBlocks, setTodayLogBlocks] = useState([]);
             const [selectedBlockIds, setSelectedBlockIds] = useState([]);
@@ -274,7 +269,7 @@
                     text: inputText, 
                     zone: activeInputZone, 
                     done: false, 
-                    isImportant: false, // [추가] 중요도 플래그
+                    isImportant: false,
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
@@ -286,17 +281,13 @@
             const startEditing = (todo) => { setEditingId(todo.id); setEditText(todo.text); };
             const saveEdit = () => { if (editText.trim()) { setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t)); } setEditingId(null); };
             
-            // [수정] 완료 체크 시 사후 시간 연동 로직
             const toggleTodo = (id) => { 
                 const targetTodo = todos.find(t => t.id === id);
                 if (!targetTodo) return;
-
-                // [추가] 완료로 변경하는데, 기록된 시간이 0인 경우 -> 연동 모달 띄우기
                 if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
                     openLogLinkModal(id);
-                    return; // 바로 토글하지 않고 모달로 넘어감
+                    return; 
                 }
-
                 setTodos(todos.map(t => {
                     if (t.id === id) {
                         const nextDone = !t.done;
@@ -311,19 +302,14 @@
                 })); 
             };
 
-            // [추가] 중요도 토글
             const toggleImportant = (id) => {
                 setTodos(todos.map(t => t.id === id ? { ...t, isImportant: !t.isImportant } : t));
             };
 
-            // [추가] 로그 연동 모달 열기
             const openLogLinkModal = (id) => {
-                // 로그 위젯 데이터 가져오기
                 const fortressData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 const todayStr = new Date().toDateString();
-                
                 if (fortressData.date === todayStr && fortressData.blocks) {
-                    // Focus 타입 블록만 필터링
                     const focusBlocks = fortressData.blocks.filter(b => b.type === 'focus' || !b.type);
                     if (focusBlocks.length > 0) {
                         setTodayLogBlocks(focusBlocks);
@@ -332,34 +318,26 @@
                         return;
                     }
                 }
-                
-                // 로그가 없으면 그냥 완료 처리
                 setTodos(todos.map(t => t.id === id ? { ...t, done: true } : t));
                 triggerToast("ℹ️ 연동할 로그가 없어서 바로 완료했어요.");
             };
 
-            // [추가] 로그 연동 확정
             const confirmLinkLog = () => {
                 if (!linkingTodoId) return;
-
                 const selectedDuration = todayLogBlocks
                     .filter(b => selectedBlockIds.includes(b.id))
                     .reduce((acc, b) => acc + (b.duration || 0), 0);
-                
                 const msToAdd = selectedDuration * 60 * 1000;
-
                 setTodos(todos.map(t => {
                     if (t.id === linkingTodoId) {
                         return { ...t, done: true, elapsed: t.elapsed + msToAdd };
                     }
                     return t;
                 }));
-
                 triggerToast(`🔗 ${selectedDuration}분 연동 완료!`);
                 setLinkingTodoId(null);
             };
 
-            // [추가] 로그 연동 취소 (그냥 완료 처리)
             const cancelLinkLog = () => {
                 setTodos(todos.map(t => t.id === linkingTodoId ? { ...t, done: true } : t));
                 setLinkingTodoId(null);
@@ -453,7 +431,6 @@
                 const config = zoneConfig[zone];
                 const Icon = config.icon;
                 
-                // [수정] 정렬 로직: 미완료 > 완료, 중요 > 안중요, 최신 > 과거
                 const zoneTodos = todos.filter(t => t.zone === zone).sort((a, b) => { 
                     if (a.done !== b.done) return a.done ? 1 : -1; 
                     if (a.isImportant !== b.isImportant) return b.isImportant ? 1 : -1;
@@ -483,29 +460,39 @@
                                 const timeDisplay = formatTime(currentMs);
 
                                 return (
-                                <div key={todo.id} className={`todo-item flex items-center p-2 gap-2 ${todo.done ? 'todo-done' : ''}`}>
-                                    {/* [추가] 중요도 별 아이콘 */}
-                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-yellow-300' : 'text-slate-400/50 hover:text-yellow-100'}`}>
-                                        <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
-                                    </button>
-
-                                    <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
-                                    <div className="flex-1 min-w-0 flex items-center gap-2" onDoubleClick={() => startEditing(todo)}>
-                                        {editingId === todo.id ? ( 
-                                            <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
-                                        ) : ( 
-                                            <>
-                                                <div className={`text-xs font-medium truncate transition-colors cursor-text flex-1 ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정"> {todo.text} </div>
-                                                {timeDisplay && <span className="text-[10px] text-slate-400 font-medium shrink-0">{timeDisplay}</span>}
-                                            </>
-                                        )}
-                                    </div>
-                                    {!todo.done && (
-                                        <button onClick={(e) => handleTimerClick(e, todo)} className={`timer-btn shrink-0 ${todo.isRunning ? 'timer-active' : ''}`} style={{ color: todo.isRunning ? '#fff' : config.checkboxColor, backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)', borderColor: config.checkboxColor }}>
-                                            {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
+                                <div key={todo.id} className={`todo-item flex items-center gap-3 ${todo.done ? 'todo-done' : ''}`}>
+                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                        {/* [수정] 중요도 별 아이콘: 흰색으로 변경 */}
+                                        <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-white' : 'text-slate-400/50 hover:text-white'}`}>
+                                            <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
                                         </button>
-                                    )}
-                                    <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50 shrink-0"> <Icons.Trash /> </button>
+
+                                        <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
+                                        
+                                        <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
+                                            {editingId === todo.id ? ( 
+                                                <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
+                                            ) : ( 
+                                                <div className="flex flex-col">
+                                                    {/* [수정] 텍스트 줄바꿈 허용 */}
+                                                    <div className={`text-xs font-medium transition-colors cursor-text whitespace-pre-wrap break-all ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정">
+                                                        {todo.text}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {timeDisplay && <span className="text-[10px] text-slate-400 font-medium">{timeDisplay}</span>}
+                                        
+                                        {!todo.done && (
+                                            <button onClick={(e) => handleTimerClick(e, todo)} className={`timer-btn ${todo.isRunning ? 'timer-active' : ''}`} style={{ color: todo.isRunning ? '#fff' : config.checkboxColor, backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)', borderColor: config.checkboxColor }}>
+                                                {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
+                                            </button>
+                                        )}
+                                        <button onClick={() => deleteTodo(todo.id)} className="text-slate-300 hover:text-red-300 transition-colors p-1 opacity-0 hover:opacity-100 group-hover:opacity-50"> <Icons.Trash /> </button>
+                                    </div>
                                 </div>
                             )})}
                         </div>
@@ -517,7 +504,6 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
                     
-                    {/* 로그 연동 모달 */}
                     {linkingTodoId && (
                         <div className="modal-overlay" onClick={cancelLinkLog}>
                             <div className="log-link-modal-content" onClick={e => e.stopPropagation()}>
@@ -550,7 +536,6 @@
                         </div>
                     )}
 
-                    {/* 몰입도 선택 모달 */}
                     {pendingLog && (
                         <div className="modal-overlay" onClick={() => setPendingLog(null)}>
                             <div className="weather-modal-content" onClick={e => e.stopPropagation()}>
