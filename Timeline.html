@@ -263,25 +263,36 @@
                 }
             };
 
-            // [Effect 1] 날짜가 바뀌거나, 1분마다 데이터 갱신
+            // [Effect 1] 초기 로드 및 날짜 변경 시 즉시 실행
             useEffect(() => {
-                // 날짜 문자열 업데이트
+                // 날짜 표시 문자열 갱신
                 const month = viewDate.getMonth() + 1;
                 const date = viewDate.getDate();
                 const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
                 const day = days[viewDate.getDay()];
                 setDateStr(`${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')} ${day}`);
 
-                // 데이터 로드 실행
-                if (isToday(viewDate)) loadLocalData(); // 로컬 우선 로드 (깜빡임 방지)
-                syncOrFetch(); // 서버 데이터 확인
+                // 화면 켜자마자 데이터 한 번 가져오기
+                if (isToday(viewDate)) loadLocalData();
+                syncOrFetch();
+            }, [viewDate]);
 
-                const interval = setInterval(() => {
-                    if (isToday(viewDate)) loadLocalData(); 
+            // [Effect 2] 주기적 갱신 (로컬과 서버의 속도를 다르게 설정)
+            useEffect(() => {
+                // 1. 로컬 데이터 (Log 위젯 연동) - 3초마다 빠르게 (네트워크 안 씀)
+                const localInterval = setInterval(() => {
+                    if (isToday(viewDate)) loadLocalData();
+                }, 3000);
+
+                // 2. 서버 데이터 (캘린더/다른 기기) - 60초마다 천천히 (차단 방지)
+                const serverInterval = setInterval(() => {
                     syncOrFetch();
-                }, isToday(viewDate) ? 3000 : 60000); // 오늘은 자주, 과거는 천천히
+                }, 60000);
 
-                return () => clearInterval(interval);
+                return () => {
+                    clearInterval(localInterval);
+                    clearInterval(serverInterval);
+                };
             }, [viewDate]);
 
             // [Effect 2] 총 시간 계산 (blocks 변경 시)
