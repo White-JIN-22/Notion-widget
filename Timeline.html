@@ -293,22 +293,6 @@
                     return msgs[stableIdx];
                 }
 
-                if (currentHour >= 18 && blocks.length > 0) {
-                    const sunCount = blocks.filter(b => b.quality === 'Sun').length;
-                    const cloudyCount = blocks.filter(b => b.quality === 'Cloud').length;
-                    const rainCount = blocks.filter(b => b.quality === 'Rain').length;
-
-                    if (sunCount >= cloudyCount && sunCount >= rainCount) {
-                        return { main: "🌟 오늘 몰입도 최고조!", sub: "단단한 요새가 완성되었습니다." };
-                    }
-                    if (cloudyCount >= sunCount && cloudyCount >= rainCount) {
-                        return { main: "☁️ 무던하게 잘 버텼습니다.", sub: "꾸준함이 가장 강력한 무기입니다." };
-                    }
-                    if (rainCount > sunCount && rainCount > cloudyCount) {
-                        return { main: "☔ 비가 와도 괜찮습니다.", sub: "내일은 조금 더 맑아질 거예요." };
-                    }
-                }
-
                 if (min === 0) return { main: "❄️ 준비 되셨나요?", sub: "차근차근 점화를 시작해 봅시다." };
                 
                 if (min < 60) {
