@@ -208,8 +208,12 @@
                             const data = await res.json();
                             const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
                             
-                            // 상태 업데이트
-                            setBlocks(fetchedBlocks);
+                            // [수정] 오늘 날짜인 경우, 서버 데이터(구식일 수 있음)로 로컬 데이터(최신)를 덮어쓰지 않음
+                            if (!isCurrentToday) {
+                                setBlocks(fetchedBlocks);
+                            }
+                            
+                            // 기상 시간은 서버 동기화 유지
                             if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
 
                             // [수정됨] Timeline 위젯은 데이터를 '보기만' 하고 저장소는 건드리지 않습니다.
