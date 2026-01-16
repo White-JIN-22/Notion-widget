@@ -140,6 +140,9 @@
             Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
             Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>,
+            ArrowLeft: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
+            ArrowRight: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
+            RotateCcw: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
         };
 
         const App = () => {
@@ -147,105 +150,115 @@
             const [events, setEvents] = useState([]);
             const [dateStr, setDateStr] = useState('');
             const [totalDuration, setTotalDuration] = useState(0);
-            const [wakeUpTime, setWakeUpTime] = useState(null); // [추가] 기상 시간 상태
+            const [wakeUpTime, setWakeUpTime] = useState(null);
+            
+            // [추가] 날짜 탐색을 위한 상태
+            const [viewDate, setViewDate] = useState(new Date());
 
-            // 로컬 데이터 로드
-            const loadData = () => {
+            // 날짜 유틸리티
+            const isToday = (d) => d.toDateString() === new Date().toDateString();
+            
+            const changeDate = (diff) => {
+                const next = new Date(viewDate);
+                next.setDate(next.getDate() + diff);
+                setViewDate(next);
+            };
+            const returnToday = () => setViewDate(new Date());
+
+            // 1. [로컬 로드] 오늘 날짜일 때만 로컬 스토리지 사용
+            const loadLocalData = () => {
+                if (!isToday(viewDate)) return; // 과거 조회 중에는 로컬 로드 중단
+
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                const now = new Date();
-                const today = now.toDateString();
+                const today = new Date().toDateString();
                 
                 if (savedData.date === today && savedData.blocks) {
                     setBlocks(savedData.blocks);
-                    const focusBlocks = savedData.blocks.filter(b => !b.type || b.type === 'focus');
-                    const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
-                    setTotalDuration(total);
-                    setWakeUpTime(savedData.wakeUpTime || null); // [추가] 기상 시간 불러오기
+                    setWakeUpTime(savedData.wakeUpTime || null);
                 } else {
+                    // 데이터가 없거나 날짜가 다르면 초기화
                     setBlocks([]);
-                    setTotalDuration(0);
                     setWakeUpTime(null);
                 }
-                
-                const month = now.getMonth() + 1;
-                const date = now.getDate();
-                const m = String(month).padStart(2, '0');
-                const d = String(date).padStart(2, '0');
-                const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-                const day = days[now.getDay()];
-                setDateStr(`${m}/${d} ${day}`);
             };
 
-            useEffect(() => {
-                loadData();
-                const interval = setInterval(loadData, 3000); 
-                return () => clearInterval(interval);
-            }, []);
-
-            // [동기화]
-            const syncFromServer = async () => {
-                const now = new Date();
-                const y = now.getFullYear();
-                const m = String(now.getMonth() + 1).padStart(2, '0');
-                const d = String(now.getDate()).padStart(2, '0');
+            // 2. [서버 동기화/조회]
+            const syncOrFetch = async () => {
+                const targetDate = viewDate;
+                const y = targetDate.getFullYear();
+                const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+                const d = String(targetDate.getDate()).padStart(2, '0');
                 const dateYMD = `${y}-${m}-${d}`;
+                const isCurrentToday = isToday(targetDate);
 
-                // 1. 캘린더
+                // (1) 캘린더 가져오기
                 try {
                     const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
                     if (calRes.ok) {
                         const calData = await calRes.json();
-                        if (Array.isArray(calData)) {
-                            setEvents(calData);
-                        }
+                        if (Array.isArray(calData)) setEvents(calData);
                     }
-                } catch (e) {
-                    console.error("Calendar Sync Error:", e);
-                }
+                } catch (e) { console.error("Calendar Error:", e); }
 
-                // 2. 포트리스 기록
+                // (2) 블록 데이터 가져오기
                 if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                     try {
                         const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
                         if (res.ok) {
                             const data = await res.json();
-                            if (data.blocks && Array.isArray(data.blocks)) {
-                                setBlocks(prev => {
-                                    const prevStr = JSON.stringify(prev);
-                                    const newStr = JSON.stringify(data.blocks);
-                                    // 데이터가 다르거나, 기상시간 업데이트가 필요하면 저장
-                                    const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                                    const savedWakeUp = currentLocal.wakeUpTime;
-                                    
-                                    // 기상 시간이나 블록이 다르면 업데이트
-                                    if (prevStr !== newStr || savedWakeUp !== data.wakeUpTime) {
-                                        localStorage.setItem('fortressData', JSON.stringify({
-                                            ...currentLocal,
-                                            blocks: data.blocks,
-                                            wakeUpTime: data.wakeUpTime || savedWakeUp // [추가] 기상 시간 업데이트
-                                        }));
-                                        // 리턴값은 blocks 상태 갱신용
-                                        return data.blocks;
-                                    }
-                                    return prev;
-                                });
-                                // state에 wakeUpTime 반영 (loadData에서 처리하지만 즉시 반영을 위해)
-                                if (data.wakeUpTime && data.wakeUpTime !== "-") {
-                                    setWakeUpTime(data.wakeUpTime);
+                            const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
+                            
+                            // 상태 업데이트
+                            setBlocks(fetchedBlocks);
+                            if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
+
+                            // ★ 중요: '오늘'인 경우에만 로컬 스토리지 최신화 (과거 데이터 덮어쓰기 방지)
+                            if (isCurrentToday) {
+                                const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                                const prevStr = JSON.stringify(currentLocal.blocks);
+                                const newStr = JSON.stringify(fetchedBlocks);
+                                
+                                if (prevStr !== newStr || currentLocal.wakeUpTime !== data.wakeUpTime) {
+                                    localStorage.setItem('fortressData', JSON.stringify({
+                                        ...currentLocal,
+                                        date: new Date().toDateString(), // 날짜 확실히 갱신
+                                        blocks: fetchedBlocks,
+                                        wakeUpTime: data.wakeUpTime || currentLocal.wakeUpTime
+                                    }));
                                 }
                             }
                         }
-                    } catch (e) {
-                        console.error("Block Sync Error:", e);
-                    }
+                    } catch (e) { console.error("Sync Error:", e); }
                 }
             };
 
+            // [Effect 1] 날짜가 바뀌거나, 1분마다 데이터 갱신
             useEffect(() => {
-                syncFromServer();
-                const interval = setInterval(syncFromServer, 60000); 
+                // 날짜 문자열 업데이트
+                const month = viewDate.getMonth() + 1;
+                const date = viewDate.getDate();
+                const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                const day = days[viewDate.getDay()];
+                setDateStr(`${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')} ${day}`);
+
+                // 데이터 로드 실행
+                if (isToday(viewDate)) loadLocalData(); // 로컬 우선 로드 (깜빡임 방지)
+                syncOrFetch(); // 서버 데이터 확인
+
+                const interval = setInterval(() => {
+                    if (isToday(viewDate)) loadLocalData(); 
+                    syncOrFetch();
+                }, isToday(viewDate) ? 3000 : 60000); // 오늘은 자주, 과거는 천천히
+
                 return () => clearInterval(interval);
-            }, []);
+            }, [viewDate]);
+
+            // [Effect 2] 총 시간 계산 (blocks 변경 시)
+            useEffect(() => {
+                const focusBlocks = blocks.filter(b => !b.type || b.type === 'focus');
+                const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
+                setTotalDuration(total);
+            }, [blocks]);
 
             const getTotalColorClass = (min) => {
                 if (min <= 90) return "text-white"; 
@@ -458,8 +471,21 @@
                                 {formatDuration(totalDuration)}
                             </div>
                         </div>
+                        {/* [추가] 날짜 네비게이션 버튼 */}
+                        <div className="flex items-center gap-2 mb-1">
+                            <button onClick={returnToday} className="text-white/60 hover:text-white transition-colors" title="오늘로 복귀">
+                                <Icons.RotateCcw />
+                            </button>
+                            <div className="flex items-center gap-1">
+                                <button onClick={() => changeDate(-1)} className="text-white/60 hover:text-white transition-colors">
+                                    <Icons.ArrowLeft />
+                                </button>
+                                <button onClick={() => changeDate(1)} className="text-white/60 hover:text-white transition-colors">
+                                    <Icons.ArrowRight />
+                                </button>
+                            </div>
+                        </div>
                     </div>
-
                     {/* 2. 메인 컨텐츠 영역 (여기가 지워졌었어!) */}
                     <div className="flex-1 px-2 pt-2 pb-4 relative bg-white/5 overflow-hidden flex flex-col">
                          {/* 숫자 라벨 (수정한 부분) */}
