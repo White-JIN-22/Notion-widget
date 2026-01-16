@@ -1377,13 +1377,13 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                     const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                     let todays = saved.filter(t => !t.isRemote);
                     
-                    // [정렬 로직] Morning(1) -> Afternoon(2) -> Night(3)
+                    // [정렬] Morning(1) -> Afternoon(2) -> Night(3)
                     const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
                     todays.sort((a, b) => {
                         const zA = zoneOrder[a.zone] || 99;
                         const zB = zoneOrder[b.zone] || 99;
                         if (zA !== zB) return zA - zB;
-                        return a.id - b.id; // 시간대 같으면 등록순
+                        return a.id - b.id;
                     });
 
                     setTodoList(todays);
@@ -1396,20 +1396,24 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
         </div>
 
         {showTodoSelect && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[180px] overflow-y-auto no-scrollbar p-1 pb-2">
+            <div 
+                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[160px] overflow-y-auto p-1 pb-2"
+                onWheel={(e) => e.stopPropagation()} 
+            >
+                {/* ▲ 위 줄에서 'no-scrollbar'를 지우고, 'onWheel'을 추가하여 스크롤 고장 해결 */}
+                
                 {todoList.length === 0 ? (
                     <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
                 ) : (
                     todoList.map(todo => {
-                        // 시간대별 디자인 설정
                         let ZoneIcon = Icons.Moon;
-                        let colorClass = "text-slate-400"; // Night (기본)
+                        let colorClass = "text-slate-400"; 
                         
                         if (todo.zone === 'morning') {
                             ZoneIcon = Icons.Sun;
                             colorClass = "text-purple-300";
                         } else if (todo.zone === 'afternoon') {
-                            ZoneIcon = Icons.Cloud; // Flow 위젯과 매칭 (Skyblue)
+                            ZoneIcon = Icons.Cloud; 
                             colorClass = "text-sky-300";
                         }
 
@@ -1424,19 +1428,12 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                 className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
                             >
                                 <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                    {/* 중요(별) 표시 */}
                                     {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
-                                    
-                                    {/* 시간대 아이콘 (해/구름/달) */}
                                     <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
-                                    
-                                    {/* 내용 */}
                                     <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
                                         {todo.text}
                                     </span>
                                 </div>
-
-                                {/* 완료 체크 표시 */}
                                 {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
                             </button>
                         );
@@ -1499,13 +1496,13 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                     const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                     let todays = saved.filter(t => !t.isRemote);
                     
-                    // [정렬 로직] Morning(1) -> Afternoon(2) -> Night(3)
+                    // [정렬] Morning(1) -> Afternoon(2) -> Night(3)
                     const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
                     todays.sort((a, b) => {
                         const zA = zoneOrder[a.zone] || 99;
                         const zB = zoneOrder[b.zone] || 99;
                         if (zA !== zB) return zA - zB;
-                        return a.id - b.id; // 시간대 같으면 등록순
+                        return a.id - b.id;
                     });
 
                     setTodoList(todays);
@@ -1518,20 +1515,24 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
         </div>
 
         {showTodoSelect && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[180px] overflow-y-auto no-scrollbar p-1 pb-2">
+            <div 
+                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[160px] overflow-y-auto p-1 pb-2"
+                onWheel={(e) => e.stopPropagation()} 
+            >
+                {/* ▲ 위 줄에서 'no-scrollbar'를 지우고, 'onWheel'을 추가하여 스크롤 고장 해결 */}
+                
                 {todoList.length === 0 ? (
                     <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
                 ) : (
                     todoList.map(todo => {
-                        // 시간대별 디자인 설정
                         let ZoneIcon = Icons.Moon;
-                        let colorClass = "text-slate-400"; // Night (기본)
+                        let colorClass = "text-slate-400"; 
                         
                         if (todo.zone === 'morning') {
                             ZoneIcon = Icons.Sun;
                             colorClass = "text-purple-300";
                         } else if (todo.zone === 'afternoon') {
-                            ZoneIcon = Icons.Cloud; // Flow 위젯과 매칭 (Skyblue)
+                            ZoneIcon = Icons.Cloud; 
                             colorClass = "text-sky-300";
                         }
 
@@ -1546,19 +1547,12 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                 className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
                             >
                                 <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                    {/* 중요(별) 표시 */}
                                     {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
-                                    
-                                    {/* 시간대 아이콘 (해/구름/달) */}
                                     <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
-                                    
-                                    {/* 내용 */}
                                     <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
                                         {todo.text}
                                     </span>
                                 </div>
-
-                                {/* 완료 체크 표시 */}
                                 {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
                             </button>
                         );
