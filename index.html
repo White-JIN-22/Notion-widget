@@ -1493,92 +1493,93 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                 )}
                                 
                                 {manualTab === 'focus' && (
-    <div className="px-1 mb-3 relative">
-        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
-            <input 
-                type="text" 
-                placeholder="어떤 일에 집중했나요?" 
-                value={focusMemo}
-                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
-            />
-            <button 
-                onClick={() => {
-                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    let todays = saved.filter(t => !t.isRemote);
-                    
-                    const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
-                    todays.sort((a, b) => {
-                        const zA = zoneOrder[a.zone] || 99;
-                        const zB = zoneOrder[b.zone] || 99;
-                        if (zA !== zB) return zA - zB;
-                        return a.id - b.id;
-                    });
+    {/* ▼▼▼ 여기서부터 붙여넣기 ▼▼▼ */}
+                                {modalType === 'check' && (
+                                    <>
+                                    <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Ignition Complete ✧｡</h3>
+                                    
+                                    <div className="px-1 mb-3 relative">
+                                        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+                                            <input 
+                                                type="text" 
+                                                placeholder="방금 어떤 일에 집중했나요?" 
+                                                value={focusMemo}
+                                                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                                                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+                                            />
+                                            <button 
+                                                onClick={() => {
+                                                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                                                    let todays = saved.filter(t => !t.isRemote);
+                                                    
+                                                    const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
+                                                    todays.sort((a, b) => {
+                                                        const zA = zoneOrder[a.zone] || 99;
+                                                        const zB = zoneOrder[b.zone] || 99;
+                                                        if (zA !== zB) return zA - zB;
+                                                        return a.id - b.id;
+                                                    });
 
-                    setTodoList(todays);
-                    setShowTodoSelect(!showTodoSelect);
-                }}
-                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
-            >
-                <Icons.CheckCircle className="w-5 h-5" /> 
-            </button>
-        </div>
+                                                    setTodoList(todays);
+                                                    setShowTodoSelect(!showTodoSelect);
+                                                }}
+                                                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+                                            >
+                                                <Icons.CheckCircle className="w-5 h-5" /> 
+                                            </button>
+                                        </div>
 
-        {showTodoSelect && (
-            <div 
-                /* ▼ thin-scrollbar 클래스 추가됨 */
-                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar"
-                onWheel={(e) => e.stopPropagation()} 
-            >
-                {todoList.length === 0 ? (
-                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
-                ) : (
-                    todoList.map(todo => {
-                        let ZoneIcon = Icons.Moon;
-                        let colorClass = "text-slate-400"; 
-                        
-                        if (todo.zone === 'morning') {
-                            ZoneIcon = Icons.Sun;
-                            colorClass = "text-purple-300";
-                        } else if (todo.zone === 'afternoon') {
-                            ZoneIcon = Icons.Cloud; 
-                            colorClass = "text-sky-300";
-                        }
+                                        {showTodoSelect && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar" onWheel={(e) => e.stopPropagation()}>
+                                                {todoList.length === 0 ? (
+                                                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                                                ) : (
+                                                    todoList.map(todo => {
+                                                        let ZoneIcon = Icons.Moon;
+                                                        let colorClass = "text-slate-400"; 
+                                                        
+                                                        if (todo.zone === 'morning') {
+                                                            ZoneIcon = Icons.Sun;
+                                                            colorClass = "text-purple-300";
+                                                        } else if (todo.zone === 'afternoon') {
+                                                            ZoneIcon = Icons.Cloud; 
+                                                            colorClass = "text-sky-300";
+                                                        }
 
-                        return (
-                            <button 
-                                key={todo.id}
-                                onClick={() => {
-                                    setFocusMemo(todo.text);
-                                    setSelectedTodoId(todo.id);
-                                    setShowTodoSelect(false);
-                                }}
-                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
-                            >
-                                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                    {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
-                                    <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
-                                    <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
-                                        {todo.text}
-                                    </span>
-                                </div>
-                                {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
-                            </button>
-                        );
-                    })
-                )}
-            </div>
-        )}
-    </div>
-)}
+                                                        return (
+                                                            <button 
+                                                                key={todo.id}
+                                                                onClick={() => {
+                                                                    setFocusMemo(todo.text);
+                                                                    setSelectedTodoId(todo.id);
+                                                                    setShowTodoSelect(false);
+                                                                }}
+                                                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
+                                                            >
+                                                                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+                                                                    {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
+                                                                    <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
+                                                                    <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
+                                                                        {todo.text}
+                                                                    </span>
+                                                                </div>
+                                                                {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
+                                                            </button>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
                                          
                                      <div className="grid grid-cols-3 gap-2">
                                          <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
                                          <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky-300"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
                                          <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                      </div>
-                                     </>
+                                    </>
                                 )}
+                                {/* ▲▲▲ 여기까지 붙여넣기 ▲▲▲ */}
                             </div>
                         </div>
                     )}
