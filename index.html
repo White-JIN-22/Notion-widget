@@ -984,8 +984,8 @@
             const formatDuration = (min) => {
                 const h = Math.floor(min / 60);
                 const m = min % 60;
-                if (h > 0) return `${h}h ${m}m`;
-                return `${m}m`;
+                if (h > 0) return `${h}H ${m}M`;
+                return `${m}M`;
             };
 
             const openManual = () => {
@@ -1223,7 +1223,7 @@
 
                                                                         {/* 메모가 있으면 보여주기 */}
     {block.memo && (
-        <div className="text-xs text-sky-300 font-bold truncate mb-0.5">
+        <div className="text-[10px] text-dim font-medium truncate mb-0.5">
             {block.memo}
         </div>
     )}
