@@ -469,7 +469,7 @@
                     // 날짜가 변경되었는지 확인
                     if (savedData.date && savedData.date !== currentToday) {
                         
-                        // 1. 진행 중인 타이머가 있다면 현재 날짜(어제) 기록으로 강제 저장
+                        // 1. 진행 중인 타이머가 있다면 어제 날짜로 마저 저장
                         if (isRecording && startTime) {
                             const endTime = Date.now();
                             const duration = Math.floor((endTime - startTime) / 1000 / 60);
@@ -479,13 +479,12 @@
                                 };
                                 savedData.blocks = [newBlock, ...(savedData.blocks || [])];
                             }
-                            // 타이머 정지 처리
                             setIsRecording(false);
                             setStartTime(null);
                             setElapsed(0);
                         }
 
-                        // 2. 어제 기록을 히스토리에 저장
+                        // 2. 어제 기록 아카이빙
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         if (!history.some(h => h.date === savedData.date)) {
                             history.push(savedData);
@@ -493,7 +492,7 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
 
-                        // 3. [중요] 새로고침 없이, 데이터와 화면을 즉시 초기화 (오류 방지)
+                        // 3. 로컬 데이터 초기화
                         const resetData = {
                             date: currentToday,
                             tickets: 0,
@@ -503,16 +502,31 @@
                         };
                         localStorage.setItem('fortressData', JSON.stringify(resetData));
 
-                        // 화면(State) 즉시 반영
+                        // 4. 화면 즉시 초기화
                         setTickets(0);
                         setEnergy(100);
                         setBlocks([]);
                         setWakeUpTime(null);
-                        
-                        // 기분 선택 화면 띄우기 (선택 사항)
-                        setShowIntro(true); 
-                        
-                        triggerToast("☀️ 새로운 하루가 시작되었습니다!");
+                        setShowIntro(true);
+
+                        // 5. [추가됨] 노션 서버에도 즉시 '빈 데이터' 전송하여 동기화
+                        if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
+                             fetch(WORKER_URL, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    date: formatLocalYMD(now),
+                                    blocks: [],
+                                    wakeUpTime: "-",
+                                    title: "Fortress Log",
+                                    total: 0, morn_total: 0, aft_total: 0, night_total: 0,
+                                    quality: null, q_morn: null, q_aft: null, q_night: null
+                                })
+                            }).then(() => triggerToast("☀️ 새 하루 시작 (서버 동기화 완료)"))
+                              .catch(e => console.error("Reset Sync Error:", e));
+                        } else {
+                            triggerToast("☀️ 새로운 하루가 시작되었습니다!");
+                        }
                     }
                 }, 5000); 
                 return () => clearInterval(checkMidnight);
