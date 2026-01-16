@@ -212,21 +212,8 @@
                             setBlocks(fetchedBlocks);
                             if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
 
-                            // ★ 중요: '오늘'인 경우에만 로컬 스토리지 최신화 (과거 데이터 덮어쓰기 방지)
-                            if (isCurrentToday) {
-                                const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                                const prevStr = JSON.stringify(currentLocal.blocks);
-                                const newStr = JSON.stringify(fetchedBlocks);
-                                
-                                if (prevStr !== newStr || currentLocal.wakeUpTime !== data.wakeUpTime) {
-                                    localStorage.setItem('fortressData', JSON.stringify({
-                                        ...currentLocal,
-                                        date: new Date().toDateString(), // 날짜 확실히 갱신
-                                        blocks: fetchedBlocks,
-                                        wakeUpTime: data.wakeUpTime || currentLocal.wakeUpTime
-                                    }));
-                                }
-                            }
+                            // [수정됨] Timeline 위젯은 데이터를 '보기만' 하고 저장소는 건드리지 않습니다.
+                            // (Log 위젯이 저장소 관리를 전담하므로, 여기서 덮어쓰면 데이터 충돌이 발생함)
                         }
                     } catch (e) { console.error("Sync Error:", e); }
                 }
