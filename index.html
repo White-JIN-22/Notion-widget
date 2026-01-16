@@ -466,10 +466,10 @@
                     const currentToday = now.toDateString();
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
-                    // 저장된 날짜가 있고, 오늘 날짜와 다를 경우 (자정 지남)
+                    // 날짜가 변경되었는지 확인
                     if (savedData.date && savedData.date !== currentToday) {
                         
-                        // 1. 진행 중인 타이머가 있다면 저장 처리
+                        // 1. 진행 중인 타이머가 있다면 현재 날짜(어제) 기록으로 강제 저장
                         if (isRecording && startTime) {
                             const endTime = Date.now();
                             const duration = Math.floor((endTime - startTime) / 1000 / 60);
@@ -479,9 +479,13 @@
                                 };
                                 savedData.blocks = [newBlock, ...(savedData.blocks || [])];
                             }
+                            // 타이머 정지 처리
+                            setIsRecording(false);
+                            setStartTime(null);
+                            setElapsed(0);
                         }
 
-                        // 2. 지난 기록 히스토리에 아카이빙
+                        // 2. 어제 기록을 히스토리에 저장
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         if (!history.some(h => h.date === savedData.date)) {
                             history.push(savedData);
@@ -489,7 +493,7 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
 
-                        // 3. [수정됨] 새 날짜로 스토리지 데이터를 완전히 리셋 후 저장
+                        // 3. [중요] 새로고침 없이, 데이터와 화면을 즉시 초기화 (오류 방지)
                         const resetData = {
                             date: currentToday,
                             tickets: 0,
@@ -499,10 +503,18 @@
                         };
                         localStorage.setItem('fortressData', JSON.stringify(resetData));
 
-                        // 4. 페이지 새로고침
-                        window.location.reload();
+                        // 화면(State) 즉시 반영
+                        setTickets(0);
+                        setEnergy(100);
+                        setBlocks([]);
+                        setWakeUpTime(null);
+                        
+                        // 기분 선택 화면 띄우기 (선택 사항)
+                        setShowIntro(true); 
+                        
+                        triggerToast("☀️ 새로운 하루가 시작되었습니다!");
                     }
-                }, 5000); // 체크 주기를 5초로 단축하여 반응 속도 향상
+                }, 5000); 
                 return () => clearInterval(checkMidnight);
             }, [isRecording, startTime]);
 
