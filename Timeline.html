@@ -182,7 +182,7 @@
                 }
             };
 
-            // 2. [서버 동기화/조회] (스마트 병합 버전)
+            // 2. [서버 동기화/조회] (디버깅 모드 ON)
             const syncOrFetch = async () => {
                 const targetDate = viewDate;
                 const isCurrentToday = isToday(targetDate);
@@ -193,15 +193,22 @@
                 const dateYMD = `${y}-${m}-${d}`;
 
                 // (1) 캘린더 가져오기
+                // 🔍 디버깅: 캘린더 API가 살아있는지 확인
                 try {
+                    console.log("📅 캘린더 데이터 요청 중...");
                     const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
                     if (calRes.ok) {
                         const calData = await calRes.json();
+                        console.log(`✅ 캘린더 수신 성공: ${calData.length}개의 일정`);
                         if (Array.isArray(calData)) setEvents(calData);
+                    } else {
+                        console.error(`❌ 캘린더 서버 응답 오류: ${calRes.status}`);
                     }
-                } catch (e) { /* 캘린더 오류 무시 */ }
+                } catch (e) { 
+                    console.error("❌ 캘린더 불러오기 실패(네트워크/CORS):", e); 
+                }
 
-                // (2) 블록 데이터 가져오기
+                // (2) 블록 데이터 가져오기 (스마트 병합 로직 유지)
                 if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                     try {
                         const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
@@ -209,19 +216,14 @@
                             const data = await res.json();
                             const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
                             
-                            // [오늘 날짜일 때: 스마트 병합]
+                            // [오늘 날짜: 스마트 병합]
                             if (isCurrentToday) {
-                                // 1. 현재 내 기기의 로컬 데이터 가져오기
                                 const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
                                 const localBlocks = currentLocal.blocks || [];
-
-                                // 2. [병합 로직] 로컬 데이터를 기준으로 삼고, 서버에만 있는(다른 기기에서 쓴) 데이터를 추가
                                 const blockMap = new Map();
 
-                                // 내 기기 데이터 먼저 등록 (내 수정사항 우선 보호)
-                                localBlocks.forEach(b => blockMap.set(b.id, b));
+                                localBlocks.forEach(b => blockMap.set(b.id, b)); // 내 기기 우선
 
-                                // 서버 데이터 중 내 기기에 없는 것만 추가 (합집합)
                                 let hasNewData = false;
                                 fetchedBlocks.forEach(b => {
                                     if (!blockMap.has(b.id)) {
@@ -230,36 +232,25 @@
                                     }
                                 });
 
-                                // 기상 시간 동기화 (서버에 값이 있고 내 거랑 다르면 업데이트)
                                 const serverWakeUp = (data.wakeUpTime && data.wakeUpTime !== "-") ? data.wakeUpTime : null;
                                 const needWakeUpUpdate = serverWakeUp && serverWakeUp !== currentLocal.wakeUpTime;
 
-                                // 3. 변경사항이 있을 때만 저장 (불필요한 쓰기 방지)
                                 if (hasNewData || needWakeUpUpdate) {
                                     const mergedBlocks = Array.from(blockMap.values());
-                                    // 시간순 정렬 등은 렌더링 때 하므로 여기선 저장만
-                                    
                                     const finalWakeUp = serverWakeUp || currentLocal.wakeUpTime;
-
                                     localStorage.setItem('fortressData', JSON.stringify({
-                                        ...currentLocal,
-                                        date: dateYMD,
-                                        blocks: mergedBlocks,
-                                        wakeUpTime: finalWakeUp
+                                        ...currentLocal, date: dateYMD, blocks: mergedBlocks, wakeUpTime: finalWakeUp
                                     }));
-                                    
                                     setBlocks(mergedBlocks);
                                     if(finalWakeUp) setWakeUpTime(finalWakeUp);
                                 }
                             } else {
-                                // [과거 날짜일 때] 그냥 서버 데이터 보여줌 (읽기 전용)
+                                // [과거 날짜] 읽기 전용
                                 setBlocks(fetchedBlocks);
                                 if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
                             }
                         }
-                    } catch (e) { 
-                        // 네트워크 오류 시 조용히 넘김 (로컬 데이터 유지)
-                    }
+                    } catch (e) { /* 블록 오류는 조용히 넘김 */ }
                 }
             };
 
