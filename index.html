@@ -391,13 +391,16 @@
                             setTickets(calcTickets);
                             setEnergy(calcEnergy);
 
-                            localStorage.setItem('fortressData', JSON.stringify({
-                                date: dateStr,
-                                tickets: calcTickets,
-                                energy: calcEnergy,
-                                blocks: mergedBlocks,
-                                wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime
-                            }));
+                            // [수정] 날짜가 지난 로컬 기상 시간은 무시 (자정 초기화 버그 해결)
+                        const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
+
+                        localStorage.setItem('fortressData', JSON.stringify({
+                            date: dateStr,
+                            tickets: calcTickets,
+                            energy: calcEnergy,
+                            blocks: mergedBlocks,
+                            wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime
+                        }));
                         }
                     }
                 } catch (e) { console.error("Sync Load Error:", e); }
