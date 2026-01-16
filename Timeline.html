@@ -329,10 +329,6 @@
             const renderGrid = () => {
                 const hours = Array.from({length: 18}, (_, i) => i + 6); 
 
-                // [수정] 더 확실한 반올림 함수 (Math.round 사용)
-                // 32분 -> 3.2 -> 3 -> 30분 (내림)
-                // 35분 -> 3.5 -> 4 -> 40분 (올림)
-                // 45분 -> 4.5 -> 5 -> 50분 (올림)
                 const roundTime = (ts) => {
                     const d = new Date(ts);
                     const m = d.getMinutes();
@@ -347,7 +343,9 @@
                     const slots = Array.from({length: 6}, (_, i) => {
                         const slotStartMin = i * 10;
                         const slotEndMin = (i + 1) * 10;
-                        const slotStartTime = new Date();
+                        
+                        // [수정] 무조건 오늘(new Date)이 아니라, 보고 있는 날짜(viewDate)를 기준으로 슬롯 생성
+                        const slotStartTime = new Date(viewDate); 
                         slotStartTime.setHours(hour, slotStartMin, 0, 0);
                         const slotStartTs = slotStartTime.getTime();
                         
@@ -356,39 +354,35 @@
 
                         if (wakeUpTime) {
                             const [wH, wM] = wakeUpTime.split(':').map(Number);
-                            const wakeUpDate = new Date();
+                            
+                            // [수정] 기상 시간 기준도 viewDate로 설정
+                            const wakeUpDate = new Date(viewDate);
                             wakeUpDate.setHours(wH, wM, 0, 0);
                             const wakeUpTs = wakeUpDate.getTime();
                             const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
 
-                            // 1. 투명화 체크
                             if (slotStartTs < wakeUpTs) {
                                 isBeforeWakeUp = true;
                             }
 
-                            // 2. 해 아이콘 체크 (기상 시간이 현재 슬롯 범위 안(초과~이하)에 있을 때)
-                            // 예: 06:22 기상 -> 20분 초과 30분 이하 -> 20~30분 슬롯(두 번째 칸)에 아이콘 표시
                             if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) {
                                 isWakeUpSlot = true;
                                 isBeforeWakeUp = false; 
                             }
                         }
 
-                        const slotEndTime = new Date();
+                        // [수정] 종료 시간 기준도 viewDate로 설정
+                        const slotEndTime = new Date(viewDate);
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
-                        // [수정] 배경 블록 로직: 반올림된 시간 적용
                         const bgBlock = blocks.find(b => {
                             if (b.type !== 'focus' && b.type) return false;
                             
                             const roundedStart = roundTime(b.startTime);
                             const roundedEnd = roundTime(b.endTime);
-                            
-                            // *중요*: 만약 반올림 결과 시작과 끝이 같다면(예: 짧은 시간), 최소 한 칸은 보여주기 위해 끝 시간을 10분 늘림
                             const finalEnd = (roundedStart === roundedEnd) ? roundedEnd + (10 * 60 * 1000) : roundedEnd;
 
-                            // 현재 슬롯이 [시작, 끝) 범위 안에 있는지 체크
                             return slotStartTs >= roundedStart && slotStartTs < finalEnd;
                         });
 
@@ -404,7 +398,6 @@
                         let content = null;
                         let lineOverlay = null;
 
-                        // 클래스 적용
                         if (isBeforeWakeUp && !bgBlock && !isWakeUpSlot) {
                             cellClass = 'opacity-0'; 
                         }
