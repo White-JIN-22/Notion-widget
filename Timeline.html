@@ -185,22 +185,27 @@
             // 2. [서버 동기화/조회]
             const syncOrFetch = async () => {
                 const targetDate = viewDate;
+                const isCurrentToday = isToday(targetDate);
+                
                 const y = targetDate.getFullYear();
                 const m = String(targetDate.getMonth() + 1).padStart(2, '0');
                 const d = String(targetDate.getDate()).padStart(2, '0');
                 const dateYMD = `${y}-${m}-${d}`;
-                const isCurrentToday = isToday(targetDate);
 
-                // (1) 캘린더 가져오기
+                // (1) 캘린더 가져오기 (오류나도 무시)
                 try {
                     const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
                     if (calRes.ok) {
                         const calData = await calRes.json();
                         if (Array.isArray(calData)) setEvents(calData);
                     }
-                } catch (e) { console.error("Calendar Error:", e); }
+                } catch (e) { /* 캘린더 오류 무시 */ }
 
                 // (2) 블록 데이터 가져오기
+                // ★ 중요: 오늘 날짜라면 서버에서 블록을 가져오지 않고 중단합니다.
+                // (Log 위젯이 저장한 로컬 데이터를 loadLocalData가 보여주기 때문)
+                if (isCurrentToday) return;
+
                 if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                     try {
                         const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
@@ -208,18 +213,14 @@
                             const data = await res.json();
                             const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
                             
-                            // [수정] 오늘 날짜인 경우, 서버 데이터(구식일 수 있음)로 로컬 데이터(최신)를 덮어쓰지 않음
-                            if (!isCurrentToday) {
-                                setBlocks(fetchedBlocks);
-                            }
+                            // 과거 날짜일 때만 상태 업데이트
+                            setBlocks(fetchedBlocks);
                             
-                            // 기상 시간은 서버 동기화 유지
                             if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
-
-                            // [수정됨] Timeline 위젯은 데이터를 '보기만' 하고 저장소는 건드리지 않습니다.
-                            // (Log 위젯이 저장소 관리를 전담하므로, 여기서 덮어쓰면 데이터 충돌이 발생함)
                         }
-                    } catch (e) { console.error("Sync Error:", e); }
+                    } catch (e) { 
+                        // 과거 데이터 로드 실패 시 조용히 넘김 (깜빡임 방지)
+                    }
                 }
             };
 
