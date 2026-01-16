@@ -480,20 +480,52 @@
                     // 날짜가 변경되었는지 확인
                     if (savedData.date && savedData.date !== currentToday) {
                         
-                        // 1. 진행 중인 타이머가 있다면 어제 날짜로 마저 저장
-                        if (isRecording && startTime) {
-                            const endTime = Date.now();
-                            const duration = Math.floor((endTime - startTime) / 1000 / 60);
-                            if (duration >= 3) {
-                                const newBlock = {
-                                    id: endTime, startTime: startTime, endTime: endTime, duration: duration, quality: 'Cloud', type: 'focus'
-                                };
-                                savedData.blocks = [newBlock, ...(savedData.blocks || [])];
-                            }
-                            setIsRecording(false);
-                            setStartTime(null);
-                            setElapsed(0);
+                        // [추가] 1.5. 어제 최종 데이터 서버로 전송 (통계 계산 포함)
+                        if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
+                            // 통계 계산 로직 (sendToNotion과 동일하게 처리)
+                            const focusBlocks = (savedData.blocks || []).filter(b => b.type === 'focus' || !b.type);
+                            const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+                            
+                            let morn_total = 0, aft_total = 0, night_total = 0;
+                            focusBlocks.forEach(b => {
+                                const h = new Date(b.startTime).getHours();
+                                const d = b.duration || 0;
+                                if (h < 12) morn_total += d;
+                                else if (h < 18) aft_total += d;
+                                else night_total += d;
+                            });
+
+                            const getCountMode = (items) => {
+                                if (items.length === 0) return null;
+                                const counts = { Sun: 0, Cloud: 0, Rain: 0 };
+                                items.forEach(b => { if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++; });
+                                const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
+                                if (counts.Sun === maxVal) return "Sun";
+                                if (counts.Cloud === maxVal) return "Cloud";
+                                return "Rain";
+                            };
+
+                            const payload = {
+                                date: savedData.date, // 어제 날짜
+                                blocks: savedData.blocks || [],
+                                wakeUpTime: savedData.wakeUpTime || "-",
+                                title: "Fortress Log",
+                                total: totalDuration,
+                                morn_total: morn_total, aft_total: aft_total, night_total: night_total,
+                                quality: getCountMode(focusBlocks),
+                                // 시간대별 퀄리티는 간단히 전체 모드로 대체하거나 필요 시 추가 계산
+                                q_morn: null, q_aft: null, q_night: null 
+                            };
+
+                            fetch(WORKER_URL, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            }).then(() => console.log("🌙 어제 데이터 자동 저장 완료"))
+                              .catch(e => console.error("Auto Save Error:", e));
                         }
+
+                        // 2. 어제 기록 아카이빙 (기존 코드 시작)
 
                         // 2. 어제 기록 아카이빙
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
