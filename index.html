@@ -198,6 +198,22 @@
         .text-dim { color: #94a3b8; }
         .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
 
+        /* 얇고 예쁜 스크롤바 디자인 */
+        .thin-scrollbar::-webkit-scrollbar {
+            width: 4px; /* 두께를 얇게 (4px) */
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: transparent; /* 배경을 투명하게 */
+            margin: 4px 0; /* 위아래 여백 */
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(203, 213, 225, 0.5); /* 은은한 회색 (slate-300) */
+            border-radius: 10px; /* 둥근 모양 */
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(148, 163, 184, 0.8); /* 마우스 올리면 진하게 */
+        }
+        
     </style>
 </head>
 <body>
@@ -1377,7 +1393,6 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                     const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                     let todays = saved.filter(t => !t.isRemote);
                     
-                    // [정렬] Morning(1) -> Afternoon(2) -> Night(3)
                     const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
                     todays.sort((a, b) => {
                         const zA = zoneOrder[a.zone] || 99;
@@ -1397,11 +1412,10 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
 
         {showTodoSelect && (
             <div 
-                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[160px] overflow-y-auto p-1 pb-2"
+                /* ▼ thin-scrollbar 클래스 추가됨 */
+                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar"
                 onWheel={(e) => e.stopPropagation()} 
             >
-                {/* ▲ 위 줄에서 'no-scrollbar'를 지우고, 'onWheel'을 추가하여 스크롤 고장 해결 */}
-                
                 {todoList.length === 0 ? (
                     <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
                 ) : (
@@ -1443,6 +1457,7 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
         )}
     </div>
 )}
+                                        
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
                                             {manualTab === 'focus' && (
                                                 <div className="grid grid-cols-3 gap-2">
@@ -1477,11 +1492,7 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                                     </>
                                 )}
                                 
-                                {modalType === 'check' && (
-                                     <>
-                                     <h3 className="text-base font-bold mb-3 text-center italic text-slate-700">Check Weather</h3>
-
-                                         {manualTab === 'focus' && (
+                                {manualTab === 'focus' && (
     <div className="px-1 mb-3 relative">
         <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
             <input 
@@ -1496,7 +1507,6 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
                     const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                     let todays = saved.filter(t => !t.isRemote);
                     
-                    // [정렬] Morning(1) -> Afternoon(2) -> Night(3)
                     const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
                     todays.sort((a, b) => {
                         const zA = zoneOrder[a.zone] || 99;
@@ -1516,11 +1526,10 @@ const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림
 
         {showTodoSelect && (
             <div 
-                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[160px] overflow-y-auto p-1 pb-2"
+                /* ▼ thin-scrollbar 클래스 추가됨 */
+                className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar"
                 onWheel={(e) => e.stopPropagation()} 
             >
-                {/* ▲ 위 줄에서 'no-scrollbar'를 지우고, 'onWheel'을 추가하여 스크롤 고장 해결 */}
-                
                 {todoList.length === 0 ? (
                     <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
                 ) : (
