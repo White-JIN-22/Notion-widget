@@ -758,16 +758,21 @@
                 const zoneTodos = todos.filter(t => t.zone === zone);
                 const zoneEvents = calendarEvents.filter(e => e.zone === zone);
                 
-                const importantTodos = zoneTodos.filter(t => t.isImportant).sort((a,b) => b.id - (typeof a.id === 'string' ? 0 : a.id));
-                const normalTodos = zoneTodos.filter(t => !t.isImportant);
-                
                 const sortedEvents = zoneEvents.sort((a, b) => a.startTime - b.startTime);
-                const sortedNormalTodos = normalTodos.sort((a, b) => a.done === b.done ? (b.id - a.id) : a.done ? 1 : -1);
+
+                // [수정] 통합 정렬 로직: 1.완료여부(미완료 우선) > 2.중요도(별표 우선) > 3.최신순
+                const sortedTodos = [...zoneTodos].sort((a, b) => {
+                    if (a.done !== b.done) return a.done ? 1 : -1; // 완료된 건 아래로
+                    if (a.isImportant !== b.isImportant) return a.isImportant ? -1 : 1; // 같은 상태면 중요(별)가 위로
+                    
+                    const idA = typeof a.id === 'string' ? 0 : a.id;
+                    const idB = typeof b.id === 'string' ? 0 : b.id;
+                    return idB - idA; // 최신순
+                });
 
                 const mixedItems = [
                     ...sortedEvents,
-                    ...importantTodos.map(t => ({...t, type: 'todo'})),
-                    ...sortedNormalTodos.map(t => ({...t, type: 'todo'}))
+                    ...sortedTodos.map(t => ({...t, type: 'todo'}))
                 ];
                 
                 return (
@@ -821,7 +826,7 @@
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-3 ${todo.done ? 'todo-done' : ''}`}>
-                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? 'text-white' : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
+                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
                                         <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
                                     </button>
 
