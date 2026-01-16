@@ -331,13 +331,24 @@
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
                 try {
                     const now = new Date();
-                    const dateYMD = formatLocalYMD(now);
+                    const dateYMD = formatLocalYMD(now); // 오늘 날짜 "2026-01-17"
                     const dateStr = now.toDateString(); 
 
                     const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
 
                     if (res.ok) {
                         const data = await res.json();
+                        
+                        // [핵심 수정] 서버 데이터의 날짜가 오늘과 다르면? -> "오래된 데이터다!"
+                        // 로드하지 않고, 빈 데이터로 서버를 덮어씌움 (초기화 트리거)
+                        if (data.date && data.date !== dateYMD) {
+                            console.log("Server data is old (" + data.date + "). Resetting server...");
+                            // 서버에 '빈 데이터' 강제 전송
+                            sendToNotion(true); 
+                            return; // 여기서 함수 종료 (오래된 데이터 로드 방지)
+                        }
+
+                        // --- 아래는 오늘 데이터일 때만 실행됨 ---
 
                         if (data.wakeUpTime && data.wakeUpTime !== "-") {
                             setWakeUpTime(data.wakeUpTime);
@@ -357,8 +368,9 @@
 
                             const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
 
+                            // 로컬 날짜가 다르면(새벽 등), 서버 데이터를 우선 신뢰하여 병합
                             if (savedData.date !== dateStr) {
-                                    cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
+                                cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
                             }
                             
                             const mergedBlocks = Array.from(blockMap.values());
@@ -391,16 +403,15 @@
                             setTickets(calcTickets);
                             setEnergy(calcEnergy);
 
-                            // [수정] 날짜가 지난 로컬 기상 시간은 무시 (자정 초기화 버그 해결)
-                        const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
+                            const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
 
-                        localStorage.setItem('fortressData', JSON.stringify({
-                            date: dateStr,
-                            tickets: calcTickets,
-                            energy: calcEnergy,
-                            blocks: mergedBlocks,
-                            wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime
-                        }));
+                            localStorage.setItem('fortressData', JSON.stringify({
+                                date: dateStr,
+                                tickets: calcTickets,
+                                energy: calcEnergy,
+                                blocks: mergedBlocks,
+                                wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime
+                            }));
                         }
                     }
                 } catch (e) { console.error("Sync Load Error:", e); }
