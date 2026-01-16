@@ -133,6 +133,7 @@
         const WORKER_BASE_URL = "https://log-cal.moonkelly601.workers.dev";
         
         const CALENDARS = {
+            holiday: "https://calendar.google.com/calendar/ical/ko.south_korea%23holiday%40group.v.calendar.google.com/public/basic.ics", // 리스트엔 안 뜨고 빨간날 체크용
             red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",    
             orange: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8", 
             blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",   
@@ -184,10 +185,16 @@
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
             const [debugMsg, setDebugMsg] = useState("Loading...");
             
-            const holidays = ["01-01","02-17","02-18","02-19","03-01","05-05","06-06","08-15","10-03","10-09","12-25"];
+            // [수정] 휴일 데이터를 담을 Set 추가
+            const [holidaySet, setHolidaySet] = useState(new Set()); 
 
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
-            const isHoliday = (year, month, day) => holidays.includes(`${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`);
+            
+            // [수정] 받아온 holidaySet에 날짜가 있는지 확인하는 함수로 변경
+            const isHoliday = (year, month, day) => {
+                const key = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                return holidaySet.has(key);
+            };
 
             const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
             const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
@@ -201,13 +208,13 @@
             const fetchAllCalendars = async () => {
                 setDebugMsg("Fetching Data...");
                 let newEvents = {};
+                let tempHolidays = new Set(); // 빨간날 저장소
                 let successCount = 0;
                 const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000));
 
                 try {
                     for (const [colorKey, url] of Object.entries(CALENDARS)) {
                         try {
-                            // 기존 ?url= 파라미터 사용 (조회는 계속 워커를 통해야 함)
                             const fetchPromise = fetch(`${WORKER_BASE_URL}?url=${encodeURIComponent(url)}`);
                             const response = await Promise.race([fetchPromise, timeoutPromise]);
                             if (!response.ok) throw new Error('Net Error');
@@ -227,12 +234,22 @@
                                 else if (cleanLine.startsWith("END:VEVENT")) {
                                     if (event.start) {
                                         const startDateObj = safeParseDate(event.start);
-                                        let endDateObj = event.end ? safeParseDate(event.end) : null;
-                                        if (!endDateObj && startDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
                                         
                                         if (startDateObj) {
+                                            // [핵심 로직] 휴일 달력이면 빨간날 명단에만 넣고, 일정 추가는 건너뜀(continue)
+                                            if (colorKey === 'holiday') {
+                                                const holStr = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth()+1).padStart(2,'0')}-${String(startDateObj.getDate()).padStart(2,'0')}`;
+                                                tempHolidays.add(holStr);
+                                                continue; 
+                                            }
+
+                                            // 일반 일정 처리 (휴일은 여기까지 안 옴)
+                                            let endDateObj = event.end ? safeParseDate(event.end) : null;
+                                            if (!endDateObj && startDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
+
                                             const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
                                             const formatTime = (date) => `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+                                            
                                             const eventObj = {
                                                 title: event.title || "No Title",
                                                 type: COLOR_MAP[colorKey],
@@ -252,6 +269,7 @@
                     if (successCount > 0) {
                         for (const key in newEvents) newEvents[key].sort((a, b) => a.dateObj - b.dateObj);
                         setEvents(newEvents);
+                        setHolidaySet(tempHolidays); // 빨간날 정보 업데이트
                         setDebugMsg(""); 
                     } else { throw new Error("All Failed"); }
                 } catch (err) {
