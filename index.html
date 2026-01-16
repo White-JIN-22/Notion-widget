@@ -709,7 +709,6 @@
                 const earned = (resolvedType === 'focus') ? Math.floor(totalDuration / 30) : 0;
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
                 
-                // ▼▼▼ 여기서부터 붙여넣기 ▼▼▼
                 // [추가] 선택된 할 일이 있다면 Flow 위젯 데이터(jinsolTodos) 직접 업데이트
                 if (selectedTodoId) {
                     try {
@@ -732,7 +731,6 @@
                         console.error("Todo update failed", e);
                     }
                 }
-                // ▲▲▲ 여기까지 붙여넣기 ▲▲▲
 
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 if (!toast) triggerToast(msg); 
@@ -1578,6 +1576,7 @@
                                          <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
                                      </div>
                                     </>
+                                )}
                             </div>
                         </div>
                     )}
