@@ -346,11 +346,6 @@
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                             
-                            // [수정] 오늘 날짜이고 로컬 데이터가 있다면 서버 데이터 병합 건너뜀 (부활 방지)
-                            if (savedData.date === dateStr && savedData.blocks && savedData.blocks.length > 0) {
-                                return; 
-                            }
-
                             const serverBlocks = data.blocks;
                             let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
                             localBlocks = localBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
@@ -487,8 +482,11 @@
                             if (history.length > 7) history.shift();
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
-                        window.location.reload();
-                    }
+                            // [수정] 리로드 전 기상 시간 데이터를 스토리지에서 확실히 제거
+                    savedData.wakeUpTime = null;
+                    localStorage.setItem('fortressData', JSON.stringify(savedData));
+                    window.location.reload();
+                        }
                 }, 10000); 
                 return () => clearInterval(checkMidnight);
             }, [isRecording, startTime]); 
