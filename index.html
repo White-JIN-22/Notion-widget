@@ -466,7 +466,10 @@
                     const currentToday = now.toDateString();
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
+                    // 저장된 날짜가 있고, 오늘 날짜와 다를 경우 (자정 지남)
                     if (savedData.date && savedData.date !== currentToday) {
+                        
+                        // 1. 진행 중인 타이머가 있다면 저장 처리
                         if (isRecording && startTime) {
                             const endTime = Date.now();
                             const duration = Math.floor((endTime - startTime) / 1000 / 60);
@@ -474,25 +477,34 @@
                                 const newBlock = {
                                     id: endTime, startTime: startTime, endTime: endTime, duration: duration, quality: 'Cloud', type: 'focus'
                                 };
-                                const currentBlocks = savedData.blocks || [];
-                                savedData.blocks = [newBlock, ...currentBlocks];
-                                localStorage.setItem('fortressData', JSON.stringify(savedData));
+                                savedData.blocks = [newBlock, ...(savedData.blocks || [])];
                             }
                         }
+
+                        // 2. 지난 기록 히스토리에 아카이빙
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         if (!history.some(h => h.date === savedData.date)) {
                             history.push(savedData);
                             if (history.length > 7) history.shift();
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
-                            // [수정] 리로드 전 기상 시간 데이터를 스토리지에서 확실히 제거
-                    savedData.wakeUpTime = null;
-                    localStorage.setItem('fortressData', JSON.stringify(savedData));
-                    window.location.reload();
-                        }
-                }, 10000); 
+
+                        // 3. [수정됨] 새 날짜로 스토리지 데이터를 완전히 리셋 후 저장
+                        const resetData = {
+                            date: currentToday,
+                            tickets: 0,
+                            energy: 100,
+                            blocks: [],
+                            wakeUpTime: null
+                        };
+                        localStorage.setItem('fortressData', JSON.stringify(resetData));
+
+                        // 4. 페이지 새로고침
+                        window.location.reload();
+                    }
+                }, 5000); // 체크 주기를 5초로 단축하여 반응 속도 향상
                 return () => clearInterval(checkMidnight);
-            }, [isRecording, startTime]); 
+            }, [isRecording, startTime]);
 
             useEffect(() => {
                 if (toast) {
