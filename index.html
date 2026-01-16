@@ -328,81 +328,85 @@
             const durationHours = [0, 1, 2, 3, 4, 5];
             
             const syncFromServer = async () => {
-            if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
-            try {
-                const now = new Date();
-                const dateYMD = formatLocalYMD(now);
-                const dateStr = now.toDateString(); 
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
+                try {
+                    const now = new Date();
+                    const dateYMD = formatLocalYMD(now);
+                    const dateStr = now.toDateString(); 
 
-                const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
+                    const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
 
-                if (res.ok) {
-                    const data = await res.json();
+                    if (res.ok) {
+                        const data = await res.json();
 
-                    if (data.wakeUpTime && data.wakeUpTime !== "-") {
-                        setWakeUpTime(data.wakeUpTime);
-                    }
-
-                    if (data.blocks && Array.isArray(data.blocks)) {
-                        const serverBlocks = data.blocks;
-                        const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-
-                        let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
-                        localBlocks = localBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-
-                        if (serverBlocks.length > 0) setShowIntro(false);
-
-                        const blockMap = new Map();
-                        localBlocks.forEach(b => blockMap.set(b.id, b)); 
-
-                        const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-
-                        if (savedData.date !== dateStr) {
-                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
+                        if (data.wakeUpTime && data.wakeUpTime !== "-") {
+                            setWakeUpTime(data.wakeUpTime);
                         }
-                        
-                        const mergedBlocks = Array.from(blockMap.values());
-                        setBlocks(mergedBlocks);
 
-                        let calcTickets = 0;
-                        let calcEnergy = 100; 
-                        const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
-
-                        sorted.forEach(b => {
-                            if (b.type === 'focus' || !b.type) {
-                                // [수정] 40분마다 티켓 1개 (소수점 버림)
-                                calcTickets += Math.floor((b.duration || 0) / 30);
+                        if (data.blocks && Array.isArray(data.blocks)) {
+                            const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                            
+                            // [수정] 오늘 날짜이고 로컬 데이터가 있다면 서버 데이터 병합 건너뜀 (부활 방지)
+                            if (savedData.date === dateStr && savedData.blocks && savedData.blocks.length > 0) {
+                                return; 
                             }
-                            if (b.type === 'switch') calcTickets -= 1;
-                            if (b.type === 'rest') {
-                                let recovery = 0;
-                                if (b.recovery) recovery = b.recovery;
-                                else {
-                                    const rOption = restOptions.find(r => r.name === b.name);
-                                    recovery = rOption ? rOption.recovery : 0;
+
+                            const serverBlocks = data.blocks;
+                            let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
+                            localBlocks = localBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
+
+                            if (serverBlocks.length > 0) setShowIntro(false);
+
+                            const blockMap = new Map();
+                            localBlocks.forEach(b => blockMap.set(b.id, b)); 
+
+                            const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
+
+                            if (savedData.date !== dateStr) {
+                                    cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            }
+                            
+                            const mergedBlocks = Array.from(blockMap.values());
+                            setBlocks(mergedBlocks);
+
+                            let calcTickets = 0;
+                            let calcEnergy = 100; 
+                            const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
+
+                            sorted.forEach(b => {
+                                if (b.type === 'focus' || !b.type) {
+                                    calcTickets += Math.floor((b.duration || 0) / 30);
                                 }
-                                calcEnergy = Math.min(100, calcEnergy + recovery);
-                            } else if (b.type === 'switch') {
-                                calcEnergy = Math.max(0, calcEnergy - 5);
-                            } else {
-                                const cost = Math.floor((b.duration || 0) / 10) * 5;
-                                calcEnergy = Math.max(0, calcEnergy - cost);
-                            }
-                        });
-                        setTickets(calcTickets);
-                        setEnergy(calcEnergy);
+                                if (b.type === 'switch') calcTickets -= 1;
+                                if (b.type === 'rest') {
+                                    let recovery = 0;
+                                    if (b.recovery) recovery = b.recovery;
+                                    else {
+                                        const rOption = restOptions.find(r => r.name === b.name);
+                                        recovery = rOption ? rOption.recovery : 0;
+                                    }
+                                    calcEnergy = Math.min(100, calcEnergy + recovery);
+                                } else if (b.type === 'switch') {
+                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                } else {
+                                    const cost = Math.floor((b.duration || 0) / 10) * 5;
+                                    calcEnergy = Math.max(0, calcEnergy - cost);
+                                }
+                            });
+                            setTickets(calcTickets);
+                            setEnergy(calcEnergy);
 
-                        localStorage.setItem('fortressData', JSON.stringify({
-                            date: dateStr,
-                            tickets: calcTickets,
-                            energy: calcEnergy,
-                            blocks: mergedBlocks,
-                            wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime
-                        }));
+                            localStorage.setItem('fortressData', JSON.stringify({
+                                date: dateStr,
+                                tickets: calcTickets,
+                                energy: calcEnergy,
+                                blocks: mergedBlocks,
+                                wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime
+                            }));
+                        }
                     }
-                }
-            } catch (e) { console.error("Sync Load Error:", e); }
-        };
+                } catch (e) { console.error("Sync Load Error:", e); }
+            };
 
             useEffect(() => {
                 syncFromServer();
@@ -705,31 +709,21 @@
                     }
                 }
 
-                // [수정] 티켓 획득 로직: focus일 때 40분마다 1장
                 const earned = (resolvedType === 'focus') ? Math.floor(totalDuration / 30) : 0;
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
                 
-                // [추가] 선택된 할 일이 있다면 Flow 위젯 데이터(jinsolTodos) 직접 업데이트
                 if (selectedTodoId) {
                     try {
                         const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                         const updatedTodos = savedTodos.map(t => {
                             if (t.id === selectedTodoId) {
-                                // 기존 시간(elapsed)에 이번 집중 시간(ms) 추가
                                 const addedMs = totalDuration * 60 * 1000;
-                                return { 
-                                    ...t, 
-                                    done: true, // 완료 처리
-                                    elapsed: (t.elapsed || 0) + addedMs, // 시간 누적
-                                    isRunning: false 
-                                };
+                                return { ...t, done: true, elapsed: (t.elapsed || 0) + addedMs, isRunning: false };
                             }
                             return t;
                         });
                         localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
-                    } catch (e) {
-                        console.error("Todo update failed", e);
-                    }
+                    } catch (e) { console.error("Todo update failed", e); }
                 }
 
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
@@ -737,12 +731,14 @@
                 setShowModal(false);
 
                 setFocusMemo('');
-                // [추가] 선택 상태 초기화
                 setSelectedTodoId(null);
                 setShowTodoSelect(false);
                 if (type === 'auto') {
                     setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null);
                 }
+                
+                // [자동저장]
+                sendToNotion(true); 
             };
 
             const extendDuration = (id) => {
@@ -791,7 +787,6 @@
 
                     if (targetBlock) {
                         if (targetBlock.type === 'focus' || !targetBlock.type) {
-                            // [수정] 삭제 시 해당 블록으로 얻었던 티켓만큼 차감
                             const gainedTickets = Math.floor(targetBlock.duration / 30);
                             newTickets = Math.max(0, tickets - gainedTickets);
                             
@@ -812,7 +807,9 @@
                     saveData(newTickets, newEnergy, newBlocks);
                     setDeleteTargetId(null); setShowModal(false); 
                     triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
-                    setTimeout(() => { sendToNotion(); }, 500);
+                    
+                    // [자동저장]
+                    sendToNotion(true); 
                 }
             };
 
@@ -852,25 +849,24 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
-            const sendToNotion = async () => {
-                if (!WORKER_URL || WORKER_URL.includes("your-worker")) { triggerToast("⚠️ URL 확인"); return; }
+            const sendToNotion = async (silent = false) => {
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) { 
+                    if(!silent) triggerToast("⚠️ URL 확인"); 
+                    return; 
+                }
 
                 setIsSending(true);
+                if (!silent) triggerToast("☁️ 노션에 저장 중...");
                 let successCount = 0;
 
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
-                    
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-
-                    let morn_total = 0;
-                    let aft_total = 0;
-                    let night_total = 0;
+                    let morn_total = 0; let aft_total = 0; let night_total = 0;
 
                     focusBlocks.forEach(b => {
                         const start = b.startTime;
                         const end = b.endTime || (start + (b.duration * 60 * 1000));
-                        
                         const baseDate = new Date(start);
                         const time00 = new Date(baseDate).setHours(0, 0, 0, 0);
                         const time12 = new Date(baseDate).setHours(12, 0, 0, 0);
@@ -880,9 +876,7 @@
                         const getOverlapMinutes = (s, e, zoneS, zoneE) => {
                             const overlapStart = Math.max(s, zoneS);
                             const overlapEnd = Math.min(e, zoneE);
-                            if (overlapEnd > overlapStart) {
-                                return Math.floor((overlapEnd - overlapStart) / 1000 / 60);
-                            }
+                            if (overlapEnd > overlapStart) return Math.floor((overlapEnd - overlapStart) / 1000 / 60);
                             return 0;
                         };
 
@@ -895,7 +889,6 @@
                         if (items.length === 0) return null; 
                         const counts = { Sun: 0, Cloud: 0, Rain: 0 };
                         items.forEach(b => { if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++; });
-                        
                         const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
                         if (counts.Sun === maxVal) return "Sun";
                         if (counts.Cloud === maxVal) return "Cloud";
@@ -923,21 +916,13 @@
                     const nightBlocks = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18; });
 
                     return {
-                        total: totalDuration,
-                        morn_total: morn_total, 
-                        aft_total: aft_total,   
-                        night_total: night_total, 
-                        quality: getCountMode(focusBlocks), 
-                        q_morn: getDurationMode(mornBlocks), 
-                        q_aft: getDurationMode(aftBlocks), 
-                        q_night: getDurationMode(nightBlocks)
+                        total: totalDuration, morn_total: morn_total, aft_total: aft_total, night_total: night_total, 
+                        quality: getCountMode(focusBlocks), q_morn: getDurationMode(mornBlocks), q_aft: getDurationMode(aftBlocks), q_night: getDurationMode(nightBlocks)
                     };
                 };
 
                 const sendDataset = async (dataset) => {
-
                     const stats = calculateStats(dataset.blocks);
-                    
                     const payload = {
                         date: formatLocalYMD(dataset.date), 
                         blocks: dataset.blocks, 
@@ -971,9 +956,9 @@
                             try { await sendDataset(data); successCount++; } catch (e) { console.error(e); }
                         }
                     }
-                    triggerToast(`☁️ 총 ${successCount}건 저장 완료!`);
+                    if (!silent) triggerToast(`☁️ 총 ${successCount}건 저장 완료!`);
                 } catch(e) { 
-                    triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
+                    if (!silent) triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
                 } finally { 
                     setIsSending(false); 
                 }
