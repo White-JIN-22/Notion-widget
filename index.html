@@ -975,8 +975,18 @@
 
             const openManual = () => {
                 const now = new Date();
-                setManualEndHour(now.getHours());
-                setManualEndMin(Math.floor(now.getMinutes() / 5) * 5);
+                let h = now.getHours();
+                let m = Math.round(now.getMinutes() / 5) * 5;
+
+                // 58분, 59분 등이라서 60분으로 반올림된 경우, 0분으로 만들고 시간을 1시간 더함
+                if (m === 60) {
+                    m = 0;
+                    h = h + 1;
+                    if (h === 24) h = 0; // 24시면 0시로 변경
+                }
+
+                setManualEndHour(h);
+                setManualEndMin(m);
                 setManualDurHour(0); setManualDurMin(30);
                 setModalType('manual'); setShowModal(true);
                 setManualTab('focus'); 
