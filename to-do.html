@@ -942,7 +942,7 @@
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-2 ${todo.done ? 'todo-done' : ''}`}>
                                     
-                                    {/* [수정됨] 별+느낌표+체크박스를 하나의 타이트한 그룹으로 묶음 */}
+                                    {/* 별+느낌표+체크박스 그룹 */}
                                     <div className="flex items-center gap-0.5 shrink-0">
                                         <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
                                             <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
@@ -985,7 +985,8 @@
                                         )}
                                     </div>
                                 </div>
-                            )})}
+                            ); // 세미콜론 추가됨
+                            })}
                         </div>
                     </div>
                 );
