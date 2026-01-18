@@ -795,18 +795,25 @@
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
                 
                 if (selectedTodoId) {
-                    try {
-                        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                        const updatedTodos = savedTodos.map(t => {
-                            if (t.id === selectedTodoId) {
-                                const addedMs = totalDuration * 60 * 1000;
-                                return { ...t, done: true, elapsed: (t.elapsed || 0) + addedMs, isRunning: false };
-                            }
-                            return t;
-                        });
-                        localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
-                    } catch (e) { console.error("Todo update failed", e); }
-                }
+    try {
+        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+        const updatedTodos = savedTodos.map(t => {
+            if (t.id === selectedTodoId) {
+                const addedMs = totalDuration * 60 * 1000;
+                // [수정] 나중에 시간 연장 시 추적할 수 있도록 lastLinkedBlockId 저장
+                return { 
+                    ...t, 
+                    done: true, 
+                    elapsed: (t.elapsed || 0) + addedMs, 
+                    isRunning: false,
+                    lastLinkedBlockId: newBlock.id 
+                };
+            }
+            return t;
+        });
+        localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+    } catch (e) { console.error("Todo update failed", e); }
+}
 
                 saveData(newTickets, newEnergy, [newBlock, ...blocks]);
                 if (!toast) triggerToast(msg); 
@@ -823,41 +830,61 @@
                 sendToNotion(true); 
             };
 
-            const extendDuration = (id) => {
-                const now = Date.now();
-                const targetBlock = blocks.find(b => b.id === id);
-                
-                if (!targetBlock) return;
+            // [전체 교체용 코드]
+const extendDuration = (id) => {
+    const now = Date.now();
+    const targetBlock = blocks.find(b => b.id === id);
+    
+    if (!targetBlock) return;
 
-                const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
-                
-                if (newDuration <= targetBlock.duration) {
-                    triggerToast("⚠️ 이미 지난 시간입니다.");
-                    return;
+    const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
+    
+    if (newDuration <= targetBlock.duration) {
+        triggerToast("⚠️ 이미 지난 시간입니다.");
+        return;
+    }
+
+    // [NEW] 늘어난 시간(분) 계산
+    const addedMinutes = newDuration - targetBlock.duration;
+
+    // [NEW] 연동된 투두가 있다면 시간 추가 업데이트 (To-Do 위젯 반영)
+    if (addedMinutes > 0) {
+        try {
+            const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+            let isTodoUpdated = false;
+            const updatedTodos = savedTodos.map(t => {
+                // 아까 addRecord에서 심어둔 ID와 일치하는지 확인
+                if (t.lastLinkedBlockId === id) {
+                    isTodoUpdated = true;
+                    return { ...t, elapsed: (t.elapsed || 0) + (addedMinutes * 60 * 1000) };
                 }
+                return t;
+            });
 
-                const oldCost = Math.floor(targetBlock.duration / 10) * 5;
-                const newCost = Math.floor(newDuration / 10) * 5;
-                const costDiff = newCost - oldCost;
-                const newEnergy = Math.max(0, energy - costDiff);
+            if (isTodoUpdated) {
+                localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+            }
+        } catch (e) { console.error("Todo sync extend failed", e); }
+    }
 
-                // [수정] 시간 연장에 따른 티켓 추가 획득 계산
-                const oldTickets = Math.floor(targetBlock.duration / 30);
-                const newTicketsCount = Math.floor(newDuration / 30);
-                const ticketDiff = newTicketsCount - oldTickets;
-                const finalTickets = tickets + ticketDiff;
+    // 기존 로직 (에너지/티켓 계산)
+    const oldCost = Math.floor(targetBlock.duration / 10) * 5;
+    const newCost = Math.floor(newDuration / 10) * 5;
+    const costDiff = newCost - oldCost;
+    const newEnergy = Math.max(0, energy - costDiff);
 
-                const newBlocks = blocks.map(b => 
-                    b.id === id ? { ...b, endTime: now, duration: newDuration } : b
-                );
+    const oldTickets = Math.floor(targetBlock.duration / 30);
+    const newTicketsCount = Math.floor(newDuration / 30);
+    const ticketDiff = newTicketsCount - oldTickets;
+    const finalTickets = tickets + ticketDiff;
 
-                saveData(finalTickets, newEnergy, newBlocks);
-                triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
-            };
+    const newBlocks = blocks.map(b => 
+        b.id === id ? { ...b, endTime: now, duration: newDuration } : b
+    );
 
-            const confirmDelete = (id) => {
-                setDeleteTargetId(id); setModalType('delete'); setShowModal(true);
-            };
+    saveData(finalTickets, newEnergy, newBlocks);
+    triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
+};
             
             const executeDelete = () => {
                 if (deleteTargetId) {
