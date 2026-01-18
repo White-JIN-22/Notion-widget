@@ -261,7 +261,10 @@
             const [isSending, setIsSending] = useState(false);
             const [pendingLog, setPendingLog] = useState(null);
 
-            const [linkingTodoId, setLinkingTodoId] = useState(null);
+            // [NEW] 소일거리 연동 모달 상태
+            const [linkingChoreId, setLinkingChoreId] = useState(null);
+            const [todaySwitchBlocks, setTodaySwitchBlocks] = useState([]);
+            const [selectedSwitchId, setSelectedSwitchId] = useState(null);
             const [todayLogBlocks, setTodayLogBlocks] = useState([]);
             const [selectedBlockIds, setSelectedBlockIds] = useState([]);
 
@@ -494,58 +497,138 @@
                 const targetTodo = todos.find(t => t.id === id);
                 if (!targetTodo || targetTodo.isRemote) return; 
 
-                // [NEW] 소일거리(Chore) 완료 처리 -> Log 위젯 데이터로 전송
+                // [NEW] 소일거리(Chore) 처리 로직 개선
                 if (targetTodo.isChore) {
-                    const nextDone = !targetTodo.done;
-                    setTodos(todos.map(t => t.id === id ? { ...t, done: nextDone } : t));
-                    
-                    if (nextDone) {
-                        try {
-                            const rawData = localStorage.getItem('fortressData');
-                            const savedData = rawData ? JSON.parse(rawData) : {};
-                            const todayStr = new Date().toDateString();
+                    if (targetTodo.done) {
+                        // 이미 완료된 걸 취소할 때는 그냥 체크만 풉니다 (로그 삭제는 위험하므로 하지 않음)
+                        setTodos(todos.map(t => t.id === id ? { ...t, done: false } : t));
+                        return;
+                    }
 
-                            // 오늘 데이터가 아니면 초기화
-                            if (!savedData.date || savedData.date !== todayStr) {
-                                savedData.date = todayStr;
-                                savedData.tickets = 0;
-                                savedData.energy = 100;
-                                savedData.blocks = [];
-                            }
+                    // 로그 데이터 조회
+                    try {
+                        const rawData = localStorage.getItem('fortressData');
+                        const savedData = rawData ? JSON.parse(rawData) : {};
+                        const todayStr = new Date().toDateString();
 
-                            // Log 위젯과 동일한 로직: Switch는 티켓-1, 에너지-5, 10분 소요
-                            if ((savedData.tickets || 0) <= 0) {
-                                triggerToast("⚠️ 티켓이 부족해 기록되지 않았어요 (로컬 완료만 처리됨)");
+                        if (savedData.date === todayStr && savedData.blocks) {
+                            // 오늘 기록된 'switch' 타입 로그만 필터링
+                            const switches = savedData.blocks.filter(b => b.type === 'switch');
+                            
+                            if (switches.length > 0) {
+                                // 연동할 로그가 있다면 모달 띄우기
+                                setTodaySwitchBlocks(switches);
+                                setLinkingChoreId(id);
+                                setSelectedSwitchId(null); // 초기화
                                 return;
                             }
-
-                            const now = Date.now();
-                            const duration = 10;
-                            const newBlock = {
-                                id: now,
-                                startTime: now - (duration * 60 * 1000),
-                                endTime: now,
-                                duration: duration,
-                                quality: 'Cloud',
-                                type: 'switch', // [핵심] Log 위젯이 인식하는 타입
-                                icon: targetTodo.choreIcon,
-                                name: targetTodo.text,
-                                color: targetTodo.choreColor
-                            };
-
-                            savedData.tickets -= 1;
-                            savedData.energy = Math.max(0, (savedData.energy || 100) - 5);
-                            savedData.blocks = [newBlock, ...(savedData.blocks || [])];
-
-                            localStorage.setItem('fortressData', JSON.stringify(savedData));
-                            triggerToast(`✨ 소일거리 완료! (티켓 사용, Log 연동됨)`);
-                        } catch (e) {
-                            console.error("Chore sync failed", e);
-                            triggerToast("⚠️ 연동 실패");
                         }
-                    }
+                    } catch (e) { console.error(e); }
+
+                    // 연동할 로그가 없으면 바로 새 기록 생성 (안전 로직 적용)
+                    createChoreLog(targetTodo);
                     return;
                 }
+
+                // 기존 타이머형 할 일 처리 (변경 없음)
+                if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
+                    openLogLinkModal(id);
+                    return; 
+                }
+
+                setTodos(todos.map(t => {
+                    if (t.id === id) {
+                        const nextDone = !t.done;
+                        if (!nextDone) return { ...t, done: nextDone, elapsed: 0, isRunning: false };
+                        if (nextDone && t.isRunning) {
+                            const now = Date.now();
+                            const sessionDuration = now - t.lastStartTime;
+                            return { ...t, done: nextDone, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
+                        }
+                        return { ...t, done: nextDone };
+                    }
+                    return t;
+                })); 
+            };
+
+            // [NEW] 소일거리 기존 로그와 연동
+            const confirmLinkChore = () => {
+                if (!linkingChoreId || !selectedSwitchId) {
+                    // 선택 안 하고 '연동' 누르면 -> 그냥 '새로 기록'으로 넘겨버리거나 경고
+                    if (!selectedSwitchId) return triggerToast("⚠️ 연동할 기록을 선택해주세요");
+                }
+
+                setTodos(todos.map(t => t.id === linkingChoreId ? { 
+                    ...t, 
+                    done: true, 
+                    linkedBlockId: selectedSwitchId  // ID 연동
+                } : t));
+                
+                triggerToast("🔗 소일거리 연동 완료!");
+                setLinkingChoreId(null);
+            };
+
+            // [NEW] 소일거리 새 기록 생성 (안전한 저장 로직)
+            const createChoreLog = (targetTodo) => {
+                try {
+                    const rawData = localStorage.getItem('fortressData');
+                    let savedData = rawData ? JSON.parse(rawData) : {};
+                    const todayStr = new Date().toDateString();
+
+                    // 날짜 불일치 시 초기화하되, wakeUpTime 등은 보존 시도 (데이터 증발 방지)
+                    if (!savedData.date || savedData.date !== todayStr) {
+                        savedData = {
+                            date: todayStr,
+                            tickets: 0,
+                            energy: 100,
+                            blocks: [],
+                            wakeUpTime: savedData.wakeUpTime || null 
+                        };
+                    }
+
+                    // 티켓 확인
+                    if ((savedData.tickets || 0) <= 0) {
+                        triggerToast("⚠️ 티켓이 부족해 투두만 완료 처리됩니다.");
+                        setTodos(todos.map(t => t.id === targetTodo.id ? { ...t, done: true } : t));
+                        setLinkingChoreId(null);
+                        return;
+                    }
+
+                    const now = Date.now();
+                    const duration = 10;
+                    const newBlock = {
+                        id: now,
+                        startTime: now - (duration * 60 * 1000),
+                        endTime: now,
+                        duration: duration,
+                        quality: 'Cloud',
+                        type: 'switch',
+                        icon: targetTodo.choreIcon,
+                        name: targetTodo.text,
+                        color: targetTodo.choreColor
+                    };
+
+                    savedData.tickets -= 1;
+                    savedData.energy = Math.max(0, (savedData.energy || 100) - 5);
+                    // [핵심] 기존 blocks 배열이 있으면 앞에 추가, 없으면 새로 생성 (덮어쓰기 방지)
+                    savedData.blocks = [newBlock, ...(Array.isArray(savedData.blocks) ? savedData.blocks : [])];
+
+                    localStorage.setItem('fortressData', JSON.stringify(savedData));
+                    
+                    // 투두 상태 업데이트 (새로 만든 블록 ID와 연동)
+                    setTodos(todos.map(t => t.id === targetTodo.id ? { 
+                        ...t, 
+                        done: true,
+                        linkedBlockId: newBlock.id 
+                    } : t));
+
+                    triggerToast(`✨ 소일거리 완료! (티켓 사용)`);
+                } catch (e) {
+                    console.error("Chore save failed", e);
+                    triggerToast("⚠️ 저장 실패");
+                }
+                setLinkingChoreId(null);
+            };
 
                 // 기존 타이머형 할 일 처리
                 if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
@@ -1090,6 +1173,41 @@
                         </div>
                     )}
 
+                    {/* [NEW] 소일거리 연동 모달 */}
+                    {linkingChoreId && (
+                        <div className="modal-overlay" onClick={() => setLinkingChoreId(null)}>
+                            <div className="log-link-modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="mb-3 text-center">
+                                    <h3 className="text-sm font-bold text-slate-700 font-serif">｡✧ Link Routine ✧｡</h3>
+                                    <p className="text-[10px] text-slate-500 mt-1">이미 기록된 소일거리에 연결할까요?<br/>아니면 새로 기록할까요?</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1 max-h-[220px]">
+                                    {todaySwitchBlocks.map(block => {
+                                        const isSelected = selectedSwitchId === block.id;
+                                        const BlockIcon = Icons[block.icon] || Icons.Zap;
+                                        return (
+                                            <div key={block.id} onClick={() => setSelectedSwitchId(block.id)} 
+                                                className={`p-2 rounded-lg border text-left cursor-pointer transition-all flex items-center gap-3 ${isSelected ? 'bg-sky-50 border-sky-300' : 'bg-white/50 border-slate-200 hover:bg-white'}`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${block.color === 'text-sky-300' ? 'bg-sky-100 text-sky-500' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <BlockIcon className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="text-[10px] text-slate-400 font-bold">{formatSimpleTime(block.startTime)}</div>
+                                                    <div className="text-xs font-bold text-slate-600">{block.name}</div>
+                                                </div>
+                                                {isSelected && <Icons.CheckCircle className="w-4 h-4 text-sky-500" />}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <button onClick={() => createChoreLog(todos.find(t => t.id === linkingChoreId))} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">새로 기록 (-1 Ticket)</button>
+                                    <button onClick={confirmLinkChore} disabled={!selectedSwitchId} className={`flex-1 py-2 rounded-xl font-bold border transition-all text-xs ${selectedSwitchId ? 'bg-sky-100 hover:bg-sky-200 text-sky-600 border-sky-200' : 'bg-slate-100 text-slate-300 border-slate-200'}`}>연동하기</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
                     {showQuestModal && (
                         <div className="modal-overlay" onClick={() => setShowQuestModal(false)}>
                             <div className="log-link-modal-content" onClick={e => e.stopPropagation()}>
