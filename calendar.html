@@ -192,44 +192,50 @@
 
             useEffect(() => {
                 const loadHistory = () => {
-                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
+                const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                
+                const allData = [...history];
+                if (todayData.date) allData.push(todayData);
+
+                const map = {};
+                let exCnt = 0, rdCnt = 0, rcCnt = 0;
+                let monthTotalMin = 0; // 총 시간 합산 변수 추가
+                let validDays = 0;
+
+                const thisMonthPrefix = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+                allData.forEach(day => {
+                    const focusBlocks = (day.blocks || []).filter(b => b.type === 'focus' || !b.type);
+                    const totalMin = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
                     
-                    const allData = [...history];
-                    if (todayData.date) allData.push(todayData);
+                    const d = new Date(day.date);
+                    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    map[dateKey] = totalMin;
 
-                    const map = {};
-                    let exCnt = 0, rdCnt = 0, rcCnt = 0;
-                    let validDays = 0;
+                    if (dateKey.startsWith(thisMonthPrefix)) {
+                        const blocks = day.blocks || [];
+                        if (blocks.some(b => b.name === '운동')) exCnt++;
+                        if (blocks.some(b => b.name === '독서')) rdCnt++;
+                        if (blocks.some(b => b.name === '기록')) rcCnt++;
+                        monthTotalMin += totalMin; // 이번 달 시간 누적
+                        validDays++; 
+                    }
+                });
 
-                    const thisMonthPrefix = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+                setHistoryMap(map);
+                
+                const calcPct = (cnt) => validDays === 0 ? 0 : Math.round((cnt / validDays) * 100);
+                // 평균 시간 계산 (분 단위)
+                const avgTime = validDays === 0 ? 0 : Math.round(monthTotalMin / validDays);
 
-                    allData.forEach(day => {
-                        const focusBlocks = (day.blocks || []).filter(b => b.type === 'focus' || !b.type);
-                        const totalMin = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                        
-                        const d = new Date(day.date);
-                        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                        map[dateKey] = totalMin;
-
-                        if (dateKey.startsWith(thisMonthPrefix)) {
-                            const blocks = day.blocks || [];
-                            if (blocks.some(b => b.name === '운동')) exCnt++;
-                            if (blocks.some(b => b.name === '독서')) rdCnt++;
-                            if (blocks.some(b => b.name === '기록')) rcCnt++;
-                            validDays++; 
-                        }
-                    });
-
-                    setHistoryMap(map);
-                    
-                    const calcPct = (cnt) => validDays === 0 ? 0 : Math.round((cnt / validDays) * 100);
-                    setMonthlyStats({ 
-                        exercise: calcPct(exCnt), 
-                        reading: calcPct(rdCnt), 
-                        record: calcPct(rcCnt)
-                    });
-                };
+                setMonthlyStats({ 
+                    exercise: calcPct(exCnt), 
+                    reading: calcPct(rdCnt), 
+                    record: calcPct(rcCnt),
+                    average: avgTime // 상태 추가
+                });
+            };
 
                 loadHistory();
                 window.addEventListener('storage', loadHistory);
@@ -447,9 +453,16 @@
                             </div>
                         </div>
 
-                        {/* Monthly Summary Section */}
-                        <div className="mx-4 mt-2 mb-1 px-3 py-2 bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-300 tracking-wider uppercase">Monthly Flow</span>
+                        {/* Monthly Summary Section - Modified Style */}
+                        <div className="w-full mt-2 mb-1 px-5 py-2 bg-white/5 border-y border-white/10 backdrop-blur-md flex justify-between items-center">
+                            {/* Average Time (Replaces Text) */}
+                            <div className={`text-[11px] font-bold font-mono tracking-tight ${
+                                (monthlyStats.average || 0) <= 90 ? 'text-slate-400' : 
+                                (monthlyStats.average || 0) <= 330 ? 'text-sky-300' : 'text-purple-300'
+                            }`}>
+                                {Math.floor((monthlyStats.average || 0) / 60)}H {(monthlyStats.average || 0) % 60}M
+                            </div>
+
                             <div className="flex gap-3">
                                 <div className="flex items-center gap-1.5" title="운동 달성률">
                                     <Icons.Flame className="w-3.5 h-3.5 text-purple-300" />
