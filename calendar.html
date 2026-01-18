@@ -210,8 +210,8 @@
                 let newEvents = {};
                 let tempHolidays = new Set(); // 빨간날 저장소
                 let successCount = 0;
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 4000));
-
+                // [수정됨] 4000 -> 15000 (15초로 대기 시간 연장)
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000));
                 try {
                     for (const [colorKey, url] of Object.entries(CALENDARS)) {
                         try {
