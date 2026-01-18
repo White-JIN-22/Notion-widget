@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow (Integrated Fix)</title>
+    <title>Daily Flow</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -529,27 +529,6 @@
                     createChoreLog(targetTodo);
                     return;
                 }
-
-                // 기존 타이머형 할 일 처리 (변경 없음)
-                if (!targetTodo.done && targetTodo.elapsed === 0 && !targetTodo.isRunning) {
-                    openLogLinkModal(id);
-                    return; 
-                }
-
-                setTodos(todos.map(t => {
-                    if (t.id === id) {
-                        const nextDone = !t.done;
-                        if (!nextDone) return { ...t, done: nextDone, elapsed: 0, isRunning: false };
-                        if (nextDone && t.isRunning) {
-                            const now = Date.now();
-                            const sessionDuration = now - t.lastStartTime;
-                            return { ...t, done: nextDone, isRunning: false, elapsed: t.elapsed + sessionDuration, lastStartTime: null };
-                        }
-                        return { ...t, done: nextDone };
-                    }
-                    return t;
-                })); 
-            };
 
             // [NEW] 소일거리 기존 로그와 연동
             const confirmLinkChore = () => {
