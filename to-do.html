@@ -848,65 +848,82 @@
                 return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             };
 
-            // [수정된 sendToNotion 함수]
-const sendToNotion = async () => {
-    if (isSending || !isToday(viewDate)) return; 
-    setIsSending(true);
-    triggerToast("☁️ 노션에 전송 시도 중...");
+            const sendToNotion = async () => {
+                // 1. 전송 조건 체크
+                if (isSending) return;
+                if (!isToday(viewDate)) {
+                    triggerToast("⚠️ 과거 날짜는 수정할 수 없습니다.");
+                    return;
+                }
+                
+                setIsSending(true);
+                triggerToast("☁️ 노션에 저장하는 중...");
 
-    try {
-        const todoSummary = todos.map(t => {
-            let totalMs = t.elapsed;
-            if (t.isRunning && t.lastStartTime) {
-                totalMs += (Date.now() - t.lastStartTime);
-            }
-            
-            let timeStr = formatTime(totalMs);
-            if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
-            if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
+                try {
+                    // 2. 텍스트 데이터 생성
+                    const todoSummary = todos.map(t => {
+                        let totalMs = t.elapsed;
+                        if (t.isRunning && t.lastStartTime) {
+                            totalMs += (Date.now() - t.lastStartTime);
+                        }
+                        
+                        let timeStr = formatTime(totalMs);
+                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
+                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
 
-            const status = t.done ? "✅" : "⬜";
-            const star = t.isImportant ? "⭐" : "";
-            const urgent = t.isUrgent ? "❗" : ""; 
-            const prefix = t.isChore ? "(Routine) " : "";
+                        const status = t.done ? "✅" : "⬜";
+                        const star = t.isImportant ? "⭐" : "";
+                        const urgent = t.isUrgent ? "❗" : ""; 
+                        const prefix = t.isChore ? "(Routine) " : "";
+                        const timeDisplay = timeStr ? `(${timeStr})` : '';
 
-            return `${status}${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeStr ? `(${timeStr})` : ''}`;
-        }).join('\n');
-        
-        const payload = { 
-            date: formatLocalYMD(new Date()), 
-            todos: todoSummary, 
-            isTodoUpdate: true 
-        };
+                        // 텍스트 한 줄 완성
+                        return `${status} ${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
+                    }).join('\n');
+                    
+                    if (!todoSummary) {
+                        triggerToast("⚠️ 저장할 데이터가 없습니다.");
+                        setIsSending(false);
+                        return;
+                    }
 
-        // 1. 내가 보내는 데이터가 맞는지 눈으로 확인 (팝업 1)
-        // alert("보내는 데이터 확인:\n" + JSON.stringify(payload, null, 2)); 
+                    const payload = { 
+                        date: formatLocalYMD(new Date()), 
+                        todos: todoSummary, 
+                        isTodoUpdate: true 
+                    };
 
-        const res = await fetch(WORKER_URL, { 
-            method: "POST", 
-            headers: { "Content-Type": "application/json" }, 
-            body: JSON.stringify(payload) 
-        });
+                    // 3. 서버 전송
+                    const res = await fetch(WORKER_URL, { 
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" }, 
+                        body: JSON.stringify(payload) 
+                    });
 
-        const resultText = await res.text(); // 서버의 답변 원문 받기
+                    const resultText = await res.text(); // 서버 응답 원문
 
-        if (res.ok) {
-            triggerToast("✅ 저장 성공!");
-            console.log("서버 응답:", resultText);
-        } else {
-            // 2. 실패했다면 이유가 무엇인지 팝업으로 띄움 (여기가 핵심!)
-            alert("❌ 저장 실패 원인:\n" + resultText);
-            throw new Error(resultText);
-        }
+                    if (res.ok) {
+                        triggerToast("✅ 노션 저장 완료!");
+                        console.log("Notion Sync Success:", resultText);
+                    } else {
+                        // 에러 발생 시 상세 내용을 경고창으로 띄움
+                        console.error("Notion Sync Error:", resultText);
+                        // JSON 파싱 시도 (에러 메시지 추출)
+                        try {
+                            const errJson = JSON.parse(resultText);
+                            alert(`❌ 저장 실패\n\nNotion 에러 내용:\n${errJson.error || resultText}`);
+                        } catch (e) {
+                            alert(`❌ 저장 실패\n\n서버 응답:\n${resultText}`);
+                        }
+                    }
 
-    } catch (e) { 
-        console.error(e); 
-        // 네트워크 에러인지, Worker 에러인지 구분
-        triggerToast("⚠️ 에러 발생 (팝업 확인)"); 
-    } finally { 
-        setIsSending(false); 
-    }
-};
+                } catch (e) { 
+                    console.error("Network Error:", e); 
+                    triggerToast("⚠️ 네트워크 에러 발생"); 
+                } finally { 
+                    setIsSending(false); 
+                }
+            };
 
             useEffect(() => {
                 const checkInterval = setInterval(() => {
