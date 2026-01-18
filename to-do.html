@@ -850,77 +850,52 @@
 
             const sendToNotion = async () => {
                 if (isSending) return;
-                
-                // [확인 1] 오늘 날짜인지 체크
-                if (!isToday(viewDate)) {
-                    alert("⚠️ 오늘 날짜가 아니라서 저장을 막았습니다.");
-                    return;
-                }
-                
                 setIsSending(true);
 
                 try {
-                    // 데이터 포장
+                    // 데이터 생성
                     const todoSummary = todos.map(t => {
                         let totalMs = t.elapsed;
-                        if (t.isRunning && t.lastStartTime) {
-                            totalMs += (Date.now() - t.lastStartTime);
-                        }
-                        
+                        if (t.isRunning && t.lastStartTime) totalMs += (Date.now() - t.lastStartTime);
                         let timeStr = formatTime(totalMs);
-                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M"; // 소일거리 기본값
-                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed); // 연동값
-
+                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
+                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
                         const status = t.done ? "✅" : "⬜";
-                        const star = t.isImportant ? "⭐" : "";
-                        const urgent = t.isUrgent ? "❗" : ""; 
                         const prefix = t.isChore ? "(Routine) " : "";
                         const timeDisplay = timeStr ? `(${timeStr})` : '';
-
-                        return `${status} ${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
+                        return `${status} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
                     }).join('\n');
-                    
-                    // [확인 2] 진짜 보낼 데이터가 있는지 눈으로 확인 (이 창이 뜨나 보세요!)
-                    if (!todoSummary) {
-                        alert("⚠️ 저장할 데이터가 '텅 비어' 있습니다. (리스트가 비었나요?)");
-                        setIsSending(false);
-                        return;
-                    }
 
-                    // ★ 여기가 핵심: 내가 뭘 보내는지 직접 보세요.
-                    const confirmMsg = `[전송 데이터 확인]\n\n${todoSummary}\n\n이대로 노션에 보낼까요?`;
-                    if (!confirm(confirmMsg)) {
-                        setIsSending(false);
-                        return; 
-                    }
-
-                    triggerToast("☁️ 노션에 전송 시도 중...");
-
-                    const payload = { 
-                        date: formatLocalYMD(new Date()), 
-                        todos: todoSummary, 
-                        isTodoUpdate: true 
-                    };
-
+                    // 전송
+                    triggerToast("☁️ 데이터 추적 중...");
                     const res = await fetch(WORKER_URL, { 
                         method: "POST", 
                         headers: { "Content-Type": "application/json" }, 
-                        body: JSON.stringify(payload) 
+                        body: JSON.stringify({ 
+                            date: formatLocalYMD(new Date()), 
+                            todos: todoSummary, 
+                            isTodoUpdate: true 
+                        }) 
                     });
 
-                    const resultText = await res.text();
+                    const data = await res.json(); // JSON으로 받음
 
-                    if (res.ok) {
-                        triggerToast("✅ 저장 성공!");
-                        console.log("서버 응답:", resultText);
+                    if (res.ok && data.status === "SUCCESS") {
+                        // ★ 여기서 범인 검거
+                        const confirmOpen = confirm(
+                            "✅ 저장 성공! (근데 의심스러우니까 확인해봅시다)\n\n" +
+                            "서버가 이 주소에 저장했대요:\n" + data.pageUrl + "\n\n" +
+                            "지금 페이지를 열어서 확인해볼까요?"
+                        );
+                        if (confirmOpen) {
+                            window.open(data.pageUrl, '_blank');
+                        }
                     } else {
-                        // 실패시 서버가 뱉은 말을 그대로 보여줌
-                        alert("❌ 서버 거부:\n" + resultText);
+                        alert("❌ 실패: " + JSON.stringify(data));
                     }
 
                 } catch (e) { 
-                    console.error(e); 
-                    alert("⚠️ 에러 발생: " + e.message);
+                    alert("에러: " + e.message);
                 } finally { 
                     setIsSending(false); 
                 }
