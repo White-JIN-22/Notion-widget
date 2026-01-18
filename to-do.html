@@ -400,7 +400,8 @@
 
             const fetchCalendarData = async (targetDate) => {
                 try {
-                    const res = await fetch(`${WORKER_URL}?type=calendar&t=${Date.now()}`);
+                    // [수정] log-worker를 거치지 않고 log-cal에서 직접 수신 (오류 차단)
+                    const res = await fetch(`https://log-cal.moonkelly601.workers.dev?type=calendar&t=${Date.now()}`);
                     if (res.ok) {
                         const data = await res.json();
                         if (!Array.isArray(data)) {
@@ -412,14 +413,17 @@
                         const targetYMD = formatLocalYMD(targetDate);
                         
                         const processedEvents = data
-                            .filter(e => {
-                                // [수정] 데이터 유효성 검사 강화
-                                if (!e || !e.startTime) return false;
-                                // startTime이 문자열인 경우와 숫자(타임스탬프)인 경우 모두 처리
-                                const eDate = new Date(e.startTime);
-                                if (isNaN(eDate.getTime())) return false; // 날짜 형식이 아니면 제외
-                                return formatLocalYMD(eDate) === targetYMD;
-                            })
+                    .filter(e => {
+                        if (!e || !e.startTime) return false;
+                        
+                        // 날짜 객체 변환 (문자열/숫자 모두 대응)
+                        const eDate = new Date(e.startTime);
+                        if (isNaN(eDate.getTime())) return false; 
+                        
+                        // [수정] 시차 문제 방지를 위해 로컬 날짜 문자열로 단순 비교
+                        const eventYMD = formatLocalYMD(eDate);
+                        return eventYMD === targetYMD;
+                    })
                             .map((e, idx) => {
                                 const start = new Date(e.startTime);
                                 const hour = start.getHours();
