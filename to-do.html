@@ -532,20 +532,50 @@
                     return;
                 }
 
-            // [NEW] 소일거리 기존 로그와 연동
+            // [NEW] 소일거리 기존 로그와 연동 (이름 덮어쓰기 기능 추가)
             const confirmLinkChore = () => {
                 if (!linkingChoreId || !selectedSwitchId) {
-                    // 선택 안 하고 '연동' 누르면 -> 그냥 '새로 기록'으로 넘겨버리거나 경고
                     if (!selectedSwitchId) return triggerToast("⚠️ 연동할 기록을 선택해주세요");
                 }
 
+                const targetTodo = todos.find(t => t.id === linkingChoreId);
+                
+                // 1. 투두 상태 업데이트 (연동 처리)
                 setTodos(todos.map(t => t.id === linkingChoreId ? { 
                     ...t, 
                     done: true, 
-                    linkedBlockId: selectedSwitchId  // ID 연동
+                    linkedBlockId: selectedSwitchId 
                 } : t));
+
+                // 2. 로그 데이터 업데이트 (이름 덮어쓰기)
+                try {
+                    const rawData = localStorage.getItem('fortressData');
+                    const savedData = rawData ? JSON.parse(rawData) : {};
+                    
+                    if (savedData.blocks) {
+                        let isUpdated = false;
+                        savedData.blocks = savedData.blocks.map(b => {
+                            if (b.id === selectedSwitchId) {
+                                isUpdated = true;
+                                // 기존 로그의 이름을 투두의 텍스트로 변경 (덮어쓰기)
+                                return { 
+                                    ...b, 
+                                    name: targetTodo.text, 
+                                    icon: targetTodo.choreIcon // 아이콘도 투두의 것으로 동기화
+                                };
+                            }
+                            return b;
+                        });
+
+                        if (isUpdated) {
+                            localStorage.setItem('fortressData', JSON.stringify(savedData));
+                            triggerToast("🔗 기록 연동 및 업데이트 완료!");
+                        }
+                    }
+                } catch (e) {
+                    console.error("Log update failed", e);
+                }
                 
-                triggerToast("🔗 소일거리 연동 완료!");
                 setLinkingChoreId(null);
             };
 
