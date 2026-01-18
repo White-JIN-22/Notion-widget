@@ -794,19 +794,20 @@
                 const earned = (resolvedType === 'focus') ? Math.floor(totalDuration / 30) : 0;
                 const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
                 
-                if (selectedTodoId) {
+                // [변경 전 코드와 위치는 동일, 속성 이름만 lastLinkedBlockId -> linkedBlockId로 변경]
+if (selectedTodoId) {
     try {
         const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
         const updatedTodos = savedTodos.map(t => {
             if (t.id === selectedTodoId) {
                 const addedMs = totalDuration * 60 * 1000;
-                // [수정] 나중에 시간 연장 시 추적할 수 있도록 lastLinkedBlockId 저장
+                // [핵심 수정] Flow 위젯이 인식하는 이름인 'linkedBlockId'로 통일
                 return { 
                     ...t, 
                     done: true, 
                     elapsed: (t.elapsed || 0) + addedMs, 
                     isRunning: false,
-                    lastLinkedBlockId: newBlock.id 
+                    linkedBlockId: newBlock.id  // 여기가 중요!
                 };
             }
             return t;
@@ -830,7 +831,7 @@
                 sendToNotion(true); 
             };
 
-            // [전체 교체용 코드]
+            // [전체 덮어쓰기]
 const extendDuration = (id) => {
     const now = Date.now();
     const targetBlock = blocks.find(b => b.id === id);
@@ -847,15 +848,18 @@ const extendDuration = (id) => {
     // [NEW] 늘어난 시간(분) 계산
     const addedMinutes = newDuration - targetBlock.duration;
 
-    // [NEW] 연동된 투두가 있다면 시간 추가 업데이트 (To-Do 위젯 반영)
+    // [NEW] Flow 위젯(할 일) 동기화
     if (addedMinutes > 0) {
         try {
             const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
             let isTodoUpdated = false;
+            
             const updatedTodos = savedTodos.map(t => {
-                // 아까 addRecord에서 심어둔 ID와 일치하는지 확인
-                if (t.lastLinkedBlockId === id) {
+                // [핵심] 타이머로 자동 생성된 할 일은 'linkedBlockId'를 가지고 있습니다.
+                // 이 ID가 현재 연장하려는 로그의 ID(id)와 같은지 확인합니다.
+                if (t.linkedBlockId === id) {
                     isTodoUpdated = true;
+                    // 기존 시간에 늘어난 시간만큼 더해줌
                     return { ...t, elapsed: (t.elapsed || 0) + (addedMinutes * 60 * 1000) };
                 }
                 return t;
@@ -867,7 +871,7 @@ const extendDuration = (id) => {
         } catch (e) { console.error("Todo sync extend failed", e); }
     }
 
-    // 기존 로직 (에너지/티켓 계산)
+    // --- 기존 에너지/티켓 계산 로직 (유지) ---
     const oldCost = Math.floor(targetBlock.duration / 10) * 5;
     const newCost = Math.floor(newDuration / 10) * 5;
     const costDiff = newCost - oldCost;
