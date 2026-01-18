@@ -417,8 +417,7 @@
                                     <div key={i} className={`text-[10px] font-bold ${i === 0 ? 'text-rose-custom' : (i === 6 ? 'text-blue-custom' : 'text-dim')}`}>{d}</div>
                                 ))}
                             </div>
-                            <div className="calendar-grid">
-                                {/* 요일 표시 헤더 바로 아래에 있는 calendar-grid 내부를 이걸로 교체하세요 */}
+
                             <div className="calendar-grid">
                                 {Array.from({length: 42}).map((_, i) => {
                                     const dayNumber = i - startDay + 1;
@@ -461,8 +460,7 @@
                                     };
 
                                     return (
-                                        // [핵심 변경] className 끝부분에 ${!isToday && !isSelected ? heatmapClass : ''} 가 추가되었습니다.
-                                        // 오늘이거나 선택된 날짜가 아닐 때만 은은한 배경색(heatmapClass)을 깔아줍니다.
+                                        // [핵심 변경] 오늘이거나 선택된 날짜가 아닐 때만 은은한 배경색(heatmapClass) 적용
                                         <div key={i} onClick={() => setSelectedDate(thisDate)} className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''} ${!isToday && !isSelected ? heatmapClass : ''}`}>
                                             <span className={`z-10 font-bold ${numColor}`}>{day}</span>
                                             <div className="dot-wrapper">{renderDots()}</div>
