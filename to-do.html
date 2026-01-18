@@ -849,53 +849,75 @@
             };
 
             const sendToNotion = async () => {
+                // 1. 전송 중이거나 오늘이 아니면 중단
                 if (isSending) return;
+                if (!isToday(viewDate)) {
+                    triggerToast("⚠️ 과거 날짜는 수정할 수 없습니다.");
+                    return;
+                }
+                
                 setIsSending(true);
+                triggerToast("☁️ 노션에 저장하는 중...");
 
                 try {
-                    // 데이터 생성
+                    // 2. 텍스트 예쁘게 포장하기 (여기가 핵심!)
                     const todoSummary = todos.map(t => {
+                        // 시간 계산 로직
                         let totalMs = t.elapsed;
-                        if (t.isRunning && t.lastStartTime) totalMs += (Date.now() - t.lastStartTime);
+                        if (t.isRunning && t.lastStartTime) {
+                            totalMs += (Date.now() - t.lastStartTime);
+                        }
+                        
                         let timeStr = formatTime(totalMs);
                         if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
                         if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
+
+                        // ★ 아이콘 장식 달기
                         const status = t.done ? "✅" : "⬜";
+                        const star = t.isImportant ? "⭐" : "";  // 중요도 체크
+                        const urgent = t.isUrgent ? "❗" : "";   // 긴급도 체크
+                        
+                        // 말머리 (Routine 등)
                         const prefix = t.isChore ? "(Routine) " : "";
                         const timeDisplay = timeStr ? `(${timeStr})` : '';
-                        return `${status} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
-                    }).join('\n');
 
-                    // 전송
-                    triggerToast("☁️ 데이터 추적 중...");
-                    const res = await fetch(WORKER_URL, { 
+                        // ★ 최종 합체: 별이랑 느낌표를 문자열 사이에 쏙 넣음
+                        return `${status} ${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
+                    }).join('\n');
+                    
+                    if (!todoSummary) {
+                        triggerToast("⚠️ 저장할 데이터가 없습니다.");
+                        setIsSending(false);
+                        return;
+                    }
+
+                    // 3. 서버로 발송
+                    const payload = { 
+                        date: formatLocalYMD(new Date()), 
+                        todos: todoSummary, 
+                        isTodoUpdate: true 
+                    };
+
+                    // 캐시 방지용 시간 추가 (?t=...)
+                    const res = await fetch(`${WORKER_URL}?t=${Date.now()}`, { 
                         method: "POST", 
                         headers: { "Content-Type": "application/json" }, 
-                        body: JSON.stringify({ 
-                            date: formatLocalYMD(new Date()), 
-                            todos: todoSummary, 
-                            isTodoUpdate: true 
-                        }) 
+                        body: JSON.stringify(payload) 
                     });
 
-                    const data = await res.json(); // JSON으로 받음
+                    const resultText = await res.text();
 
-                    if (res.ok && data.status === "SUCCESS") {
-                        // ★ 여기서 범인 검거
-                        const confirmOpen = confirm(
-                            "✅ 저장 성공! (근데 의심스러우니까 확인해봅시다)\n\n" +
-                            "서버가 이 주소에 저장했대요:\n" + data.pageUrl + "\n\n" +
-                            "지금 페이지를 열어서 확인해볼까요?"
-                        );
-                        if (confirmOpen) {
-                            window.open(data.pageUrl, '_blank');
-                        }
+                    if (res.ok) {
+                        triggerToast("✅ 저장 성공!");
+                        console.log("Notion Sync Success:", resultText);
                     } else {
-                        alert("❌ 실패: " + JSON.stringify(data));
+                        console.error("Notion Sync Error:", resultText);
+                        triggerToast("❌ 저장 실패 (콘솔 확인)");
                     }
 
                 } catch (e) { 
-                    alert("에러: " + e.message);
+                    console.error("Network Error:", e); 
+                    triggerToast("⚠️ 네트워크 에러 발생"); 
                 } finally { 
                     setIsSending(false); 
                 }
