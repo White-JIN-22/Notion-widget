@@ -850,7 +850,11 @@
 
             // [HTML 파일 수정] sendToNotion 함수 내부
             const sendToNotion = async () => {
-                if (isSending || !isToday(viewDate)) return; 
+                if (isSending || !isToday(viewDate)) return;
+
+                const testCheck = todos.map(t => t.text).join(',');
+                alert("전송할 데이터 확인: " + testCheck);
+                
                 setIsSending(true);
                 triggerToast("☁️ 노션에 저장 중...");
                 try {
