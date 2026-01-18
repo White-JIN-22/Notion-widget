@@ -1031,9 +1031,19 @@ const extendDuration = (id) => {
                         return "Rain";
                     };
 
-                    const mornBlocks = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 0 && h < 12; });
-                    const aftBlocks = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 12 && h < 18; });
-                    const nightBlocks = focusBlocks.filter(b => { const h = new Date(b.startTime).getHours(); return h >= 18; });
+                    // [수정 코드] 시간대가 겹치면 해당 시간대 그룹에 모두 포함 (Q_Night 해결)
+const checkOverlap = (b, startH, endH) => {
+    const s = b.startTime;
+    const e = b.endTime || (s + (b.duration * 60 * 1000));
+    const base = new Date(s);
+    const rStart = new Date(base).setHours(startH, 0, 0, 0);
+    const rEnd = new Date(base).setHours(endH, 0, 0, 0);
+    return Math.max(s, rStart) < Math.min(e, rEnd);
+};
+
+const mornBlocks = focusBlocks.filter(b => checkOverlap(b, 0, 12));
+const aftBlocks = focusBlocks.filter(b => checkOverlap(b, 12, 18));
+const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
 
                     return {
                         total: totalDuration, morn_total: morn_total, aft_total: aft_total, night_total: night_total, 
