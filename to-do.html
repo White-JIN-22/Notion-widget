@@ -884,8 +884,8 @@
                         return `${status}${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeStr ? `(${timeStr})` : ''}`;
                     }).join('\n');
                     
-                    // [수정됨] 노션 DB 속성(Task Log)과 일치하도록 키 이름을 TaskLog로 변경
-                    const payload = { date: formatLocalYMD(new Date()), TaskLog: todoSummary, isTodoUpdate: true };
+                    // [수정됨] 노션 DB 속성(Task Log)과 일치하도록 키 이름을 taskLog로 변경
+                    const payload = { date: formatLocalYMD(new Date()), taskLog: todoSummary, isTodoUpdate: true };
                     const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
                     if (res.ok) triggerToast("✅ 저장 완료!"); else throw new Error("전송 실패");
                 } catch (e) { console.error(e); triggerToast("⚠️ 저장 실패 (Worker 확인)"); } finally { setIsSending(false); }
