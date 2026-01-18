@@ -247,9 +247,9 @@
                 const minutes = historyMap[dateKey] || 0;
                 
                 if (minutes === 0) return '';
-                if (minutes <= 90) return 'bg-white/10';
-                if (minutes <= 330) return 'bg-white/20';   
-                return 'bg-white/30';
+                if (minutes <= 90) return 'bg-white/5';
+                if (minutes <= 330) return 'bg-white/25';   
+                return 'bg-white/40';
             };
 
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
