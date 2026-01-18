@@ -889,6 +889,13 @@ const extendDuration = (id) => {
     saveData(finalTickets, newEnergy, newBlocks);
     triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
 };
+
+            // [추가] 삭제 버튼 클릭 시 실행될 함수
+            const confirmDelete = (id) => {
+                setDeleteTargetId(id);
+                setModalType('delete');
+                setShowModal(true);
+            };
             
             const executeDelete = () => {
                 if (deleteTargetId) {
