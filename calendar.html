@@ -248,8 +248,8 @@
                 
                 if (minutes === 0) return '';
                 if (minutes <= 90) return 'bg-white/10';
-                if (minutes <= 330) return 'bg-sky-300/10';   
-                return 'bg-purple-300/10';                    
+                if (minutes <= 330) return 'bg-white/20';   
+                return 'bg-white/30';
             };
 
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
