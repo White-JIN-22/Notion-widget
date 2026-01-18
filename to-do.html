@@ -849,18 +849,18 @@
             };
 
             const sendToNotion = async () => {
-                // 1. 전송 조건 체크
                 if (isSending) return;
+                
+                // [확인 1] 오늘 날짜인지 체크
                 if (!isToday(viewDate)) {
-                    triggerToast("⚠️ 과거 날짜는 수정할 수 없습니다.");
+                    alert("⚠️ 오늘 날짜가 아니라서 저장을 막았습니다.");
                     return;
                 }
                 
                 setIsSending(true);
-                triggerToast("☁️ 노션에 저장하는 중...");
 
                 try {
-                    // 2. 텍스트 데이터 생성
+                    // 데이터 포장
                     const todoSummary = todos.map(t => {
                         let totalMs = t.elapsed;
                         if (t.isRunning && t.lastStartTime) {
@@ -868,8 +868,8 @@
                         }
                         
                         let timeStr = formatTime(totalMs);
-                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
-                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
+                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M"; // 소일거리 기본값
+                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed); // 연동값
 
                         const status = t.done ? "✅" : "⬜";
                         const star = t.isImportant ? "⭐" : "";
@@ -877,15 +877,24 @@
                         const prefix = t.isChore ? "(Routine) " : "";
                         const timeDisplay = timeStr ? `(${timeStr})` : '';
 
-                        // 텍스트 한 줄 완성
                         return `${status} ${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
                     }).join('\n');
                     
+                    // [확인 2] 진짜 보낼 데이터가 있는지 눈으로 확인 (이 창이 뜨나 보세요!)
                     if (!todoSummary) {
-                        triggerToast("⚠️ 저장할 데이터가 없습니다.");
+                        alert("⚠️ 저장할 데이터가 '텅 비어' 있습니다. (리스트가 비었나요?)");
                         setIsSending(false);
                         return;
                     }
+
+                    // ★ 여기가 핵심: 내가 뭘 보내는지 직접 보세요.
+                    const confirmMsg = `[전송 데이터 확인]\n\n${todoSummary}\n\n이대로 노션에 보낼까요?`;
+                    if (!confirm(confirmMsg)) {
+                        setIsSending(false);
+                        return; 
+                    }
+
+                    triggerToast("☁️ 노션에 전송 시도 중...");
 
                     const payload = { 
                         date: formatLocalYMD(new Date()), 
@@ -893,33 +902,25 @@
                         isTodoUpdate: true 
                     };
 
-                    // 3. 서버 전송
                     const res = await fetch(WORKER_URL, { 
                         method: "POST", 
                         headers: { "Content-Type": "application/json" }, 
                         body: JSON.stringify(payload) 
                     });
 
-                    const resultText = await res.text(); // 서버 응답 원문
+                    const resultText = await res.text();
 
                     if (res.ok) {
-                        triggerToast("✅ 노션 저장 완료!");
-                        console.log("Notion Sync Success:", resultText);
+                        triggerToast("✅ 저장 성공!");
+                        console.log("서버 응답:", resultText);
                     } else {
-                        // 에러 발생 시 상세 내용을 경고창으로 띄움
-                        console.error("Notion Sync Error:", resultText);
-                        // JSON 파싱 시도 (에러 메시지 추출)
-                        try {
-                            const errJson = JSON.parse(resultText);
-                            alert(`❌ 저장 실패\n\nNotion 에러 내용:\n${errJson.error || resultText}`);
-                        } catch (e) {
-                            alert(`❌ 저장 실패\n\n서버 응답:\n${resultText}`);
-                        }
+                        // 실패시 서버가 뱉은 말을 그대로 보여줌
+                        alert("❌ 서버 거부:\n" + resultText);
                     }
 
                 } catch (e) { 
-                    console.error("Network Error:", e); 
-                    triggerToast("⚠️ 네트워크 에러 발생"); 
+                    console.error(e); 
+                    alert("⚠️ 에러 발생: " + e.message);
                 } finally { 
                     setIsSending(false); 
                 }
