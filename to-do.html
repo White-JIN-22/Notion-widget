@@ -202,6 +202,7 @@
             ArrowLeft: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>,
             ArrowRight: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
             RotateCcw: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
+            Alert: ({filled, className}) => <svg className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="3" x2="12" y2="15"></line><line x1="12" y1="21" x2="12.01" y2="21"></line></svg>,
         };
 
         const App = () => {
@@ -431,6 +432,7 @@
                     zone: activeInputZone, 
                     done: false, 
                     isImportant: false,
+                    isUrgent: false, // [NEW] 긴급도 속성 추가
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
@@ -478,15 +480,20 @@
                 setTodos(todos.map(t => t.id === id ? { ...t, isImportant: !t.isImportant } : t));
             };
 
+            // [NEW] 긴급도 토글 함수
+            const toggleUrgent = (id) => {
+                const target = todos.find(t => t.id === id);
+                if (target?.isRemote) return;
+                setTodos(todos.map(t => t.id === id ? { ...t, isUrgent: !t.isUrgent } : t));
+            };
+
             const openLogLinkModal = (id) => {
                 const fortressData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 const todayStr = new Date().toDateString();
                 if (fortressData.date === todayStr && fortressData.blocks) {
                     const focusBlocks = fortressData.blocks.filter(b => b.type === 'focus' || !b.type);
                     if (focusBlocks.length > 0) {
-                        // [수정] 00시가 위로 오도록 오름차순 정렬 (a - b)
                         focusBlocks.sort((a, b) => a.startTime - b.startTime);
-                        
                         setTodayLogBlocks(focusBlocks);
                         setLinkingTodoId(id);
                         setSelectedBlockIds([]);
@@ -529,13 +536,10 @@
             
             const saveSessionToLog = (todoText, startTime, endTime, durationMs, quality) => {
                 try {
-                    // 1. 저장 직전에 최신 데이터를 다시 로드 (덮어쓰기 방지)
                     const rawData = localStorage.getItem('fortressData');
                     const savedData = rawData ? JSON.parse(rawData) : {};
-                    
                     const todayStr = new Date().toDateString();
 
-                    // 날짜가 바뀌었거나 데이터가 없으면 초기화
                     if (!savedData.date || savedData.date !== todayStr) {
                         savedData.date = todayStr;
                         savedData.tickets = 0;
@@ -543,7 +547,6 @@
                         savedData.blocks = [];
                     }
 
-                    // 2. 블록 추가
                     const newBlock = { 
                         id: Date.now(), 
                         startTime: startTime, 
@@ -554,15 +557,11 @@
                         name: todoText 
                     };
 
-                    // 3. 에너지/티켓 계산
                     const consumption = Math.floor(newBlock.duration / 10) * 5;
                     savedData.tickets = (savedData.tickets || 0) + 1;
                     savedData.energy = Math.max(0, (savedData.energy !== undefined ? savedData.energy : 100) - consumption);
-                    
-                    // 기존 블록 앞에 새 블록 추가 (최신순)
                     savedData.blocks = [newBlock, ...(savedData.blocks || [])];
 
-                    // 4. 저장
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
                     triggerToast(`💾 기록 완료 (${newBlock.duration}분)`);
                     
@@ -636,6 +635,7 @@
                         const timeStr = formatTime(totalMs);
                         const status = t.done ? "✅" : "⬜";
                         const star = t.isImportant ? "⭐" : "";
+                        // [NEW] Notion 전송 시 긴급도도 표시하고 싶다면 여기에 추가 (현재는 유지)
                         return `${status}${star} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
                     }).join('\n');
                     const payload = { date: formatLocalYMD(new Date()), todos: todoSummary, isTodoUpdate: true };
@@ -644,29 +644,24 @@
                 } catch (e) { console.error(e); triggerToast("⚠️ 저장 실패 (Worker 확인)"); } finally { setIsSending(false); }
             };
 
-            // [추가] 60분 간격 자동 동기화 (to-do 전용)
             useEffect(() => {
                 const checkInterval = setInterval(() => {
                     const now = Date.now();
-                    // index.html과 겹치지 않도록 'lastTodoSyncTime'이라는 별도의 키를 사용
                     const lastSync = parseInt(localStorage.getItem('lastTodoSyncTime') || '0');
-                    const ONE_HOUR = 60 * 60 * 1000; // 60분 (밀리초 단위)
+                    const ONE_HOUR = 60 * 60 * 1000; 
 
-                    // 조건: 60분이 지났고 + 오늘 날짜를 보고 있으며 + 현재 전송 중이 아니고 + 데이터가 있을 때
                     if (now - lastSync >= ONE_HOUR && isToday(viewDate) && !isSending && todos.length > 0) {
                         triggerToast("☁️ 정기 데이터 동기화 중...");
                         sendToNotion();
                         localStorage.setItem('lastTodoSyncTime', now.toString());
                     }
-                }, 60000); // 1분마다 조건 검사
+                }, 60000); 
 
                 return () => clearInterval(checkInterval);
-            }, [todos, viewDate, isSending]); // 데이터가 변경될 때마다 최신 상태를 반영해 검사
+            }, [todos, viewDate, isSending]);
 
-            // [수정] 외부 데이터(Log & Todo) 변경 감지 및 동기화
             useEffect(() => {
                 const handleStorageChange = (e) => {
-                    // 1. Log 데이터 연동 (기존 로직: 새로운 집중 기록이 들어오면 할 일로 자동 변환)
                     if (e.key === 'fortressData' && e.newValue) {
                         try {
                             const newData = JSON.parse(e.newValue);
@@ -674,21 +669,16 @@
 
                             if (newData.date === todayStr && newData.blocks && newData.blocks.length > 0) {
                                 const latestBlock = newData.blocks[0];
-                                
-                                // 중복/부활 방지
                                 if (lastProcessedBlockId.current === latestBlock.id) return;
                                 if (Date.now() - latestBlock.id > 5000) return;
 
                                 lastProcessedBlockId.current = latestBlock.id;
-
-                                // 휴식/전환 무시
                                 if (latestBlock.type === 'rest' || latestBlock.type === 'switch') return;
 
                                 const start = new Date(latestBlock.startTime);
                                 const end = new Date(latestBlock.endTime);
                                 const blockName = latestBlock.memo || latestBlock.name || "집중 기록"; 
 
-                                // 시간대별 분할 로직 (기존 유지)
                                 const newTodos = [];
                                 const ranges = [
                                     { zone: 'morning', startH: 0, endH: 12 },
@@ -711,6 +701,7 @@
                                                 zone: range.zone,
                                                 done: true,
                                                 isImportant: false,
+                                                isUrgent: false, // [NEW] 자동 생성 시 기본값
                                                 date: todayStr,
                                                 elapsed: durationMs, 
                                                 isRunning: false,
@@ -734,11 +725,9 @@
                         } catch (err) { console.error("Sync error:", err); }
                     }
 
-                    // 2. [추가] Todo 데이터 직접 연동 (Log 위젯에서 기존 할 일을 체크/시간추가 했을 때 반영)
                     if (e.key === 'jinsolTodos' && e.newValue) {
                         try {
                             const newTodos = JSON.parse(e.newValue);
-                            // 오늘 날짜를 보고 있을 때만 화면 갱신 (과거 조회 중 덮어쓰기 방지)
                             if (isToday(viewDate)) {
                                 setTodos(newTodos);
                             }
@@ -748,7 +737,7 @@
 
                 window.addEventListener('storage', handleStorageChange);
                 return () => window.removeEventListener('storage', handleStorageChange);
-            }, [viewDate]); // viewDate가 바뀔 때마다 리스너 갱신 (isToday 확인 위해 필요)
+            }, [viewDate]);
             
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
@@ -759,14 +748,32 @@
                 
                 const sortedEvents = zoneEvents.sort((a, b) => a.startTime - b.startTime);
 
-                // [수정] 통합 정렬 로직: 1.완료여부(미완료 우선) > 2.중요도(별표 우선) > 3.최신순
+                // [NEW] 정렬 로직 업데이트 (1.완료여부 -> 2.우선순위(긴급+중요) -> 3.최신순)
                 const sortedTodos = [...zoneTodos].sort((a, b) => {
-                    if (a.done !== b.done) return a.done ? 1 : -1; // 완료된 건 아래로
-                    if (a.isImportant !== b.isImportant) return a.isImportant ? -1 : 1; // 같은 상태면 중요(별)가 위로
+                    // 1순위: 안 한 일이 위, 한 일은 아래
+                    if (a.done !== b.done) return a.done ? 1 : -1; 
                     
+                    // 2순위: Eisenhower Priority (긴급+중요 > 중요 > 긴급 > 일반)
+                    // 점수 계산: (중요: 2점) + (긴급: 1점) => 
+                    // 긴급+중요(3), 중요(2), 긴급(1), 없음(0) (가중치는 의도에 맞게 조정)
+                    // 요청사항: 1.긴급+중요, 2.중요(긴급X), 3.긴급(중요X), 4.일반
+                    
+                    const getScore = (item) => {
+                        if (item.isImportant && item.isUrgent) return 4;
+                        if (item.isImportant && !item.isUrgent) return 3;
+                        if (!item.isImportant && item.isUrgent) return 2;
+                        return 1;
+                    };
+
+                    const scoreA = getScore(a);
+                    const scoreB = getScore(b);
+
+                    if (scoreA !== scoreB) return scoreB - scoreA; // 점수 높은 게 위로
+
+                    // 3순위: 최신순 (ID가 타임스탬프)
                     const idA = typeof a.id === 'string' ? 0 : a.id;
                     const idB = typeof b.id === 'string' ? 0 : b.id;
-                    return idB - idA; // 최신순
+                    return idB - idA;
                 });
 
                 const mixedItems = [
@@ -825,9 +832,16 @@
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-3 ${todo.done ? 'todo-done' : ''}`}>
-                                    <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
-                                        <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
-                                    </button>
+                                    
+                                    {/* [NEW] 중요도/긴급도 버튼 그룹 */}
+                                    <div className="flex items-center -gap-1">
+                                        <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
+                                            <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button onClick={(e) => { e.stopPropagation(); toggleUrgent(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isUrgent ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
+                                            <Icons.Alert filled={todo.isUrgent} className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
 
                                     <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} disabled={todo.isRemote} className="custom-checkbox shrink-0" style={{ color: config.checkboxColor }} />
                                     
