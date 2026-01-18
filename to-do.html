@@ -763,7 +763,7 @@
                 let totalMs = t.elapsed;
                 if (t.isRunning && t.lastStartTime) totalMs += (Date.now() - t.lastStartTime);
                 
-                // [FIX] 소일거리(Chore)이고 완료된 상태면, 시간이 0이어도 '10M'로 표기하여 노션 DB가 인식하게 함
+                // [FIX] 소일거리 시간 보정
                 let timeStr = formatTime(totalMs);
                 if (t.isChore && t.done && !timeStr) {
                     timeStr = "10M";
@@ -771,8 +771,10 @@
 
                 const status = t.done ? "✅" : "⬜";
                 const star = t.isImportant ? "⭐" : "";
-                
-                return `${status}${star} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
+                const urgent = t.isUrgent ? "❗" : ""; // [NEW] 긴급도 이모지 추가
+
+                // 순서: 체크박스 + 별 + 느낌표 + [구역] + 내용 + (시간)
+                return `${status}${star}${urgent} [${t.zone.toUpperCase()}] ${t.text} ${timeStr ? `(${timeStr})` : ''}`;
             }).join('\n');
                     
                     const payload = { date: formatLocalYMD(new Date()), todos: todoSummary, isTodoUpdate: true };
