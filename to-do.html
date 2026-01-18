@@ -413,8 +413,11 @@
                         
                         const processedEvents = data
                             .filter(e => {
+                                // [수정] 데이터 유효성 검사 강화
                                 if (!e || !e.startTime) return false;
+                                // startTime이 문자열인 경우와 숫자(타임스탬프)인 경우 모두 처리
                                 const eDate = new Date(e.startTime);
+                                if (isNaN(eDate.getTime())) return false; // 날짜 형식이 아니면 제외
                                 return formatLocalYMD(eDate) === targetYMD;
                             })
                             .map((e, idx) => {
