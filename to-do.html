@@ -267,6 +267,8 @@
             const [selectedSwitchId, setSelectedSwitchId] = useState(null);
             const [todayLogBlocks, setTodayLogBlocks] = useState([]);
             const [selectedBlockIds, setSelectedBlockIds] = useState([]);
+            // [FIX] 누락되었던 linkingTodoId 변수 선언 추가
+            const [linkingTodoId, setLinkingTodoId] = useState(null);
 
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
