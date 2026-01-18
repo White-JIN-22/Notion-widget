@@ -848,50 +848,65 @@
                 return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             };
 
-            // [HTML 파일 수정] sendToNotion 함수 내부
-            const sendToNotion = async () => {
-                if (isSending || !isToday(viewDate)) return;
+            // [수정된 sendToNotion 함수]
+const sendToNotion = async () => {
+    if (isSending || !isToday(viewDate)) return; 
+    setIsSending(true);
+    triggerToast("☁️ 노션에 전송 시도 중...");
 
-                const testCheck = todos.map(t => t.text).join(',');
-                alert("전송할 데이터 확인: " + testCheck);
-                
-                setIsSending(true);
-                triggerToast("☁️ 노션에 저장 중...");
-                try {
-                    const todoSummary = todos.map(t => {
-                        let totalMs = t.elapsed;
-                        if (t.isRunning && t.lastStartTime) {
-                            totalMs += (Date.now() - t.lastStartTime);
-                        }
-                        
-                        let timeStr = formatTime(totalMs);
-                        
-                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) {
-                            timeStr = "10M";
-                        }
+    try {
+        const todoSummary = todos.map(t => {
+            let totalMs = t.elapsed;
+            if (t.isRunning && t.lastStartTime) {
+                totalMs += (Date.now() - t.lastStartTime);
+            }
+            
+            let timeStr = formatTime(totalMs);
+            if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
+            if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
 
-                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) {
-                            timeStr = formatTime(t.elapsed);
-                        }
+            const status = t.done ? "✅" : "⬜";
+            const star = t.isImportant ? "⭐" : "";
+            const urgent = t.isUrgent ? "❗" : ""; 
+            const prefix = t.isChore ? "(Routine) " : "";
 
-                        const status = t.done ? "✅" : "⬜";
-                        const star = t.isImportant ? "⭐" : "";
-                        const urgent = t.isUrgent ? "❗" : ""; 
-                        const prefix = t.isChore ? "(Routine) " : "";
+            return `${status}${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeStr ? `(${timeStr})` : ''}`;
+        }).join('\n');
+        
+        const payload = { 
+            date: formatLocalYMD(new Date()), 
+            todos: todoSummary, 
+            isTodoUpdate: true 
+        };
 
-                        return `${status}${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeStr ? `(${timeStr})` : ''}`;
-                    }).join('\n');
-                    
-                    const payload = { 
-                        date: formatLocalYMD(new Date()), 
-                        todos: todoSummary, 
-                        isTodoUpdate: true 
-                    };
+        // 1. 내가 보내는 데이터가 맞는지 눈으로 확인 (팝업 1)
+        // alert("보내는 데이터 확인:\n" + JSON.stringify(payload, null, 2)); 
 
-                    const res = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-                    if (res.ok) triggerToast("✅ 저장 완료!"); else throw new Error("전송 실패");
-                } catch (e) { console.error(e); triggerToast("⚠️ 저장 실패 (Worker 확인)"); } finally { setIsSending(false); }
-            };
+        const res = await fetch(WORKER_URL, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(payload) 
+        });
+
+        const resultText = await res.text(); // 서버의 답변 원문 받기
+
+        if (res.ok) {
+            triggerToast("✅ 저장 성공!");
+            console.log("서버 응답:", resultText);
+        } else {
+            // 2. 실패했다면 이유가 무엇인지 팝업으로 띄움 (여기가 핵심!)
+            alert("❌ 저장 실패 원인:\n" + resultText);
+            throw new Error(resultText);
+        }
+
+    } catch (e) { 
+        console.error(e); 
+        // 네트워크 에러인지, Worker 에러인지 구분
+        triggerToast("⚠️ 에러 발생 (팝업 확인)"); 
+    } finally { 
+        setIsSending(false); 
+    }
+};
 
             useEffect(() => {
                 const checkInterval = setInterval(() => {
