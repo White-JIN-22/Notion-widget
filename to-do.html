@@ -1133,23 +1133,21 @@
                                     const dotColorClass = getCategoryColor(item.category);
                                     const isPassed = Date.now() > item.endTime;
                                     
-                                    // [핵심 디자인]
-                                    // 1. Text: 지나간 건 '완료된 투두'와 똑같이 (얇게, 흐리게, 취소선)
-                                    // 2. Dot: 지나간 것과 상관없이 원래 색상 유지 (grayscale 제거)
                                     const textStyle = isPassed 
                                         ? 'text-slate-400/60 line-through decoration-slate-400/50 font-medium' 
                                         : 'text-white font-bold';
                                     
+                                    // [수정] 미래/진행 중인 일정의 시간 색상을 text-slate-300에서 text-white로 변경
                                     const timeStyle = isPassed
                                         ? 'text-slate-400/60 line-through decoration-slate-400/50 font-medium'
-                                        : 'text-slate-300 font-bold';
+                                        : 'text-white font-bold';
 
                                     return (
                                         <div key={item.id} className="todo-item flex items-center gap-2 opacity-90">
                                             <div className="shrink-0 w-3.5 flex justify-center">
-                                                {/* 점: grayscale 제거! 언제나 본연의 색상 유지 */}
                                                 <div className={`w-2.5 h-2.5 rounded-full ${dotColorClass}`}></div>
                                             </div>
+                                            {/* 시간: 이제 미래 일정은 완전한 흰색으로 표시됨 */}
                                             <div className={`shrink-0 text-[10px] font-mono tracking-tight leading-none ${timeStyle}`}>
                                                 {item.time}
                                             </div>
@@ -1161,7 +1159,6 @@
                                         </div>
                                     );
                                 }
-
                                 const todo = item;
                                 let currentMs = todo.elapsed;
                                 if (todo.isRunning && todo.lastStartTime) currentMs += (Date.now() - todo.lastStartTime);
