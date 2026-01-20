@@ -1457,9 +1457,24 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Add Log ✧｡</h3>
                                     
                                     <div className="flex gap-4 justify-center mb-2 shrink-0">
-                                            <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>Focus</button>
-                                            <button onClick={() => { setManualTab('switch'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'switch' ? 'active' : ''}`}>Switch</button>
-                                            <button onClick={() => { setManualTab('rest'); setTimeRef('start'); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>Rest</button>
+                                            <button 
+                                                onClick={() => { setManualTab('focus'); setTimeRef('end'); }} 
+                                                className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}
+                                            >
+                                                Focus
+                                            </button>
+                                            <button 
+                                                onClick={() => { setManualTab('switch'); setTimeRef('start'); }} 
+                                                className={`manual-tab ${manualTab === 'switch' ? '!text-purple-400 !border-purple-400' : ''}`}
+                                            >
+                                                Switch
+                                            </button>
+                                            <button 
+                                                onClick={() => { setManualTab('rest'); setTimeRef('start'); }} 
+                                                className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}
+                                            >
+                                                Rest
+                                            </button>
                                     </div>
                                     
                                     <div className="space-y-1 mb-2 shrink-0">
