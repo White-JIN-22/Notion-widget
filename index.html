@@ -304,13 +304,13 @@
                 return `${y}-${m}-${day}`;
             };
 
-            // 생활 에너지 충전 목록 (티켓 소모 대신 회복 기능)
+            // 생활 에너지 충전 목록 (Switch: 독서 포함, 티타임 제외)
             const fixedQuests = [
                 { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300', recovery: 15 }, 
                 { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300', recovery: 25 }, 
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
                 { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300', recovery: 30 },
-                { id: 'q_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300', recovery: 15 },
+                { id: 'r1', name: '독서', icon: 'Book', color: 'text-sky-300', recovery: 20 }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300', recovery: 10 }, 
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', recovery: 10 }, 
@@ -318,11 +318,11 @@
                 { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
             ];
 
-            // 집중 에너지 회복 (씻기 제거됨, 운동 이동됨)
+            // 집중 에너지 회복 (Rest: 티타임 포함, 독서 제외)
             const restOptions = [
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
+                { id: 'q_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-purple-300' }, 
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
-                { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', recovery: 20, icon: 'Leaf', color: 'text-sky-300' }, 
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
                 { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
