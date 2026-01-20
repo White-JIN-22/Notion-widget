@@ -300,9 +300,10 @@
                             savedData.lifeEnergy = newLife;
                             localStorage.setItem('fortressData', JSON.stringify(savedData));
                             
-                            // UI 상태 업데이트
+                            // UI 상태 업데이트 (이 줄은 꼭 있어야 화면의 보라색 바가 줄어듭니다!)
                             setLifeEnergy(newLife);
                             
+                            // triggerToast(...) 삭제됨: 이제 알림 없이 조용히 줄어듭니다.
                         }
 
                         // 소모 기준 시간 갱신 (현재 시간으로 리셋)
