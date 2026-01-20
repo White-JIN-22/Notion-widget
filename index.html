@@ -1249,8 +1249,8 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                     </div>
                                 </div>
 
-                                {/* 하단: 상태바 (집중E | 생활E | 기상시간) */}
-                                <div className="flex items-center gap-4 mt-3 text-xs font-bold">
+                                {/* 하단: 상태바 (집중E | 생활E | 기상시간) - 간격 mt-3에서 mt-1.5로 축소 */}
+                                <div className="flex items-center gap-4 mt-1.5 text-xs font-bold">
                                     <div className="flex items-center gap-1 text-sky-300">
                                         <Icons.Zap className="w-4 h-4"/>
                                         <span>{energy}%</span>
