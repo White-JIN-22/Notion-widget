@@ -428,6 +428,11 @@
                             }
                             
                             const mergedBlocks = Array.from(blockMap.values());
+                            // [수정] 블록이 있거나 OR 기상 시간이 있으면 인트로 닫음
+                            if (serverBlocks.length > 0 || (data.wakeUpTime && data.wakeUpTime !== "-")) {
+                                setShowIntro(false);
+                            }
+
                             setBlocks(mergedBlocks);
 
                             // [수정] 생활 에너지 & 집중 에너지 계산
