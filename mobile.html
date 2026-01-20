@@ -165,6 +165,10 @@
             const [isSyncing, setIsSyncing] = useState(false);
             
             // Manual Focus Inputs
+            const [timeRef, setTimeRef] = useState('end'); // 'end' or 'start'
+            const [manualTimeHour, setManualTimeHour] = useState(new Date().getHours());
+            const [manualTimeMin, setManualTimeMin] = useState(Math.floor(new Date().getMinutes()/5)*5);
+
             const [manualDurHour, setManualDurHour] = useState(0);
             const [manualDurMin, setManualDurMin] = useState(30);
             const [focusMemo, setFocusMemo] = useState('');
@@ -205,7 +209,7 @@
                 setTimeout(() => setToast(null), 2500);
             };
 
-            // 1. Load Data from Server (Updated for Sync)
+            // 1. Load Data from Server
             const fetchStatus = async () => {
                 setIsSyncing(true);
                 try {
@@ -223,8 +227,7 @@
                         return { blocks: [], lifeEnergy: 50, energy: 100, wakeUpTime: null };
                     }
 
-                    // [핵심 수정] 서버에 맥북의 '현재 에너지'가 저장되어 있다면 그걸 우선 사용!
-                    // 이렇게 해야 맥북의 자연 소모/초기화 상태가 그대로 반영됨
+                    // 서버에 저장된 현재 상태가 있으면 우선 사용
                     if (data.currentLife !== undefined && data.currentEnergy !== undefined) {
                         setLifeEnergy(data.currentLife);
                         setEnergy(data.currentEnergy);
@@ -237,7 +240,6 @@
                         };
                     }
 
-                    // (구버전 호환용) 저장된 에너지 값이 없으면 기존 방식대로 기록(Block) 기반 역산
                     const serverBlocks = data.blocks || [];
                     let calcLife = data.initialLifeEnergy !== undefined ? data.initialLifeEnergy : 50;
                     let calcEnergy = 100;
@@ -279,7 +281,7 @@
                 fetchStatus();
             }, []);
 
-            // 2. Send Data (Read -> Modify -> Write)
+            // 2. Send Data
             const sendLog = async (newBlock, newWakeUpTime) => {
                 setIsSyncing(true);
                 try {
@@ -329,12 +331,31 @@
 
             // Actions
             const handleFocusSubmit = (quality) => {
-                const now = new Date();
-                const duration = (manualDurHour * 60) + manualDurMin;
-                if (duration <= 0) { triggerToast("시간을 입력해주세요"); return; }
+                // 1. 지속 시간 계산 (선택 시간 + 점화 시간 3분)
+                const duration = (manualDurHour * 60) + manualDurMin + 3;
                 
-                const endTs = now.getTime();
-                const startTs = endTs - (duration * 60 * 1000);
+                if (duration <= 3) { 
+                    triggerToast("시간을 입력해주세요"); 
+                    return; 
+                }
+                
+                const now = new Date();
+                // 2. 기준 시간 설정 (설정된 시/분 사용)
+                const refDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualTimeHour, manualTimeMin);
+                const refTs = refDate.getTime();
+                const durationMs = duration * 60 * 1000;
+
+                let startTs, endTs;
+
+                if (timeRef === 'end') {
+                    // 종료 시간 기준: 끝 = 설정시간, 시작 = 설정시간 - 지속시간
+                    endTs = refTs;
+                    startTs = refTs - durationMs;
+                } else {
+                    // 시작 시간 기준: 시작 = 설정시간, 끝 = 설정시간 + 지속시간
+                    startTs = refTs;
+                    endTs = refTs + durationMs;
+                }
 
                 const newBlock = {
                     id: Date.now(),
@@ -439,7 +460,6 @@
                     <div className="px-4 flex gap-2 mb-3 mt-4">
                         {['focus', 'switch', 'rest'].map(tab => {
                             const isActive = activeTab === tab;
-                            // Switch는 보라색, 나머지는 하늘색
                             const activeColor = tab === 'switch' 
                                 ? 'bg-white/20 text-purple-300 border border-purple-300/30' 
                                 : 'bg-white/20 text-sky-300 border border-sky-300/30';
@@ -456,34 +476,58 @@
                         })}
                     </div>
 
-                    {/* Main Content Area (Remote Controller) */}
+                    {/* Main Content Area */}
                     <div className="flex-1 px-4 pb-4 overflow-y-auto thin-scrollbar">
                         
                         {/* FOCUS INPUT */}
                         {activeTab === 'focus' && (
                             <div className="flex flex-col gap-4 mt-2">
                                 <div className="glass-panel p-4 flex flex-col gap-3">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-xs font-bold text-slate-400">집중 시간 (종료=현재)</label>
-                                        <div className="flex gap-2">
-                                            <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm w-20">
+                                    {/* 1열: 종료/시작 시간 선택 */}
+                                    <div className="flex items-center justify-between mb-2">
+                                        <button 
+                                            onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
+                                            className="text-sm font-bold text-slate-500 underline underline-offset-4 decoration-2 decoration-slate-300 mr-4 w-10 text-left"
+                                        >
+                                            {timeRef === 'end' ? '종료' : '시작'}
+                                        </button>
+                                        <div className="flex gap-2 flex-1">
+                                            <select value={manualTimeHour} onChange={(e)=>setManualTimeHour(Number(e.target.value))} className="custom-select text-sm flex-1">
+                                                {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}
+                                            </select>
+                                            <select value={manualTimeMin} onChange={(e)=>setManualTimeMin(Number(e.target.value))} className="custom-select text-sm flex-1">
+                                                {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* 2열: 집중 시간 선택 */}
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-sm font-bold text-slate-500 mr-4 w-10 text-left">집중</span>
+                                        <div className="flex gap-2 flex-1">
+                                            <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm flex-1">
                                                 {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
                                             </select>
-                                            <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm w-20">
+                                            <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm flex-1">
                                                 {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                             </select>
                                         </div>
                                     </div>
                                     
+                                    {/* 안내 문구 */}
+                                    <p className="text-center text-[10px] text-slate-400 opacity-80 mb-2">* 자동으로 점화 시간 3분이 추가됩니다.</p>
+                                    
+                                    {/* 메모 입력창 */}
                                     <input 
                                         type="text" 
-                                        placeholder="무엇을 했나요?" 
+                                        placeholder="어떤 일에 집중했나요?" 
                                         value={focusMemo}
                                         onChange={(e) => setFocusMemo(e.target.value)}
-                                        className="w-full bg-white/60 border border-white/30 rounded-xl px-3 py-3 text-sm font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white/80 focus:border-sky-300"
+                                        className="w-full bg-white/50 border border-white/30 rounded-xl px-3 py-3 text-sm font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white/80 focus:border-sky-300"
                                     />
                                 </div>
 
+                                {/* 버튼들 */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <button onClick={() => handleFocusSubmit('Sun')} className="action-btn p-3 h-24">
                                         <Icons.Sun className="w-8 h-8 text-purple-300 mb-2"/>
