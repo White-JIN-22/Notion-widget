@@ -946,23 +946,6 @@
                 triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
-            const takeRest = (rest) => {
-                const now = Date.now();
-                const duration = 10; 
-                const startTs = now - (duration * 60 * 1000);
-
-                const newBlock = {
-                    id: now, startTime: startTs, endTime: now, duration: duration,
-                    quality: 'Cloud', type: 'rest', icon: rest.icon, name: rest.name, color: rest.color 
-                };
-
-                const newEnergy = Math.min(energy + rest.recovery, 100);
-                const newBlocks = [newBlock, ...blocks];
-                
-                saveData(tickets, newEnergy, newBlocks);
-                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
-            };
-
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) { 
                     if(!silent) triggerToast("⚠️ URL 확인"); 
