@@ -508,21 +508,22 @@
                 return () => window.removeEventListener('storage', handleStorageChange);
             }, []);
 
+            // [수정됨] 초기 로딩 시 날짜 검증 로직 단순화
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
-                if (savedData.date && savedData.date !== today) {
-                    // 날짜 다르면 초기화 로직은 checkMidnight에서 처리됨 (여기선 일단 둠)
-                } else {
-                    setLifeEnergy(savedData.lifeEnergy || 50);
+                // 1. 저장된 날짜가 없거나, 오늘 날짜가 아니면 -> 무조건 인트로 띄움
+                if (!savedData.date || savedData.date !== today) {
+                    setShowIntro(true);
+                } 
+                // 2. 오늘 날짜 기록이 이미 있으면 -> 데이터 불러오고 메인 화면으로
+                else {
+                    setLifeEnergy(savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
-                    
-                    const validBlocks = (savedData.blocks || []).filter(b => new Date(b.startTime).toDateString() === today);
-                    setBlocks(validBlocks);
-                    
+                    setBlocks(savedData.blocks || []);
                     setWakeUpTime(savedData.wakeUpTime || null);
-                    setShowIntro(savedData.date !== today);
+                    setShowIntro(false);
                 }
             }, []);
 
