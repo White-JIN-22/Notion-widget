@@ -1242,11 +1242,14 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                 <div className="flex justify-between items-center">
                                     <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
                                     <div className="flex gap-2 items-center"> 
-                                        <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                            {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
-                                        </button>
+                                        {/* [왼쪽] 기상 시간 버튼 */}
                                         <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
                                             <Icons.Sun className="w-4 h-4 text-white" />
+                                        </button>
+                                        
+                                        {/* [오른쪽] 전송(동기화) 버튼 */}
+                                        <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                            {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
