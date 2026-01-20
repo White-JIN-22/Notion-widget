@@ -259,6 +259,15 @@
         };
 
         const App = () => {
+            // [추가] 경고 문구 깜빡임 제어용 상태
+            const [warningToggle, setWarningToggle] = useState(true);
+
+            // [추가] 1.5초마다 경고 문구 전환 타이머
+            useEffect(() => {
+                const timer = setInterval(() => setWarningToggle(prev => !prev), 1500);
+                return () => clearInterval(timer);
+            }, []);
+            
             const [activeTab, setActiveTab] = useState('main');
             const [lifeEnergy, setLifeEnergy] = useState(50); // 생활 에너지 (보라색)
             const [energy, setEnergy] = useState(100); // 집중 에너지 (하늘색)
@@ -1254,35 +1263,58 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                     </div>
                                 </div>
 
-                                {/* 하단: 상태바 (집중E | 생활E | 기상시간) - 간격 mt-3에서 mt-1.5로 축소 */}
-                                <div className="flex items-center gap-4 mt-1.5 text-xs font-bold">
-                                    <div className="flex items-center gap-1 text-sky-300">
-                                        <Icons.Zap className="w-4 h-4"/>
-                                        <span>{energy}%</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 text-purple-300">
-                                        <Icons.Heart className="w-4 h-4"/>
-                                        <span>{lifeEnergy}%</span>
-                                    </div>
-                                    {wakeUpTime && (
-                                        <div className="flex items-center gap-1 text-white/80 border-l border-white/20 pl-4">
-                                            <Icons.Sun className="w-3 h-3" />
-                                            <span className="tracking-tight">{wakeUpTime}</span>
+                                {/* 하단: 상태바 (집중E | 생활E | 경고or기상시간) */}
+                                <div className="flex items-center justify-between mt-1.5 text-xs font-bold h-[16px]">
+                                    {/* 왼쪽: 에너지 수치들 */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1 text-sky-300">
+                                            <Icons.Zap className="w-4 h-4"/>
+                                            <span>{energy}%</span>
                                         </div>
+                                        <div className="flex items-center gap-1 text-purple-300">
+                                            <Icons.Heart className="w-4 h-4"/>
+                                            <span>{lifeEnergy}%</span>
+                                        </div>
+                                    </div>
+
+                                    {/* 오른쪽: 경고 메시지 (우선순위 높음) or 기상 시간 */}
+                                    {(lifeEnergy <= 10 || energy <= 10) ? (
+                                        <div className="flex-1 text-right">
+                                            {lifeEnergy <= 10 && energy <= 10 ? (
+                                                warningToggle ? (
+                                                    <span className="text-purple-300 tracking-tight text-[10px]">※ 생활 정비부터!</span>
+                                                ) : (
+                                                    <span className="text-sky-300 tracking-tight text-[10px]">※ 에너지 충전!</span>
+                                                )
+                                            ) : lifeEnergy <= 10 ? (
+                                                <span className="text-purple-300 tracking-tight text-[10px]">※ 생활 정비부터!</span>
+                                            ) : (
+                                                <span className="text-sky-300 tracking-tight text-[10px]">※ 에너지 충전!</span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        wakeUpTime && (
+                                            <div className="flex items-center gap-1 text-white/80 pl-2">
+                                                <Icons.Sun className="w-3 h-3" />
+                                                <span className="tracking-tight">{wakeUpTime}</span>
+                                            </div>
+                                        )
                                     )}
+                                </div>
+
+                        <div className="w-full flex flex-col gap-1">
+                            <div className="w-full flex flex-col gap-1">
+                                {/* 집중 에너지 바 (파랑) */}
+                                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
+                                </div>
+                                {/* 생활 에너지 바 (보라) */}
+                                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="w-full flex flex-col gap-1">
-                            {/* 집중 에너지 바 (파랑) */}
-                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-                            </div>
-                            {/* 생활 에너지 바 (보라) */}
-                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
-                            </div>
+                    </div>
 
                             {/* [추가] 10% 이하 시 안내 문구 */}
                             {lifeEnergy <= 10 && (
