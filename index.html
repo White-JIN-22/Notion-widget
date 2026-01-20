@@ -587,9 +587,11 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
 
-                        // [핵심 수정] 3. 로컬 데이터 초기화 및 생활에너지 감가 (-40)
-                        const prevLife = savedData.lifeEnergy || 0;
-                        const newBaseLife = Math.max(0, prevLife - 40); // 하루 지날 때마다 -40
+                        // [핵심 수정] 3. 로컬 데이터 초기화 (강제 감가 삭제 -> 전날 값 이월)
+                        const prevLife = savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
+                        
+                        // -40 차감 로직을 삭제하고, 전날 마지막 값을 그대로 사용합니다.
+                        const newBaseLife = prevLife; 
 
                         const resetData = {
                             date: currentToday,
@@ -619,10 +621,10 @@
                                     total: 0, morn_total: 0, aft_total: 0, night_total: 0,
                                     quality: null, q_morn: null, q_aft: null, q_night: null
                                 })
-                            }).then(() => triggerToast("☀️ 새 하루 시작 (생활에너지 -40)"))
+                            }).then(() => triggerToast("☀️ 새 하루 시작 (생활에너지 이월됨)"))
                               .catch(e => console.error("Reset Sync Error:", e));
                         } else {
-                            triggerToast("☀️ 새로운 하루! 생활에너지가 감소했습니다.");
+                            triggerToast("☀️ 새로운 하루! 어제 에너지가 이월되었습니다.");
                         }
                     }
                 }, 5000); 
