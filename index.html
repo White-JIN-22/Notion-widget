@@ -1352,36 +1352,40 @@
                                     </div>
                                 </div>
 
-                                {/* 2. 중단: 상태바 (집중E | 생활E | 경고문구or기상시간) */}
+                                {/* 2. 중단: 상태바 (왼쪽: 상태/경고, 오른쪽: 고정 기상시간) */}
                                 <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
-                                    {/* 왼쪽: 에너지 수치들 */}
+                                    {/* 왼쪽: 에너지 상태 (위험 시 텍스트로 변환) */}
                                     <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-1 text-sky-300">
+                                        {/* 집중 에너지 (Zap) */}
+                                        <div className={`flex items-center gap-1 transition-colors ${energy <= 10 ? 'text-red-400 animate-pulse' : 'text-sky-300'}`}>
                                             <Icons.Zap className="w-4 h-4"/>
-                                            <span>{energy}%</span>
+                                            <span>
+                                                {energy <= 10 ? "충전 필요!" : `${energy}%`}
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-1 text-purple-300">
+                                        
+                                        {/* 생활 에너지 (Heart) */}
+                                        <div className={`flex items-center gap-1 transition-colors ${lifeEnergy <= 10 ? 'text-red-400 animate-pulse' : 'text-purple-300'}`}>
                                             <Icons.Heart className="w-4 h-4"/>
-                                            <span>{lifeEnergy}%</span>
+                                            <span>
+                                                {lifeEnergy <= 10 ? "생활 정비!" : `${lifeEnergy}%`}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* 오른쪽: 경고 메시지 (우선순위 높음) or 기상 시간 */}
-                                    {(lifeEnergy <= 10 || energy <= 10) ? (
-                                        <div className="flex-1 text-right">
-                                            {lifeEnergy <= 10 && energy <= 10 ? (
-                                                warningToggle ? (
-                                                    <span className="text-purple-300 tracking-tight text-xs">생활 정비부터!</span>
-                                                ) : (
-                                                    <span className="text-sky-300 tracking-tight text-xs">에너지 충전!</span>
-                                                )
-                                            ) : lifeEnergy <= 10 ? (
-                                                <span className="text-purple-300 tracking-tight text-xs">생활 정비부터!</span>
-                                            ) : (
-                                                <span className="text-sky-300 tracking-tight text-xs">에너지 충전!</span>
-                                            )}
-                                        </div>
-                                    ) : (
+                                    {/* 오른쪽: 기상 시간 (항상 고정 표시) */}
+                                    <div className="flex-1 text-right">
+                                        {wakeUpTime ? (
+                                            <div className="flex justify-end items-center gap-1 text-white/80 pl-2">
+                                                <Icons.Sun className="w-3 h-3 text-yellow-100" />
+                                                <span className="tracking-tight font-bold">{wakeUpTime}</span>
+                                            </div>
+                                        ) : (
+                                            /* 기상 시간이 없으면 옅은 글씨로 안내 */
+                                            <span className="text-white/20 text-[10px] tracking-tight">기상 시간 미설정</span>
+                                        )}
+                                    </div>
+                                </div>
                                         wakeUpTime && (
                                             <div className="flex items-center gap-1 text-white/80 pl-2">
                                                 <Icons.Sun className="w-3 h-3" />
