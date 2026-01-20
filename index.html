@@ -267,6 +267,51 @@
                 const timer = setInterval(() => setWarningToggle(prev => !prev), 1500);
                 return () => clearInterval(timer);
             }, []);
+
+            // [추가] 생활 에너지 자연 소모 시스템 (2시간마다 -10%, 00~06시 제외)
+            useEffect(() => {
+                const decayCheck = setInterval(() => {
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    const currentTime = now.getTime();
+
+                    // 1. 새벽 00:00 ~ 06:00 사이엔 소모 없음
+                    if (currentHour >= 0 && currentHour < 6) return;
+
+                    // 2. 마지막 소모 시간 확인 (없으면 현재 시간으로 초기화)
+                    const lastDecayStr = localStorage.getItem('lastDecayTime');
+                    if (!lastDecayStr) {
+                        localStorage.setItem('lastDecayTime', currentTime.toString());
+                        return;
+                    }
+
+                    const lastDecay = parseInt(lastDecayStr);
+                    const twoHours = 2 * 60 * 60 * 1000; // 2시간 (ms 단위)
+
+                    // 3. 2시간이 지났는지 확인
+                    if (currentTime - lastDecay >= twoHours) {
+                        const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                        const currentLife = savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
+
+                        if (currentLife > 0) {
+                            const newLife = Math.max(0, currentLife - 10);
+                            
+                            // 로컬스토리지 업데이트 (데이터 무결성을 위해 직접 수정)
+                            savedData.lifeEnergy = newLife;
+                            localStorage.setItem('fortressData', JSON.stringify(savedData));
+                            
+                            // UI 상태 업데이트
+                            setLifeEnergy(newLife);
+                            
+                        }
+
+                        // 소모 기준 시간 갱신 (현재 시간으로 리셋)
+                        localStorage.setItem('lastDecayTime', currentTime.toString());
+                    }
+                }, 60000); // 1분마다 체크
+
+                return () => clearInterval(decayCheck);
+            }, []);
             
             const [activeTab, setActiveTab] = useState('main');
             const [lifeEnergy, setLifeEnergy] = useState(50); // 생활 에너지 (보라색)
