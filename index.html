@@ -1283,6 +1283,13 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
                                 <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
                             </div>
+
+                            {/* [추가] 10% 이하 시 안내 문구 */}
+                            {lifeEnergy <= 10 && (
+                                <div className="mt-2 text-right text-[10px] font-bold text-purple-300 opacity-90">
+                                    ※ 최소한의 생활 정비부터!
+                                </div>
+                            )}
                         </div>
                     </div>
 
