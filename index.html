@@ -1007,33 +1007,25 @@
 
                 setIsSending(true);
                 if (!silent) triggerToast("☁️ 노션에 저장 중...");
-                let successCount = 0;
 
                 const calculateStats = (targetBlocks) => {
                     const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
                     const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
                     let morn_total = 0; let aft_total = 0; let night_total = 0;
 
-                    focusBlocks.forEach(b => {
-                        const start = b.startTime;
-                        const end = b.endTime || (start + (b.duration * 60 * 1000));
-                        const baseDate = new Date(start);
-                        const time00 = new Date(baseDate).setHours(0, 0, 0, 0);
-                        const time12 = new Date(baseDate).setHours(12, 0, 0, 0);
-                        const time18 = new Date(baseDate).setHours(18, 0, 0, 0);
-                        const time24 = new Date(baseDate).setHours(24, 0, 0, 0);
+                    // [수정 코드] 시간대가 겹치면 해당 시간대 그룹에 모두 포함
+                    const checkOverlap = (b, startH, endH) => {
+                        const s = b.startTime;
+                        const e = b.endTime || (s + (b.duration * 60 * 1000));
+                        const base = new Date(s);
+                        const rStart = new Date(base).setHours(startH, 0, 0, 0);
+                        const rEnd = new Date(base).setHours(endH, 0, 0, 0);
+                        return Math.max(s, rStart) < Math.min(e, rEnd);
+                    };
 
-                        const getOverlapMinutes = (s, e, zoneS, zoneE) => {
-                            const overlapStart = Math.max(s, zoneS);
-                            const overlapEnd = Math.min(e, zoneE);
-                            if (overlapEnd > overlapStart) return Math.floor((overlapEnd - overlapStart) / 1000 / 60);
-                            return 0;
-                        };
-
-                        morn_total += getOverlapMinutes(start, end, time00, time12);
-                        aft_total += getOverlapMinutes(start, end, time12, time18);
-                        night_total += getOverlapMinutes(start, end, time18, time24);
-                    });
+                    const mornBlocks = focusBlocks.filter(b => checkOverlap(b, 0, 12));
+                    const aftBlocks = focusBlocks.filter(b => checkOverlap(b, 12, 18));
+                    const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
 
                     const getCountMode = (items) => {
                         if (items.length === 0) return null; 
@@ -1060,20 +1052,6 @@
                         if (durations.Cloud === maxVal) return "Cloud";
                         return "Rain";
                     };
-
-                    // [수정 코드] 시간대가 겹치면 해당 시간대 그룹에 모두 포함 (Q_Night 해결)
-const checkOverlap = (b, startH, endH) => {
-    const s = b.startTime;
-    const e = b.endTime || (s + (b.duration * 60 * 1000));
-    const base = new Date(s);
-    const rStart = new Date(base).setHours(startH, 0, 0, 0);
-    const rEnd = new Date(base).setHours(endH, 0, 0, 0);
-    return Math.max(s, rStart) < Math.min(e, rEnd);
-};
-
-const mornBlocks = focusBlocks.filter(b => checkOverlap(b, 0, 12));
-const aftBlocks = focusBlocks.filter(b => checkOverlap(b, 12, 18));
-const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
 
                     return {
                         total: totalDuration, morn_total: morn_total, aft_total: aft_total, night_total: night_total, 
@@ -1104,19 +1082,9 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                 };
 
                 try {
+                    // [변경] 과거 데이터 조회 및 반복 전송 로직 삭제 -> 오늘 데이터만 전송
                     await sendDataset({ date: new Date().toDateString(), blocks: blocks, wakeUpTime: wakeUpTime });
-                    successCount++;
-                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const today = new Date();
-                    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
-                    const dayBefore = new Date(today); dayBefore.setDate(today.getDate() - 2);
-                    const pastData = history.filter(h => h.date === yesterday.toDateString() || h.date === dayBefore.toDateString());
-                    for (const data of pastData) {
-                        if (data.blocks && data.blocks.length > 0) {
-                            try { await sendDataset(data); successCount++; } catch (e) { console.error(e); }
-                        }
-                    }
-                    if (!silent) triggerToast(`☁️ 총 ${successCount}건 저장 완료!`);
+                    if (!silent) triggerToast(`☁️ 저장 완료!`);
                 } catch(e) { 
                     if (!silent) triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
                 } finally { 
