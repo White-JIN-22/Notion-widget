@@ -530,9 +530,8 @@
                     setBlocks(savedData.blocks || []);
                     setWakeUpTime(savedData.wakeUpTime || null);
 
-                    // [핵심 수정] 기록이 있어도, '기상 시간'이 설정 안 되어 있다면 인트로를 띄움
-                    // 예: 03시에 기록하고 잠듦 -> 07시 기상 시 '기상 시간' 없으므로 인트로 뜸 -> 컨디션 체크 후 기록은 유지됨
-                    if (!savedData.wakeUpTime) {
+                    // [핵심 수정] 기상 시간이 없어도, '오늘 이미 컨디션 체크를 했다면(introDone)' 패스!
+                    if (!savedData.wakeUpTime && !savedData.introDone) {
                         setShowIntro(true);
                     } else {
                         setShowIntro(false);
@@ -602,11 +601,12 @@
 
                         const resetData = {
                             date: currentToday,
-                            initialLifeEnergy: newBaseLife, // 오늘 시작 값
+                            initialLifeEnergy: newBaseLife, 
                             lifeEnergy: newBaseLife,
                             energy: 100,
                             blocks: [],
-                            wakeUpTime: null
+                            wakeUpTime: null,
+                            introDone: false // [추가] 날짜가 바뀌면 도장을 지웁니다.
                         };
                         localStorage.setItem('fortressData', JSON.stringify(resetData));
 
@@ -688,7 +688,8 @@
                     lifeEnergy: newLife,
                     energy: newEnergy,
                     blocks: newBlocks,
-                    wakeUpTime: finalWakeUpTime
+                    wakeUpTime: finalWakeUpTime,
+                    introDone: saved.introDone || false // [추가] 기존 도장 상태 유지
                 }));
             };
 
@@ -696,12 +697,24 @@
                 const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 const currentLife = saved.lifeEnergy !== undefined ? saved.lifeEnergy : 50;
                 
-                // [핵심 수정] 빈 배열([]) 대신 현재 로드된 기록(blocks)을 보존함
-                // 새벽에 기록한 내용이 있다면 그대로 유지됩니다.
                 setLifeEnergy(currentLife); 
                 setEnergy(initialEnergy); 
                 setShowIntro(false);
-                saveData(currentLife, initialEnergy, blocks, null); 
+
+                // [수정] 컨디션 체크를 마쳤다는 '도장(introDone)'을 확실하게 찍습니다.
+                // 이제 기상 시간을 입력 안 해도, 이 도장이 있으면 인트로가 다시 안 뜹니다.
+                const newData = {
+                    date: new Date().toDateString(),
+                    initialLifeEnergy: currentLife,
+                    lifeEnergy: currentLife,
+                    energy: initialEnergy,
+                    blocks: blocks, // 새벽 기록 유지
+                    wakeUpTime: null,
+                    introDone: true // <--- 핵심 추가
+                };
+                localStorage.setItem('fortressData', JSON.stringify(newData));
+                // 백업도 갱신
+                localStorage.setItem('fortressData_backup', JSON.stringify(newData));
             };
 
             const openResetModal = () => {
