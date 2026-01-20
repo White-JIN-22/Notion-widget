@@ -488,12 +488,6 @@
             };
 
             useEffect(() => {
-                syncFromServer();
-                const interval = setInterval(syncFromServer, 60000); 
-                return () => clearInterval(interval);
-            }, []);
-
-            useEffect(() => {
                 const handleStorageChange = (e) => {
                     if (e.key === 'fortressData' && e.newValue) {
                         try {
