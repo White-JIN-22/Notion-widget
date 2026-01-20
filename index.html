@@ -659,7 +659,13 @@
                 const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
                 if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
 
-                const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                // [안전장치 1] 저장 전, 현재 데이터를 백업본으로 복사 (오류 발생 시 복구용)
+                const currentDataStr = localStorage.getItem('fortressData');
+                if (currentDataStr) {
+                    localStorage.setItem('fortressData_backup', currentDataStr);
+                }
+
+                const saved = JSON.parse(currentDataStr || '{}');
                 const base = saved.initialLifeEnergy !== undefined ? saved.initialLifeEnergy : 50;
 
                 localStorage.setItem('fortressData', JSON.stringify({
@@ -837,6 +843,12 @@
                     memo: (type === 'auto' || type === 'manual') ? focusMemo : null
                 };
 
+                // [안전장치 2] 화면의 blocks 대신, 저장소의 최신 blocks를 직접 불러옴
+                const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
+                    ? savedDataSafe.blocks 
+                    : blocks;
+
                 let newEnergy = energy;
                 let newLife = lifeEnergy;
                 let msg = "💾 저장 완료!";
@@ -880,7 +892,8 @@
                     } catch (e) { console.error("Todo update failed", e); }
                 }
 
-                saveData(newLife, newEnergy, [newBlock, ...blocks]);
+                // [수정] 불러온 최신 데이터(currentBlocksSafe) 위에 새 기록을 얹음
+                saveData(newLife, newEnergy, [newBlock, ...currentBlocksSafe]);
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
 
@@ -939,8 +952,14 @@
             
             const executeDelete = () => {
                 if (deleteTargetId) {
-                    const targetBlock = blocks.find(b => b.id === deleteTargetId);
-                    const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
+                    // [안전장치 3] 삭제 시에도 저장소의 최신 데이터를 기준으로 작업
+                    const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
+                        ? savedDataSafe.blocks 
+                        : blocks;
+
+                    const targetBlock = currentBlocksSafe.find(b => b.id === deleteTargetId);
+                    const newBlocks = currentBlocksSafe.filter(b => b.id !== deleteTargetId);
                     
                     let newLife = lifeEnergy;
                     let newEnergy = energy;
