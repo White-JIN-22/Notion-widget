@@ -1291,26 +1291,26 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                     {toast && <div className="toast-message">{toast}</div>}
 
                     <div className="header-section">
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex justify-between items-start">
                             <div className="w-full">
-                                {/* 상단: 제목 + 버튼들 */}
+                                {/* 1. 상단: 제목 + 버튼들 (기상↔전송 위치 교환됨) */}
                                 <div className="flex justify-between items-center">
                                     <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
                                     <div className="flex gap-2 items-center"> 
-                                        {/* [왼쪽] 기상 시간 버튼 */}
+                                        {/* [왼쪽] 기상 시간 버튼 (해) */}
                                         <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
                                             <Icons.Sun className="w-4 h-4 text-white" />
                                         </button>
                                         
-                                        {/* [오른쪽] 전송(동기화) 버튼 */}
+                                        {/* [오른쪽] 전송 버튼 (구름) */}
                                         <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
                                             {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* 하단: 상태바 (집중E | 생활E | 경고or기상시간) */}
-                                <div className="flex items-center justify-between mt-1.5 text-xs font-bold h-[16px]">
+                                {/* 2. 중단: 상태바 (집중E | 생활E | 경고문구or기상시간) */}
+                                <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
                                     {/* 왼쪽: 에너지 수치들 */}
                                     <div className="flex items-center gap-3">
                                         <div className="flex items-center gap-1 text-sky-300">
@@ -1348,15 +1348,16 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                     )}
                                 </div>
 
-                        <div className="w-full flex flex-col gap-1">
-                            <div className="w-full flex flex-col gap-1">
-                                {/* 집중 에너지 바 (파랑) */}
-                                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-                                </div>
-                                {/* 생활 에너지 바 (보라) */}
-                                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
+                                {/* 3. 하단: 에너지 바 (여백 없이 착 붙게 수정됨) */}
+                                <div className="w-full flex flex-col gap-1">
+                                    {/* 집중 에너지 바 (파랑) */}
+                                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
+                                    </div>
+                                    {/* 생활 에너지 바 (보라) */}
+                                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
