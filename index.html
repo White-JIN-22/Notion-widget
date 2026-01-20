@@ -514,10 +514,11 @@
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
                 // 1. 저장된 날짜가 없거나, 오늘 날짜가 아니면 -> 무조건 인트로 띄움
+                // (단, 오늘 날짜 데이터가 이미 있다면 introDone 여부와 상관없이 메인으로)
                 if (!savedData.date || savedData.date !== today) {
                     setShowIntro(true);
                 } 
-                // 2. 오늘 날짜 기록이 이미 있으면 -> 데이터 불러오고 메인 화면으로
+                // 2. 오늘 날짜 기록이 있으면 -> 메인 화면으로 진입 (기록이 0개여도 유지됨)
                 else {
                     setLifeEnergy(savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
@@ -743,8 +744,9 @@
                     return (
                         <div className="flex flex-col items-start">
                             <div className="flex items-center gap-2">
-                                <Icons.Flame className="text-sky-300"/>
-                                <span className="text-3xl font-bold tracking-tighter text-sky-300 tabular-nums">
+                                <Icons.Flame className="text-sky-300 w-6 h-6"/>
+                                {/* [수정] 텍스트 크기 3xl -> 5xl 로 확대 */}
+                                <span className="text-5xl font-bold tracking-tighter text-sky-300 tabular-nums">
                                     {m}:{String(s).padStart(2, '0')}
                                 </span>
                             </div>
@@ -1134,7 +1136,8 @@
             const handleWakeUpSave = () => {
                 const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
                 setWakeUpTime(timeStr);
-                saveData(tickets, energy, blocks, timeStr); 
+                // [수정] tickets -> lifeEnergy 로 변경하여 오류 해결
+                saveData(lifeEnergy, energy, blocks, timeStr); 
                 setShowModal(false);
                 triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
             };
