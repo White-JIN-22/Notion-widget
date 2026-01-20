@@ -323,6 +323,24 @@
             const [startTime, setStartTime] = useState(null);
             const [elapsed, setElapsed] = useState(0);
             const [showIntro, setShowIntro] = useState(false);
+            // [추가] 타이머 상태 복구 시스템
+            useEffect(() => {
+                const savedTimer = JSON.parse(localStorage.getItem('fortressTimer') || '{}');
+                if (savedTimer.isRecording && savedTimer.startTime) {
+                    setIsRecording(true);
+                    setStartTime(savedTimer.startTime);
+                    setElapsed(Math.floor((Date.now() - savedTimer.startTime) / 1000));
+                }
+            }, []);
+
+            // [추가] 타이머 상태 실시간 저장
+            useEffect(() => {
+                if (isRecording && startTime) {
+                    localStorage.setItem('fortressTimer', JSON.stringify({ isRecording, startTime }));
+                } else {
+                    localStorage.removeItem('fortressTimer');
+                }
+            }, [isRecording, startTime]);
             
             const [showModal, setShowModal] = useState(false);
             const [modalType, setModalType] = useState('manual');
@@ -479,6 +497,10 @@
 
                             const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
 
+                            // [수정됨] 저장 직전, 최신 로컬 상태를 한 번 더 확인하여 덮어쓰기 방지
+                            const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                            const safeIntroDone = currentLocal.introDone || savedData.introDone || false;
+
                             localStorage.setItem('fortressData', JSON.stringify({
                                 date: dateStr,
                                 initialLifeEnergy: baseLife,
@@ -486,9 +508,7 @@
                                 energy: calcEnergy,
                                 blocks: mergedBlocks,
                                 wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime,
-                                
-                                // [핵심 수정] 서버 데이터를 덮어쓸 때, 기존의 '체크 도장'은 살려둡니다.
-                                introDone: savedData.introDone || false 
+                                introDone: safeIntroDone // 최신 상태 반영
                             }));
                         }
                     }
@@ -516,28 +536,27 @@
                 return () => window.removeEventListener('storage', handleStorageChange);
             }, []);
 
-            // [수정됨] 초기 로딩 시 날짜 검증 로직 단순화
+            // [보완됨] 초기 로딩 및 인트로 결정 로직
             useEffect(() => {
                 const today = new Date().toDateString();
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
-                // 1. 저장된 날짜가 없거나, 오늘 날짜가 아니면 -> 무조건 인트로 띄움
-                // (단, 오늘 날짜 데이터가 이미 있다면 introDone 여부와 상관없이 메인으로)
+                // 1. 날짜가 바뀌었거나 데이터가 없으면 -> 무조건 인트로
                 if (!savedData.date || savedData.date !== today) {
                     setShowIntro(true);
                 } 
-                // 2. 오늘 날짜 기록이 있으면 -> 일단 데이터 로드
+                // 2. 오늘 데이터가 있으면 로드
                 else {
                     setLifeEnergy(savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
                     setWakeUpTime(savedData.wakeUpTime || null);
 
-                    // [핵심 수정] 기상 시간이 없어도, '오늘 이미 컨디션 체크를 했다면(introDone)' 패스!
-                    if (!savedData.wakeUpTime && !savedData.introDone) {
-                        setShowIntro(true);
-                    } else {
+                    // 3. 인트로 표시 여부 결정: 기상 시간이 있거나 OR 인트로 체크를 마쳤다면 패스
+                    if (savedData.wakeUpTime || savedData.introDone) {
                         setShowIntro(false);
+                    } else {
+                        setShowIntro(true);
                     }
                 }
             }, []);
