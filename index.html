@@ -481,11 +481,14 @@
 
                             localStorage.setItem('fortressData', JSON.stringify({
                                 date: dateStr,
-                                initialLifeEnergy: baseLife, // 기초값 유지
+                                initialLifeEnergy: baseLife,
                                 lifeEnergy: calcLife,
                                 energy: calcEnergy,
                                 blocks: mergedBlocks,
-                                wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime
+                                wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime,
+                                
+                                // [핵심 수정] 서버 데이터를 덮어쓸 때, 기존의 '체크 도장'은 살려둡니다.
+                                introDone: savedData.introDone || false 
                             }));
                         }
                     }
