@@ -255,6 +255,7 @@
             Star: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
             Check: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
             Pot: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"></path><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path><path d="M4 12V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5"></path><path d="M12 3v-1"></path></svg>,
+            Stretch: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"></circle><path d="M12 20V6"></path><path d="M5 8l7-2 7 2"></path><path d="M8 20l4-9 4 9"></path></svg>,
         };
 
         const App = () => {
@@ -318,10 +319,11 @@
                 { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
             ];
 
-            // 집중 에너지 회복 (Rest: 티타임 포함, 독서 제외)
+            // 집중 에너지 회복 (Rest: 스트레칭 추가됨)
             const restOptions = [
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
                 { id: 'q_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-purple-300' }, 
+                { id: 'r_stretch', name: '스트레칭', recovery: 10, icon: 'Stretch', color: 'text-purple-300' }, // 추가됨
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', recovery: 20, icon: 'Leaf', color: 'text-sky-300' }, 
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
