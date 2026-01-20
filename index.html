@@ -112,7 +112,7 @@
             cursor: pointer;
             z-index: 10;
         }
-        .universal-delete-btn:hover { color: #bae6fd; }
+        .universal-delete-btn:hover { color: #ffffff; } /* 기존 #bae6fd 에서 변경 */
 
         @keyframes slideUp {
             from { transform: translateY(5px); opacity: 0; }
@@ -1410,8 +1410,8 @@
                                                                 {isFocus && (
                                                                     <button 
                                                                         onClick={() => extendDuration(block.id)} 
-                                                                        /* [수정] right-9 -> right-8 (쓰레기통 쪽으로 이동) */
-                                                                        className="absolute right-8 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-[#bae6fd] p-1 transition-colors"
+                                                                        /* [수정] hover:text-[#bae6fd] -> hover:text-white 로 변경 */
+                                                                        className="absolute right-8 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-white p-1 transition-colors"
                                                                     >
                                                                         <Icons.Plus />
                                                                     </button>
