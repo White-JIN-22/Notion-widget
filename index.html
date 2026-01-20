@@ -253,7 +253,8 @@
             Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>,
             CheckCircle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>,
             Star: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
-            Check: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Check: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+            Salad: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor"strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 18h10"></path><path d="M20.83 14.88a11.16 11.16 0 0 1-17.66 0"></path><path d="M11 2v9"></path><path d="M7 2v8"></path><path d="M15 2v9"></path></svg>,
         };
 
         const App = () => {
@@ -305,21 +306,21 @@
 
             // 생활 에너지 충전 목록 (티켓 소모 대신 회복 기능)
             const fixedQuests = [
-                { id: 'q_cook', name: '요리', icon: 'Utensils', color: 'text-purple-300', recovery: 25 },
-                { id: 'q_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300', recovery: 15 },
+                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300', recovery: 15 }, 
+                { id: 'q_cook', name: '요리', icon: 'Salad', color: 'text-purple-300', recovery: 25 }, 
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
+                { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300', recovery: 30 },
+                { id: 'q_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300', recovery: 15 },
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300', recovery: 10 }, 
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', recovery: 10 }, 
-                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', recovery: 15 }, 
-                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-purple-300', recovery: 15 }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
             ];
 
-            // 집중 에너지 회복 (씻기 제거됨)
+            // 집중 에너지 회복 (씻기 제거됨, 운동 이동됨)
             const restOptions = [
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
-                { id: 'r_exercise', name: '운동', recovery: 30, icon: 'Flame', color: 'text-purple-300' }, 
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r1', name: '독서', recovery: 20, icon: 'Book', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', recovery: 20, icon: 'Leaf', color: 'text-sky-300' }, 
@@ -1365,7 +1366,9 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                         {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="text-xs font-bold text-bright">{q.name}</span>
-                                            <span className="text-[10px] text-purple-300">+{q.recovery}%</span>
+                                            <div className="text-[11px] font-bold text-purple-300">
+                                                <span className="leading-none">{q.recovery}%</span>
+                                            </div>
                                         </div>
                                     </button>
                                 ))}
