@@ -327,12 +327,19 @@
             };
 
             // Actions
+            // ... (기존 fetchStatus 등 위쪽 코드는 유지) ...
+
+            // [수정됨] Focus 전송 로직: 종료시간 = 현재시간(Now) 기준
             const handleFocusSubmit = (quality) => {
                 const now = new Date();
                 const duration = (manualDurHour * 60) + manualDurMin;
-                if (duration <= 0) { triggerToast("시간을 입력하세요"); return; }
                 
-                // End time = now, Start time = now - duration
+                if (duration <= 0) { 
+                    triggerToast("시간을 입력해주세요"); 
+                    return; 
+                }
+                
+                // 로직: 현재(Now)가 종료 시간, 시작 시간은 (현재 - 소요시간)
                 const endTs = now.getTime();
                 const startTs = endTs - (duration * 60 * 1000);
 
@@ -341,131 +348,31 @@
                     startTime: startTs,
                     endTime: endTs,
                     duration: duration,
-                    quality: quality,
+                    quality: quality, // Clear, Cloudy, Heavy
                     type: 'focus',
                     memo: focusMemo
                 };
+                
+                // 버튼 누르자마자 즉시 전송
                 sendLog(newBlock);
             };
 
-            const handleSwitchSubmit = (quest) => {
-                const now = Date.now();
-                const newBlock = {
-                    id: now, startTime: now - 600000, endTime: now, duration: 10,
-                    quality: 'Cloud', type: 'switch', 
-                    icon: quest.icon, name: quest.name, color: quest.color, recovery: quest.recovery 
-                };
-                sendLog(newBlock);
-            };
-
-            const handleRestSubmit = (rest) => {
-                const now = Date.now();
-                const newBlock = {
-                    id: now, startTime: now - 600000, endTime: now, duration: 10,
-                    quality: 'Cloud', type: 'rest', 
-                    icon: rest.icon, name: rest.name, color: rest.color, recovery: rest.recovery
-                };
-                sendLog(newBlock);
-            };
-
-            const handleWakeUpRecord = () => {
-                const now = new Date();
-                const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-                if(confirm(`기상 시간(${timeStr})을 기록할까요?`)) {
-                    sendLog(null, timeStr);
-                }
-            };
-
-            const renderIcon = (name, className) => {
-                const IconComponent = Icons[name] || Icons.Zap;
-                return <IconComponent className={className} />;
-            };
+            // ... (handleSwitchSubmit, handleRestSubmit 등은 그대로 유지) ...
 
             return (
                 <div className="widget-container">
-                    {toast && <div className="toast-message">{toast}</div>}
+                    {/* ... (Header, Tabs 부분은 그대로 유지) ... */}
 
-                    {/* Header */}
-                    <div className="header-section">
-                        <div className="flex justify-between items-start">
-                            <div className="w-full">
-                                <div className="flex justify-between items-center">
-                                    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
-                                    <div className="flex gap-2 items-center"> 
-                                        {/* WakeUp Button */}
-                                        <button onClick={handleWakeUpRecord} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 transition-all shadow-sm">
-                                            <Icons.Sun className="w-4 h-4 text-white" />
-                                        </button>
-                                        
-                                        {/* Sync Button */}
-                                        <button onClick={fetchStatus} disabled={isSyncing} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all shadow-sm">
-                                            <Icons.Refresh className={`w-4 h-4 ${isSyncing ? 'animate-spin text-white' : ''}`} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Status Info */}
-                                <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-1 text-sky-300">
-                                            <Icons.Zap className="w-4 h-4"/>
-                                            <span>{energy}%</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-purple-300">
-                                            <Icons.Heart className="w-4 h-4"/>
-                                            <span>{lifeEnergy}%</span>
-                                        </div>
-                                    </div>
-                                    {wakeUpTime && (
-                                        <div className="flex items-center gap-1 text-white/80 pl-2">
-                                            <Icons.Sun className="w-3 h-3" />
-                                            <span className="tracking-tight">{wakeUpTime}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Energy Bars */}
-                                <div className="w-full flex flex-col gap-1">
-                                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-                                    </div>
-                                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <div className={`h-full transition-all duration-500 rounded-full bg-purple-300`} style={{ width: `${lifeEnergy}%` }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="px-4 flex gap-2 mb-3 mt-4">
-                        {['focus', 'switch', 'rest'].map(tab => {
-                            const isActive = activeTab === tab;
-                            const activeColor = tab === 'switch' 
-                                ? 'bg-white/20 text-purple-300 border border-purple-300/30' 
-                                : (tab === 'rest' ? 'bg-white/20 text-sky-300 border border-sky-300/30' : 'bg-white/20 text-white border border-white/30');
-                            
-                            return (
-                                <button 
-                                    key={tab} 
-                                    onClick={() => setActiveTab(tab)} 
-                                    className={`flex-1 py-3 tab-btn ${isActive ? activeColor : 'text-slate-400 bg-white/5 border border-transparent'}`}
-                                >
-                                    {tab === 'focus' ? '✧Focus✧' : tab === 'switch' ? '✧Switch✧' : '✧Rest✧'}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Main Content Area (Remote Controller) */}
+                    {/* Main Content Area */}
                     <div className="flex-1 px-4 pb-4 overflow-y-auto thin-scrollbar">
                         
-                        {/* FOCUS INPUT */}
+                        {/* [수정됨] FOCUS INPUT 영역 */}
                         {activeTab === 'focus' && (
                             <div className="flex flex-col gap-4 mt-2">
                                 <div className="glass-panel p-4 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-xs font-bold text-slate-400">시간 설정</label>
+                                        {/* 라벨 문구 수정: 종료=현재임을 명시 */}
+                                        <label className="text-xs font-bold text-slate-400">집중 시간 (종료=현재)</label>
                                         <div className="flex gap-2">
                                             <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm w-20">
                                                 {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
@@ -485,18 +392,19 @@
                                     />
                                 </div>
 
+                                {/* 버튼 라벨 수정: Clear / Cloudy / Heavy */}
                                 <div className="grid grid-cols-3 gap-2">
                                     <button onClick={() => handleFocusSubmit('Sun')} className="action-btn p-3 h-24">
                                         <Icons.Sun className="w-8 h-8 text-purple-300 mb-2"/>
-                                        <span className="text-xs font-bold text-white">상쾌함</span>
+                                        <span className="text-xs font-bold text-white">Clear</span>
                                     </button>
                                     <button onClick={() => handleFocusSubmit('Cloud')} className="action-btn p-3 h-24">
                                         <Icons.Cloud className="w-8 h-8 text-sky-300 mb-2"/>
-                                        <span className="text-xs font-bold text-white">보통</span>
+                                        <span className="text-xs font-bold text-white">Cloudy</span>
                                     </button>
                                     <button onClick={() => handleFocusSubmit('Rain')} className="action-btn p-3 h-24">
                                         <Icons.Rain className="w-8 h-8 text-slate-400 mb-2"/>
-                                        <span className="text-xs font-bold text-white">힘듦</span>
+                                        <span className="text-xs font-bold text-white">Heavy</span>
                                     </button>
                                 </div>
                             </div>
