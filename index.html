@@ -1339,12 +1339,14 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                                         {block.name}
                                                                     </div>
                                                                 ) : (
-                                                                    <div className="flex-1">
+                                                                    /* [수정] pr-14: 버튼들이 들어갈 오른쪽 공간 확보 */
+                                                                    <div className="flex-1 pr-14">
                                                                         <div className="text-sm font-bold text-bright mb-0.5">
                                                                             {formatDuration(block.duration)}
                                                                         </div>
                                                                         {block.memo && (
-                                                                            <div className="text-[10px] text-dim font-medium truncate mb-0.5">
+                                                                            /* [수정] truncate 제거 -> break-words leading-tight 추가 (줄바꿈) */
+                                                                            <div className="text-[10px] text-dim font-medium break-words whitespace-pre-wrap leading-tight mb-0.5">
                                                                                 {block.memo}
                                                                             </div>
                                                                         )}
@@ -1355,7 +1357,8 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                                 {isFocus && (
                                                                     <button 
                                                                         onClick={() => extendDuration(block.id)} 
-                                                                        className="absolute right-9 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-[#bae6fd] p-1 transition-colors"
+                                                                        /* [수정] right-9 -> right-8 (쓰레기통 쪽으로 이동) */
+                                                                        className="absolute right-8 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-[#bae6fd] p-1 transition-colors"
                                                                     >
                                                                         <Icons.Plus />
                                                                     </button>
