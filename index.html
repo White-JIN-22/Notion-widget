@@ -161,7 +161,7 @@
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
         }
-        .manual-tab.active { color: #0ea5e9; border-bottom-color: #0ea5e9; }
+        .manual-tab.active { color: #7dd3fc; border-bottom-color: #7dd3fc; }
 
         .custom-select {
             width: 100%; border-radius: 10px; padding: 8px; font-weight: 700; outline: none; text-align: center; appearance: none;
@@ -1465,7 +1465,7 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                             </button>
                                             <button 
                                                 onClick={() => { setManualTab('switch'); setTimeRef('start'); }} 
-                                                className={`manual-tab ${manualTab === 'switch' ? '!text-purple-400 !border-purple-400' : ''}`}
+                                                className={`manual-tab ${manualTab === 'switch' ? '!text-purple-300 !border-purple-300' : ''}`}
                                             >
                                                 Switch
                                             </button>
