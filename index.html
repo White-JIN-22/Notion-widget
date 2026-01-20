@@ -523,13 +523,20 @@
                 if (!savedData.date || savedData.date !== today) {
                     setShowIntro(true);
                 } 
-                // 2. 오늘 날짜 기록이 있으면 -> 메인 화면으로 진입 (기록이 0개여도 유지됨)
+                // 2. 오늘 날짜 기록이 있으면 -> 일단 데이터 로드
                 else {
                     setLifeEnergy(savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
                     setWakeUpTime(savedData.wakeUpTime || null);
-                    setShowIntro(false);
+
+                    // [핵심 수정] 기록이 있어도, '기상 시간'이 설정 안 되어 있다면 인트로를 띄움
+                    // 예: 03시에 기록하고 잠듦 -> 07시 기상 시 '기상 시간' 없으므로 인트로 뜸 -> 컨디션 체크 후 기록은 유지됨
+                    if (!savedData.wakeUpTime) {
+                        setShowIntro(true);
+                    } else {
+                        setShowIntro(false);
+                    }
                 }
             }, []);
 
@@ -686,14 +693,15 @@
             };
 
             const handleIntro = (initialEnergy) => {
-                // 인트로 시 생활 에너지는 기존 값 유지하거나 로드된 값 사용
                 const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                const currentLife = saved.lifeEnergy || 50;
+                const currentLife = saved.lifeEnergy !== undefined ? saved.lifeEnergy : 50;
                 
+                // [핵심 수정] 빈 배열([]) 대신 현재 로드된 기록(blocks)을 보존함
+                // 새벽에 기록한 내용이 있다면 그대로 유지됩니다.
                 setLifeEnergy(currentLife); 
                 setEnergy(initialEnergy); 
                 setShowIntro(false);
-                saveData(currentLife, initialEnergy, [], null); 
+                saveData(currentLife, initialEnergy, blocks, null); 
             };
 
             const openResetModal = () => {
