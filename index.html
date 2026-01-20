@@ -225,7 +225,7 @@
         const WORKER_URL = "https://log-worker.moonkelly601.workers.dev"; 
 
         const Icons = {
-            Ticket: ({className}) => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/></svg>,
+            Heart: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>,
             Zap: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
             Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
@@ -258,8 +258,8 @@
 
         const App = () => {
             const [activeTab, setActiveTab] = useState('main');
-            const [tickets, setTickets] = useState(0);
-            const [energy, setEnergy] = useState(100);
+            const [lifeEnergy, setLifeEnergy] = useState(50); // 생활 에너지 (보라색)
+            const [energy, setEnergy] = useState(100); // 집중 에너지 (하늘색)
             const [blocks, setBlocks] = useState([]);
             
             const [isRecording, setIsRecording] = useState(false);
@@ -283,10 +283,10 @@
             const [manualDurHour, setManualDurHour] = useState(0);
             const [manualDurMin, setManualDurMin] = useState(30);
             const [focusMemo, setFocusMemo] = useState('');
-            // [추가] 할 일 연동을 위한 상태
-            const [todoList, setTodoList] = useState([]); // 불러온 할 일 목록
-            const [selectedTodoId, setSelectedTodoId] = useState(null); // 선택한 할 일 ID
-            const [showTodoSelect, setShowTodoSelect] = useState(false); // 선택창 열림 여부
+            
+            const [todoList, setTodoList] = useState([]); 
+            const [selectedTodoId, setSelectedTodoId] = useState(null); 
+            const [showTodoSelect, setShowTodoSelect] = useState(false); 
 
             const [isSending, setIsSending] = useState(false);
             const lastAutoSyncRef = useRef(Date.now());
@@ -303,17 +303,21 @@
                 return `${y}-${m}-${day}`;
             };
 
+            // 생활 에너지 충전 목록 (티켓 소모 대신 회복 기능)
             const fixedQuests = [
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300' }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
-                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
-                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
+                { id: 'q_cook', name: '요리', icon: 'Utensils', color: 'text-purple-300', recovery: 25 },
+                { id: 'q_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300', recovery: 15 },
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300', recovery: 10 }, 
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', recovery: 10 }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', recovery: 10 }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
+                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', recovery: 15 }, 
+                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-purple-300', recovery: 15 }, 
             ];
 
+            // 집중 에너지 회복 (씻기 제거됨)
             const restOptions = [
-                { id: 'q1_moved', name: '씻기', recovery: 10, icon: 'Droplets', color: 'text-sky-300' }, 
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
                 { id: 'r_exercise', name: '운동', recovery: 30, icon: 'Flame', color: 'text-purple-300' }, 
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
@@ -331,7 +335,7 @@
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
                 try {
                     const now = new Date();
-                    const dateYMD = formatLocalYMD(now); // 오늘 날짜 "2026-01-17"
+                    const dateYMD = formatLocalYMD(now); 
                     const dateStr = now.toDateString(); 
 
                     const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
@@ -339,16 +343,11 @@
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // [핵심 수정] 서버 데이터의 날짜가 오늘과 다르면? -> "오래된 데이터다!"
-                        // 로드하지 않고, 빈 데이터로 서버를 덮어씌움 (초기화 트리거)
                         if (data.date && data.date !== dateYMD) {
-                            console.log("Server data is old (" + data.date + "). Resetting server...");
-                            // 서버에 '빈 데이터' 강제 전송
+                            console.log("Old Data. Resetting...");
                             sendToNotion(true); 
-                            return; // 여기서 함수 종료 (오래된 데이터 로드 방지)
+                            return; 
                         }
-
-                        // --- 아래는 오늘 데이터일 때만 실행됨 ---
 
                         if (data.wakeUpTime && data.wakeUpTime !== "-") {
                             setWakeUpTime(data.wakeUpTime);
@@ -365,10 +364,7 @@
 
                             const blockMap = new Map();
                             localBlocks.forEach(b => blockMap.set(b.id, b)); 
-
                             const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-
-                            // 로컬 날짜가 다르면(새벽 등), 서버 데이터를 우선 신뢰하여 병합
                             if (savedData.date !== dateStr) {
                                 cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
                             }
@@ -376,16 +372,30 @@
                             const mergedBlocks = Array.from(blockMap.values());
                             setBlocks(mergedBlocks);
 
-                            let calcTickets = 0;
+                            // [수정] 생활 에너지 & 집중 에너지 계산
+                            // 생활 에너지는 '기초값(initialLifeEnergy)' + '오늘의 Switch 회복량'으로 계산
+                            const baseLife = savedData.initialLifeEnergy !== undefined ? savedData.initialLifeEnergy : 50; 
+                            
+                            let calcLife = baseLife;
                             let calcEnergy = 100; 
+
                             const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
 
                             sorted.forEach(b => {
-                                if (b.type === 'focus' || !b.type) {
-                                    calcTickets += Math.floor((b.duration || 0) / 30);
-                                }
-                                if (b.type === 'switch') calcTickets -= 1;
-                                if (b.type === 'rest') {
+                                if (b.type === 'switch') {
+                                    // Switch: 집중에너지 소모(-5), 생활에너지 회복
+                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                    
+                                    let recovery = 0;
+                                    if (b.recovery) recovery = b.recovery; // 기록에 저장된 값 우선
+                                    else {
+                                        const qOption = fixedQuests.find(q => q.name === b.name);
+                                        recovery = qOption ? qOption.recovery : 10;
+                                    }
+                                    calcLife = Math.min(100, calcLife + recovery);
+                                } 
+                                else if (b.type === 'rest') {
+                                    // Rest: 집중에너지 회복
                                     let recovery = 0;
                                     if (b.recovery) recovery = b.recovery;
                                     else {
@@ -393,21 +403,23 @@
                                         recovery = rOption ? rOption.recovery : 0;
                                     }
                                     calcEnergy = Math.min(100, calcEnergy + recovery);
-                                } else if (b.type === 'switch') {
-                                    calcEnergy = Math.max(0, calcEnergy - 5);
-                                } else {
+                                } 
+                                else {
+                                    // Focus: 집중에너지 소모
                                     const cost = Math.floor((b.duration || 0) / 10) * 5;
                                     calcEnergy = Math.max(0, calcEnergy - cost);
                                 }
                             });
-                            setTickets(calcTickets);
+                            
+                            setLifeEnergy(calcLife);
                             setEnergy(calcEnergy);
 
                             const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
 
                             localStorage.setItem('fortressData', JSON.stringify({
                                 date: dateStr,
-                                tickets: calcTickets,
+                                initialLifeEnergy: baseLife, // 기초값 유지
+                                lifeEnergy: calcLife,
                                 energy: calcEnergy,
                                 blocks: mergedBlocks,
                                 wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime
@@ -430,7 +442,7 @@
                             const newData = JSON.parse(e.newValue);
                             if (newData.date === new Date().toDateString()) {
                                 setBlocks(newData.blocks || []);
-                                setTickets(newData.tickets || 0);
+                                setLifeEnergy(newData.lifeEnergy || 0); // Ticket 대신 LifeEnergy
                                 setEnergy(newData.energy || 0);
                                 if (newData.wakeUpTime) setWakeUpTime(newData.wakeUpTime);
                                 triggerToast("🔄 외부 기록 연동됨");
@@ -440,7 +452,6 @@
                         }
                     }
                 };
-
                 window.addEventListener('storage', handleStorageChange);
                 return () => window.removeEventListener('storage', handleStorageChange);
             }, []);
@@ -450,17 +461,9 @@
                 const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 
                 if (savedData.date && savedData.date !== today) {
-                    if (savedData.blocks && savedData.blocks.length > 0) {
-                        const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                        if (!history.some(h => h.date === savedData.date)) {
-                            history.push(savedData);
-                            if (history.length > 7) history.shift();
-                            localStorage.setItem('fortressHistory', JSON.stringify(history));
-                        }
-                    }
-                    setTickets(0); setEnergy(100); setBlocks([]); setWakeUpTime(null); setShowIntro(true);
+                    // 날짜 다르면 초기화 로직은 checkMidnight에서 처리됨 (여기선 일단 둠)
                 } else {
-                    setTickets(savedData.tickets || 0);
+                    setLifeEnergy(savedData.lifeEnergy || 50);
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     
                     const validBlocks = (savedData.blocks || []).filter(b => new Date(b.startTime).toDateString() === today);
@@ -477,15 +480,12 @@
                     const currentToday = now.toDateString();
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
-                    // 날짜가 변경되었는지 확인
                     if (savedData.date && savedData.date !== currentToday) {
                         
-                        // [추가] 1.5. 어제 최종 데이터 서버로 전송 (통계 계산 포함)
+                        // 1. 서버 통계 전송 (기존과 동일)
                         if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
-                            // 통계 계산 로직 (sendToNotion과 동일하게 처리)
                             const focusBlocks = (savedData.blocks || []).filter(b => b.type === 'focus' || !b.type);
                             const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                            
                             let morn_total = 0, aft_total = 0, night_total = 0;
                             focusBlocks.forEach(b => {
                                 const h = new Date(b.startTime).getHours();
@@ -494,7 +494,6 @@
                                 else if (h < 18) aft_total += d;
                                 else night_total += d;
                             });
-
                             const getCountMode = (items) => {
                                 if (items.length === 0) return null;
                                 const counts = { Sun: 0, Cloud: 0, Rain: 0 };
@@ -504,28 +503,22 @@
                                 if (counts.Cloud === maxVal) return "Cloud";
                                 return "Rain";
                             };
-
                             const payload = {
-                                date: savedData.date, // 어제 날짜
+                                date: savedData.date,
                                 blocks: savedData.blocks || [],
                                 wakeUpTime: savedData.wakeUpTime || "-",
                                 title: "Fortress Log",
                                 total: totalDuration,
                                 morn_total: morn_total, aft_total: aft_total, night_total: night_total,
                                 quality: getCountMode(focusBlocks),
-                                // 시간대별 퀄리티는 간단히 전체 모드로 대체하거나 필요 시 추가 계산
                                 q_morn: null, q_aft: null, q_night: null 
                             };
-
                             fetch(WORKER_URL, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify(payload)
-                            }).then(() => console.log("🌙 어제 데이터 자동 저장 완료"))
-                              .catch(e => console.error("Auto Save Error:", e));
+                            }).catch(e => console.error("Auto Save Error:", e));
                         }
-
-                        // 2. 어제 기록 아카이빙 (기존 코드 시작)
 
                         // 2. 어제 기록 아카이빙
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
@@ -535,24 +528,26 @@
                             localStorage.setItem('fortressHistory', JSON.stringify(history));
                         }
 
-                        // 3. 로컬 데이터 초기화
+                        // [핵심 수정] 3. 로컬 데이터 초기화 및 생활에너지 감가 (-40)
+                        const prevLife = savedData.lifeEnergy || 0;
+                        const newBaseLife = Math.max(0, prevLife - 40); // 하루 지날 때마다 -40
+
                         const resetData = {
                             date: currentToday,
-                            tickets: 0,
+                            initialLifeEnergy: newBaseLife, // 오늘 시작 값
+                            lifeEnergy: newBaseLife,
                             energy: 100,
                             blocks: [],
                             wakeUpTime: null
                         };
                         localStorage.setItem('fortressData', JSON.stringify(resetData));
 
-                        // 4. 화면 즉시 초기화
-                        setTickets(0);
+                        setLifeEnergy(newBaseLife);
                         setEnergy(100);
                         setBlocks([]);
                         setWakeUpTime(null);
                         setShowIntro(true);
 
-                        // 5. [추가됨] 노션 서버에도 즉시 '빈 데이터' 전송하여 동기화
                         if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                              fetch(WORKER_URL, {
                                 method: "POST",
@@ -565,10 +560,10 @@
                                     total: 0, morn_total: 0, aft_total: 0, night_total: 0,
                                     quality: null, q_morn: null, q_aft: null, q_night: null
                                 })
-                            }).then(() => triggerToast("☀️ 새 하루 시작 (서버 동기화 완료)"))
+                            }).then(() => triggerToast("☀️ 새 하루 시작 (생활에너지 -40)"))
                               .catch(e => console.error("Reset Sync Error:", e));
                         } else {
-                            triggerToast("☀️ 새로운 하루가 시작되었습니다!");
+                            triggerToast("☀️ 새로운 하루! 생활에너지가 감소했습니다.");
                         }
                     }
                 }, 5000); 
@@ -602,17 +597,21 @@
 
             const triggerToast = (msg) => { setToast(msg); };
 
-            const saveData = (newTickets, newEnergy, newBlocks, newWakeUpTime) => {
-                setTickets(newTickets);
+            const saveData = (newLife, newEnergy, newBlocks, newWakeUpTime) => {
+                setLifeEnergy(newLife);
                 setEnergy(newEnergy);
                 setBlocks(newBlocks);
                 
                 const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
                 if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
 
+                const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const base = saved.initialLifeEnergy !== undefined ? saved.initialLifeEnergy : 50;
+
                 localStorage.setItem('fortressData', JSON.stringify({
                     date: new Date().toDateString(),
-                    tickets: newTickets,
+                    initialLifeEnergy: base,
+                    lifeEnergy: newLife,
                     energy: newEnergy,
                     blocks: newBlocks,
                     wakeUpTime: finalWakeUpTime
@@ -620,10 +619,14 @@
             };
 
             const handleIntro = (initialEnergy) => {
-                setTickets(0); 
+                // 인트로 시 생활 에너지는 기존 값 유지하거나 로드된 값 사용
+                const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const currentLife = saved.lifeEnergy || 50;
+                
+                setLifeEnergy(currentLife); 
                 setEnergy(initialEnergy); 
                 setShowIntro(false);
-                saveData(0, initialEnergy, [], null); 
+                saveData(currentLife, initialEnergy, [], null); 
             };
 
             const openResetModal = () => {
@@ -633,11 +636,21 @@
 
             const executeReset = () => {
                 setShowIntro(true); 
-                setTickets(0);
+                setLifeEnergy(50); // 초기화 시 50으로 설정
                 setEnergy(100);
                 setBlocks([]); 
                 setWakeUpTime(null);
-                saveData(0, 100, [], null); 
+                
+                // 로컬스토리지도 초기화
+                localStorage.setItem('fortressData', JSON.stringify({
+                    date: new Date().toDateString(),
+                    initialLifeEnergy: 50,
+                    lifeEnergy: 50,
+                    energy: 100,
+                    blocks: [],
+                    wakeUpTime: null
+                }));
+
                 setShowModal(false);
                 triggerToast("🔄 하루가 초기화되었습니다.");
             };
@@ -748,13 +761,13 @@
                     if (prevDuration > 0) {
                         const prevBlock = {
                             id: startTs, startTime: startTs, endTime: midnight, duration: prevDuration,
-                            quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color
+                            quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color, recovery: itemData?.recovery
                         };
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         const yStr = sDate.toDateString();
                         const targetDay = history.find(h => h.date === yStr);
                         if (targetDay) targetDay.blocks.push(prevBlock);
-                        else history.push({ date: yStr, blocks: [prevBlock], tickets: 0, energy: 0 });
+                        else history.push({ date: yStr, blocks: [prevBlock], lifeEnergy: lifeEnergy, energy: energy });
                         localStorage.setItem('fortressHistory', JSON.stringify(history));
                     }
                     startTs = midnight;
@@ -765,23 +778,30 @@
                 newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
                     quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color,
+                    recovery: itemData?.recovery, // 회복량 저장
                     memo: (type === 'auto' || type === 'manual') ? focusMemo : null
                 };
 
                 let newEnergy = energy;
+                let newLife = lifeEnergy;
                 let msg = "💾 저장 완료!";
 
                 if (type === 'manual-rest') {
                     newEnergy = Math.min(energy + (itemData.recovery || 0), 100);
                     msg = `💾 ${itemData.name} 기록됨 (+${itemData.recovery}%)`;
+                } else if (type === 'manual-switch') {
+                    // Switch: 집중에너지 소모, 생활에너지 회복
+                    newEnergy = Math.max(energy - 5, 0);
+                    newLife = Math.min(lifeEnergy + (itemData.recovery || 10), 100);
+                    msg = `💾 ${itemData.name} 완료 (+${itemData.recovery || 10} Life)`;
                 } else {
                     if (totalDuration < 10) {
                         if (type === 'auto') {
                             newEnergy = 20; 
                             msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
                         } else {
-                            const cost = type === 'manual-switch' ? 5 : 0;
-                            newEnergy = Math.max(energy - cost, 0);
+                            // Focus Manual Short
+                            newEnergy = Math.max(energy - 0, 0);
                             msg = "💾 기록 완료!";
                         }
                     } else {
@@ -791,32 +811,21 @@
                     }
                 }
 
-                const earned = (resolvedType === 'focus') ? Math.floor(totalDuration / 30) : 0;
-                const newTickets = tickets + (type === 'manual-switch' ? -1 : earned);
-                
-                // [변경 전 코드와 위치는 동일, 속성 이름만 lastLinkedBlockId -> linkedBlockId로 변경]
-if (selectedTodoId) {
-    try {
-        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-        const updatedTodos = savedTodos.map(t => {
-            if (t.id === selectedTodoId) {
-                const addedMs = totalDuration * 60 * 1000;
-                // [핵심 수정] Flow 위젯이 인식하는 이름인 'linkedBlockId'로 통일
-                return { 
-                    ...t, 
-                    done: true, 
-                    elapsed: (t.elapsed || 0) + addedMs, 
-                    isRunning: false,
-                    linkedBlockId: newBlock.id  // 여기가 중요!
-                };
-            }
-            return t;
-        });
-        localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
-    } catch (e) { console.error("Todo update failed", e); }
-}
+                if (selectedTodoId) {
+                    try {
+                        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                        const updatedTodos = savedTodos.map(t => {
+                            if (t.id === selectedTodoId) {
+                                const addedMs = totalDuration * 60 * 1000;
+                                return { ...t, done: true, elapsed: (t.elapsed || 0) + addedMs, isRunning: false, linkedBlockId: newBlock.id };
+                            }
+                            return t;
+                        });
+                        localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+                    } catch (e) { console.error("Todo update failed", e); }
+                }
 
-                saveData(newTickets, newEnergy, [newBlock, ...blocks]);
+                saveData(newLife, newEnergy, [newBlock, ...blocks]);
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
 
@@ -827,70 +836,46 @@ if (selectedTodoId) {
                     setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null);
                 }
                 
-                // [자동저장]
                 sendToNotion(true); 
             };
 
-            // [전체 덮어쓰기]
-const extendDuration = (id) => {
-    const now = Date.now();
-    const targetBlock = blocks.find(b => b.id === id);
-    
-    if (!targetBlock) return;
+            const extendDuration = (id) => {
+                const now = Date.now();
+                const targetBlock = blocks.find(b => b.id === id);
+                if (!targetBlock) return;
 
-    const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
-    
-    if (newDuration <= targetBlock.duration) {
-        triggerToast("⚠️ 이미 지난 시간입니다.");
-        return;
-    }
+                const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
+                if (newDuration <= targetBlock.duration) { triggerToast("⚠️ 이미 지난 시간입니다."); return; }
 
-    // [NEW] 늘어난 시간(분) 계산
-    const addedMinutes = newDuration - targetBlock.duration;
-
-    // [NEW] Flow 위젯(할 일) 동기화
-    if (addedMinutes > 0) {
-        try {
-            const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-            let isTodoUpdated = false;
-            
-            const updatedTodos = savedTodos.map(t => {
-                // [핵심] 타이머로 자동 생성된 할 일은 'linkedBlockId'를 가지고 있습니다.
-                // 이 ID가 현재 연장하려는 로그의 ID(id)와 같은지 확인합니다.
-                if (t.linkedBlockId === id) {
-                    isTodoUpdated = true;
-                    // 기존 시간에 늘어난 시간만큼 더해줌
-                    return { ...t, elapsed: (t.elapsed || 0) + (addedMinutes * 60 * 1000) };
+                const addedMinutes = newDuration - targetBlock.duration;
+                if (addedMinutes > 0) {
+                    try {
+                        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                        let isTodoUpdated = false;
+                        const updatedTodos = savedTodos.map(t => {
+                            if (t.linkedBlockId === id) {
+                                isTodoUpdated = true;
+                                return { ...t, elapsed: (t.elapsed || 0) + (addedMinutes * 60 * 1000) };
+                            }
+                            return t;
+                        });
+                        if (isTodoUpdated) localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+                    } catch (e) { console.error("Todo sync extend failed", e); }
                 }
-                return t;
-            });
 
-            if (isTodoUpdated) {
-                localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
-            }
-        } catch (e) { console.error("Todo sync extend failed", e); }
-    }
+                const oldCost = Math.floor(targetBlock.duration / 10) * 5;
+                const newCost = Math.floor(newDuration / 10) * 5;
+                const costDiff = newCost - oldCost;
+                const newEnergy = Math.max(0, energy - costDiff);
 
-    // --- 기존 에너지/티켓 계산 로직 (유지) ---
-    const oldCost = Math.floor(targetBlock.duration / 10) * 5;
-    const newCost = Math.floor(newDuration / 10) * 5;
-    const costDiff = newCost - oldCost;
-    const newEnergy = Math.max(0, energy - costDiff);
+                const newBlocks = blocks.map(b => 
+                    b.id === id ? { ...b, endTime: now, duration: newDuration } : b
+                );
 
-    const oldTickets = Math.floor(targetBlock.duration / 30);
-    const newTicketsCount = Math.floor(newDuration / 30);
-    const ticketDiff = newTicketsCount - oldTickets;
-    const finalTickets = tickets + ticketDiff;
+                saveData(lifeEnergy, newEnergy, newBlocks);
+                triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
+            };
 
-    const newBlocks = blocks.map(b => 
-        b.id === id ? { ...b, endTime: now, duration: newDuration } : b
-    );
-
-    saveData(finalTickets, newEnergy, newBlocks);
-    triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
-};
-
-            // [추가] 삭제 버튼 클릭 시 실행될 함수
             const confirmDelete = (id) => {
                 setDeleteTargetId(id);
                 setModalType('delete');
@@ -902,54 +887,63 @@ const extendDuration = (id) => {
                     const targetBlock = blocks.find(b => b.id === deleteTargetId);
                     const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
                     
-                    let newTickets = tickets;
+                    let newLife = lifeEnergy;
                     let newEnergy = energy;
 
                     if (targetBlock) {
                         if (targetBlock.type === 'focus' || !targetBlock.type) {
-                            const gainedTickets = Math.floor(targetBlock.duration / 30);
-                            newTickets = Math.max(0, tickets - gainedTickets);
-                            
                             const restoredEnergy = Math.floor(targetBlock.duration / 10) * 5;
                             newEnergy = Math.min(100, energy + restoredEnergy);
                         }
                         else if (targetBlock.type === 'switch') {
-                            newTickets = tickets + 1;
+                            // Switch 삭제 시: 소모된 에너지(5) 복구, 회복된 생활에너지 차감
                             newEnergy = Math.min(100, energy + 5);
+                            newLife = Math.max(0, lifeEnergy - (targetBlock.recovery || 10));
                         }
                         else if (targetBlock.type === 'rest') {
-                            const restOption = restOptions.find(r => r.name === targetBlock.name);
-                            const recoveryValue = restOption ? restOption.recovery : 0;
-                            newEnergy = Math.max(0, energy - recoveryValue);
+                            newEnergy = Math.max(0, energy - (targetBlock.recovery || 0));
                         }
                     }
 
-                    saveData(newTickets, newEnergy, newBlocks);
+                    saveData(newLife, newEnergy, newBlocks);
                     setDeleteTargetId(null); setShowModal(false); 
                     triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
-                    
-                    // [자동저장]
                     sendToNotion(true); 
                 }
             };
 
-            const doQuest = (quest) => {
-                if (tickets > 0) {
-                    const now = Date.now();
-                    const duration = 10; 
-                    const startTs = now - (duration * 60 * 1000);
-                    
-                    const newBlock = {
-                        id: now, startTime: startTs, endTime: now, duration: duration,
-                        quality: 'Cloud', type: 'switch', icon: quest.icon, name: quest.name, color: quest.color 
-                    };
+            const doSwitch = (quest) => {
+                // 생활 에너지 회복 (티켓 소모 X)
+                const now = Date.now();
+                const duration = 10; 
+                const startTs = now - (duration * 60 * 1000);
+                
+                const newBlock = {
+                    id: now, startTime: startTs, endTime: now, duration: duration,
+                    quality: 'Cloud', type: 'switch', icon: quest.icon, name: quest.name, color: quest.color, recovery: quest.recovery 
+                };
 
-                    const newBlocks = [newBlock, ...blocks];
-                    saveData(tickets - 1, Math.max(energy - 5, 0), newBlocks);
-                    triggerToast(`✨ ${quest.name} 완료!`);
-                } else {
-                    triggerToast("⚠️ 티켓 부족");
-                }
+                const newBlocks = [newBlock, ...blocks];
+                // 에너지 5 소모, 생활 에너지 회복
+                saveData(Math.min(100, lifeEnergy + quest.recovery), Math.max(energy - 5, 0), newBlocks);
+                triggerToast(`✨ ${quest.name} 완료 (+${quest.recovery} Life)`);
+            };
+
+            const takeRest = (rest) => {
+                const now = Date.now();
+                const duration = 10; 
+                const startTs = now - (duration * 60 * 1000);
+
+                const newBlock = {
+                    id: now, startTime: startTs, endTime: now, duration: duration,
+                    quality: 'Cloud', type: 'rest', icon: rest.icon, name: rest.name, color: rest.color, recovery: rest.recovery
+                };
+
+                const newEnergy = Math.min(energy + rest.recovery, 100);
+                const newBlocks = [newBlock, ...blocks];
+                
+                saveData(lifeEnergy, newEnergy, newBlocks);
+                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
             };
 
             const takeRest = (rest) => {
@@ -1255,52 +1249,58 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-<div className="header-section">
-    <div className="flex justify-between items-start mb-2">
-        <div className="w-full">
-            {/* 상단: 제목 + 버튼들 */}
-            <div className="flex justify-between items-center">
-                <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
-                <div className="flex gap-2 items-center"> 
-                    <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                        {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
-                    </button>
-                    <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
-                        <Icons.Sun className="w-4 h-4 text-white" />
-                    </button>
-                </div>
-            </div>
+                    <div className="header-section">
+                        <div className="flex justify-between items-start mb-2">
+                            <div className="w-full">
+                                {/* 상단: 제목 + 버튼들 */}
+                                <div className="flex justify-between items-center">
+                                    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Fortress Log</h1>
+                                    <div className="flex gap-2 items-center"> 
+                                        <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                            {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
+                                        </button>
+                                        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-yellow-100 hover:bg-white/20 transition-all shadow-sm">
+                                            <Icons.Sun className="w-4 h-4 text-white" />
+                                        </button>
+                                    </div>
+                                </div>
 
-            {/* 하단: 상태바 (에너지 | 티켓 | 기상시간 한 줄 정렬) */}
-            <div className="flex items-center gap-4 mt-3 text-sky-300 text-xs font-bold">
-                <div className="flex items-center gap-1">
-                    <Icons.Zap className="w-4 h-4"/>
-                    <span>{energy}%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <Icons.Ticket className="w-4 h-4"/>
-                    <span>{tickets}</span>
-                </div>
-                {/* 기상시간을 여기로 이동 */}
-                {wakeUpTime && (
-                    <div className="flex items-center gap-1 text-white/80 border-l border-white/20 pl-4">
-                        <Icons.Sun className="w-3 h-3" />
-                        <span className="tracking-tight">{wakeUpTime}</span>
+                                {/* 하단: 상태바 (집중E | 생활E | 기상시간) */}
+                                <div className="flex items-center gap-4 mt-3 text-xs font-bold">
+                                    <div className="flex items-center gap-1 text-sky-300">
+                                        <Icons.Zap className="w-4 h-4"/>
+                                        <span>{energy}%</span>
+                                    </div>
+                                    <div className="flex items-center gap-1 text-purple-300">
+                                        <Icons.Heart className="w-4 h-4"/>
+                                        <span>{lifeEnergy}%</span>
+                                    </div>
+                                    {wakeUpTime && (
+                                        <div className="flex items-center gap-1 text-white/80 border-l border-white/20 pl-4">
+                                            <Icons.Sun className="w-3 h-3" />
+                                            <span className="tracking-tight">{wakeUpTime}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full flex flex-col gap-1">
+                            {/* 집중 에너지 바 (파랑) */}
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
+                            </div>
+                            {/* 생활 에너지 바 (보라) */}
+                            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div className={`h-full transition-all duration-500 rounded-full bg-purple-400`} style={{ width: `${lifeEnergy}%` }}></div>
+                            </div>
+                        </div>
                     </div>
-                )}
-            </div>
-        </div>
-    </div>
-
-    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-        <div className={`h-full transition-all duration-500 rounded-full bg-sky-300`} style={{ width: `${energy}%` }}></div>
-    </div>
-</div>
 
                     <div className="px-4 flex gap-2 mb-3 mt-3">
-                        {['main', 'niche', 'rest'].map(tab => (
+                        {['main', 'switch', 'rest'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
-                                {tab === 'main' ? 'Flow' : tab === 'niche' ? 'Switch' : 'Rest'}
+                                {tab === 'main' ? 'Flow' : tab === 'switch' ? 'Switch' : 'Rest'}
                             </button>
                         ))}
                     </div>
@@ -1345,14 +1345,11 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                                         <div className="text-sm font-bold text-bright mb-0.5">
                                                                             {formatDuration(block.duration)}
                                                                         </div>
-
-                                                                        {/* 메모가 있으면 보여주기 */}
-    {block.memo && (
-        <div className="text-[10px] text-dim font-medium truncate mb-0.5">
-            {block.memo}
-        </div>
-    )}
-                                                                        
+                                                                        {block.memo && (
+                                                                            <div className="text-[10px] text-dim font-medium truncate mb-0.5">
+                                                                                {block.memo}
+                                                                            </div>
+                                                                        )}
                                                                         <div className="text-[10px] text-dim font-medium">{formatTimeStr(block.startTime)} ~ {formatTimeStr(block.endTime)}</div>
                                                                     </div>
                                                                 )}
@@ -1377,12 +1374,16 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                 </div>
                             </div>
                         )}
-                        {activeTab === 'niche' && (
+                        {/* Switch 탭: 생활 에너지 회복 */}
+                        {activeTab === 'switch' && (
                             <div className="grid grid-cols-2 gap-2 mt-1 overflow-y-auto no-scrollbar pb-2">
                                 {fixedQuests.map((q) => (
-                                    <button key={q.id} onClick={() => doQuest(q)} disabled={tickets === 0} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                    <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
                                         {renderIcon(q.icon, `w-5 h-5 ${q.color}`)}
-                                        <span className="mt-1 text-xs font-bold text-bright">{q.name}</span>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            <span className="text-xs font-bold text-bright">{q.name}</span>
+                                            <span className="text-[10px] text-purple-300">+{q.recovery}%</span>
+                                        </div>
                                     </button>
                                 ))}
                             </div>
@@ -1392,7 +1393,6 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                 {restOptions.map(rest => (
                                     <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
                                         {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
-                                        
                                         <div className="flex items-center gap-1 mt-1">
                                             <span className="text-xs font-bold text-bright">{rest.name}</span>
                                             <div className="text-[11px] font-bold text-sky-300">
@@ -1405,6 +1405,7 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                         )}
                     </div>
 
+                    {/* 모달 내용 부분은 기존 로직에서 handleWakeUpSave 등의 티켓 인자가 제거된 saveData를 사용하므로 호환됨 */}
                     {showModal && (
                         <div className="absolute inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
                             <div className={`w-full modal-content rounded-t-2xl p-4 animate-slide-up shadow-2xl flex flex-col ${modalType === 'manual' ? 'h-[340px]' : 'h-auto pb-6'}`} onClick={(e) => e.stopPropagation()}>
@@ -1436,11 +1437,11 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                         
                                         <div className="flex justify-center gap-2 mb-5">
                                             <select value={wakeUpHour} onChange={(e)=>setWakeUpHour(Number(e.target.value))} className="custom-select text-lg w-20">
-                                                {hours24.map(h => <option key={h} value={h}>{h}</option>)}
+                                                {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}</option>)}
                                             </select>
                                             <span className="self-center font-bold text-slate-400">:</span>
                                             <select value={wakeUpMin} onChange={(e)=>setWakeUpMin(Number(e.target.value))} className="custom-select text-lg w-20">
-                                                {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
+                                                {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
                                             </select>
                                         </div>
 
@@ -1463,7 +1464,6 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                     
                                     <div className="space-y-1 mb-2 shrink-0">
                                             <div className="flex items-center justify-between">
-                                                {/* [수정됨] 모든 모드에서 시작/종료 전환 가능하도록 통일 */}
                                                 <button 
                                                     onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
                                                     className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
@@ -1474,10 +1474,10 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
 
                                                 <div className="flex-1 flex gap-2">
                                                     <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
-                                                        {hours24.map(h => <option key={h} value={h}>{h}시</option>)}
+                                                        {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}
                                                     </select>
                                                     <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
-                                                        {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                        {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                     </select>
                                                 </div>
                                             </div>
@@ -1488,10 +1488,10 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                     <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
                                                     <div className="flex-1 flex gap-2">
                                                         <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
-                                                            {durationHours.map(h => <option key={h} value={h}>{h}시간</option>)}
+                                                            {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
                                                         </select>
                                                         <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
-                                                            {minutes5.map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                            {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                         </select>
                                                     </div>
                                                 </div>
@@ -1500,84 +1500,59 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                             )}
                                     </div>
 
-                                        {manualTab === 'focus' && (
-    <div className="px-1 mb-3 relative">
-        <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
-            <input 
-                type="text" 
-                placeholder="어떤 일에 집중했나요?" 
-                value={focusMemo}
-                onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
-                className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
-            />
-            <button 
-                onClick={() => {
-                    const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    let todays = saved.filter(t => !t.isRemote);
-                    
-                    const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
-                    todays.sort((a, b) => {
-                        const zA = zoneOrder[a.zone] || 99;
-                        const zB = zoneOrder[b.zone] || 99;
-                        if (zA !== zB) return zA - zB;
-                        return a.id - b.id;
-                    });
+                                    {manualTab === 'focus' && (
+                                        <div className="px-1 mb-3 relative">
+                                            <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="어떤 일에 집중했나요?" 
+                                                    value={focusMemo}
+                                                    onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
+                                                    className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
+                                                />
+                                                <button 
+                                                    onClick={() => {
+                                                        const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                                                        let todays = saved.filter(t => !t.isRemote);
+                                                        const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
+                                                        todays.sort((a, b) => (zoneOrder[a.zone] || 99) - (zoneOrder[b.zone] || 99) || a.id - b.id);
+                                                        setTodoList(todays);
+                                                        setShowTodoSelect(!showTodoSelect);
+                                                    }}
+                                                    className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+                                                >
+                                                    <Icons.CheckCircle className="w-5 h-5" /> 
+                                                </button>
+                                            </div>
 
-                    setTodoList(todays);
-                    setShowTodoSelect(!showTodoSelect);
-                }}
-                className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
-            >
-                <Icons.CheckCircle className="w-5 h-5" /> 
-            </button>
-        </div>
-
-        {showTodoSelect && (
-            <div 
-                className="absolute bottom-full left-0 right-0 mb-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar"
-                onWheel={(e) => e.stopPropagation()} 
-            >
-                {todoList.length === 0 ? (
-                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
-                ) : (
-                    todoList.map(todo => {
-                        let ZoneIcon = Icons.Moon;
-                        let colorClass = "text-slate-400"; 
-                        
-                        if (todo.zone === 'morning') {
-                            ZoneIcon = Icons.Sun;
-                            colorClass = "text-purple-300";
-                        } else if (todo.zone === 'afternoon') {
-                            ZoneIcon = Icons.Cloud; 
-                            colorClass = "text-sky-300";
-                        }
-
-                        return (
-                            <button 
-                                key={todo.id}
-                                onClick={() => {
-                                    setFocusMemo(todo.text);
-                                    setSelectedTodoId(todo.id);
-                                    setShowTodoSelect(false);
-                                }}
-                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
-                            >
-                                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                    {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
-                                    <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
-                                    <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
-                                        {todo.text}
-                                    </span>
-                                </div>
-                                {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
-                            </button>
-                        );
-                    })
-                )}
-            </div>
-        )}
-    </div>
-)}
+                                            {showTodoSelect && (
+                                                <div 
+                                                    className="absolute bottom-full left-0 right-0 mb-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar"
+                                                    onWheel={(e) => e.stopPropagation()} 
+                                                >
+                                                    {todoList.length === 0 ? (
+                                                        <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
+                                                    ) : (
+                                                        todoList.map(todo => (
+                                                            <button 
+                                                                key={todo.id}
+                                                                onClick={() => {
+                                                                    setFocusMemo(todo.text);
+                                                                    setSelectedTodoId(todo.id);
+                                                                    setShowTodoSelect(false);
+                                                                }}
+                                                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
+                                                            >
+                                                                <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
+                                                                    {todo.text}
+                                                                </span>
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                         
                                     <div className="flex-1 overflow-y-auto no-scrollbar pt-1">
                                             {manualTab === 'focus' && (
@@ -1616,7 +1591,6 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                 {modalType === 'check' && (
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif shrink-0">｡✧ Ignition Complete ✧｡</h3>
-                                    
                                     <div className="px-1 mb-3 relative">
                                         <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
                                             <input 
@@ -1630,15 +1604,6 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                 onClick={() => {
                                                     const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                                                     let todays = saved.filter(t => !t.isRemote);
-                                                    
-                                                    const zoneOrder = { morning: 1, afternoon: 2, night: 3 };
-                                                    todays.sort((a, b) => {
-                                                        const zA = zoneOrder[a.zone] || 99;
-                                                        const zB = zoneOrder[b.zone] || 99;
-                                                        if (zA !== zB) return zA - zB;
-                                                        return a.id - b.id;
-                                                    });
-
                                                     setTodoList(todays);
                                                     setShowTodoSelect(!showTodoSelect);
                                                 }}
@@ -1647,55 +1612,25 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                                 <Icons.CheckCircle className="w-5 h-5" /> 
                                             </button>
                                         </div>
-
                                         {showTodoSelect && (
                                             <div className="absolute bottom-full left-0 right-0 mb-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar" onWheel={(e) => e.stopPropagation()}>
-                                                {todoList.length === 0 ? (
-                                                    <div className="text-center text-xs text-slate-400 py-2">오늘 기록된 할 일이 없어요</div>
-                                                ) : (
-                                                    todoList.map(todo => {
-                                                        let ZoneIcon = Icons.Moon;
-                                                        let colorClass = "text-slate-400"; 
-                                                        
-                                                        if (todo.zone === 'morning') {
-                                                            ZoneIcon = Icons.Sun;
-                                                            colorClass = "text-purple-300";
-                                                        } else if (todo.zone === 'afternoon') {
-                                                            ZoneIcon = Icons.Cloud; 
-                                                            colorClass = "text-sky-300";
-                                                        }
-
-                                                        return (
-                                                            <button 
-                                                                key={todo.id}
-                                                                onClick={() => {
-                                                                    setFocusMemo(todo.text);
-                                                                    setSelectedTodoId(todo.id);
-                                                                    setShowTodoSelect(false);
-                                                                }}
-                                                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
-                                                            >
-                                                                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                                                    {todo.isImportant && <Icons.Star className={`w-3 h-3 shrink-0 ${colorClass}`} />}
-                                                                    <ZoneIcon className={`w-3 h-3 shrink-0 ${colorClass}`} />
-                                                                    <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>
-                                                                        {todo.text}
-                                                                    </span>
-                                                                </div>
-                                                                {todo.done && <Icons.Check className={`w-3 h-3 ml-2 shrink-0 ${colorClass}`} />}
-                                                            </button>
-                                                        );
-                                                    })
-                                                )}
+                                                {todoList.map(todo => (
+                                                    <button 
+                                                        key={todo.id}
+                                                        onClick={() => { setFocusMemo(todo.text); setSelectedTodoId(todo.id); setShowTodoSelect(false); }}
+                                                        className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
+                                                    >
+                                                        <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>{todo.text}</span>
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
-                                         
-                                     <div className="grid grid-cols-3 gap-2">
-                                         <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
-                                         <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky-300"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
-                                         <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
-                                     </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <button onClick={() => addRecord('Sun', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Sun className="w-10 h-10 text-purple-300"/><span className="text-[10px] font-bold mt-1">Clear</span></button>
+                                        <button onClick={() => addRecord('Cloud', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Cloud className="w-10 h-10 text-sky-300"/><span className="text-[10px] font-bold mt-1">Cloudy</span></button>
+                                        <button onClick={() => addRecord('Rain', 'auto')} className="modal-btn p-2 rounded-xl flex flex-col items-center"><Icons.Rain className="w-10 h-10 text-slate-400"/><span className="text-[10px] font-bold mt-1">Heavy</span></button>
+                                    </div>
                                     </>
                                 )}
                             </div>
