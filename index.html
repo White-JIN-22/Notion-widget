@@ -1183,10 +1183,15 @@
             const handleWakeUpSave = () => {
                 const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
                 setWakeUpTime(timeStr);
-                // [수정] tickets -> lifeEnergy 로 변경하여 오류 해결
+                
+                // 1. 내부 저장
                 saveData(lifeEnergy, energy, blocks, timeStr); 
                 setShowModal(false);
                 triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
+
+                // 2. [핵심 추가] 즉시 서버로 전송하여 백업!
+                // 이걸 해야 새로고침해도 서버에서 "아, 기상하셨지" 하고 기억해냅니다.
+                setTimeout(() => sendToNotion(true), 100); 
             };
 
             const renderBlockIcon = (block) => {
