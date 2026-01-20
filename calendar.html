@@ -242,16 +242,6 @@
                 return () => window.removeEventListener('storage', loadHistory);
             }, [currentDate, year]);
 
-            const getHeatmapClass = (date) => {
-                const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                const minutes = historyMap[dateKey] || 0;
-                
-                if (minutes === 0) return '';
-                if (minutes <= 90) return 'bg-white/10';
-                if (minutes <= 330) return 'bg-white/25';   
-                return 'bg-white/40';
-            };
-
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
             
             const isHoliday = (year, month, day) => {
@@ -423,8 +413,6 @@
                                     if (isToday) numColor = 'text-white font-extrabold';
                                     else if (isSelected) numColor = 'text-white';
 
-                                    const heatmapClass = getHeatmapClass(thisDate);
-
                                     const renderDots = () => {
                                         if (dayEvents.length === 0) return null;
                                         if (dayEvents.length >= 5) {
@@ -444,38 +432,12 @@
                                     };
 
                                     return (
-                                        <div key={i} onClick={() => setSelectedDate(thisDate)} className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''} ${!isToday && !isSelected ? heatmapClass : ''}`}>
+                                        <div key={i} onClick={() => setSelectedDate(thisDate)} className={`day-cell ${isToday ? 'day-today' : ''} ${isSelected && !isToday ? 'day-selected' : ''}`}>
                                             <span className={`z-10 font-bold ${numColor}`}>{day}</span>
                                             <div className="dot-wrapper">{renderDots()}</div>
                                         </div>
                                     )
                                 })}
-                            </div>
-                        </div>
-
-                        {/* Monthly Summary Section - Modified Style */}
-                        <div className="w-full mt-2 mb-1 px-5 py-2 bg-white/5 border-y border-white/10 backdrop-blur-md flex justify-between items-center">
-                            {/* Average Time (Replaces Text) */}
-                            <div className={`text-[11px] font-bold font-mono tracking-tight ${
-                                (monthlyStats.average || 0) <= 90 ? 'text-slate-400' : 
-                                (monthlyStats.average || 0) <= 330 ? 'text-sky-300' : 'text-purple-300'
-                            }`}>
-                                {Math.floor((monthlyStats.average || 0) / 60)}H {(monthlyStats.average || 0) % 60}M
-                            </div>
-
-                            <div className="flex gap-3">
-                                <div className="flex items-center gap-1.5" title="운동 달성률">
-                                    <Icons.Flame className="w-3.5 h-3.5 text-purple-300" />
-                                    <span className="text-[10px] font-bold text-white">{monthlyStats.exercise}%</span>
-                                </div>
-                                <div className="flex items-center gap-1.5" title="독서 달성률">
-                                    <Icons.Book className="w-3.5 h-3.5 text-sky-300" />
-                                    <span className="text-[10px] font-bold text-white">{monthlyStats.reading}%</span>
-                                </div>
-                                <div className="flex items-center gap-1.5" title="기록 달성률">
-                                    <Icons.Pen className="w-3.5 h-3.5 text-sky-300" />
-                                    <span className="text-[10px] font-bold text-white">{monthlyStats.record}%</span>
-                                </div>
                             </div>
                         </div>
                         
