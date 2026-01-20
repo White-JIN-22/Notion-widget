@@ -1281,7 +1281,7 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                         </div>
                     </div>
 
-                    <div className="px-4 flex gap-2 mb-3 mt-3">
+                    <div className="px-4 flex gap-2 mb-3 mt-1">
                         {['main', 'switch', 'rest'].map(tab => (
                             <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 py-2 tab-btn ${activeTab === tab ? 'tab-active' : 'tab-inactive'}`}>
                                 {tab === 'main' ? 'Flow' : tab === 'switch' ? 'Switch' : 'Rest'}
