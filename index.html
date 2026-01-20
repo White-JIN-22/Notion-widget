@@ -1328,14 +1328,14 @@ const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
                                         <div className="flex-1 text-right">
                                             {lifeEnergy <= 10 && energy <= 10 ? (
                                                 warningToggle ? (
-                                                    <span className="text-purple-300 tracking-tight text-[10px]">※ 생활 정비부터!</span>
+                                                    <span className="text-purple-300 tracking-tight text-xs">생활 정비부터!</span>
                                                 ) : (
-                                                    <span className="text-sky-300 tracking-tight text-[10px]">※ 에너지 충전!</span>
+                                                    <span className="text-sky-300 tracking-tight text-xs">에너지 충전!</span>
                                                 )
                                             ) : lifeEnergy <= 10 ? (
-                                                <span className="text-purple-300 tracking-tight text-[10px]">※ 생활 정비부터!</span>
+                                                <span className="text-purple-300 tracking-tight text-xs">생활 정비부터!</span>
                                             ) : (
-                                                <span className="text-sky-300 tracking-tight text-[10px]">※ 에너지 충전!</span>
+                                                <span className="text-sky-300 tracking-tight text-xs">에너지 충전!</span>
                                             )}
                                         </div>
                                     ) : (
