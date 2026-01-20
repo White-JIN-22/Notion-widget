@@ -1266,8 +1266,18 @@
                                         </button>
                                         
                                         {/* [오른쪽] 전송 버튼 (구름) */}
-                                        <button onClick={sendToNotion} disabled={isSending} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                            {isSending ? <span className="text-xs text-white/50 animate-pulse">...</span> : <Icons.Cloud className="w-4 h-4" />}
+                                        <button 
+                                            onClick={sendToNotion} 
+                                            disabled={isSending} 
+                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
+                                        >
+                                            {isSending ? (
+                                                /* 저장 중: 빙글빙글 도는 흰색 화살표 */
+                                                <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
+                                            ) : (
+                                                /* 평상시: 구름 아이콘 */
+                                                <Icons.Cloud className="w-4 h-4" />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
