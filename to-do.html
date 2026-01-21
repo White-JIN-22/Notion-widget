@@ -472,8 +472,7 @@
                 setTodos(remainingTodos);
                 localStorage.setItem('jinsolTodos', JSON.stringify(remainingTodos));
                 localStorage.setItem('lastDate', todayStr);
-                setShowNewDayModal(true);
-                setTimeout(() => setShowNewDayModal(false), 3000);
+                triggerToast("☀️ 좋은 아침! 새로운 하루가 시작됐어요");
             };
 
             useEffect(() => {
@@ -1369,14 +1368,6 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    {/* [NEW] 하루 시작 알림 (Pill Style) - 스카이블루 버전 */}
-                    {showNewDayModal && (
-                        <div className="new-day-toast">
-                            <Icons.Sun className="w-5 h-5 text-sky-400" />
-                            <span>좋은 아침! 새로운 하루가 시작됐어요 ☁️</span>
                         </div>
                     )}
 
