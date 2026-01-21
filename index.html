@@ -823,7 +823,7 @@
                 if (type === 'auto') {
                     totalDuration = tempSession.duration;
                 } else if (type === 'manual') {
-                    totalDuration = (manualDurHour * 60) + manualDurMin + 3; 
+                    totalDuration = (manualDurHour * 60) + manualDurMin;
                 } else {
                     totalDuration = 10;
                 }
@@ -1691,7 +1691,6 @@
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <p className="text-center text-[10px] text-slate-400 opacity-80 mt-1 mb-2">* 자동으로 점화 시간 3분이 추가됩니다.</p>
                                                 </>
                                             )}
                                     </div>
