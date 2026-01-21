@@ -506,7 +506,7 @@
             const saveEdit = () => { if (editText.trim()) { setTodos(todos.map(t => t.id === editingId ? { ...t, text: editText } : t)); } setEditingId(null); };
 
             // ================= [수정됨] 위치 이동: 이 두 함수를 toggleTodo 밖으로 꺼냈습니다 =================
-            
+
             // [NEW] 소일거리 기존 로그와 연동 (이름 덮어쓰기 기능 추가)
             const confirmLinkChore = () => {
                 if (!linkingChoreId || !selectedSwitchId) {
@@ -515,14 +515,14 @@
 
                 const targetTodo = todos.find(t => t.id === linkingChoreId);
                 
-                // 1. 투두 상태 업데이트 (연동 처리)
+                // 1. 투두 상태 업데이트
                 setTodos(todos.map(t => t.id === linkingChoreId ? { 
                     ...t, 
                     done: true, 
                     linkedBlockId: selectedSwitchId 
                 } : t));
 
-                // 2. 로그 데이터 업데이트 (이름 덮어쓰기)
+                // 2. 로그 데이터 업데이트 (티켓 관련 로직 제거됨)
                 try {
                     const rawData = localStorage.getItem('fortressData');
                     const savedData = rawData ? JSON.parse(rawData) : {};
@@ -532,11 +532,10 @@
                         savedData.blocks = savedData.blocks.map(b => {
                             if (b.id === selectedSwitchId) {
                                 isUpdated = true;
-                                // 기존 로그의 이름을 투두의 텍스트로 변경 (덮어쓰기)
                                 return { 
                                     ...b, 
                                     name: targetTodo.text, 
-                                    icon: targetTodo.choreIcon // 아이콘도 투두의 것으로 동기화
+                                    icon: targetTodo.choreIcon 
                                 };
                             }
                             return b;
@@ -544,7 +543,7 @@
 
                         if (isUpdated) {
                             localStorage.setItem('fortressData', JSON.stringify(savedData));
-                            triggerToast("🔗 기록 연동 및 업데이트 완료!");
+                            triggerToast("🔗 기록 연동 완료!");
                         }
                     }
                 } catch (e) {
@@ -554,60 +553,57 @@
                 setLinkingChoreId(null);
             };
 
-            // [NEW] 소일거리 새 기록 생성 (안전한 저장 로직)
+            // [NEW] 소일거리 새 기록 생성 (티켓 차감 로직 완전 제거)
             const createChoreLog = (targetTodo) => {
                 try {
                     const rawData = localStorage.getItem('fortressData');
                     let savedData = rawData ? JSON.parse(rawData) : {};
                     const todayStr = new Date().toDateString();
 
-                    // 날짜 불일치 시 초기화하되, wakeUpTime 등은 보존 시도
                     if (!savedData.date || savedData.date !== todayStr) {
                         savedData = {
                             date: todayStr,
-                            tickets: 0,
+                            // tickets: 0,  <-- 티켓 초기화 삭제
                             energy: 100,
                             blocks: [],
                             wakeUpTime: savedData.wakeUpTime || null 
                         };
                     }
 
-                    // 티켓 확인
-                    if ((savedData.tickets || 0) <= 0) {
-                        triggerToast("⚠️ 티켓이 부족해 투두만 완료 처리됩니다.");
-                        setTodos(todos.map(t => t.id === targetTodo.id ? { ...t, done: true } : t));
-                        setLinkingChoreId(null);
-                        return;
-                    }
+                    // [삭제됨] 티켓 확인 및 차감 로직 
+                    // if ((savedData.tickets || 0) <= 0) { ... }  <-- 이 부분이 저장을 막고 있었음!
 
                     const now = Date.now();
-                    const duration = 10;
+                    const duration = 10; // 소일거리는 기본 10분 기록
                     const newBlock = {
                         id: now,
                         startTime: now - (duration * 60 * 1000),
                         endTime: now,
                         duration: duration,
                         quality: 'Cloud',
-                        type: 'switch',
+                        type: 'switch', // 휴식/전환 타입
                         icon: targetTodo.choreIcon,
                         name: targetTodo.text,
                         color: targetTodo.choreColor
                     };
 
-                    savedData.tickets -= 1;
+                    // savedData.tickets -= 1; <-- 티켓 차감 삭제
+                    
+                    // 에너지는 소모시킬까요? (일단 유지: 소일거리도 에너지 5 씀)
                     savedData.energy = Math.max(0, (savedData.energy || 100) - 5);
+                    
+                    // 블록 저장
                     savedData.blocks = [newBlock, ...(Array.isArray(savedData.blocks) ? savedData.blocks : [])];
 
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
                     
-                    // 투두 상태 업데이트
                     setTodos(todos.map(t => t.id === targetTodo.id ? { 
                         ...t, 
                         done: true,
                         linkedBlockId: newBlock.id 
                     } : t));
 
-                    triggerToast(`✨ 소일거리 완료! (티켓 사용)`);
+                    triggerToast(`✨ 소일거리 기록 완료!`); // 메시지도 심플하게 변경
                 } catch (e) {
                     console.error("Chore save failed", e);
                     triggerToast("⚠️ 저장 실패");
