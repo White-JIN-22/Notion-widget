@@ -1286,7 +1286,7 @@
                                     })}
                                 </div>
                                 <div className="mt-4 flex gap-2">
-                                    <button onClick={() => createChoreLog(todos.find(t => t.id === linkingChoreId))} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">새로 기록 (-1 Ticket)</button>
+                                    <button onClick={() => createChoreLog(todos.find(t => t.id === linkingChoreId))} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">새로 기록</button>
                                     <button onClick={confirmLinkChore} disabled={!selectedSwitchId} className={`flex-1 py-2 rounded-xl font-bold border transition-all text-xs ${selectedSwitchId ? 'bg-sky-100 hover:bg-sky-200 text-sky-600 border-sky-200' : 'bg-slate-100 text-slate-300 border-slate-200'}`}>연동하기</button>
                                 </div>
                             </div>
