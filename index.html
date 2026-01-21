@@ -369,6 +369,9 @@
             const [wakeUpTime, setWakeUpTime] = useState(null);
             const [wakeUpHour, setWakeUpHour] = useState(7);
             const [wakeUpMin, setWakeUpMin] = useState(0);
+            const [bedTime, setBedTime] = useState(null);
+            const [bedHour, setBedHour] = useState(23);
+            const [bedMin, setBedMin] = useState(0);
 
             const formatLocalYMD = (d) => {
                 if (typeof d === 'string') d = new Date(d);
@@ -427,6 +430,7 @@
 
                         if (data.wakeUpTime && data.wakeUpTime !== "-") {
                             setWakeUpTime(data.wakeUpTime);
+                            if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime); // <--- 추가됨
                         }
 
                         if (data.blocks && Array.isArray(data.blocks)) {
@@ -508,6 +512,7 @@
                                 energy: calcEnergy,
                                 blocks: mergedBlocks,
                                 wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime,
+                                bedTime: data.bedTime || savedData.bedTime || bedTime, // <--- 추가됨
                                 introDone: safeIntroDone // 최신 상태 반영
                             }));
                         }
@@ -664,13 +669,16 @@
 
             const triggerToast = (msg) => { setToast(msg); };
 
-            const saveData = (newLife, newEnergy, newBlocks, newWakeUpTime) => {
+            const saveData = (newLife, newEnergy, newBlocks, newWakeUpTime, newBedTime) => {
                 setLifeEnergy(newLife);
                 setEnergy(newEnergy);
                 setBlocks(newBlocks);
                 
                 const finalWakeUpTime = newWakeUpTime !== undefined ? newWakeUpTime : wakeUpTime;
                 if (newWakeUpTime !== undefined) setWakeUpTime(newWakeUpTime);
+
+                const finalBedTime = newBedTime !== undefined ? newBedTime : bedTime; // <--- 추가됨
+                if (newBedTime !== undefined) setBedTime(newBedTime);
 
                 // [안전장치 1] 저장 전, 현재 데이터를 백업본으로 복사 (오류 발생 시 복구용)
                 const currentDataStr = localStorage.getItem('fortressData');
@@ -688,6 +696,7 @@
                     energy: newEnergy,
                     blocks: newBlocks,
                     wakeUpTime: finalWakeUpTime,
+                    bedTime: finalBedTime,
                     introDone: saved.introDone || false // [추가] 기존 도장 상태 유지
                 }));
             };
@@ -1113,6 +1122,7 @@
                         date: formatLocalYMD(dataset.date), 
                         blocks: dataset.blocks, 
                         wakeUpTime: dataset.wakeUpTime || "-", 
+                        bedTime: dataset.bedTime || "-", // <--- 추가됨
                         title: "Fortress Log",
                         currentLife: lifeEnergy,
                         currentEnergy: energy,
@@ -1188,8 +1198,16 @@
                 setShowModal(false);
                 triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
 
+                const handleBedTimeSave = () => {
+                    const timeStr = `${String(bedHour).padStart(2, '0')}:${String(bedMin).padStart(2, '0')}`;
+                    setBedTime(timeStr);
+                    saveData(lifeEnergy, energy, blocks, undefined, timeStr); // bedTime 갱신
+                    setShowModal(false);
+                    triggerToast(`🌙 업무 종료: ${timeStr}`);
+                    setTimeout(() => sendToNotion(true), 100);
+                };
+                
                 // 2. [핵심 추가] 즉시 서버로 전송하여 백업!
-                // 이걸 해야 새로고침해도 서버에서 "아, 기상하셨지" 하고 기억해냅니다.
                 setTimeout(() => sendToNotion(true), 100); 
             };
 
@@ -1333,6 +1351,11 @@
                                         <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
                                             <Icons.Sun className="w-4 h-4 text-white" />
                                         </button>
+
+                                        {/* [추가] 취침 버튼 (업무 종료) */}
+                                        <button onClick={() => { setModalType('bedtime'); setShowModal(true); }} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                            <Icons.Moon className="w-4 h-4 text-yellow-100" />
+                                        </button>
                                         
                                         {/* [오른쪽] 전송 버튼 (구름) */}
                                         <button 
@@ -1371,15 +1394,19 @@
                                     </div>
 
                                     {/* 오른쪽: 기상 시간 (변경 없음) */}
-                                    <div className="flex-1 text-right">
-                                        {wakeUpTime ? (
-                                            <div className="flex justify-end items-center gap-1 text-white/80 pl-2">
-                                                <Icons.Sun className="w-3 h-3 text-yellow-100" />
-                                                <span className="tracking-tight font-bold">{wakeUpTime}</span>
-                                            </div>
-                                        ) : (
-                                            <span className="text-white/20 text-[10px] tracking-tight">기상 시간 미설정</span>
-                                        )}
+                                    <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
+                                        {wakeUpTime && (
+                    <div className="flex items-center gap-1 text-white/80">
+                        <Icons.Sun className="w-2.5 h-2.5 text-yellow-100" />
+                        <span className="text-[10px] font-bold tracking-tight">{wakeUpTime}</span>
+                    </div>
+                )}
+                                        {bedTime && (
+                    <div className="flex items-center gap-1 text-white/60">
+                        <Icons.Moon className="w-2.5 h-2.5 text-slate-300" />
+                        <span className="text-[10px] font-bold tracking-tight">{bedTime}</span>
+                    </div>
+                )}
                                     </div>
                                 </div>
 
@@ -1567,6 +1594,28 @@
                                         </div>
                                     </div>
                                 )}
+
+                                {modalType === 'bedtime' && (
+    <div className="text-center">
+        <h3 className="text-base font-bold mb-3 text-slate-700 font-serif">｡✧ Bed Time ✧｡</h3>
+        <p className="text-[10px] text-slate-400 mb-4">오늘 업무를 마치는 시간입니다.</p>
+        
+        <div className="flex justify-center gap-2 mb-5">
+            <select value={bedHour} onChange={(e)=>setBedHour(Number(e.target.value))} className="custom-select text-lg w-20">
+                {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}</option>)}
+            </select>
+            <span className="self-center font-bold text-slate-400">:</span>
+            <select value={bedMin} onChange={(e)=>setBedMin(Number(e.target.value))} className="custom-select text-lg w-20">
+                {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
+            </select>
+        </div>
+
+        <div className="flex gap-2">
+            <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
+            <button onClick={handleBedTimeSave} className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold border border-slate-200 transition-all text-sm">확인</button>
+        </div>
+    </div>
+)}
 
                                 {modalType === 'manual' && (
                                     <>
