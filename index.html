@@ -1197,8 +1197,6 @@
                 saveData(lifeEnergy, energy, blocks, timeStr); 
                 setShowModal(false);
                 triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
-
-                // 2. [핵심 추가] 즉시 서버로 전송하여 백업!
                 setTimeout(() => sendToNotion(true), 100); 
             };
 
