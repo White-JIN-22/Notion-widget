@@ -1399,12 +1399,27 @@
                             </div>
                         </div>
 
-                        <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                            {isLoading ? (
-                                <div className="h-full bg-white/50 w-full animate-pulse"></div>
-                            ) : (
-                                <div className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]" style={{ width: `${(todos.filter(t=>t.done).length / Math.max(todos.length, 1)) * 100}%` }}></div>
-                            )}
+                        {/* [수정] 깜빡임 제거 버전 */}
+                        <div className="flex flex-col gap-1 w-full mt-1">
+                            {/* 1. Focus Task Bar (Sky Blue) - 일반 할 일 */}
+                            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                                <div className="h-full bg-sky-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(125,211,252,0.6)]" 
+                                    style={{ width: `${(() => {
+                                        const regular = todos.filter(t => !t.isChore);
+                                        return regular.length ? (regular.filter(t => t.done).length / regular.length) * 100 : 0;
+                                    })()}%` }}>
+                                </div>
+                            </div>
+                            
+                            {/* 2. Chore Bar (Purple) - 소일거리 */}
+                            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+                                <div className="h-full bg-purple-300 transition-all duration-500 rounded-full shadow-[0_0_10px_rgba(216,180,254,0.6)]" 
+                                    style={{ width: `${(() => {
+                                        const chores = todos.filter(t => t.isChore);
+                                        return chores.length ? (chores.filter(t => t.done).length / chores.length) * 100 : 0;
+                                    })()}%` }}>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
