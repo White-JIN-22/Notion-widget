@@ -253,12 +253,20 @@
             const [selectedQuest, setSelectedQuest] = useState(null);
 
             const QUEST_OPTIONS = [
+                // 1행: 요리, 설거지, 운동
+                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-orange-300' }, 
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
+                { id: 'q_ex', name: '운동', icon: 'Flame', color: 'text-rose-300' }, 
+                
+                // 2행: 독서, 빨래, 분리수거
+                { id: 'q_read', name: '독서', icon: 'Book', color: 'text-emerald-300' },
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300' }, 
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
+                
+                // 3행: 방 쓸기, 집안일, 알약 소분
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
-                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
             ];
             const [toast, setToast] = useState(null);
             const [showNewDayModal, setShowNewDayModal] = useState(false);
@@ -1074,27 +1082,27 @@
 
                 // [핵심 수정] 투두 정렬 로직 변경
                 const sortedTodos = [...zoneTodos].sort((a, b) => {
-                    // 1순위: 완료 여부 (완료된 건 맨 아래로)
+                    // 1순위: 완료 여부 (완료된 건 무조건 맨 아래)
                     if (a.done !== b.done) return a.done ? 1 : -1; 
                     
-                    // 2순위: 소일거리 vs 일반 할 일 (일반 할 일이 위로, 소일거리가 아래로)
-                    // a가 소일거리가 아니고(Task), b가 소일거리(Chore)면 -> a가 위(-1)
+                    // 2순위: 소일거리 여부 (같은 완료 상태라면, 소일거리는 무조건 아래로)
+                    // a가 소일거리면(true) 1 반환(내림), 일반이면 -1 반환(올림)
                     if (!!a.isChore !== !!b.isChore) {
                         return a.isChore ? 1 : -1;
                     }
 
-                    // 3순위: 중요도/긴급도 점수 계산
+                    // 3순위: 중요도/긴급도 점수 계산 (그 안에서 별/느낌표 정렬)
                     const getScore = (item) => {
-                        if (item.isImportant && item.isUrgent) return 4;
-                        if (item.isImportant && !item.isUrgent) return 3;
-                        if (!item.isImportant && item.isUrgent) return 2;
-                        return 1;
+                        let score = 0;
+                        if (item.isImportant) score += 2; // 별표 가중치
+                        if (item.isUrgent) score += 1;    // 느낌표 가중치
+                        return score;
                     };
 
                     const scoreA = getScore(a);
                     const scoreB = getScore(b);
 
-                    if (scoreA !== scoreB) return scoreB - scoreA;
+                    if (scoreA !== scoreB) return scoreB - scoreA; // 점수 높은 순
                     
                     // 4순위: 최신순 (ID 역순)
                     const idA = typeof a.id === 'string' ? 0 : a.id;
