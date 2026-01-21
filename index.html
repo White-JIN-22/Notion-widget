@@ -1198,7 +1198,11 @@
                 setShowModal(false);
                 triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
 
-                const handleBedTimeSave = () => {
+                // 2. [핵심 추가] 즉시 서버로 전송하여 백업!
+                setTimeout(() => sendToNotion(true), 100); 
+            };
+
+            const handleBedTimeSave = () => {
                     const timeStr = `${String(bedHour).padStart(2, '0')}:${String(bedMin).padStart(2, '0')}`;
                     setBedTime(timeStr);
                     saveData(lifeEnergy, energy, blocks, undefined, timeStr); // bedTime 갱신
@@ -1206,11 +1210,7 @@
                     triggerToast(`🌙 업무 종료: ${timeStr}`);
                     setTimeout(() => sendToNotion(true), 100);
                 };
-                
-                // 2. [핵심 추가] 즉시 서버로 전송하여 백업!
-                setTimeout(() => sendToNotion(true), 100); 
-            };
-
+            
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
                     if (block.quality === 'Sun') return <Icons.Sun className="w-8 h-8 text-purple-300" />;
