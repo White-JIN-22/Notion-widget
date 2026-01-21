@@ -153,6 +153,7 @@
             const [dateStr, setDateStr] = useState('');
             const [totalDuration, setTotalDuration] = useState(0);
             const [wakeUpTime, setWakeUpTime] = useState(null);
+            const [bedTime, setBedTime] = useState(null);
             
             // [추가] 날짜 탐색을 위한 상태
             const [viewDate, setViewDate] = useState(new Date());
@@ -177,6 +178,7 @@
                 if (savedData.date === today && savedData.blocks) {
                     setBlocks(savedData.blocks);
                     setWakeUpTime(savedData.wakeUpTime || null);
+                    setBedTime(savedData.bedTime || null);
                 } else {
                     // 데이터가 없거나 날짜가 다르면 초기화
                     setBlocks([]);
@@ -241,15 +243,17 @@
                                     const mergedBlocks = Array.from(blockMap.values());
                                     const finalWakeUp = serverWakeUp || currentLocal.wakeUpTime;
                                     localStorage.setItem('fortressData', JSON.stringify({
-                                        ...currentLocal, date: dateYMD, blocks: mergedBlocks, wakeUpTime: finalWakeUp
+                                        ...currentLocal, date: dateYMD, blocks: mergedBlocks, wakeUpTime: finalWakeUp, bedTime: data.bedTime || currentLocal.bedTime
                                     }));
                                     setBlocks(mergedBlocks);
                                     if(finalWakeUp) setWakeUpTime(finalWakeUp);
+                                    if(data.bedTime) setBedTime(data.bedTime);
                                 }
                             } else {
                                 // [과거 날짜] 읽기 전용
                                 setBlocks(fetchedBlocks);
                                 if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
+                                if (data.bedTime) setBedTime(data.bedTime);
                             }
                         }
                     } catch (e) { /* 블록 오류는 조용히 넘김 */ }
@@ -370,6 +374,7 @@
                         
                         let isBeforeWakeUp = false;
                         let isWakeUpSlot = false;
+                        let isAfterBedTime = false;
 
                         if (wakeUpTime) {
                             const [wH, wM] = wakeUpTime.split(':').map(Number);
@@ -382,6 +387,18 @@
 
                             if (slotStartTs < wakeUpTs) {
                                 isBeforeWakeUp = true;
+                            }
+
+                            if (bedTime) {
+                                const [bH, bM] = bedTime.split(':').map(Number);
+                                const bedDate = new Date(viewDate);
+                                bedDate.setHours(bH, bM, 0, 0);
+                                const bedTs = bedDate.getTime();
+
+                                // 슬롯 시작 시간이 취침 시간 이상이면 투명화 대상
+                                if (slotStartTs >= bedTs) {
+                                    isAfterBedTime = true;
+                                }
                             }
 
                             if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) {
@@ -417,8 +434,8 @@
                         let content = null;
                         let lineOverlay = null;
 
-                        if (isBeforeWakeUp && !bgBlock && !isWakeUpSlot) {
-                            cellClass = 'opacity-0'; 
+                        if ((isBeforeWakeUp || isAfterBedTime) && !bgBlock && !isWakeUpSlot) {
+                            cellClass = 'opacity-0';
                         }
                         else if (bgBlock) {
                             if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
