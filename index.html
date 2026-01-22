@@ -1090,7 +1090,7 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 합계(Total) 불일치 문제 해결 버전 (Total = Morn + Aft + Night)
+            // [수정 완료] 퀄리티 기준 현실화 (2.5점 이상이어야 Sun)
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1101,12 +1101,11 @@
                 if (!silent) triggerToast("☁️ 서버에 동기화 중...");
 
                 try {
-                    // 1. 최신 데이터 가져오기
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     const targetBlocks = savedData.blocks || []; 
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
 
-                    // 2. 통계 초기화
+                    // 통계 초기화
                     let stats = {
                         morn:  { dur: 0, scoreSum: 0 }, // 00:00 ~ 11:59
                         aft:   { dur: 0, scoreSum: 0 }, // 12:00 ~ 17:59
@@ -1120,15 +1119,13 @@
                         return 2; 
                     };
 
-                    // 3. 블록 순회 및 시간 정밀 분배
+                    // 블록 순회 및 시간 정밀 분배
                     targetBlocks.forEach(b => {
                         if (b.type === 'focus' || !b.type) {
-                            // 안전장치: duration은 정수로 처리
                             const dur = Math.round(b.duration || 0);
                             const score = getScore(b.quality);
                             const startTs = b.startTime;
 
-                            // 1분 단위로 쪼개서 각 시간통에 넣기
                             for (let i = 0; i < dur; i++) {
                                 const currentMs = startTs + (i * 60 * 1000);
                                 const h = new Date(currentMs).getHours();
@@ -1140,7 +1137,6 @@
                                     stats.aft.dur++;
                                     stats.aft.scoreSum += score;
                                 } else { 
-                                    // 18시 ~ 24시
                                     stats.night.dur++;
                                     stats.night.scoreSum += score;
                                 }
@@ -1148,18 +1144,20 @@
                         }
                     });
 
-                    // ★ [핵심 해결] Total은 별도로 더하지 않고, 부분의 합으로 정의합니다.
-                    // 이렇게 하면 1분의 오차도 발생할 수 없습니다.
+                    // 합계 계산 (오차 방지를 위해 부분합 사용)
                     const finalTotalDur = stats.morn.dur + stats.aft.dur + stats.night.dur;
                     const finalTotalScore = stats.morn.scoreSum + stats.aft.scoreSum + stats.night.scoreSum;
 
-                    // 4. 날씨(평균 점수) 변환 함수
+                    // ★ [수정] 퀄리티 판정 기준 상향 (반올림 원칙 적용)
+                    // - 기존: 2.33 이상이면 Sun (너무 관대함) -> 2.4점(Cloud 우세)도 Sun으로 둔갑
+                    // - 변경: 2.5 이상이어야 Sun
                     const calcAvgWeather = (dur, scoreSum) => {
                         if (dur === 0) return null;
                         const avg = scoreSum / dur;
-                        if (avg >= 2.33) return "Sun";
-                        if (avg >= 1.66) return "Cloud";
-                        return "Rain";
+                        
+                        if (avg >= 2.5) return "Sun";   // 2.5 ~ 3.0
+                        if (avg >= 1.5) return "Cloud"; // 1.5 ~ 2.49
+                        return "Rain";                  // 1.0 ~ 1.49
                     };
 
                     const payload = {
@@ -1171,13 +1169,11 @@
                         bedTime: bedTime || "-",
                         title: "Daily Log",
                         
-                        // 통계 전송 (계산된 합계 사용)
                         total: finalTotalDur,
                         morn_total: stats.morn.dur,
                         aft_total: stats.aft.dur,
                         night_total: stats.night.dur,
                         
-                        // 퀄리티 전송
                         quality: calcAvgWeather(finalTotalDur, finalTotalScore),
                         q_morn: calcAvgWeather(stats.morn.dur, stats.morn.scoreSum),
                         q_aft: calcAvgWeather(stats.aft.dur, stats.aft.scoreSum),
