@@ -384,47 +384,48 @@
                 return `${y}-${m}-${day}`;
             };
 
-            // 생활 에너지 충전 목록 (3열 배열)
+            // 생활 에너지 충전 목록 (모달 4열 기준 데이터)
             const fixedQuests = [
-                // 1행: 운동, 요리, 독서
+                // 1행: 운동, 요리, 독서, (공란)
                 { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300', recovery: 30 },
                 { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300', recovery: 25 }, 
                 { id: 'r1', name: '독서', icon: 'Book', color: 'text-purple-300', recovery: 20 }, 
+                { id: 'gap_s1', gap: true },
 
-                // 2행: 위생관리, 설거지, 빨래
+                // 2행: 위생관리, 설거지, 빨래, 알약 소분 (꽉 참)
                 { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300', recovery: 15 },
                 { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300', recovery: 10 }, 
-
-                // 3행: 알약 소분, (공란), (공란)
                 { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
-                { id: 'gap_s1', gap: true },
-                { id: 'gap_s2', gap: true },
 
-                // 4행: 분리수거, 방 쓸기, 집안일
+                // 3행: 분리수거, 방 쓸기, 집안일, (공란)
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', recovery: 15 }, 
+                { id: 'gap_s2', gap: true },
             ];
 
-            // 집중 에너지 회복 (3열 배열)
+            // 집중 에너지 회복 (모달 4열 기준 데이터)
             const restOptions = [
-                // 1행: 식사, 티타임, 스트레칭
+                // 1행: 식사, 티타임, 스트레칭, (공란)
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
                 { id: 'q_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-purple-300' }, 
                 { id: 'r_stretch', name: '스트레칭', recovery: 10, icon: 'Stretch', color: 'text-purple-300' }, 
+                { id: 'gap_r1', gap: true },
                 
-                // 2행: 기록, 상담, (공란)
+                // 2행: 기록, 상담, (공란), (공란)
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', recovery: 20, icon: 'Leaf', color: 'text-sky-300' }, 
-                { id: 'gap_r1', gap: true },
+                { id: 'gap_r2', gap: true },
+                { id: 'gap_r3', gap: true },
 
-                // 3행: 낮잠, 딥 슬립, (공란)
+                // 3행: 낮잠, 딥 슬립, (공란), (공란)
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
                 { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
-                { id: 'gap_r2', gap: true },
+                { id: 'gap_r4', gap: true },
+                { id: 'gap_r5', gap: true },
             ];
-
+            
             const hours24 = Array.from({length: 24}, (_, i) => i);
             const minutes5 = Array.from({length: 12}, (_, i) => i * 5);
             const durationHours = [0, 1, 2, 3, 4, 5];
@@ -1552,14 +1553,14 @@
                         )}
                         {/* Switch 탭: 생활 에너지 회복 */}
                        {activeTab === 'switch' && (
-                            <div className="grid grid-cols-3 gap-3 mt-0 h-full overflow-hidden content-start">
+                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
                                 {fixedQuests.map((q) => {
-                                    if (q.gap) return <div key={q.id}></div>;
+                                    if (q.gap) return null; // 메인(3열)에선 공란 숨김
                                     return (
-                                        <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                        <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
                                             {renderIcon(q.icon, `w-6 h-6 ${q.color} mb-1`)}
                                             <div className="flex flex-col items-center w-full">
-                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-1">{q.name}</span>
+                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{q.name}</span>
                                                 <div className="text-[10px] font-bold text-purple-300 leading-none mt-0.5">
                                                     {q.recovery}%
                                                 </div>
@@ -1570,14 +1571,14 @@
                             </div>
                         )}
                         {activeTab === 'rest' && (
-                            <div className="grid grid-cols-3 gap-3 mt-0 h-full overflow-hidden content-start">
+                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
                                 {restOptions.map(rest => {
-                                    if (rest.gap) return <div key={rest.id}></div>;
+                                    if (rest.gap) return null; // 메인(3열)에선 공란 숨김
                                     return (
-                                        <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-2 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                        <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
                                             {renderIcon(rest.icon, `w-6 h-6 ${rest.color} mb-1`)}
                                             <div className="flex flex-col items-center w-full">
-                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-1">{rest.name}</span>
+                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{rest.name}</span>
                                                 <div className="text-[10px] font-bold text-sky-300 leading-none mt-0.5">
                                                     {rest.recovery}%
                                                 </div>
@@ -1784,7 +1785,7 @@
                                             )}
 
                                             {manualTab === 'switch' && (
-                                                <div className="grid grid-cols-3 gap-2">
+                                                <div className="grid grid-cols-4 gap-2">
                                                     {fixedQuests.map((q) => {
                                                         if (q.gap) return <div key={q.id}></div>;
                                                         return (
@@ -1798,7 +1799,7 @@
                                             )}
 
                                             {manualTab === 'rest' && (
-                                                <div className="grid grid-cols-3 gap-2">
+                                                <div className="grid grid-cols-4 gap-2">
                                                     {restOptions.map((r) => {
                                                         if (r.gap) return <div key={r.id}></div>;
                                                         return (
