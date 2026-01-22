@@ -1495,42 +1495,43 @@
                         )}
                         {/* Switch 탭: 생활 에너지 회복 */}
                        {activeTab === 'switch' && (
-                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
-                                {fixedQuests.map((q) => {
-                                    if (q.gap) return null; // 메인(3열)에선 공란 숨김
-                                    return (
-                                        <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
-                                            {renderIcon(q.icon, `w-6 h-6 ${q.color} mb-1`)}
-                                            <div className="flex flex-col items-center w-full">
-                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{q.name}</span>
-                                                <div className="text-[10px] font-bold text-purple-300 leading-none mt-0.5">
-                                                    {q.recovery}%
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
-                        {activeTab === 'rest' && (
-                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
-                                {restOptions.map(rest => {
-                                    if (rest.gap) return null; // 메인(3열)에선 공란 숨김
-                                    return (
-                                        <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
-                                            {renderIcon(rest.icon, `w-6 h-6 ${rest.color} mb-1`)}
-                                            <div className="flex flex-col items-center w-full">
-                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{rest.name}</span>
-                                                <div className="text-[10px] font-bold text-sky-300 leading-none mt-0.5">
-                                                    {rest.recovery}%
-                                                </div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+                    <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
+                        {fixedQuests.map((q) => {
+                        if (q.gap) return null;
+                        return (
+                            <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                {/* ▼ 수정된 부분: w-6 h-6 -> w-5 h-5 */}
+                                {renderIcon(q.icon, `w-5 h-5 ${q.color} mb-1`)}
+                                <div className="flex flex-col items-center w-full">
+                                    <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{q.name}</span>
+                                    <div className="text-[10px] font-bold text-purple-300 leading-none mt-0.5">
+                                        {q.recovery}%
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
                     </div>
+                )}
+                        {activeTab === 'rest' && (
+                    <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
+                        {restOptions.map(rest => {
+                        if (rest.gap) return null;
+                        return (
+                            <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
+                                {/* ▼ 수정된 부분: w-6 h-6 -> w-5 h-5 */}
+                                {renderIcon(rest.icon, `w-5 h-5 ${rest.color} mb-1`)}
+                                <div className="flex flex-col items-center w-full">
+                                    <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{rest.name}</span>
+                                    <div className="text-[10px] font-bold text-sky-300 leading-none mt-0.5">
+                                        {rest.recovery}%
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
+                    </div>
+                )}
 
                     {/* 모달 내용 부분은 기존 로직에서 handleWakeUpSave 등의 티켓 인자가 제거된 saveData를 사용하므로 호환됨 */}
                     {showModal && (
