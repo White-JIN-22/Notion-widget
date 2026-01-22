@@ -1664,10 +1664,10 @@
                                             </button>
                                     </div>
                                     
-                                    {/* Focus 탭일 때의 기존 입력 UI */}
+                                    {/* [수정] Focus 탭 UI 리디자인 (Switch/Rest와 레이아웃 통일 + 박스 디자인 적용) */}
                                     {manualTab === 'focus' && (
-                                        <div className="space-y-0.5 mb-1 shrink-0">
-                                            {/* (기존 Focus 시간 설정 코드 유지) */}
+                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-2 border-b border-dashed border-slate-200">
+                                            {/* 1열: 기준 시간 (Switch/Rest와 동일한 간격/정렬) */}
                                             <div className="flex items-center justify-between">
                                                 <button 
                                                     onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
@@ -1686,13 +1686,14 @@
                                                 </div>
                                             </div>
                                             
-                                            <div className="flex items-center justify-between">
+                                            {/* 2열: 집중 시간 (이미지 스타일 적용: 연한 박스 + 진한 글씨) */}
+                                            <div className="flex items-center justify-between mt-1">
                                                 <label className="text-slate-500 text-xs font-bold w-12 ml-1 text-left">집중</label>
                                                 <div className="flex-1 flex gap-2">
-                                                    <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
+                                                    <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm !bg-slate-100 !border-slate-200 text-slate-700">
                                                         {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
                                                     </select>
-                                                    <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm">
+                                                    <select value={manualDurMin} onChange={(e)=>setManualDurMin(Number(e.target.value))} className="custom-select text-sm !bg-slate-100 !border-slate-200 text-slate-700">
                                                         {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                     </select>
                                                 </div>
