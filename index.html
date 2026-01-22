@@ -1087,7 +1087,7 @@
                 triggerToast("⚡ 10분 연장되었습니다.");
             };
 
-            // [수정됨] 진짜 에러 메시지를 보여주는 버전
+            // [수정 완료] 노션에 맞는 날짜 형식(YYYY-MM-DD)으로 변환해서 보내는 버전
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1100,8 +1100,12 @@
                 try {
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     
+                    // ★ [핵심 수정] "Thu Jan 22 2026" -> "2026-01-22" 로 변환
+                    // formatLocalYMD 함수는 이미 위쪽에 만들어져 있어서 가져다 쓰기만 하면 됩니다.
+                    const formattedDate = formatLocalYMD(new Date(savedData.date));
+
                     const payload = {
-                        date: savedData.date,
+                        date: formattedDate, // 변환된 날짜를 보냅니다!
                         blocks: blocks, 
                         lifeEnergy: lifeEnergy,
                         energy: energy,
@@ -1120,13 +1124,11 @@
                         if (!silent) triggerToast("✅ 동기화 완료!");
                         localStorage.setItem('lastSyncTime', Date.now().toString());
                     } else {
-                        // ★ 여기가 핵심입니다! 서버가 보낸 '진짜 이유'를 읽어옵니다.
                         const errorData = await res.json();
                         throw new Error(errorData.error || "알 수 없는 서버 오류");
                     }
                 } catch (e) {
                     console.error("Sync Error:", e);
-                    // ★ 에러 내용을 팝업(Alert)으로 직접 띄워줍니다.
                     if (!silent) alert(`[동기화 실패 원인]\n${e.message}`); 
                     if (!silent) triggerToast("⚠️ 동기화 실패");
                 } finally {
