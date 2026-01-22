@@ -1090,7 +1090,7 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 최신 데이터(LocalStorage) 참조 및 구간별 통계 전송
+            // [수정 완료] 합계(Total) 불일치 문제 해결 버전 (Total = Morn + Aft + Night)
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1101,17 +1101,13 @@
                 if (!silent) triggerToast("☁️ 서버에 동기화 중...");
 
                 try {
-                    // ★ [핵심 수정] 화면의 blocks 대신, 방금 저장된 로컬스토리지의 데이터를 꺼내 씁니다.
-                    // 이렇게 해야 '방금 추가한 기록'이 통계에 즉시 반영됩니다.
+                    // 1. 최신 데이터 가져오기
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    const targetBlocks = savedData.blocks || []; // 최신 블록 리스트
+                    const targetBlocks = savedData.blocks || []; 
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
 
-                    // ----------------------------------------------------
-                    // [통계 계산] 시간대별 분(Minute) & 퀄리티 점수 누적
-                    // ----------------------------------------------------
+                    // 2. 통계 초기화
                     let stats = {
-                        total: { dur: 0, scoreSum: 0 },
                         morn:  { dur: 0, scoreSum: 0 }, // 00:00 ~ 11:59
                         aft:   { dur: 0, scoreSum: 0 }, // 12:00 ~ 17:59
                         night: { dur: 0, scoreSum: 0 }  // 18:00 ~ 23:59
@@ -1121,20 +1117,18 @@
                         if (q === 'Sun') return 3;
                         if (q === 'Cloud') return 2;
                         if (q === 'Rain') return 1;
-                        return 2; // 기본값 Cloud
+                        return 2; 
                     };
 
+                    // 3. 블록 순회 및 시간 정밀 분배
                     targetBlocks.forEach(b => {
-                        // Focus(집중) 타입만 계산
                         if (b.type === 'focus' || !b.type) {
-                            const dur = b.duration || 0;
+                            // 안전장치: duration은 정수로 처리
+                            const dur = Math.round(b.duration || 0);
                             const score = getScore(b.quality);
                             const startTs = b.startTime;
 
-                            stats.total.dur += dur;
-                            stats.total.scoreSum += (dur * score);
-
-                            // 정밀 스캔: 1분 단위로 쪼개서 각 시간대에 할당
+                            // 1분 단위로 쪼개서 각 시간통에 넣기
                             for (let i = 0; i < dur; i++) {
                                 const currentMs = startTs + (i * 60 * 1000);
                                 const h = new Date(currentMs).getHours();
@@ -1146,6 +1140,7 @@
                                     stats.aft.dur++;
                                     stats.aft.scoreSum += score;
                                 } else { 
+                                    // 18시 ~ 24시
                                     stats.night.dur++;
                                     stats.night.scoreSum += score;
                                 }
@@ -1153,7 +1148,12 @@
                         }
                     });
 
-                    // [결과 변환]
+                    // ★ [핵심 해결] Total은 별도로 더하지 않고, 부분의 합으로 정의합니다.
+                    // 이렇게 하면 1분의 오차도 발생할 수 없습니다.
+                    const finalTotalDur = stats.morn.dur + stats.aft.dur + stats.night.dur;
+                    const finalTotalScore = stats.morn.scoreSum + stats.aft.scoreSum + stats.night.scoreSum;
+
+                    // 4. 날씨(평균 점수) 변환 함수
                     const calcAvgWeather = (dur, scoreSum) => {
                         if (dur === 0) return null;
                         const avg = scoreSum / dur;
@@ -1171,14 +1171,14 @@
                         bedTime: bedTime || "-",
                         title: "Daily Log",
                         
-                        // 통계 전송
-                        total: stats.total.dur,
+                        // 통계 전송 (계산된 합계 사용)
+                        total: finalTotalDur,
                         morn_total: stats.morn.dur,
                         aft_total: stats.aft.dur,
                         night_total: stats.night.dur,
                         
                         // 퀄리티 전송
-                        quality: calcAvgWeather(stats.total.dur, stats.total.scoreSum),
+                        quality: calcAvgWeather(finalTotalDur, finalTotalScore),
                         q_morn: calcAvgWeather(stats.morn.dur, stats.morn.scoreSum),
                         q_aft: calcAvgWeather(stats.aft.dur, stats.aft.scoreSum),
                         q_night: calcAvgWeather(stats.night.dur, stats.night.scoreSum)
@@ -1205,7 +1205,7 @@
                     setIsSending(false);
                 }
             };
-
+            
             const renderTimerPanel = () => {
                 const radius = 30;
                 const circumference = 2 * Math.PI * radius;
