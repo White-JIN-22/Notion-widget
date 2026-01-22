@@ -983,9 +983,20 @@
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
-            // [복구] 누락된 핸들러 및 헬퍼 함수 모음
-            // 1. 수동 입력 모달 열기 (에러 원인)
+            // 1. 수동 입력 모달 열기 (현재 시간 5분 단위 반올림 적용)
             const openManual = () => {
+                const now = new Date();
+                let h = now.getHours();
+                // 5분 단위 반올림 로직
+                let m = Math.round(now.getMinutes() / 5) * 5;
+                if (m === 60) {
+                    m = 0;
+                    h = h + 1;
+                    if (h === 24) h = 0;
+                }
+
+                setManualEndHour(h);
+                setManualEndMin(m);
                 setModalType('manual');
                 setManualTab('focus');
                 setOptDurHour(0);
@@ -1708,36 +1719,38 @@
                                         </div>
                                     )}
 
-                                    {/* [추가] Switch/Rest 탭일 때 상단에 선택적 시간 입력 표시 (회색조) */}
+                                    {/* [수정] Switch/Rest 탭 UI 리디자인 (Focus 탭과 동일한 2단 레이아웃 + 회색조) */}
                                     {(manualTab === 'switch' || manualTab === 'rest') && (
-                                        <div className="mb-2 shrink-0 px-1 border-b border-dashed border-slate-200 pb-2">
+                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-2 border-b border-dashed border-slate-200">
+                                            {/* 1열: 기준 시간 (Focus와 동일한 스타일) */}
                                             <div className="flex items-center justify-between">
-                                                 <div className="flex items-center gap-2">
-                                                     <button 
-                                                        onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
-                                                        className="text-[10px] font-bold text-slate-400 hover:text-slate-600 underline"
-                                                     >
-                                                        {timeRef === 'start' ? '시작 기준' : '종료 기준'}
-                                                     </button>
-                                                     {/* 기준 시각 설정 */}
-                                                     <div className="flex gap-1">
-                                                        <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="bg-transparent text-xs text-slate-400 font-bold outline-none text-right">
-                                                            {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}</option>)}
-                                                        </select>
-                                                        <span className="text-xs text-slate-400">:</span>
-                                                        <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="bg-transparent text-xs text-slate-400 font-bold outline-none">
-                                                            {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
-                                                        </select>
-                                                     </div>
-                                                 </div>
+                                                <button 
+                                                    onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
+                                                    className="w-12 ml-1 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
+                                                >
+                                                    {timeRef === 'start' ? '시작' : '종료'}
+                                                </button>
 
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-[10px] text-slate-400 font-bold mr-1">소요(선택)</span>
-                                                    <select value={optDurHour} onChange={(e)=>setOptDurHour(Number(e.target.value))} className="bg-slate-100/50 rounded text-xs text-slate-400 font-bold p-1 border border-slate-200 outline-none">
-                                                        {[0,1,2,3].map(h => <option key={h} value={h}>{h}h</option>)}
+                                                <div className="flex-1 flex gap-2">
+                                                    <select value={manualEndHour} onChange={(e)=>setManualEndHour(Number(e.target.value))} className="custom-select text-sm">
+                                                        {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}
                                                     </select>
-                                                    <select value={optDurMin} onChange={(e)=>setOptDurMin(Number(e.target.value))} className="bg-slate-100/50 rounded text-xs text-slate-400 font-bold p-1 border border-slate-200 outline-none">
-                                                        {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{m}m</option>)}
+                                                    <select value={manualEndMin} onChange={(e)=>setManualEndMin(Number(e.target.value))} className="custom-select text-sm">
+                                                        {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* 2열: 소요 시간 (회색조 처리) */}
+                                            <div className="flex items-center justify-between mt-1">
+                                                <label className="text-slate-400 text-xs font-bold w-12 ml-1 text-left">소요</label>
+                                                <div className="flex-1 flex gap-2">
+                                                    {/* !bg-slate-100 등을 사용해 기존 유리 효과 덮어쓰기 */}
+                                                    <select value={optDurHour} onChange={(e)=>setOptDurHour(Number(e.target.value))} className="custom-select text-sm !text-slate-500 !bg-slate-100 !border-slate-200">
+                                                        {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
+                                                    </select>
+                                                    <select value={optDurMin} onChange={(e)=>setOptDurMin(Number(e.target.value))} className="custom-select text-sm !text-slate-500 !bg-slate-100 !border-slate-200">
+                                                        {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}
                                                     </select>
                                                 </div>
                                             </div>
