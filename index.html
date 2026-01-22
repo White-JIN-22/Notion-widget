@@ -403,15 +403,25 @@
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', recovery: 15 }, 
             ];
 
-            // 집중 에너지 회복 (Rest: 스트레칭 추가됨)
+            // 집중 에너지 회복 (Rest: 스트레칭 포함, 4열 그리드 맞춤 공란 추가)
             const restOptions = [
+                // 1행: 식사, 티타임, 스트레칭 (우측 1칸 공란)
                 { id: 'q2_moved', name: '식사', recovery: 10, icon: 'Utensils', color: 'text-purple-300' }, 
                 { id: 'q_tea', name: '티타임', recovery: 15, icon: 'Cup', color: 'text-purple-300' }, 
-                { id: 'r_stretch', name: '스트레칭', recovery: 10, icon: 'Stretch', color: 'text-purple-300' }, // 추가됨
+                { id: 'r_stretch', name: '스트레칭', recovery: 10, icon: 'Stretch', color: 'text-purple-300' }, 
+                { id: 'gap_r1', gap: true },
+
+                // 2행: 기록, 상담 (우측 2칸 공란)
                 { id: 'r_record', name: '기록', recovery: 20, icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', recovery: 20, icon: 'Leaf', color: 'text-sky-300' }, 
+                { id: 'gap_r2', gap: true },
+                { id: 'gap_r3', gap: true },
+
+                // 3행: 낮잠, 딥 슬립 (우측 2칸 공란)
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
                 { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
+                { id: 'gap_r4', gap: true },
+                { id: 'gap_r5', gap: true },
             ];
 
             const hours24 = Array.from({length: 24}, (_, i) => i);
@@ -1557,17 +1567,20 @@
                         )}
                         {activeTab === 'rest' && (
                             <div className="grid grid-cols-4 gap-2 mt-0 h-full overflow-hidden content-start">
-                                {restOptions.map(rest => (
-                                    <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-14 hover:bg-white/10 group">
-                                        {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
-                                        <div className="flex flex-col items-center mt-1 w-full">
-                                            <span className="text-[10px] font-bold text-bright truncate w-full text-center px-1">{rest.name}</span>
-                                            <div className="text-[9px] font-bold text-sky-300 leading-none mt-0.5">
-                                                {rest.recovery}%
+                                {restOptions.map(rest => {
+                                    if (rest.gap) return <div key={rest.id}></div>; // 공란 렌더링
+                                    return (
+                                        <button key={rest.id} onClick={() => takeRest(rest)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-14 hover:bg-white/10 group">
+                                            {renderIcon(rest.icon, `w-5 h-5 ${rest.color}`)}
+                                            <div className="flex flex-col items-center mt-1 w-full">
+                                                <span className="text-[10px] font-bold text-bright truncate w-full text-center px-1">{rest.name}</span>
+                                                <div className="text-[9px] font-bold text-sky-300 leading-none mt-0.5">
+                                                    {rest.recovery}%
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -1779,12 +1792,15 @@
 
                                             {manualTab === 'rest' && (
                                                 <div className="grid grid-cols-4 gap-1">
-                                                    {restOptions.map((r) => (
-                                                        <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
-                                                            {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
-                                                            <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{r.name}</span>
-                                                        </button>
-                                                    ))}
+                                                    {restOptions.map((r) => {
+                                                        if (r.gap) return <div key={r.id}></div>; // 공란 렌더링
+                                                        return (
+                                                            <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-2 rounded-xl flex flex-col items-center justify-center min-h-[64px]">
+                                                                {renderIcon(r.icon, `w-5 h-5 ${r.color}`)}
+                                                                <span className="text-xs font-bold mt-1 break-keep text-center leading-tight tracking-tight">{r.name}</span>
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                     </div>
