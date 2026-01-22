@@ -447,98 +447,62 @@
                     if (res.ok) {
                         const data = await res.json();
                         
+                        // [수정] 날짜가 다르면(과거 데이터면) 무시하고 내 데이터를 덮어씀
                         if (data.date && data.date !== dateYMD) {
                             console.log("Old Data. Resetting...");
                             sendToNotion(true); 
                             return; 
                         }
 
-                        if (data.wakeUpTime && data.wakeUpTime !== "-") {
-                            setWakeUpTime(data.wakeUpTime);
-                            if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime); // <--- 추가됨
-                        }
+                        // [수정] 기상/취침 시간 동기화
+                        if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
+                        if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime);
 
+                        // [수정] 블록 데이터 동기화
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                            
                             const serverBlocks = data.blocks;
+                            
+                            // 로컬 데이터 준비
                             let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
-                            localBlocks = localBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-
-                            if (serverBlocks.length > 0) setShowIntro(false);
-
+                            
+                            // 병합 로직 (서버 데이터 + 로컬 데이터)
                             const blockMap = new Map();
-                            localBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            // 서버 데이터를 먼저 넣고
                             const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
-                            if (savedData.date !== dateStr) {
-                                cleanServerBlocks.forEach(b => blockMap.set(b.id, b)); 
-                            }
+                            cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
+                            // 로컬 데이터를 덮어씌움 (로컬이 더 최신일 수 있으므로)
+                            localBlocks.forEach(b => blockMap.set(b.id, b)); 
                             
                             const mergedBlocks = Array.from(blockMap.values());
-                            // [수정] 블록이 있거나 OR 기상 시간이 있으면 인트로 닫음
-                            if (serverBlocks.length > 0 || (data.wakeUpTime && data.wakeUpTime !== "-")) {
-                                setShowIntro(false);
-                            }
+                            mergedBlocks.sort((a, b) => b.startTime - a.startTime); // 최신순 정렬
 
                             setBlocks(mergedBlocks);
 
-                            // [수정] 생활 에너지 & 집중 에너지 계산
-                            // 생활 에너지는 '기초값(initialLifeEnergy)' + '오늘의 Switch 회복량'으로 계산
-                            const baseLife = savedData.initialLifeEnergy !== undefined ? savedData.initialLifeEnergy : 50; 
+                            // [핵심 수정] 에너지 재계산 로직 삭제! 
+                            // 자연 소모(Decay)는 블록에 없으므로, 로컬에 저장된 수치를 믿어야 함.
+                            // 단, 로컬 데이터가 없거나 날짜가 바뀌었을 때만 기본값 사용.
+                            const currentLife = savedData.date === dateStr && savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
+                            const currentEnergy = savedData.date === dateStr && savedData.energy !== undefined ? savedData.energy : 100;
+                            const currentIntroDone = savedData.introDone || false;
+
+                            setLifeEnergy(currentLife);
+                            setEnergy(currentEnergy);
                             
-                            let calcLife = baseLife;
-                            let calcEnergy = 100; 
+                            if (serverBlocks.length > 0 || (data.wakeUpTime && data.wakeUpTime !== "-") || currentIntroDone) {
+                                setShowIntro(false);
+                            }
 
-                            const sorted = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
-
-                            sorted.forEach(b => {
-                                if (b.type === 'switch') {
-                                    // Switch: 집중에너지 소모(-5), 생활에너지 회복
-                                    calcEnergy = Math.max(0, calcEnergy - 5);
-                                    
-                                    let recovery = 0;
-                                    if (b.recovery) recovery = b.recovery; // 기록에 저장된 값 우선
-                                    else {
-                                        const qOption = fixedQuests.find(q => q.name === b.name);
-                                        recovery = qOption ? qOption.recovery : 10;
-                                    }
-                                    calcLife = Math.min(100, calcLife + recovery);
-                                } 
-                                else if (b.type === 'rest') {
-                                    // Rest: 집중에너지 회복
-                                    let recovery = 0;
-                                    if (b.recovery) recovery = b.recovery;
-                                    else {
-                                        const rOption = restOptions.find(r => r.name === b.name);
-                                        recovery = rOption ? rOption.recovery : 0;
-                                    }
-                                    calcEnergy = Math.min(100, calcEnergy + recovery);
-                                } 
-                                else {
-                                    // Focus: 집중에너지 소모
-                                    const cost = Math.floor((b.duration || 0) / 10) * 5;
-                                    calcEnergy = Math.max(0, calcEnergy - cost);
-                                }
-                            });
-                            
-                            setLifeEnergy(calcLife);
-                            setEnergy(calcEnergy);
-
-                            const validLocalWakeUp = (savedData.date === dateStr) ? savedData.wakeUpTime : null;
-
-                            // [수정됨] 저장 직전, 최신 로컬 상태를 한 번 더 확인하여 덮어쓰기 방지
-                            const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                            const safeIntroDone = currentLocal.introDone || savedData.introDone || false;
-
+                            // 로컬 스토리지 최신화
                             localStorage.setItem('fortressData', JSON.stringify({
                                 date: dateStr,
-                                initialLifeEnergy: baseLife,
-                                lifeEnergy: calcLife,
-                                energy: calcEnergy,
+                                initialLifeEnergy: savedData.initialLifeEnergy || 50,
+                                lifeEnergy: currentLife,
+                                energy: currentEnergy,
                                 blocks: mergedBlocks,
-                                wakeUpTime: data.wakeUpTime || validLocalWakeUp || wakeUpTime,
-                                bedTime: data.bedTime || savedData.bedTime || bedTime, // <--- 추가됨
-                                introDone: safeIntroDone // 최신 상태 반영
+                                wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime,
+                                bedTime: data.bedTime || savedData.bedTime || bedTime,
+                                introDone: currentIntroDone
                             }));
                         }
                     }
@@ -838,32 +802,36 @@
             };
 
             const addRecord = (quality, type, itemData) => {
-                let newBlock;
-                let totalDuration = 0;
                 const now = new Date();
                 
-                // [수정] 특정 퀘스트 모달일 때도 manualEndHour 사용
+                // [시간 계산]
+                // 1. 기준 시간 설정 (Manual 탭의 시/분 선택값)
                 const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
                 
+                let totalDuration = 10; // 기본값
                 let startTs, endTs;
 
+                // 2. 소요 시간(Duration) 계산
                 if (type === 'auto') {
-                    totalDuration = tempSession.duration;
+                    totalDuration = tempSession ? tempSession.duration : 10;
                 } else if (type === 'manual') {
-                    // Focus 수동
+                    // Focus 수동: Focus 전용 시간 선택기 사용
                     totalDuration = (manualDurHour * 60) + manualDurMin;
                 } else if (type === 'manual-switch' || type === 'manual-rest') {
-                    // [추가] Switch/Rest 수동 입력 시 (모달 상단 회색 시간 or 0분이면 기본 10분)
-                    // pendingQuest가 있으면(운동/독서 모달) manualDur 사용, 아니면 optDur 사용
+                    // Switch/Rest 수동: 
+                    // - pendingQuest(운동/독서 모달)가 있으면 manualDur 사용
+                    // - 아니면(일반 탭) optDur(회색 선택기) 사용
                     const h = pendingQuest ? manualDurHour : optDurHour;
                     const m = pendingQuest ? manualDurMin : optDurMin;
-                    
                     const calcDur = (h * 60) + m;
-                    totalDuration = calcDur > 0 ? calcDur : 10; // 0이면 기본 10분
-                } else {
-                    totalDuration = 10;
+                    totalDuration = calcDur > 0 ? calcDur : 10; // 0분이면 10분으로 보정
                 }
 
+                if (type === 'manual' && totalDuration <= 3) { 
+                    triggerToast("⚠️ 시간이 너무 짧아요."); return; 
+                }
+
+                // 3. 시작/종료 시간 확정 (TimeRef: 시작 기준 vs 종료 기준)
                 if (type === 'auto') {
                     startTs = tempSession.startTime;
                     endTs = tempSession.endTime;
@@ -871,56 +839,54 @@
                     if (timeRef === 'start') {
                         startTs = inputTime;
                         endTs = startTs + (totalDuration * 60 * 1000);
-                    } else {
+                    } else { // timeRef === 'end'
                         endTs = inputTime;
                         startTs = endTs - (totalDuration * 60 * 1000);
                     }
                 }
 
-                if (type === 'manual' && totalDuration <= 3) { 
-                    triggerToast("⚠️ 시간이 너무 짧아요."); return; 
-                }
-
-                const resolvedType = (type === 'auto' || type.includes('focus') || type === 'manual') 
-                    ? 'focus' 
-                    : (type.includes('switch') ? 'switch' : 'rest');
-
+                // [자정 걸침 처리] 날짜가 넘어가면 기록 분리
                 const sDate = new Date(startTs);
                 const eDate = new Date(endTs);
-
                 if (sDate.getDate() !== eDate.getDate()) {
                     const midnight = new Date(eDate.getFullYear(), eDate.getMonth(), eDate.getDate()).getTime();
                     const prevDuration = Math.floor((midnight - startTs) / 1000 / 60);
+                    
                     if (prevDuration > 0) {
+                        // 어제 기록 저장 (History에 직접 push)
                         const prevBlock = {
                             id: startTs, startTime: startTs, endTime: midnight, duration: prevDuration,
-                            quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color, recovery: itemData?.recovery
+                            quality: quality || 'Cloud', type: type.includes('switch') ? 'switch' : (type.includes('rest') ? 'rest' : 'focus'),
+                            icon: itemData?.icon, name: itemData?.name, color: itemData?.color, recovery: itemData?.recovery
                         };
                         const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                         const yStr = sDate.toDateString();
-                        const targetDay = history.find(h => h.date === yStr);
-                        if (targetDay) targetDay.blocks.push(prevBlock);
-                        else history.push({ date: yStr, blocks: [prevBlock], lifeEnergy: lifeEnergy, energy: energy });
+                        
+                        // 어제 날짜 데이터를 찾아서 추가하거나 새로 생성
+                        const targetDayIndex = history.findIndex(h => h.date === yStr);
+                        if (targetDayIndex >= 0) {
+                            history[targetDayIndex].blocks.push(prevBlock);
+                        } else {
+                            history.push({ date: yStr, blocks: [prevBlock], lifeEnergy: lifeEnergy, energy: energy });
+                        }
                         localStorage.setItem('fortressHistory', JSON.stringify(history));
                     }
+                    // 오늘 기록을 위한 시작 시간 조정
                     startTs = midnight;
                     totalDuration = Math.floor((endTs - midnight) / 1000 / 60);
                     triggerToast("✂️ 자정 걸침: 기록이 자동으로 분리되었습니다.");
                 }
 
-                newBlock = {
+                const resolvedType = (type === 'auto' || type === 'manual') ? 'focus' : (type.includes('switch') ? 'switch' : 'rest');
+
+                const newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
                     quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color,
-                    recovery: itemData?.recovery, // 회복량 저장
+                    recovery: itemData?.recovery, 
                     memo: (type === 'auto' || type === 'manual') ? focusMemo : null
                 };
 
-                // [안전장치 2] 화면의 blocks 대신, 저장소의 최신 blocks를 직접 불러옴
-                const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
-                    ? savedDataSafe.blocks 
-                    : blocks;
-
+                // [에너지 계산]
                 let newEnergy = energy;
                 let newLife = lifeEnergy;
                 let msg = "💾 저장 완료!";
@@ -929,20 +895,13 @@
                     newEnergy = Math.min(energy + (itemData.recovery || 0), 100);
                     msg = `💾 ${itemData.name} 기록됨 (+${itemData.recovery}%)`;
                 } else if (type === 'manual-switch') {
-                    // Switch: 집중에너지 소모, 생활에너지 회복
                     newEnergy = Math.max(energy - 5, 0);
                     newLife = Math.min(lifeEnergy + (itemData.recovery || 10), 100);
                     msg = `💾 ${itemData.name} 완료 (+${itemData.recovery || 10} Life)`;
-                } else {
-                    if (totalDuration < 10) {
-                        if (type === 'auto') {
-                            newEnergy = 20; 
-                            msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
-                        } else {
-                            // Focus Manual Short
-                            newEnergy = Math.max(energy - 0, 0);
-                            msg = "💾 기록 완료!";
-                        }
+                } else { // Focus
+                    if (totalDuration < 10 && type === 'auto') {
+                        newEnergy = 20; // 집중 실패 페널티
+                        msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
                     } else {
                         const consumption = Math.floor(totalDuration / 10) * 5;
                         newEnergy = Math.max(energy - consumption, 0);
@@ -950,8 +909,18 @@
                     }
                 }
 
-                setPendingQuest(null);
+                // [상태 초기화 및 저장]
+                setPendingQuest(null); // 대기 중인 퀘스트 초기화
+                setFocusMemo('');
+                setSelectedTodoId(null);
+                setShowTodoSelect(false);
+                setOptDurHour(0); setOptDurMin(0); // 수동 시간 초기화
+                
+                if (type === 'auto') { 
+                    setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null); 
+                }
 
+                // [Todo 완료 처리]
                 if (selectedTodoId) {
                     try {
                         const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
@@ -966,304 +935,18 @@
                     } catch (e) { console.error("Todo update failed", e); }
                 }
 
-                // [수정] 불러온 최신 데이터(currentBlocksSafe) 위에 새 기록을 얹음
+                // [최종 저장] 저장소에서 최신 블록을 다시 불러와서 합침 (동기화 안전장치)
+                const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
+                    ? savedDataSafe.blocks 
+                    : blocks;
+
                 saveData(newLife, newEnergy, [newBlock, ...currentBlocksSafe]);
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
-                setFocusMemo('');
-                setSelectedTodoId(null);
-                setShowTodoSelect(false);
-                // Switch 수동 시간 초기화
-                setOptDurHour(0); setOptDurMin(0); 
-                if (type === 'auto') { setElapsed(0); setStartTime(null); setIsRecording(false); setTempSession(null); }
                 sendToNotion(true); 
             };
-
-            const extendDuration = (id) => {
-                const now = Date.now();
-                const targetBlock = blocks.find(b => b.id === id);
-                if (!targetBlock) return;
-
-                const newDuration = Math.floor((now - targetBlock.startTime) / 1000 / 60);
-                if (newDuration <= targetBlock.duration) { triggerToast("⚠️ 이미 지난 시간입니다."); return; }
-
-                const addedMinutes = newDuration - targetBlock.duration;
-                if (addedMinutes > 0) {
-                    try {
-                        const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                        let isTodoUpdated = false;
-                        const updatedTodos = savedTodos.map(t => {
-                            if (t.linkedBlockId === id) {
-                                isTodoUpdated = true;
-                                return { ...t, elapsed: (t.elapsed || 0) + (addedMinutes * 60 * 1000) };
-                            }
-                            return t;
-                        });
-                        if (isTodoUpdated) localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
-                    } catch (e) { console.error("Todo sync extend failed", e); }
-                }
-
-                const oldCost = Math.floor(targetBlock.duration / 10) * 5;
-                const newCost = Math.floor(newDuration / 10) * 5;
-                const costDiff = newCost - oldCost;
-                const newEnergy = Math.max(0, energy - costDiff);
-
-                const newBlocks = blocks.map(b => 
-                    b.id === id ? { ...b, endTime: now, duration: newDuration } : b
-                );
-
-                saveData(lifeEnergy, newEnergy, newBlocks);
-                triggerToast(`⏱️ 시간 연장됨 (${formatDuration(newDuration)})`);
-            };
-
-            const confirmDelete = (id) => {
-                setDeleteTargetId(id);
-                setModalType('delete');
-                setShowModal(true);
-            };
             
-            const executeDelete = () => {
-                if (deleteTargetId) {
-                    // [안전장치 3] 삭제 시에도 저장소의 최신 데이터를 기준으로 작업
-                    const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
-                        ? savedDataSafe.blocks 
-                        : blocks;
-
-                    const targetBlock = currentBlocksSafe.find(b => b.id === deleteTargetId);
-                    const newBlocks = currentBlocksSafe.filter(b => b.id !== deleteTargetId);
-                    
-                    let newLife = lifeEnergy;
-                    let newEnergy = energy;
-
-                    if (targetBlock) {
-                        if (targetBlock.type === 'focus' || !targetBlock.type) {
-                            const restoredEnergy = Math.floor(targetBlock.duration / 10) * 5;
-                            newEnergy = Math.min(100, energy + restoredEnergy);
-                        }
-                        else if (targetBlock.type === 'switch') {
-                            // Switch 삭제 시: 소모된 에너지(5) 복구, 회복된 생활에너지 차감
-                            newEnergy = Math.min(100, energy + 5);
-                            newLife = Math.max(0, lifeEnergy - (targetBlock.recovery || 10));
-                        }
-                        else if (targetBlock.type === 'rest') {
-                            newEnergy = Math.max(0, energy - (targetBlock.recovery || 0));
-                        }
-                    }
-
-                    saveData(newLife, newEnergy, newBlocks);
-                    setDeleteTargetId(null); setShowModal(false); 
-                    triggerToast("🗑️ 기록 삭제 및 상태 복구 완료");
-                    sendToNotion(true); 
-                }
-            };
-
-            const doSwitch = (quest) => {
-                // [수정] 운동(r_exercise)이나 독서(r1)인 경우 시간 설정을 위해 모달 호출
-                if (quest.id === 'r_exercise' || quest.id === 'r1') {
-                    setPendingQuest(quest);
-                    
-                    // 현재 시간 기준으로 초기값 세팅
-                    const now = new Date();
-                    let h = now.getHours();
-                    let m = Math.round(now.getMinutes() / 5) * 5;
-                    if (m === 60) { m = 0; h = h + 1; if(h===24) h=0; }
-
-                    setManualEndHour(h);
-                    setManualEndMin(m);
-                    setManualDurHour(0);
-                    // 운동/독서는 기본 30분 세팅
-                    setManualDurMin(30);
-                    
-                    setTimeRef('end'); // 기본은 종료 시간 기준
-                    setModalType('specific-switch'); // 전용 모달 타입
-                    setShowModal(true);
-                    return;
-                }
-
-                // 그 외(설거지 등)는 기존처럼 10분짜리 즉시 기록
-                const now = Date.now();
-                const duration = 10; 
-                const startTs = now - (duration * 60 * 1000);
-                
-                const newBlock = {
-                    id: now, startTime: startTs, endTime: now, duration: duration,
-                    quality: 'Cloud', type: 'switch', icon: quest.icon, name: quest.name, color: quest.color, recovery: quest.recovery 
-                };
-
-                const newBlocks = [newBlock, ...blocks];
-                saveData(Math.min(100, lifeEnergy + quest.recovery), Math.max(energy - 5, 0), newBlocks);
-                triggerToast(`✨ ${quest.name} 완료 (+${quest.recovery} Life)`);
-            };
-
-            const takeRest = (rest) => {
-                const now = Date.now();
-                const duration = 10; 
-                const startTs = now - (duration * 60 * 1000);
-
-                const newBlock = {
-                    id: now, startTime: startTs, endTime: now, duration: duration,
-                    quality: 'Cloud', type: 'rest', icon: rest.icon, name: rest.name, color: rest.color, recovery: rest.recovery
-                };
-
-                const newEnergy = Math.min(energy + rest.recovery, 100);
-                const newBlocks = [newBlock, ...blocks];
-                
-                saveData(lifeEnergy, newEnergy, newBlocks);
-                triggerToast(`🔋 ${rest.name} (+${rest.recovery}%)`);
-            };
-
-            const sendToNotion = async (silent = false) => {
-                if (!WORKER_URL || WORKER_URL.includes("your-worker")) { 
-                    if(!silent) triggerToast("⚠️ URL 확인"); 
-                    return; 
-                }
-
-                setIsSending(true);
-                if (!silent) triggerToast("☁️ 노션에 저장 중...");
-
-                const calculateStats = (targetBlocks) => {
-                    const focusBlocks = targetBlocks.filter(b => b.type === 'focus' || !b.type);
-                    const totalDuration = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                    let morn_total = 0; let aft_total = 0; let night_total = 0;
-
-                    // [수정 코드] 시간대가 겹치면 해당 시간대 그룹에 모두 포함
-                    const checkOverlap = (b, startH, endH) => {
-                        const s = b.startTime;
-                        const e = b.endTime || (s + (b.duration * 60 * 1000));
-                        const base = new Date(s);
-                        const rStart = new Date(base).setHours(startH, 0, 0, 0);
-                        const rEnd = new Date(base).setHours(endH, 0, 0, 0);
-                        return Math.max(s, rStart) < Math.min(e, rEnd);
-                    };
-
-                    const mornBlocks = focusBlocks.filter(b => checkOverlap(b, 0, 12));
-                    const aftBlocks = focusBlocks.filter(b => checkOverlap(b, 12, 18));
-                    const nightBlocks = focusBlocks.filter(b => checkOverlap(b, 18, 24));
-
-                    const getCountMode = (items) => {
-                        if (items.length === 0) return null; 
-                        const counts = { Sun: 0, Cloud: 0, Rain: 0 };
-                        items.forEach(b => { if(b.quality && counts[b.quality] !== undefined) counts[b.quality]++; });
-                        const maxVal = Math.max(counts.Sun, counts.Cloud, counts.Rain);
-                        if (counts.Sun === maxVal) return "Sun";
-                        if (counts.Cloud === maxVal) return "Cloud";
-                        return "Rain";
-                    };
-
-                    const getDurationMode = (items) => {
-                        if (items.length === 0) return null;
-                        const durations = { Sun: 0, Cloud: 0, Rain: 0 };
-                        let totalDur = 0;
-                        items.forEach(b => {
-                            const q = b.quality || "Cloud"; const d = b.duration || 0;
-                            if (durations[q] !== undefined) durations[q] += d;
-                            totalDur += d;
-                        });
-                        if (totalDur === 0) return null;
-                        const maxVal = Math.max(durations.Sun, durations.Cloud, durations.Rain);
-                        if (durations.Sun === maxVal) return "Sun";
-                        if (durations.Cloud === maxVal) return "Cloud";
-                        return "Rain";
-                    };
-
-                    return {
-                        total: totalDuration, morn_total: morn_total, aft_total: aft_total, night_total: night_total, 
-                        quality: getCountMode(focusBlocks), q_morn: getDurationMode(mornBlocks), q_aft: getDurationMode(aftBlocks), q_night: getDurationMode(nightBlocks)
-                    };
-                };
-
-                const sendDataset = async (dataset) => {
-                    const stats = calculateStats(dataset.blocks);
-                    const payload = {
-                        date: formatLocalYMD(dataset.date), 
-                        blocks: dataset.blocks, 
-                        wakeUpTime: dataset.wakeUpTime || "-", 
-                        bedTime: dataset.bedTime || "-", // <--- 추가됨
-                        title: "Fortress Log",
-                        currentLife: lifeEnergy,
-                        currentEnergy: energy,
-                        total: stats.total, morn_total: stats.morn_total, aft_total: stats.aft_total, night_total: stats.night_total,
-                        quality: stats.quality, q_morn: stats.q_morn, q_aft: stats.q_aft, q_night: stats.q_night
-                    };
-
-                    const res = await fetch(WORKER_URL, {
-                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-                    });
-
-                    if (!res.ok) {
-                        let errorMsg = `서버 오류 (${res.status})`;
-                        try { const errData = await res.json(); errorMsg = errData.error || JSON.stringify(errData); } catch (e) { errorMsg = await res.text(); }
-                        throw new Error(errorMsg);
-                    }
-                };
-
-                try {
-                    // [변경] 과거 데이터 조회 및 반복 전송 로직 삭제 -> 오늘 데이터만 전송
-                    await sendDataset({ date: new Date().toDateString(), blocks: blocks, wakeUpTime: wakeUpTime });
-                    if (!silent) triggerToast(`☁️ 저장 완료!`);
-                } catch(e) { 
-                    if (!silent) triggerToast(`⚠️ 저장 실패: ${e.message.slice(0, 30)}...`); 
-                } finally { 
-                    setIsSending(false); 
-                }
-            };
-            
-            const formatTimeStr = (ts) => new Date(ts).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
-            
-            const formatDuration = (min) => {
-                const h = Math.floor(min / 60);
-                const m = min % 60;
-                if (h > 0) return `${h}H ${m}M`;
-                return `${m}M`;
-            };
-
-            const openManual = () => {
-                const now = new Date();
-                let h = now.getHours();
-                let m = Math.round(now.getMinutes() / 5) * 5;
-
-                // 58분, 59분 등이라서 60분으로 반올림된 경우, 0분으로 만들고 시간을 1시간 더함
-                if (m === 60) {
-                    m = 0;
-                    h = h + 1;
-                    if (h === 24) h = 0; // 24시면 0시로 변경
-                }
-
-                setManualEndHour(h);
-                setManualEndMin(m);
-                setManualDurHour(0); setManualDurMin(30);
-                setModalType('manual'); setShowModal(true);
-                setManualTab('focus'); 
-                setTimeRef('end'); 
-            };
-            
-            const openWakeUpModal = () => {
-                const now = new Date();
-                setWakeUpHour(now.getHours()); 
-                setWakeUpMin(Math.floor(now.getMinutes() / 5) * 5);
-                setModalType('wakeup');
-                setShowModal(true);
-            };
-
-            const openBedTimeModal = () => {
-    const now = new Date();
-    let h = now.getHours();
-    let m = Math.round(now.getMinutes() / 5) * 5;
-
-    // 58분, 59분 등이라서 60분으로 반올림된 경우, 0분으로 만들고 시간을 1시간 더함
-    if (m === 60) {
-        m = 0;
-        h = h + 1;
-        if (h === 24) h = 0; // 24시면 0시로 변경
-    }
-
-    setBedHour(h);
-    setBedMin(m);
-    setModalType('bedtime');
-    setShowModal(true);
-};
-
             const handleWakeUpSave = () => {
                 const timeStr = `${String(wakeUpHour).padStart(2, '0')}:${String(wakeUpMin).padStart(2, '0')}`;
                 setWakeUpTime(timeStr);
