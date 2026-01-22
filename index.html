@@ -1090,7 +1090,7 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 통계 계산 및 퀄리티 자동 산정 포함 버전
+            // [수정 완료] 구간별 통계 및 집중도 평균 산출 (00~12 / 12~18 / 18~24)
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1105,49 +1105,66 @@
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
 
                     // ----------------------------------------------------
-                    // [추가] 클라이언트 측 정밀 통계 계산 로직 (분 단위 스캔)
+                    // [통계 계산] 시간대별 분(Minute) & 퀄리티 점수 누적
                     // ----------------------------------------------------
-                    let calcTotal = 0;
-                    let calcMorn = 0;  // 05:00 ~ 11:59
-                    let calcAft = 0;   // 12:00 ~ 17:59
-                    let calcNight = 0; // 18:00 ~ 04:59 (익일 새벽 포함)
+                    // Sun(3점), Cloud(2점), Rain(1점) -> 평균내서 다시 날씨로 변환
+                    
+                    let stats = {
+                        total: { dur: 0, scoreSum: 0 },
+                        morn:  { dur: 0, scoreSum: 0 }, // 00:00 ~ 11:59
+                        aft:   { dur: 0, scoreSum: 0 }, // 12:00 ~ 17:59
+                        night: { dur: 0, scoreSum: 0 }  // 18:00 ~ 23:59
+                    };
 
-                    // 1. 각 블록을 순회하며 시간을 쪼개서 통계에 반영
+                    const getScore = (q) => {
+                        if (q === 'Sun') return 3;
+                        if (q === 'Cloud') return 2;
+                        if (q === 'Rain') return 1;
+                        return 2; // 기본값 Cloud
+                    };
+
                     (blocks || []).forEach(b => {
                         // Focus(집중) 타입만 계산
                         if (b.type === 'focus' || !b.type) {
                             const dur = b.duration || 0;
-                            calcTotal += dur;
+                            const score = getScore(b.quality); // 해당 블록의 집중도 점수
+                            const startTs = b.startTime;
+
+                            stats.total.dur += dur;
+                            stats.total.scoreSum += (dur * score);
 
                             // 시작 시간부터 1분씩 더해가며 어느 시간대에 속하는지 카운팅
-                            // (이렇게 해야 17:50 ~ 18:20 같은 걸친 시간을 정확히 나눌 수 있음)
-                            const startTs = b.startTime;
+                            // (분 단위 정밀 스캔: 11:50~12:10 처럼 걸친 시간도 정확히 쪼갬)
                             for (let i = 0; i < dur; i++) {
                                 const currentMs = startTs + (i * 60 * 1000);
                                 const h = new Date(currentMs).getHours();
 
-                                if (h >= 5 && h < 12) calcMorn++;
-                                else if (h >= 12 && h < 18) calcAft++;
-                                else calcNight++; // 18시~24시 또는 00시~05시
+                                // 시간대 분류 (요청하신 00~12 / 12~18 / 18~24 기준)
+                                if (h >= 0 && h < 12) {
+                                    stats.morn.dur++;
+                                    stats.morn.scoreSum += score;
+                                } else if (h >= 12 && h < 18) {
+                                    stats.aft.dur++;
+                                    stats.aft.scoreSum += score;
+                                } else { 
+                                    // 18시 ~ 24시 (자정 넘어가는 건 보통 다음날로 치거나 여기 포함)
+                                    stats.night.dur++;
+                                    stats.night.scoreSum += score;
+                                }
                             }
                         }
                     });
 
-                    // 2. 시간별 퀄리티(등급) 자동 산정 함수
-                    // 기준: 2시간(120분) 이상 = Sun, 1시간(60분) 이상 = Cloud, 그 외 Rain
-                    const getQuality = (mins) => {
-                        if (mins >= 120) return "Sun";
-                        if (mins >= 60) return "Cloud";
-                        if (mins > 0) return "Rain";
-                        return null; // 기록 없음
+                    // [결과 변환] 평균 점수를 다시 날씨(텍스트)로 변환하는 함수
+                    const calcAvgWeather = (dur, scoreSum) => {
+                        if (dur === 0) return null; // 데이터 없음
+                        const avg = scoreSum / dur;
+                        
+                        // 평균 2.33 이상이면 Sun, 1.66 이상이면 Cloud, 그 외 Rain
+                        if (avg >= 2.33) return "Sun";
+                        if (avg >= 1.66) return "Cloud";
+                        return "Rain";
                     };
-                    
-                    // 하루 전체 퀄리티 (전체는 기준을 좀 더 높게: 4시간 Sun / 2시간 Cloud)
-                    let dailyQuality = "Rain";
-                    if (calcTotal >= 240) dailyQuality = "Sun";
-                    else if (calcTotal >= 120) dailyQuality = "Cloud";
-
-                    // ----------------------------------------------------
 
                     const payload = {
                         date: formattedDate,
@@ -1158,17 +1175,17 @@
                         bedTime: bedTime || "-",
                         title: "Daily Log",
                         
-                        // [추가] 계산된 통계 데이터 전송
-                        total: calcTotal,
-                        morn_total: calcMorn,
-                        aft_total: calcAft,
-                        night_total: calcNight,
+                        // [통계 전송] 워커가 이 값을 받으면 자체 계산 안하고 이 값을 씁니다.
+                        total: stats.total.dur,
+                        morn_total: stats.morn.dur,
+                        aft_total: stats.aft.dur,
+                        night_total: stats.night.dur,
                         
-                        // [추가] 퀄리티 데이터 전송
-                        quality: dailyQuality,
-                        q_morn: getQuality(calcMorn),
-                        q_aft: getQuality(calcAft),
-                        q_night: getQuality(calcNight)
+                        // [퀄리티 전송] 평균 날씨
+                        quality: calcAvgWeather(stats.total.dur, stats.total.scoreSum),
+                        q_morn: calcAvgWeather(stats.morn.dur, stats.morn.scoreSum),
+                        q_aft: calcAvgWeather(stats.aft.dur, stats.aft.scoreSum),
+                        q_night: calcAvgWeather(stats.night.dur, stats.night.scoreSum)
                     };
 
                     const res = await fetch(WORKER_URL, {
