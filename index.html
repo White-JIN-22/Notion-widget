@@ -155,7 +155,7 @@
         }
 
         .manual-tab {
-            padding: 8px 0;
+            padding: 4px 0; /* 8px -> 4px 로 축소하여 컴팩트하게 */
             font-size: 0.75rem; 
             font-weight: 700;
             color: #94a3b8;
@@ -165,7 +165,8 @@
         .manual-tab.active { color: #7dd3fc; border-bottom-color: #7dd3fc; }
 
         .custom-select {
-            width: 100%; border-radius: 10px; padding: 8px; font-weight: 700; outline: none; text-align: center; appearance: none;
+            width: 100%; border-radius: 10px; padding: 5px; /* 8px -> 5px 로 축소 */
+            font-weight: 700; outline: none; text-align: center; appearance: none;
             cursor: pointer;
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.6);
@@ -1666,7 +1667,7 @@
                                     
                                     {/* [수정] Focus 탭 UI 리디자인 (Switch/Rest와 레이아웃 통일 + 박스 디자인 적용) */}
                                     {manualTab === 'focus' && (
-                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-2 border-b border-dashed border-slate-200">
+                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-1 border-b border-dashed border-slate-200">
                                             {/* 1열: 기준 시간 (Switch/Rest와 동일한 간격/정렬) */}
                                             <div className="flex items-center justify-between">
                                                 <button 
@@ -1703,7 +1704,7 @@
 
                                     {/* [수정] Switch/Rest 탭 UI 리디자인 (Focus 탭과 동일한 2단 레이아웃 + 회색조) */}
                                     {(manualTab === 'switch' || manualTab === 'rest') && (
-                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-2 border-b border-dashed border-slate-200">
+                                        <div className="space-y-0.5 mb-1 shrink-0 px-0.5 pb-1 border-b border-dashed border-slate-200">
                                             {/* 1열: 기준 시간 (Focus와 동일한 스타일) */}
                                             <div className="flex items-center justify-between">
                                                 <button 
