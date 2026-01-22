@@ -1090,7 +1090,7 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 구간별 통계 및 집중도 평균 산출 (00~12 / 12~18 / 18~24)
+            // [수정 완료] 최신 데이터(LocalStorage) 참조 및 구간별 통계 전송
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1101,14 +1101,15 @@
                 if (!silent) triggerToast("☁️ 서버에 동기화 중...");
 
                 try {
+                    // ★ [핵심 수정] 화면의 blocks 대신, 방금 저장된 로컬스토리지의 데이터를 꺼내 씁니다.
+                    // 이렇게 해야 '방금 추가한 기록'이 통계에 즉시 반영됩니다.
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    const targetBlocks = savedData.blocks || []; // 최신 블록 리스트
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
 
                     // ----------------------------------------------------
                     // [통계 계산] 시간대별 분(Minute) & 퀄리티 점수 누적
                     // ----------------------------------------------------
-                    // Sun(3점), Cloud(2점), Rain(1점) -> 평균내서 다시 날씨로 변환
-                    
                     let stats = {
                         total: { dur: 0, scoreSum: 0 },
                         morn:  { dur: 0, scoreSum: 0 }, // 00:00 ~ 11:59
@@ -1123,23 +1124,21 @@
                         return 2; // 기본값 Cloud
                     };
 
-                    (blocks || []).forEach(b => {
+                    targetBlocks.forEach(b => {
                         // Focus(집중) 타입만 계산
                         if (b.type === 'focus' || !b.type) {
                             const dur = b.duration || 0;
-                            const score = getScore(b.quality); // 해당 블록의 집중도 점수
+                            const score = getScore(b.quality);
                             const startTs = b.startTime;
 
                             stats.total.dur += dur;
                             stats.total.scoreSum += (dur * score);
 
-                            // 시작 시간부터 1분씩 더해가며 어느 시간대에 속하는지 카운팅
-                            // (분 단위 정밀 스캔: 11:50~12:10 처럼 걸친 시간도 정확히 쪼갬)
+                            // 정밀 스캔: 1분 단위로 쪼개서 각 시간대에 할당
                             for (let i = 0; i < dur; i++) {
                                 const currentMs = startTs + (i * 60 * 1000);
                                 const h = new Date(currentMs).getHours();
 
-                                // 시간대 분류 (요청하신 00~12 / 12~18 / 18~24 기준)
                                 if (h >= 0 && h < 12) {
                                     stats.morn.dur++;
                                     stats.morn.scoreSum += score;
@@ -1147,7 +1146,6 @@
                                     stats.aft.dur++;
                                     stats.aft.scoreSum += score;
                                 } else { 
-                                    // 18시 ~ 24시 (자정 넘어가는 건 보통 다음날로 치거나 여기 포함)
                                     stats.night.dur++;
                                     stats.night.scoreSum += score;
                                 }
@@ -1155,12 +1153,10 @@
                         }
                     });
 
-                    // [결과 변환] 평균 점수를 다시 날씨(텍스트)로 변환하는 함수
+                    // [결과 변환]
                     const calcAvgWeather = (dur, scoreSum) => {
-                        if (dur === 0) return null; // 데이터 없음
+                        if (dur === 0) return null;
                         const avg = scoreSum / dur;
-                        
-                        // 평균 2.33 이상이면 Sun, 1.66 이상이면 Cloud, 그 외 Rain
                         if (avg >= 2.33) return "Sun";
                         if (avg >= 1.66) return "Cloud";
                         return "Rain";
@@ -1168,20 +1164,20 @@
 
                     const payload = {
                         date: formattedDate,
-                        blocks: blocks, 
+                        blocks: targetBlocks, 
                         lifeEnergy: lifeEnergy,
                         energy: energy,
                         wakeUpTime: wakeUpTime || "-",
                         bedTime: bedTime || "-",
                         title: "Daily Log",
                         
-                        // [통계 전송] 워커가 이 값을 받으면 자체 계산 안하고 이 값을 씁니다.
+                        // 통계 전송
                         total: stats.total.dur,
                         morn_total: stats.morn.dur,
                         aft_total: stats.aft.dur,
                         night_total: stats.night.dur,
                         
-                        // [퀄리티 전송] 평균 날씨
+                        // 퀄리티 전송
                         quality: calcAvgWeather(stats.total.dur, stats.total.scoreSum),
                         q_morn: calcAvgWeather(stats.morn.dur, stats.morn.scoreSum),
                         q_aft: calcAvgWeather(stats.aft.dur, stats.aft.scoreSum),
