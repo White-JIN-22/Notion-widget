@@ -984,7 +984,6 @@
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
             // [복구] 누락된 핸들러 및 헬퍼 함수 모음
-
             // 1. 수동 입력 모달 열기 (에러 원인)
             const openManual = () => {
                 setModalType('manual');
@@ -994,21 +993,21 @@
                 setShowModal(true);
             };
 
-            // 2. Switch(활동) 퀘스트 수행
-            const doSwitch = (quest) => {
-                setPendingQuest(quest);
-                setManualDurHour(0);
-                setManualDurMin(30); // 기본 30분 세팅
-                setModalType('specific-switch');
-                setShowModal(true);
-            };
-
-            // 3. Rest(휴식) 수행
-            const takeRest = (restItem) => {
-                // 휴식은 즉시 기록 혹은 수동 탭으로 이동 (여기서는 수동 탭으로 안내)
-                setManualTab('rest');
-                setModalType('manual');
-                addRecord(null, 'manual-rest', restItem); // 즉시 추가 방식 사용
+            // [수정] 통합된 활동 핸들러 (지정된 ID는 모달, 나머지는 즉시 기록)
+            const handleActivity = (item, type) => {
+                // 모달을 띄울 항목들의 ID 리스트
+                const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
+                
+                if (MODAL_TARGETS.includes(item.id)) {
+                    setPendingQuest({ ...item, type }); // type(switch/rest) 정보를 포함해 저장
+                    setManualDurHour(0);
+                    setManualDurMin(30);
+                    setModalType('specific-log'); // 통합 모달 타입
+                    setShowModal(true);
+                } else {
+                    // 그 외 항목은 즉시 기록 (Quick Add)
+                    addRecord(null, `manual-${type}`, item);
+                }
             };
 
             // 4. 시간 포맷팅 (리스트 렌더링용)
@@ -1469,25 +1468,54 @@
                         )}
                         
                         {/* Switch 탭: 생활 에너지 회복 */}
-                       {activeTab === 'switch' && (
-                    <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
-                        {fixedQuests.map((q) => {
-                        if (q.gap) return null;
-                        return (
-                            <button key={q.id} onClick={() => doSwitch(q)} className="quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 hover:bg-white/10 group">
-                                {/* ▼ 수정된 부분: w-6 h-6 -> w-5 h-5 */}
-                                {renderIcon(q.icon, `w-5 h-5 ${q.color} mb-1`)}
-                                <div className="flex flex-col items-center w-full">
-                                    <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{q.name}</span>
-                                    <div className="text-[10px] font-bold text-purple-300 leading-none mt-0.5">
-                                        {q.recovery}%
-                                    </div>
-                                </div>
-                            </button>
-                        );
-                    })}
-                    </div>
-                )}
+                        {activeTab === 'switch' && (
+                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
+                                {fixedQuests.map((q) => {
+                                    if (q.gap) return null;
+                                    // 특별 모달 대상인지 확인
+                                    const isSpecial = ['r_exercise', 'r1'].includes(q.id);
+                                    // 특별 대상이면 배경을 조금 더 진하게 (white/20), 아니면 기본 (white/5 -> hover 10)
+                                    const bgClass = isSpecial 
+                                        ? "bg-white/20 border-white/20 hover:bg-white/30" 
+                                        : "bg-white/5 border-white/5 hover:bg-white/10";
+
+                                    return (
+                                        <button key={q.id} onClick={() => handleActivity(q, 'switch')} className={`quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 transition-all group border ${bgClass}`}>
+                                            {renderIcon(q.icon, `w-5 h-5 ${q.color} mb-1`)}
+                                            <div className="flex flex-col items-center w-full">
+                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{q.name}</span>
+                                                <div className="text-[10px] font-bold text-purple-300 leading-none mt-0.5">
+                                                    {q.recovery}%
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        {activeTab === 'rest' && (
+                            <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
+                                {restOptions.map(rest => {
+                                    if (rest.gap) return null;
+                                    const isSpecial = ['r_record', 'r_counseling', 'r2', 'r4'].includes(rest.id);
+                                    const bgClass = isSpecial 
+                                        ? "bg-white/20 border-white/20 hover:bg-white/30" 
+                                        : "bg-white/5 border-white/5 hover:bg-white/10";
+
+                                    return (
+                                        <button key={rest.id} onClick={() => handleActivity(rest, 'rest')} className={`quest-btn p-1 rounded-2xl flex flex-col items-center justify-center h-16 transition-all group border ${bgClass}`}>
+                                            {renderIcon(rest.icon, `w-5 h-5 ${rest.color} mb-1`)}
+                                            <div className="flex flex-col items-center w-full">
+                                                <span className="text-xs font-bold text-bright truncate w-full text-center px-0.5">{rest.name}</span>
+                                                <div className="text-[10px] font-bold text-sky-300 leading-none mt-0.5">
+                                                    {rest.recovery}%
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
                         {activeTab === 'rest' && (
                     <div className="grid grid-cols-3 gap-1 mt-0 h-full overflow-hidden content-start">
                         {restOptions.map(rest => {
@@ -1567,13 +1595,13 @@
     </div>
 )}
 
-                                {/* [추가] 운동/독서 전용 시간 설정 모달 */}
-                                {modalType === 'specific-switch' && pendingQuest && (
+                                {/* [통합] 활동 로그 기록 모달 */}
+                                {modalType === 'specific-log' && pendingQuest && (
                                     <>
                                         <div className="flex items-center justify-center gap-2 mb-2 shrink-0">
                                             {renderIcon(pendingQuest.icon, `w-6 h-6 ${pendingQuest.color}`)}
                                             <h3 className="text-base font-bold text-slate-700 font-serif">
-                                                {pendingQuest.name} 시간 기록
+                                                ｡✧ {pendingQuest.name} ✧｡
                                             </h3>
                                         </div>
                                         
@@ -1611,8 +1639,9 @@
 
                                         <div className="flex gap-2">
                                             <button onClick={() => { setShowModal(false); setPendingQuest(null); }} className="flex-1 py-3 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            <button onClick={() => addRecord(null, 'manual-switch', pendingQuest)} className="flex-1 py-3 rounded-xl bg-purple-100/50 hover:bg-purple-200 text-purple-600 font-bold border border-purple-200 transition-all text-sm">
-                                                기록하기
+                                            {/* 요청하신 대로 회색 버튼 적용 (기존 보라색 제거) */}
+                                            <button onClick={() => addRecord(null, `manual-${pendingQuest.type}`, pendingQuest)} className="flex-1 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold border border-slate-300 transition-all text-sm">
+                                                Log Time
                                             </button>
                                         </div>
                                     </>
