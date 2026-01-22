@@ -1858,8 +1858,20 @@
                                                 />
                                                 <button onClick={()=>{ /*...*/ }} className="ml-2 w-6 h-6 text-slate-300"><Icons.CheckCircle className="w-5 h-5" /></button>
                                             </div>
-                                            {/* Todo List Dropdown 코드 유지 */}
-                                            {showTodoSelect && ( /* ... */ )}
+                                            {/* Todo List Dropdown 코드 복구 */}
+                                            {showTodoSelect && (
+                                                <div className="absolute bottom-full left-0 right-0 mb-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar" onWheel={(e) => e.stopPropagation()}>
+                                                    {todoList.map(todo => (
+                                                        <button 
+                                                            key={todo.id}
+                                                            onClick={() => { setFocusMemo(todo.text); setSelectedTodoId(todo.id); setShowTodoSelect(false); }}
+                                                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
+                                                        >
+                                                            <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>{todo.text}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                         
