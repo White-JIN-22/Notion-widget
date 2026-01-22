@@ -1739,10 +1739,9 @@
                                         </div>
                                     )}
 
-                                    {/* (이하 기존 버튼 그리드 부분은 그대로 유지, 단 상위 div가 overflow 담당) */}
-                                    {manualTab === 'focus' && ( /* ... 기존 메모 입력창 ... */ 
+                                    {/* [복구] Focus 메모 입력 및 Todo 연동 기능 (onClick 로직 부활) */}
+                                    {manualTab === 'focus' && (
                                         <div className="px-1 mb-1.5 relative">
-                                            {/* 기존 Focus Memo Input 코드 유지 */}
                                             <div className="flex items-center bg-white/50 border border-white/60 rounded-xl px-3 py-2 transition-all focus-within:border-sky-300 focus-within:bg-white/80">
                                                 <input 
                                                     type="text" 
@@ -1751,20 +1750,38 @@
                                                     onChange={(e) => { setFocusMemo(e.target.value); setSelectedTodoId(null); }} 
                                                     className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none font-bold"
                                                 />
-                                                <button onClick={()=>{ /*...*/ }} className="ml-2 w-6 h-6 text-slate-300"><Icons.CheckCircle className="w-5 h-5" /></button>
+                                                {/* Todo 연동 버튼 */}
+                                                <button 
+                                                    onClick={() => {
+                                                        // 로컬스토리지에서 Todo 목록 로드
+                                                        const saved = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                                                        // 완료되지 않은(done: false) 항목만 필터링
+                                                        const tasks = saved.filter(t => !t.done);
+                                                        setTodoList(tasks);
+                                                        setShowTodoSelect(!showTodoSelect);
+                                                    }}
+                                                    className={`ml-2 w-6 h-6 flex items-center justify-center transition-all ${selectedTodoId ? 'text-sky-500' : 'text-slate-300 hover:text-slate-500'}`}
+                                                >
+                                                    <Icons.CheckCircle className="w-5 h-5" />
+                                                </button>
                                             </div>
-                                            {/* Todo List Dropdown 코드 복구 */}
+                                            
+                                            {/* Todo 선택 드롭다운 */}
                                             {showTodoSelect && (
                                                 <div className="absolute bottom-full left-0 right-0 mb-1 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl z-50 max-h-[150px] overflow-y-auto p-1 pb-2 thin-scrollbar" onWheel={(e) => e.stopPropagation()}>
-                                                    {todoList.map(todo => (
-                                                        <button 
-                                                            key={todo.id}
-                                                            onClick={() => { setFocusMemo(todo.text); setSelectedTodoId(todo.id); setShowTodoSelect(false); }}
-                                                            className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
-                                                        >
-                                                            <span className={`truncate ${todo.done ? 'opacity-50 line-through decoration-slate-300' : ''}`}>{todo.text}</span>
-                                                        </button>
-                                                    ))}
+                                                    {todoList.length === 0 ? (
+                                                        <div className="p-3 text-center text-xs text-slate-400">남은 할 일이 없습니다.</div>
+                                                    ) : (
+                                                        todoList.map(todo => (
+                                                            <button 
+                                                                key={todo.id}
+                                                                onClick={() => { setFocusMemo(todo.text); setSelectedTodoId(todo.id); setShowTodoSelect(false); }}
+                                                                className="w-full text-left px-3 py-2 text-xs font-bold text-slate-600 hover:bg-sky-50 rounded-lg flex items-center justify-between group"
+                                                            >
+                                                                <span className="truncate">{todo.text}</span>
+                                                            </button>
+                                                        ))
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
