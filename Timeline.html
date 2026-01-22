@@ -367,63 +367,56 @@
                         const slotStartMin = i * 10;
                         const slotEndMin = (i + 1) * 10;
                         
-                        // [수정] 무조건 오늘(new Date)이 아니라, 보고 있는 날짜(viewDate)를 기준으로 슬롯 생성
                         const slotStartTime = new Date(viewDate); 
                         slotStartTime.setHours(hour, slotStartMin, 0, 0);
                         const slotStartTs = slotStartTime.getTime();
                         
+                        // [기존 기상/취침 등 투명화 로직 유지]
                         let isBeforeWakeUp = false;
                         let isWakeUpSlot = false;
                         let isAfterBedTime = false;
-
                         if (wakeUpTime) {
                             const [wH, wM] = wakeUpTime.split(':').map(Number);
-                            
-                            // [수정] 기상 시간 기준도 viewDate로 설정
-                            const wakeUpDate = new Date(viewDate);
-                            wakeUpDate.setHours(wH, wM, 0, 0);
+                            const wakeUpDate = new Date(viewDate); wakeUpDate.setHours(wH, wM, 0, 0);
                             const wakeUpTs = wakeUpDate.getTime();
                             const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
-
-                            if (slotStartTs < wakeUpTs) {
-                                isBeforeWakeUp = true;
-                            }
-
+                            if (slotStartTs < wakeUpTs) isBeforeWakeUp = true;
                             if (bedTime) {
                                 const [bH, bM] = bedTime.split(':').map(Number);
-                                const bedDate = new Date(viewDate);
-                                bedDate.setHours(bH, bM, 0, 0);
-                                const bedTs = bedDate.getTime();
-
-                                // 슬롯 시작 시간이 취침 시간 이상이면 투명화 대상
-                                if (slotStartTs >= bedTs) {
-                                    isAfterBedTime = true;
-                                }
+                                const bedDate = new Date(viewDate); bedDate.setHours(bH, bM, 0, 0);
+                                if (slotStartTs >= bedDate.getTime()) isAfterBedTime = true;
                             }
-
-                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) {
-                                isWakeUpSlot = true;
-                                isBeforeWakeUp = false; 
-                            }
+                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) { isWakeUpSlot = true; isBeforeWakeUp = false; }
                         }
 
-                        // [수정] 종료 시간 기준도 viewDate로 설정
                         const slotEndTime = new Date(viewDate);
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
                         
+                        // 1. Focus 블록 (배경색 있음)
                         const bgBlock = blocks.find(b => {
-                            if (b.type !== 'focus' && b.type) return false;
-                            
+                            if (b.type !== 'focus' && b.type) return false; 
                             const roundedStart = roundTime(b.startTime);
                             const roundedEnd = roundTime(b.endTime);
                             const finalEnd = (roundedStart === roundedEnd) ? roundedEnd + (10 * 60 * 1000) : roundedEnd;
-
                             return slotStartTs >= roundedStart && slotStartTs < finalEnd;
                         });
 
-                        const iconBlock = blocks.find(b => {
+                        // 2. [수정됨] Switch/Rest 블록 (10분 초과 구간형)
+                        const rangeIconBlock = blocks.find(b => {
                             if (b.type === 'focus' || !b.type) return false;
+                            if (!b.duration || b.duration <= 10) return false;
+
+                            const roundedStart = roundTime(b.startTime);
+                            // 종료 시간 보정 (지속시간 기반)
+                            const roundedEnd = roundedStart + (b.duration * 60 * 1000); 
+                            return slotStartTs >= roundedStart && slotStartTs < roundedEnd;
+                        });
+
+                        // 3. 단발성 아이콘 (10분 이하)
+                        const pointIconBlock = blocks.find(b => {
+                            if (b.type === 'focus' || !b.type) return false;
+                            if (b.duration > 10) return false; 
                             return b.endTime > slotStartTs && b.endTime <= slotEndTs;
                         });
 
@@ -434,40 +427,65 @@
                         let content = null;
                         let lineOverlay = null;
 
-                        if ((isBeforeWakeUp || isAfterBedTime) && !bgBlock && !isWakeUpSlot) {
+                        // 투명화 처리
+                        if ((isBeforeWakeUp || isAfterBedTime) && !bgBlock && !isWakeUpSlot && !rangeIconBlock) {
                             cellClass = 'opacity-0';
                         }
+                        // A. Focus 블록 렌더링
                         else if (bgBlock) {
                             if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
                             else if (bgBlock.quality === 'Cloud') cellClass = 'block-cloud';
                             else cellClass = 'block-rain';
                         } 
-                        else if (iconBlock) {
-                            cellClass = 'block-action-bg';
-                        }
+                        // B. [핵심 수정] 범위형 Switch/Rest 블록 (점 + 아이콘)
+                        else if (rangeIconBlock) {
+                            cellClass = 'block-action-bg'; // 배경 투명
+                            
+                            // 현재 블록 내에서 몇 번째 칸인지 계산
+                            const roundedStart = roundTime(rangeIconBlock.startTime);
+                            const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
+                            const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
+                            
+                            // 아이콘 위치 결정 (홀수면 정중앙, 짝수면 앞쪽 중앙)
+                            // 예: 20분(2칸) -> 인덱스 0(아이콘), 1(점)
+                            // 예: 30분(3칸) -> 인덱스 0(점), 1(아이콘), 2(점)
+                            const iconIndex = Math.floor((totalSlots - 1) / 2);
+                            const color = rangeIconBlock.color || 'text-white';
 
-                        if (isWakeUpSlot) {
                             if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
-                            content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
+
+                            if (currentIndex === iconIndex) {
+                                // 중앙: 아이콘 표시
+                                const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                                content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
+                            } else {
+                                // 나머지: 점(·) 표시
+                                content = <span className={`text-[10px] leading-none ${color} opacity-60 font-bold relative z-10`}>·</span>;
+                            }
                         }
-                        else if (iconBlock) {
-                            const IconComp = Icons[iconBlock.icon] || (iconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
-                            const iconColor = bgBlock ? 'text-white' : (iconBlock.color || 'text-white');
+                        // C. 단발성 아이콘
+                        else if (pointIconBlock) {
+                            cellClass = 'block-action-bg';
+                            const IconComp = Icons[pointIconBlock.icon] || (pointIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                            const iconColor = pointIconBlock.color || 'text-white';
                             if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
                             content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
                         }
 
+                        // 기상 시간 아이콘
+                        if (isWakeUpSlot) {
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+                            content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
+                        }
+
+                        // 캘린더 라인
                         if (calendarEvent) {
                             const category = calendarEvent.category || 'default';
                             const colorClass = categoryColors[category] || categoryColors['default'];
-                            
                             lineOverlay = (
-                                <div className={`absolute w-[80%] h-[2px] rounded-full left-[10%] top-[48%] z-20 ${colorClass}`} 
-                                     title={calendarEvent.title} 
-                                />
+                                <div className={`absolute w-[80%] h-[2px] rounded-full left-[10%] top-[48%] z-20 ${colorClass}`} title={calendarEvent.title} />
                             );
-                            
-                            if (!content && !bgBlock) {
+                            if (!content && !bgBlock && !rangeIconBlock) {
                                 cellClass += ' relative'; 
                             }
                         }
