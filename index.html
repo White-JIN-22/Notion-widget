@@ -386,16 +386,21 @@
 
             // 생활 에너지 충전 목록 (Switch: 독서 포함, 티타임 제외)
             const fixedQuests = [
-                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300', recovery: 15 }, 
-                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300', recovery: 25 }, 
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
+                // 1행: 운동, 요리, 독서 (우측 1칸 빔)
                 { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300', recovery: 30 },
+                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300', recovery: 25 }, 
                 { id: 'r1', name: '독서', icon: 'Book', color: 'text-purple-300', recovery: 20 }, 
+
+                // 2행: 위생관리, 설거지, 빨래, 알약 소분 (꽉 참)
+                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300', recovery: 15 },
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300', recovery: 10 }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300', recovery: 10 }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
+
+                // 3행: 분리수거, 방 쓸기, 집안일 (우측 1칸 빔)
                 { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400', recovery: 10 }, 
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400', recovery: 15 }, 
-                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300', recovery: 15 },
             ];
 
             // 집중 에너지 회복 (Rest: 스트레칭 추가됨)
@@ -1665,7 +1670,7 @@
                                             <div className="flex items-center justify-between">
                                                 <button 
                                                     onClick={() => setTimeRef(prev => prev === 'end' ? 'start' : 'end')}
-                                                    className="w-12 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
+                                                    className="w-12 ml-1 text-xs font-bold text-slate-500 hover:text-blue-400 transition-colors underline decoration-solid underline-offset-4 text-left"
                                                     title="클릭하여 기준 변경"
                                                 >
                                                     {timeRef === 'start' ? '시작' : '종료'}
@@ -1684,7 +1689,7 @@
                                             {manualTab === 'focus' && (
                                                 <>
                                                 <div className="flex items-center justify-between">
-                                                    <label className="text-slate-500 text-xs font-bold w-12 text-left">집중</label>
+                                                    <label className="text-slate-500 text-xs font-bold w-12 ml-1 text-left">집중</label>
                                                     <div className="flex-1 flex gap-2">
                                                         <select value={manualDurHour} onChange={(e)=>setManualDurHour(Number(e.target.value))} className="custom-select text-sm">
                                                             {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h}시간</option>)}
