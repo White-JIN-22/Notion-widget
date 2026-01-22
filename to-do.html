@@ -254,20 +254,20 @@
             const [selectedQuest, setSelectedQuest] = useState(null);
 
             const QUEST_OPTIONS = [
-                // 1행: 요리(보라), 설거지(하늘), 운동(보라)
-                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' }, 
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
+                // 1행: 운동(보라), 요리(보라), 독서(보라)
                 { id: 'q_ex', name: '운동', icon: 'Flame', color: 'text-purple-300' }, 
-                
-                // 2행: 독서(보라), 빨래(하늘), 분리수거(회색)
+                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' }, 
                 { id: 'q_read', name: '독서', icon: 'Book', color: 'text-purple-300' },
+
+                // 2행: 설거지(하늘), 빨래(하늘), 알약 소분(하늘)
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
                 { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300' }, 
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
                 
-                // 3행: 방 쓸기(회색), 집안일(회색), 알약 소분(하늘)
+                // 3행: 분리수거(회색), 방 쓸기(회색), 집안일(회색)
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
                 { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
                 { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
-                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
             ];
             
             const [toast, setToast] = useState(null);
