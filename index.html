@@ -1090,7 +1090,7 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 노션에 맞는 날짜 형식(YYYY-MM-DD)으로 변환해서 보내는 버전
+            // [수정 완료] 통계 계산 및 퀄리티 자동 산정 포함 버전
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1102,19 +1102,73 @@
 
                 try {
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    
-                    // ★ [핵심 수정] "Thu Jan 22 2026" -> "2026-01-22" 로 변환
-                    // formatLocalYMD 함수는 이미 위쪽에 만들어져 있어서 가져다 쓰기만 하면 됩니다.
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
 
+                    // ----------------------------------------------------
+                    // [추가] 클라이언트 측 정밀 통계 계산 로직 (분 단위 스캔)
+                    // ----------------------------------------------------
+                    let calcTotal = 0;
+                    let calcMorn = 0;  // 05:00 ~ 11:59
+                    let calcAft = 0;   // 12:00 ~ 17:59
+                    let calcNight = 0; // 18:00 ~ 04:59 (익일 새벽 포함)
+
+                    // 1. 각 블록을 순회하며 시간을 쪼개서 통계에 반영
+                    (blocks || []).forEach(b => {
+                        // Focus(집중) 타입만 계산
+                        if (b.type === 'focus' || !b.type) {
+                            const dur = b.duration || 0;
+                            calcTotal += dur;
+
+                            // 시작 시간부터 1분씩 더해가며 어느 시간대에 속하는지 카운팅
+                            // (이렇게 해야 17:50 ~ 18:20 같은 걸친 시간을 정확히 나눌 수 있음)
+                            const startTs = b.startTime;
+                            for (let i = 0; i < dur; i++) {
+                                const currentMs = startTs + (i * 60 * 1000);
+                                const h = new Date(currentMs).getHours();
+
+                                if (h >= 5 && h < 12) calcMorn++;
+                                else if (h >= 12 && h < 18) calcAft++;
+                                else calcNight++; // 18시~24시 또는 00시~05시
+                            }
+                        }
+                    });
+
+                    // 2. 시간별 퀄리티(등급) 자동 산정 함수
+                    // 기준: 2시간(120분) 이상 = Sun, 1시간(60분) 이상 = Cloud, 그 외 Rain
+                    const getQuality = (mins) => {
+                        if (mins >= 120) return "Sun";
+                        if (mins >= 60) return "Cloud";
+                        if (mins > 0) return "Rain";
+                        return null; // 기록 없음
+                    };
+                    
+                    // 하루 전체 퀄리티 (전체는 기준을 좀 더 높게: 4시간 Sun / 2시간 Cloud)
+                    let dailyQuality = "Rain";
+                    if (calcTotal >= 240) dailyQuality = "Sun";
+                    else if (calcTotal >= 120) dailyQuality = "Cloud";
+
+                    // ----------------------------------------------------
+
                     const payload = {
-                        date: formattedDate, // 변환된 날짜를 보냅니다!
+                        date: formattedDate,
                         blocks: blocks, 
                         lifeEnergy: lifeEnergy,
                         energy: energy,
                         wakeUpTime: wakeUpTime || "-",
                         bedTime: bedTime || "-",
-                        title: "Daily Log"
+                        title: "Daily Log",
+                        
+                        // [추가] 계산된 통계 데이터 전송
+                        total: calcTotal,
+                        morn_total: calcMorn,
+                        aft_total: calcAft,
+                        night_total: calcNight,
+                        
+                        // [추가] 퀄리티 데이터 전송
+                        quality: dailyQuality,
+                        q_morn: getQuality(calcMorn),
+                        q_aft: getQuality(calcAft),
+                        q_night: getQuality(calcNight)
                     };
 
                     const res = await fetch(WORKER_URL, {
