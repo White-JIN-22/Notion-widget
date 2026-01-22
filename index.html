@@ -1803,7 +1803,7 @@
                                                     {fixedQuests.map((q) => {
                                                         if (q.gap) return <div key={q.id}></div>;
                                                         return (
-                                                            <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn px-1 py-1 rounded-xl flex flex-col items-center justify-center h-[58px]">
+                                                            <button key={q.id} onClick={() => addRecord(null, 'manual-switch', q)} className="modal-btn px-1 py-1 rounded-xl flex flex-col items-center justify-center h-[54px]">
                                                                 {renderIcon(q.icon, `w-5 h-5 ${q.color} mb-1`)}
                                                                 <span className="text-[11px] font-bold break-keep text-center leading-tight tracking-tight">{q.name}</span>
                                                             </button>
@@ -1816,7 +1816,7 @@
                                                 {restOptions.map((r) => {
                                                     if (r.gap) return <div key={r.id}></div>;
                                                     return (
-                                                        <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-1 rounded-xl flex flex-col items-center justify-center h-[58px]">
+                                                        <button key={r.id} onClick={() => addRecord(null, 'manual-rest', r)} className="modal-btn px-1 py-1 rounded-xl flex flex-col items-center justify-center h-[54px]">
                                                             {renderIcon(r.icon, `w-5 h-5 ${r.color} mb-1`)}
                                                             <span className="text-[11px] font-bold break-keep text-center leading-tight tracking-tight">{r.name}</span>
                                                         </button>
