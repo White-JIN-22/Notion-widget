@@ -1071,20 +1071,23 @@
                 setTimeout(() => sendToNotion(true), 100);
             };
 
-            // 6. 기록 연장 (리스트의 + 버튼)
+            // 6. 기록 연장 (리스트의 + 버튼) -> 종료 시간을 현재로 갱신
             const extendDuration = (id) => {
+                const now = Date.now();
                 const newBlocks = blocks.map(b => {
                     if (b.id === id) {
+                        // 종료 시간을 현재로 설정하고, 시작 시간과의 차이를 구해 분 단위로 재계산
+                        const newDuration = Math.floor((now - b.startTime) / 1000 / 60);
                         return { 
                             ...b, 
-                            duration: (b.duration || 0) + 10,
-                            endTime: (b.endTime || 0) + (10 * 60 * 1000)
+                            endTime: now,
+                            duration: newDuration > 0 ? newDuration : 1 // 최소 1분 보장
                         };
                     }
                     return b;
                 });
                 saveData(lifeEnergy, energy, newBlocks);
-                triggerToast("⚡ 10분 연장되었습니다.");
+                triggerToast("🔥 종료 시간 갱신!");
             };
 
             // [수정 완료] 노션에 맞는 날짜 형식(YYYY-MM-DD)으로 변환해서 보내는 버전
