@@ -438,31 +438,27 @@
                             else cellClass = 'block-rain';
                         } 
                         // B. [핵심 수정] 범위형 Switch/Rest 블록 (점 + 아이콘)
-                        else if (rangeIconBlock) {
-                            cellClass = 'block-action-bg'; // 배경 투명
-                            
-                            // 현재 블록 내에서 몇 번째 칸인지 계산
-                            const roundedStart = roundTime(rangeIconBlock.startTime);
-                            const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
-                            const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
-                            
-                            // 아이콘 위치 결정 (홀수면 정중앙, 짝수면 앞쪽 중앙)
-                            // 예: 20분(2칸) -> 인덱스 0(아이콘), 1(점)
-                            // 예: 30분(3칸) -> 인덱스 0(점), 1(아이콘), 2(점)
-                            const iconIndex = Math.floor((totalSlots - 1) / 2);
-                            const color = rangeIconBlock.color || 'text-white';
+else if (rangeIconBlock) {
+    cellClass = 'block-action-bg'; 
+    
+    const roundedStart = roundTime(rangeIconBlock.startTime);
+    const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
+    const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
+    
+    const iconIndex = Math.floor((totalSlots - 1) / 2);
+    const color = rangeIconBlock.color || 'text-white';
 
-                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+    if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
 
-                            if (currentIndex === iconIndex) {
-                                // 중앙: 아이콘 표시
-                                const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
-                                content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
-                            } else {
-                                // 나머지: 점(·) 표시
-                                content = <span className={`text-[10px] leading-none ${color} opacity-60 font-bold relative z-10`}>·</span>;
-                            }
-                        }
+    if (currentIndex === iconIndex) {
+        // 중앙: 아이콘 표시
+        const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+        content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
+    } else {
+        // 나머지: 점(·) 표시 (크기를 text-2xl로 키우고, 투명도를 80으로 올림)
+        content = <span className={`text-2xl leading-none ${color} opacity-80 font-bold relative z-10 pb-0.5`}>·</span>;
+    }
+}
                         // C. 단발성 아이콘
                         else if (pointIconBlock) {
                             cellClass = 'block-action-bg';
