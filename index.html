@@ -715,32 +715,6 @@
                 localStorage.setItem('fortressData_backup', JSON.stringify(newData));
             };
 
-            const openResetModal = () => {
-                setModalType('reset');
-                setShowModal(true);
-            };
-
-            const executeReset = () => {
-                setShowIntro(true); 
-                setLifeEnergy(50); // 초기화 시 50으로 설정
-                setEnergy(100);
-                setBlocks([]); 
-                setWakeUpTime(null);
-                
-                // 로컬스토리지도 초기화
-                localStorage.setItem('fortressData', JSON.stringify({
-                    date: new Date().toDateString(),
-                    initialLifeEnergy: 50,
-                    lifeEnergy: 50,
-                    energy: 100,
-                    blocks: [],
-                    wakeUpTime: null
-                }));
-
-                setShowModal(false);
-                triggerToast("🔄 하루가 초기화되었습니다.");
-            };
-
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -1546,17 +1520,6 @@
                                         <div className="flex gap-2 mt-4">
                                             <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
                                             <button onClick={executeDelete} className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold border border-slate-200 transition-all text-sm">삭제</button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {modalType === 'reset' && (
-                                    <div className="text-center mt-2">
-                                        <h3 className="text-base font-bold mb-2 text-slate-700">하루 초기화</h3>
-                                        <p className="text-xs text-slate-500 mb-4">오늘의 모든 기록이 삭제되고<br/>컨디션 체크 화면으로 돌아갑니다.</p>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => setShowModal(false)} className="flex-1 py-2 rounded-xl bg-white/50 hover:bg-white/80 text-slate-500 font-bold transition-all text-sm">취소</button>
-                                            <button onClick={executeReset} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-sm">초기화</button>
                                         </div>
                                     </div>
                                 )}
