@@ -1008,8 +1008,129 @@
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
+            // [복구] 누락된 핸들러 및 헬퍼 함수 모음
+
+            // 1. 수동 입력 모달 열기 (에러 원인)
+            const openManual = () => {
+                setModalType('manual');
+                setManualTab('focus');
+                setOptDurHour(0);
+                setOptDurMin(0);
+                setShowModal(true);
+            };
+
+            // 2. Switch(활동) 퀘스트 수행
+            const doSwitch = (quest) => {
+                setPendingQuest(quest);
+                setManualDurHour(0);
+                setManualDurMin(30); // 기본 30분 세팅
+                setModalType('specific-switch');
+                setShowModal(true);
+            };
+
+            // 3. Rest(휴식) 수행
+            const takeRest = (restItem) => {
+                // 휴식은 즉시 기록 혹은 수동 탭으로 이동 (여기서는 수동 탭으로 안내)
+                setManualTab('rest');
+                setModalType('manual');
+                addRecord(null, 'manual-rest', restItem); // 즉시 추가 방식 사용
+            };
+
+            // 4. 시간 포맷팅 (리스트 렌더링용)
+            const formatDuration = (min) => {
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                if (h > 0) return `${h}h ${m}m`;
+                return `${m}m`;
+            };
+
+            const formatTimeStr = (ts) => {
+                if (!ts) return '';
+                const d = new Date(ts);
+                return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            };
+
+            // 5. 삭제 관련 함수
+            const confirmDelete = (id) => {
+                setDeleteTargetId(id);
+                setModalType('delete');
+                setShowModal(true);
+            };
+
+            const executeDelete = () => {
+                const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                // 기존 데이터 유지하며 블록만 업데이트
+                saveData(lifeEnergy, energy, newBlocks);
+                
+                setDeleteTargetId(null);
+                setShowModal(false);
+                triggerToast("🗑️ 기록이 삭제되었습니다.");
+                // 삭제 후 동기화
+                setTimeout(() => sendToNotion(true), 100);
+            };
+
+            // 6. 기록 연장 (리스트의 + 버튼)
+            const extendDuration = (id) => {
+                const newBlocks = blocks.map(b => {
+                    if (b.id === id) {
+                        return { 
+                            ...b, 
+                            duration: (b.duration || 0) + 10,
+                            endTime: (b.endTime || 0) + (10 * 60 * 1000)
+                        };
+                    }
+                    return b;
+                });
+                saveData(lifeEnergy, energy, newBlocks);
+                triggerToast("⚡ 10분 연장되었습니다.");
+            };
+
+            // 7. 노션 전송 (헤더의 구름 버튼)
+            const sendToNotion = async (silent = false) => {
+                if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
+                    if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
+                    return;
+                }
+                
+                setIsSending(true);
+                if (!silent) triggerToast("☁️ 서버에 동기화 중...");
+
+                try {
+                    const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    
+                    const payload = {
+                        date: savedData.date,
+                        blocks: blocks, // 현재 상태의 블록 사용
+                        lifeEnergy: lifeEnergy,
+                        energy: energy,
+                        wakeUpTime: wakeUpTime || "-",
+                        bedTime: bedTime || "-",
+                        title: "Daily Log"
+                    };
+
+                    const res = await fetch(WORKER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (res.ok) {
+                        if (!silent) triggerToast("✅ 동기화 완료!");
+                        localStorage.setItem('lastSyncTime', Date.now().toString());
+                    } else {
+                        throw new Error("Server response not ok");
+                    }
+                } catch (e) {
+                    console.error("Sync Error:", e);
+                    if (!silent) triggerToast("⚠️ 동기화 실패 (네트워크 확인)");
+                } finally {
+                    setIsSending(false);
+                }
+            };
+
             const renderTimerPanel = () => {
-                const radius = 30; 
+                const radius = 30;
                 const circumference = 2 * Math.PI * radius;
                 let progress;
                 let strokeColor;
