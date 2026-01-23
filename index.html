@@ -1095,6 +1095,13 @@
             };
 
             // 5. 삭제 관련 함수
+            // [추가됨] 삭제 확인 모달 열기 함수
+            const confirmDelete = (id) => {
+                setDeleteTargetId(id);
+                setModalType('delete');
+                setShowModal(true);
+            };
+
             const executeDelete = () => {
                 // 1. 삭제 대상 블록 찾기
                 const targetBlock = blocks.find(b => b.id === deleteTargetId);
