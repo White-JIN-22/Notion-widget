@@ -11,19 +11,21 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Roboto+Mono:wght@500&display=swap');
         
         body {
-            background-color: #0f172a; /* 폰에서는 더 어두운 배경이 눈이 편합니다 */
-            color: #e2e8f0;
-            font-family: 'Noto Sans KR', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+    /* PC와 동일한 투명한 푸른 그라데이션 */
+    background: linear-gradient(180deg, rgba(224, 242, 254, 0.5) 0%, rgba(240, 249, 255, 0.3) 100%);
+    color: #334155; /* 글자색을 진한 남색(Slate-700)으로 변경하여 가독성 확보 */
+    font-family: 'Noto Sans KR', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 100vh;
+}
 
-        /* 모바일 최적화된 유리 패널 */
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 16px;
-        }
+    background: rgba(255, 255, 255, 0.4); /* 밝고 투명한 흰색 */
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6); /* 테두리를 은은한 흰색으로 */
+    border-radius: 20px; /* PC 버전처럼 조금 더 둥글게 */
+    box-shadow: 0 4px 20px rgba(186, 230, 253, 0.15); /* 부드러운 그림자 추가 */
+}
 
         /* 터치 반응형 버튼 */
         .action-btn {
