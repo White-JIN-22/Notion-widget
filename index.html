@@ -486,10 +486,13 @@
                             // 저장된 로그를 시간순으로 복기하며 현재 에너지를 산출합니다.
                             // ---------------------------------------------------------
                             
-                            // 1. 기초 데이터 로드 (오늘의 시작 에너지)
+                            // 1. 기초 데이터 로드 (오늘의 시작 에너지 & 집중 에너지)
                             const initialLife = savedData.date === dateStr && savedData.initialLifeEnergy !== undefined ? savedData.initialLifeEnergy : 50;
+                            // [수정] 아침 컨디션 값을 불러옵니다. 없으면 기본 100.
+                            const initialFocus = savedData.date === dateStr && savedData.initialFocusEnergy !== undefined ? savedData.initialFocusEnergy : 100;
+                            
                             let calcLife = initialLife;
-                            let calcEnergy = 100; // 집중 에너지는 보통 100에서 시작
+                            let calcEnergy = initialFocus; // <--- 100 대신 저장된 컨디션 값 사용
 
                             // 2. 시간순 정렬 (과거 -> 현재)
                             const chronoBlocks = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
@@ -656,7 +659,8 @@
 
                         const resetData = {
                             date: currentToday,
-                            initialLifeEnergy: newBaseLife, 
+                            initialLifeEnergy: newBaseLife,
+                            initialFocusEnergy: 100, // [수정] 새 하루의 기준값 리셋
                             lifeEnergy: newBaseLife,
                             energy: 100,
                             blocks: [],
@@ -751,19 +755,18 @@
                 setEnergy(initialEnergy); 
                 setShowIntro(false);
 
-                // [수정] 컨디션 체크를 마쳤다는 '도장(introDone)'을 확실하게 찍습니다.
-                // 이제 기상 시간을 입력 안 해도, 이 도장이 있으면 인트로가 다시 안 뜹니다.
+                // [수정] 오늘의 시작 에너지를 명확히 저장 (initialFocusEnergy 추가)
                 const newData = {
                     date: new Date().toDateString(),
                     initialLifeEnergy: currentLife,
+                    initialFocusEnergy: initialEnergy, // <--- 핵심 추가: 시작값 기억
                     lifeEnergy: currentLife,
                     energy: initialEnergy,
-                    blocks: blocks, // 새벽 기록 유지
+                    blocks: blocks, 
                     wakeUpTime: null,
-                    introDone: true // <--- 핵심 추가
+                    introDone: true 
                 };
                 localStorage.setItem('fortressData', JSON.stringify(newData));
-                // 백업도 갱신
                 localStorage.setItem('fortressData_backup', JSON.stringify(newData));
             };
 
