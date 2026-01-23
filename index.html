@@ -448,18 +448,14 @@
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // [수정] 날짜가 다르면(과거 데이터면) 무시하고 내 데이터를 덮어씀
+                        // [검증] 다른 날짜 데이터면 내 로컬 데이터로 덮어쓰기 (서버 오염 방지)
                         if (data.date && data.date !== dateYMD) {
                             console.log("Old Data. Resetting...");
                             sendToNotion(true); 
                             return; 
                         }
 
-                        // [수정] 기상/취침 시간 동기화
-                        if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
-                        if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime);
-
-                        // [수정] 블록 데이터 동기화
+                        // 1. 블록 데이터 병합 (서버 + 로컬)
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                             const serverBlocks = data.blocks;
@@ -467,42 +463,87 @@
                             // 로컬 데이터 준비
                             let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
                             
-                            // 병합 로직 (서버 데이터 + 로컬 데이터)
+                            // 병합 (ID 기준 중복 제거)
                             const blockMap = new Map();
-                            // 서버 데이터를 먼저 넣고
                             const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
-                            // 로컬 데이터를 덮어씌움 (로컬이 더 최신일 수 있으므로)
                             localBlocks.forEach(b => blockMap.set(b.id, b)); 
                             
                             const mergedBlocks = Array.from(blockMap.values());
                             mergedBlocks.sort((a, b) => b.startTime - a.startTime); // 최신순 정렬
 
-                            setBlocks(mergedBlocks);
-
-                            const currentLife = savedData.date === dateStr && savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
-                            const currentEnergy = savedData.date === dateStr && savedData.energy !== undefined ? savedData.energy : 100;
-                            const currentIntroDone = savedData.introDone || false;
-
-                            setLifeEnergy(currentLife);
-                            setEnergy(currentEnergy);
+                            // ---------------------------------------------------------
+                            // ★ [핵심 수정] 에너지 재계산 로직 (Replay System)
+                            // 저장된 로그를 시간순으로 복기하며 현재 에너지를 산출합니다.
+                            // ---------------------------------------------------------
                             
+                            // 1. 기초 데이터 로드 (오늘의 시작 에너지)
+                            const initialLife = savedData.date === dateStr && savedData.initialLifeEnergy !== undefined ? savedData.initialLifeEnergy : 50;
+                            let calcLife = initialLife;
+                            let calcEnergy = 100; // 집중 에너지는 보통 100에서 시작
+
+                            // 2. 시간순 정렬 (과거 -> 현재)
+                            const chronoBlocks = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
+
+                            // 3. 하나씩 계산기 두드리기
+                            chronoBlocks.forEach(b => {
+                                // (A) 회복량(Recovery) 찾기
+                                // 모바일은 recovery 값을 안 보낼 수도 있으므로, 이름으로 데스크탑 설정에서 찾습니다.
+                                let recoveryVal = b.recovery || 0;
+                                
+                                if (!recoveryVal) {
+                                    // 내 설정 목록(fixedQuests, restOptions)에서 이름이 같은 퀘스트를 찾음
+                                    const matchQuest = [...fixedQuests, ...restOptions].find(q => q.name === b.name || q.id === b.name);
+                                    if (matchQuest) recoveryVal = matchQuest.recovery || 0;
+                                }
+
+                                // (B) 타입별 계산 적용
+                                if (b.type === 'switch') {
+                                    // 전환 행동: 에너지 -5, 생활력 +회복량(기본10)
+                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                    calcLife = Math.min(100, calcLife + (recoveryVal || 10));
+                                } 
+                                else if (b.type === 'rest') {
+                                    // 휴식 행동: 집중 에너지 +회복량
+                                    calcEnergy = Math.min(100, calcEnergy + recoveryVal);
+                                }
+                                else if (b.type === 'focus' || !b.type) {
+                                    // 집중 행동: 15분당 10 소모
+                                    // (점화 시도 등 10분 이하는 소모 없음)
+                                    const consumption = Math.floor((b.duration || 0) / 15) * 10;
+                                    calcEnergy = Math.max(0, calcEnergy - consumption);
+                                }
+                            });
+
+                            // ---------------------------------------------------------
+                            
+                            // 4. 상태 업데이트
+                            setBlocks(mergedBlocks);
+                            setLifeEnergy(calcLife);
+                            setEnergy(calcEnergy);
+
+                            // 시간 동기화
+                            if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
+                            if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime);
+
+                            const currentIntroDone = savedData.introDone || false;
                             if (serverBlocks.length > 0 || (data.wakeUpTime && data.wakeUpTime !== "-") || currentIntroDone) {
                                 setShowIntro(false);
                             }
 
-                            // 로컬 스토리지 최신화
+                            // 5. 로컬 스토리지 최종 저장
                             localStorage.setItem('fortressData', JSON.stringify({
                                 date: dateStr,
-                                initialLifeEnergy: savedData.initialLifeEnergy || 50,
-                                lifeEnergy: currentLife,
-                                energy: currentEnergy,
+                                initialLifeEnergy: initialLife,
+                                lifeEnergy: calcLife,
+                                energy: calcEnergy,
                                 blocks: mergedBlocks,
                                 wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime,
                                 bedTime: data.bedTime || savedData.bedTime || bedTime,
                                 introDone: currentIntroDone
                             }));
-                            triggerToast("✅ 최신 데이터 동기화 완료");
+                            
+                            triggerToast("✅ 동기화 및 에너지 재계산 완료");
                         }
                     }
                 } catch (e) { console.error("Sync Load Error:", e); }
@@ -1050,10 +1091,56 @@
             };
 
             // 5. 삭제 관련 함수
-            const confirmDelete = (id) => {
-                setDeleteTargetId(id);
-                setModalType('delete');
-                setShowModal(true);
+            const executeDelete = () => {
+                // 1. 삭제 대상 블록 찾기
+                const targetBlock = blocks.find(b => b.id === deleteTargetId);
+                
+                if (!targetBlock) {
+                    setShowModal(false);
+                    return;
+                }
+
+                // 2. 에너지 되돌리기 계산 (Revert Logic)
+                let newLife = lifeEnergy;
+                let newEnergy = energy;
+
+                // (A) 회복량(Recovery) 값 확인 (블록에 없으면 설정 목록에서 재확인)
+                let recoveryVal = targetBlock.recovery || 0;
+                if (!recoveryVal) {
+                     const matchQuest = [...fixedQuests, ...restOptions].find(q => q.name === targetBlock.name);
+                     if (matchQuest) recoveryVal = matchQuest.recovery || 0;
+                }
+
+                if (targetBlock.type === 'switch') {
+                    // [Switch 삭제] 올랐던 생활력은 다시 뺏고(-), 소모된 에너지는 돌려줌(+)
+                    // 예: 요리 삭제 -> 생활력 -20, 에너지 +5
+                    newLife = Math.max(0, newLife - (recoveryVal || 10)); // 기본값 10 안전장치
+                    newEnergy = Math.min(100, newEnergy + 5);
+                } 
+                else if (targetBlock.type === 'rest') {
+                    // [Rest 삭제] 회복했던 에너지를 다시 뺏음(-)
+                    // 예: 낮잠 삭제 -> 에너지 -30
+                    newEnergy = Math.max(0, newEnergy - recoveryVal);
+                } 
+                else if (targetBlock.type === 'focus' || !targetBlock.type) {
+                    // [Focus 삭제] 썼던 에너지를 환불해줌(+)
+                    // 예: 30분 집중 삭제 -> 에너지 +20 복구
+                    const consumption = Math.floor((targetBlock.duration || 0) / 15) * 10;
+                    newEnergy = Math.min(100, newEnergy + consumption);
+                }
+
+                // 3. 블록 리스트에서 제거
+                const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
+
+                // 4. 저장 및 업데이트
+                saveData(newLife, newEnergy, newBlocks);
+                
+                setDeleteTargetId(null);
+                setShowModal(false);
+                triggerToast("🗑️ 기록 삭제 및 에너지 복구 완료");
+                
+                // 삭제 내용 서버 동기화
+                setTimeout(() => sendToNotion(true), 100);
             };
 
             const executeDelete = () => {
