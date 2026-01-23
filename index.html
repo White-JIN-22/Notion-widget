@@ -465,9 +465,18 @@
                             
                             // 병합 (ID 기준 중복 제거)
                             const blockMap = new Map();
-                            const cleanServerBlocks = serverBlocks.filter(b => new Date(b.startTime).toDateString() === dateStr);
+                            
+                            // [Zombie Fix] 로컬에서 삭제했던 ID 목록(블랙리스트)을 가져옴
+                            const deletedIds = JSON.parse(localStorage.getItem('fortressDeletedIds') || '[]');
+
+                            // 서버 데이터 중 오늘 날짜이면서 + 블랙리스트에 없는 것만 통과시킴
+                            const cleanServerBlocks = serverBlocks.filter(b => 
+                                new Date(b.startTime).toDateString() === dateStr &&
+                                !deletedIds.includes(b.id)
+                            );
+                            
                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
-                            localBlocks.forEach(b => blockMap.set(b.id, b)); 
+                            localBlocks.forEach(b => blockMap.set(b.id, b));
                             
                             const mergedBlocks = Array.from(blockMap.values());
                             mergedBlocks.sort((a, b) => b.startTime - a.startTime); // 최신순 정렬
@@ -654,6 +663,9 @@
                             introDone: false 
                         };
                         localStorage.setItem('fortressData', JSON.stringify(resetData));
+                        
+                        // [Zombie Fix] 새 하루가 시작되면 어제의 삭제 기록(블랙리스트) 폐기
+                        localStorage.removeItem('fortressDeletedIds');
 
                         // 상태 업데이트
                         setLifeEnergy(newBaseLife);
@@ -1145,6 +1157,13 @@
                     // 예: 30분 집중 삭제 -> 에너지 +20 복구
                     const consumption = Math.floor((targetBlock.duration || 0) / 15) * 10;
                     newEnergy = Math.min(100, newEnergy + consumption);
+                }
+
+                // [Zombie Fix] 삭제된 ID를 블랙리스트에 영구 등록 (서버 동기화 시 부활 방지)
+                const deletedIds = JSON.parse(localStorage.getItem('fortressDeletedIds') || '[]');
+                if (!deletedIds.includes(deleteTargetId)) {
+                    deletedIds.push(deleteTargetId);
+                    localStorage.setItem('fortressDeletedIds', JSON.stringify(deletedIds));
                 }
 
                 // 3. 블록 리스트에서 제거
