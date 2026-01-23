@@ -727,7 +727,7 @@
 
             const toggleTimer = () => {
                 if (!isRecording) {
-                    if (energy <= 5) { triggerToast("⚠️ 에너지가 부족해요!"); return; }
+                    if (energy <= 0) { triggerToast("⚠️ 에너지가 부족해요!"); return; }
                     setIsRecording(true); setStartTime(Date.now()); setElapsed(0);
                 } else {
                     setIsRecording(false);
