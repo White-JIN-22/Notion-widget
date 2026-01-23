@@ -30,17 +30,14 @@
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
 
-        /* Fortress Glass Style */
         .widget-container {
-    /* [수정] 2/3 크기로 축소 (PC 위젯과 비슷한 날씬한 비율) */
     width: 100%;
     max-width: 280px; 
 
-    /* [수정] 높이 '고정' (탭 전환 시 꿀렁거림 방지) */
-    height: 600px;
-    min-height: 600px;
+    /* [수정] 600px -> 520px (버튼 한 줄 크기만큼 더 줄임) */
+    height: 520px;
+    min-height: 520px;
 
-    /* 하단 여백 등 나머지 디자인 유지 */
     padding-bottom: 20px;
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(25px);
@@ -423,7 +420,8 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
 
                     {/* 1. FLOW TAB */}
                     {activeTab === 'flow' && (
-                        <div className="w-full flex flex-col items-center justify-center pt-10 h-full">
+                        /* [수정] pt-10 제거, justify-center 추가 (수직 정중앙 정렬) */
+                        <div className="w-full flex flex-col items-center justify-center h-full">
                             <div className="relative w-40 h-40 flex items-center justify-center mb-6">
                                 <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 140 140">
                                     <circle stroke="rgba(255,255,255,0.3)" strokeWidth="8" fill="transparent" r={radius} cx="70" cy="70" />
@@ -471,7 +469,8 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                                         className={`${bgClass} w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border`}
                                     >
                                         {renderIcon(item.icon, `w-5 h-5 ${item.color}`)}
-                                        <span className="text-[11px] font-bold text-white tracking-tight">{item.name}</span>
+                                        {/* [수정] text-[11px] -> text-xs 로 글자 확대 */}
+                                        <span className="text-xs font-bold text-white tracking-tight">{item.name}</span>
                                     </button>
                                 );
                             })}
@@ -494,7 +493,8 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                                         className={`${bgClass} w-full aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 border`}
                                     >
                                         {renderIcon(item.icon, `w-5 h-5 ${item.color}`)}
-                                        <span className="text-[11px] font-bold text-white tracking-tight">{item.name}</span>
+                                        {/* [수정] text-[11px] -> text-xs 로 글자 확대 */}
+                                        <span className="text-xs font-bold text-white tracking-tight">{item.name}</span>
                                     </button>
                                 );
                             })}
