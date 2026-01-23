@@ -455,8 +455,12 @@ else if (rangeIconBlock) {
         const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
         content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
     } else {
+        // [디자인 수정] 선 대신 반짝임(⊹) 기호 사용
+        // text-[10px]: 아이콘보다 작게 설정하여 위계 질서 유지
+        // opacity-70: 너무 흐리면 먼지 같아 보이므로 적당히 빛나게 설정
+        // leading-none: 수직 중앙 정렬 보정
         content = (
-            <div className={`w-[80%] h-[2px] rounded-full ${color} bg-current opacity-40 relative z-10 mx-auto`} />
+            <span className={`text-[10px] leading-none ${color} opacity-30 relative z-10 pb-[1px]`}>⊹</span>
         );
     }
 }
