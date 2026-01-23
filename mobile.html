@@ -316,6 +316,7 @@
             };
 
             const handleItemClick = (item, type) => {
+                // 모달을 띄울 대상들 (운동, 독서, 기록, 상담, 낮잠, 딥슬립)
                 if (MODAL_TARGETS.includes(item.id)) {
                     setPendingItem({ ...item, type });
                     setDurHour(0);
@@ -323,13 +324,14 @@
                     setModalType('time');
                     setShowModal(true);
                 } else {
+                    // [수정] PC 위젯과 동일하게 기본 소요시간을 15분 -> 10분으로 변경
                     sendSignal({
                         type: type,
                         tag: item.name,
-                        duration: 15,
+                        duration: 10, // 10분으로 통일
                         note: "Quick Log",
                         icon: item.icon, 
-                        color: item.color // ★ [추가됨] 색상 정보(text-purple-300 등) 전송!
+                        color: item.color 
                     });
                 }
             };
