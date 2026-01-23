@@ -854,9 +854,21 @@
 
                 const resolvedType = (type === 'auto' || type === 'manual') ? 'focus' : (type.includes('switch') ? 'switch' : 'rest');
 
+                // [수정] 점화 시도(10분 이하 타이머)일 경우 메타데이터 변경
+                let finalName = itemData?.name;
+                let finalIcon = itemData?.icon;
+                let finalColor = itemData?.color;
+
+                if (type === 'auto' && totalDuration <= 10) {
+                    finalName = "점화 시도";
+                    finalIcon = "Flame"; // 아이콘 이름 문자열
+                    finalColor = "text-sky-300";
+                }
+
                 const newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
-                    quality: quality || 'Cloud', type: resolvedType, icon: itemData?.icon, name: itemData?.name, color: itemData?.color,
+                    quality: quality || 'Cloud', type: resolvedType, 
+                    icon: finalIcon, name: finalName, color: finalColor,
                     recovery: itemData?.recovery, 
                     memo: (type === 'auto' || type === 'manual') ? focusMemo : null
                 };
@@ -897,7 +909,7 @@
                 }
 
                 // [Todo 완료 처리]
-                if (selectedTodoId) {
+                if (selectedTodoId && (type !== 'auto' || totalDuration > 10)) {
                     try {
                         const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                         const updatedTodos = savedTodos.map(t => {
@@ -972,6 +984,9 @@
                 };
             
             const renderBlockIcon = (block) => {
+                if (block.name === '점화 시도') {
+                    return <Icons.Flame className="w-3 h-3 text-sky-300" />;
+                }
                 if (block.type === 'focus' || !block.type) {
                     if (block.quality === 'Sun') return <Icons.Sun className="w-8 h-8 text-purple-300" />;
                     if (block.quality === 'Cloud') return <Icons.Cloud className="w-8 h-8 text-sky-300" />;
@@ -1428,8 +1443,8 @@
                                                     <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div>
                                                 ) : (
                                                     visibleData.map((block) => {
-                                                        const isCompact = block.type === 'switch' || block.type === 'rest';
-                                                        const isFocus = block.type === 'focus' || !block.type;
+                                                        const isCompact = block.type === 'switch' || block.type === 'rest' || (block.type === 'focus' && block.name === '점화 시도');
+                                                        const isFocus = (block.type === 'focus' || !block.type) && !isCompact; // 점화 시도는 Focus UI(더하기 버튼 등) 제외
                                                         
                                                         return (
                                                             <div key={block.id} className={isCompact ? "log-item-compact" : "log-item"}>
