@@ -381,15 +381,29 @@
 
                     {/* Tabs (여백 축소) */}
                     <div className="flex px-3 py-2 gap-2">
-                        {['flow', 'switch', 'rest'].map(tab => (
-                            <button 
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`flex-1 tab-btn ${activeTab === tab ? 'tab-active' : 'hover:bg-white/20'}`}
-                            >
-                                {tab === 'flow' ? 'Flow' : tab === 'switch' ? 'Switch' : 'Rest'}
-                            </button>
-                        ))}
+                        {['flow', 'switch', 'rest'].map(tab => {
+    const isActive = activeTab === tab;
+    const labels = { flow: '༚✧Flow✧༚', switch: '༚✧Switch✧༚', rest: '༚✧Rest✧༚' };
+    
+    // [디자인] Switch는 보라색, 나머지는 하늘색 / 활성 상태일 때 배경 불투명도 증가
+    let colorClass = "";
+    if (isActive) {
+        if (tab === 'switch') colorClass = "bg-white/60 text-purple-300 border border-purple-300/40 shadow-sm";
+        else colorClass = "bg-white/60 text-sky-300 border border-sky-300/40 shadow-sm";
+    } else {
+        colorClass = "hover:bg-white/20 text-slate-400";
+    }
+
+    return (
+        <button 
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 tab-btn border border-transparent ${colorClass}`}
+        >
+            {labels[tab]}
+        </button>
+    );
+})}
                     </div>
 
                     {/* Content Area (여백 축소) */}
@@ -431,36 +445,52 @@
                         )}
 
                         {/* 2. SWITCH TAB (간격 축소) */}
-                        {activeTab === 'switch' && (
-                            <div className="w-full grid grid-cols-3 gap-2">
-                                {switchQuests.map(item => (
-                                    <button 
-                                        key={item.id} 
-                                        onClick={() => handleItemClick(item, 'Switch')}
-                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5"
-                                    >
-                                        {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
-                                        <span className="text-xs font-bold">{item.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+{activeTab === 'switch' && (
+    <div className="w-full grid grid-cols-3 gap-2">
+        {switchQuests.map(item => {
+            // [강조] 운동(r_exercise), 독서(r1)는 배경을 더 진하게
+            const isSpecial = ['r_exercise', 'r1'].includes(item.id);
+            const bgClass = isSpecial 
+                ? "bg-white/60 border-white/60 hover:bg-white/70" // 강조 스타일
+                : "quest-btn"; // 기본 스타일
+
+            return (
+                <button 
+                    key={item.id} 
+                    onClick={() => handleItemClick(item, 'Switch')}
+                    className={`${bgClass} aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 border`}
+                >
+                    {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
+                    <span className="text-xs font-bold">{item.name}</span>
+                </button>
+            );
+        })}
+    </div>
+)}
 
                         {/* 3. REST TAB (간격 축소) */}
-                        {activeTab === 'rest' && (
-                            <div className="w-full grid grid-cols-3 gap-2">
-                                {restOptions.map(item => (
-                                    <button 
-                                        key={item.id} 
-                                        onClick={() => handleItemClick(item, 'Rest')}
-                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5"
-                                    >
-                                        {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
-                                        <span className="text-xs font-bold">{item.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+{activeTab === 'rest' && (
+    <div className="w-full grid grid-cols-3 gap-2">
+        {restOptions.map(item => {
+            // [강조] 기록, 상담, 낮잠, 딥슬립은 배경을 더 진하게
+            const isSpecial = ['r_record', 'r_counseling', 'r2', 'r4'].includes(item.id);
+            const bgClass = isSpecial 
+                ? "bg-white/60 border-white/60 hover:bg-white/70" // 강조 스타일
+                : "quest-btn"; // 기본 스타일
+
+            return (
+                <button 
+                    key={item.id} 
+                    onClick={() => handleItemClick(item, 'Rest')}
+                    className={`${bgClass} aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all active:scale-95 border`}
+                >
+                    {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
+                    <span className="text-xs font-bold">{item.name}</span>
+                </button>
+            );
+        })}
+    </div>
+)}
                     </div>
 
                     {/* MODALS */}
