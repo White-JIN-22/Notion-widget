@@ -16,11 +16,11 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%); /* Light Sky Base */
+            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 모바일은 위에서부터 채움 */
+            align-items: flex-start;
             min-height: 100vh;
             overflow-x: hidden;
             color: #334155;
@@ -33,18 +33,23 @@
         /* Fortress Glass Style */
         .widget-container {
             width: 100%;
-            max-width: 420px; /* 모바일 너비 제한 */
+            max-width: 420px;
             min-height: 100vh;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             display: flex;
             flex-direction: column;
+            /* [수정] 흰색 얇은 외곽선 추가 */
+            border-left: 1px solid rgba(255, 255, 255, 0.6);
+            border-right: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 20px rgba(186, 230, 253, 0.1);
         }
 
         .header-section {
-            padding: 20px 20px 10px 20px;
-            background: rgba(255, 255, 255, 0.15);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            /* [수정] 여백 축소 */
+            padding: 16px 20px 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(5px);
         }
 
@@ -57,11 +62,11 @@
 
         .tab-btn {
             transition: all 0.2s;
-            border-radius: 14px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 0.85rem;
             color: #94a3b8;
-            padding: 10px 0;
+            padding: 8px 0; /* [수정] 여백 축소 */
         }
         .tab-active {
             background: rgba(255, 255, 255, 0.5);
@@ -119,10 +124,11 @@
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
         /* Colors */
-        .text-bright { color: #334155; } /* 모바일 가독성을 위해 Slate-700 사용 */
+        .text-bright { color: #ffffff; } /* [수정] 제목 흰색 */
         .text-sky-300 { color: #38bdf8; }
         .text-purple-300 { color: #c084fc; }
         .text-slate-400 { color: #94a3b8; }
+        .text-yellow-custom { color: #fde047; } /* 밝은 노란색 */
     </style>
 </head>
 <body>
@@ -130,10 +136,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // ⚠️ 본인의 Cloudflare Worker 주소 입력
-        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+        // ⚠️ [설정] 본인의 Cloudflare Worker 주소 입력
+        const WORKER_URL = "YOUR_WORKER_URL_HERE";
 
-        // Icons (Lucide copy)
         const Icons = {
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
@@ -142,7 +147,6 @@
             Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
             Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
-            // ... (PC 위젯의 나머지 아이콘들 복사) ...
             Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
             Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
             Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
@@ -171,8 +175,8 @@
 
             // Modal State
             const [showModal, setShowModal] = useState(false);
-            const [modalType, setModalType] = useState('none'); // 'time', 'flow-end', 'wakeup', 'bedtime'
-            const [pendingItem, setPendingItem] = useState(null); // 운동, 독서 등 항목 임시 저장
+            const [modalType, setModalType] = useState('none');
+            const [pendingItem, setPendingItem] = useState(null);
 
             // Inputs
             const [durHour, setDurHour] = useState(0);
@@ -181,7 +185,7 @@
             const [timeMin, setTimeMin] = useState(0);
             const [memo, setMemo] = useState('');
 
-            // Data Lists (Same as PC)
+            // Data Lists
             const switchQuests = [
                 { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300' },
                 { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' }, 
@@ -202,12 +206,12 @@
                 { id: 'r_record', name: '기록', icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', icon: 'Leaf', color: 'text-sky-300' }, 
                 { id: 'r2', name: '낮잠', icon: 'Zzz', color: 'text-slate-400' }, 
+                // [추가] 딥 슬립
+                { id: 'r4', name: '딥 슬립', icon: 'Moon', color: 'text-slate-400' },
             ];
 
-            // Modal 대상 ID 목록
             const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
 
-            // --- Effects ---
             useEffect(() => {
                 let interval = null;
                 if (isRecording) {
@@ -227,28 +231,21 @@
 
             const triggerToast = (msg) => setToast(msg);
 
-            // --- Logic ---
             const sendSignal = async (payload) => {
                 if (!WORKER_URL || WORKER_URL.includes("YOUR_")) {
                     triggerToast("⚠️ Worker URL 미설정");
                     return;
                 }
-
-                // 모바일 전송임을 표시
                 payload.timestamp = new Date().toISOString();
-                
                 try {
-                    // Fire and Forget (Satellite Mode)
                     fetch(WORKER_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    
                     if (payload.wakeUpTime) triggerToast(`☀️ 기상 ${payload.wakeUpTime} 전송`);
                     else if (payload.bedTime) triggerToast(`🌙 취침 ${payload.bedTime} 전송`);
                     else triggerToast("📡 신호 전송 완료");
-
                 } catch (e) {
                     triggerToast("❌ 전송 실패");
                 }
@@ -261,13 +258,11 @@
                     setElapsed(0);
                 } else {
                     setIsRecording(false);
-                    // 3분 미만: 기록 안 함 (PC와 동일)
                     if (elapsed < 180) {
                         triggerToast("❄️ 점화 실패 (기록 X)");
                         setElapsed(0);
                         return;
                     }
-                    // 성공: 모달 오픈
                     setModalType('flow-end');
                     setShowModal(true);
                 }
@@ -289,17 +284,16 @@
 
             const handleItemClick = (item, type) => {
                 if (MODAL_TARGETS.includes(item.id)) {
-                    setPendingItem({ ...item, type }); // type: 'Switch' or 'Rest'
+                    setPendingItem({ ...item, type });
                     setDurHour(0);
                     setDurMin(30);
                     setModalType('time');
                     setShowModal(true);
                 } else {
-                    // Quick Log
                     sendSignal({
-                        type: type, // 'Switch' or 'Rest'
+                        type: type,
                         tag: item.name,
-                        duration: 15, // Default
+                        duration: 15,
                         note: "Quick Log"
                     });
                 }
@@ -344,7 +338,7 @@
                 return <Icon className={className} />;
             };
 
-            // Timer Render Logic
+            // [수정] Timer Text Logic (Ready일 때 3:00 표시)
             const formatStopwatch = (sec) => {
                 if (sec < 180) {
                     const remaining = 180 - sec;
@@ -360,7 +354,7 @@
                 }
             };
 
-            const radius = 60; // Mobile Scale
+            const radius = 60; 
             const circumference = 2 * Math.PI * radius;
             const progress = elapsed < 180 ? Math.max(0, (180 - elapsed) / 180) : 1;
             const dashoffset = circumference - (progress * circumference);
@@ -372,19 +366,21 @@
 
                     {/* Header */}
                     <div className="header-section flex justify-between items-center">
-                        <h1 className="text-xl font-bold font-serif text-slate-700 italic tracking-tight">Daily Log</h1>
+                        {/* [수정] 제목: 흰색, 기울임 제거 */}
+                        <h1 className="text-xl font-bold font-serif text-white tracking-tight">Daily Log</h1>
                         <div className="flex gap-2">
-                            <button onClick={handleWakeUp} className="w-9 h-9 rounded-xl bg-white/40 border border-white/50 flex items-center justify-center text-yellow-500 shadow-sm active:scale-95 transition-transform">
-                                <Icons.Sun className="w-5 h-5" />
+                            {/* [수정] 아이콘: 모두 노란색으로 통일 */}
+                            <button onClick={handleWakeUp} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-custom shadow-sm active:scale-95 transition-transform hover:bg-white/20">
+                                <Icons.Sun className="w-4 h-4" />
                             </button>
-                            <button onClick={handleBedTime} className="w-9 h-9 rounded-xl bg-white/40 border border-white/50 flex items-center justify-center text-purple-400 shadow-sm active:scale-95 transition-transform">
-                                <Icons.Moon className="w-5 h-5" />
+                            <button onClick={handleBedTime} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-custom shadow-sm active:scale-95 transition-transform hover:bg-white/20">
+                                <Icons.Moon className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="flex px-4 py-3 gap-2">
+                    {/* Tabs (여백 축소) */}
+                    <div className="flex px-3 py-2 gap-2">
                         {['flow', 'switch', 'rest'].map(tab => (
                             <button 
                                 key={tab}
@@ -396,13 +392,13 @@
                         ))}
                     </div>
 
-                    {/* Content Area */}
-                    <div className="flex-1 p-4 flex flex-col items-center overflow-y-auto">
+                    {/* Content Area (여백 축소) */}
+                    <div className="flex-1 p-3 flex flex-col items-center overflow-y-auto">
                         
                         {/* 1. FLOW TAB */}
                         {activeTab === 'flow' && (
-                            <div className="w-full flex flex-col items-center justify-center pt-8">
-                                <div className="relative w-48 h-48 flex items-center justify-center mb-8">
+                            <div className="w-full flex flex-col items-center justify-center pt-6">
+                                <div className="relative w-44 h-44 flex items-center justify-center mb-6">
                                     <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 140 140">
                                         <circle stroke="rgba(255,255,255,0.3)" strokeWidth="8" fill="transparent" r={radius} cx="70" cy="70" />
                                         <circle 
@@ -415,8 +411,9 @@
                                         />
                                     </svg>
                                     <div className="flex flex-col items-center z-10">
+                                        {/* [수정] Ready일 때 3:00 표시 */}
                                         <span className={`text-4xl font-mono font-bold tracking-tighter ${isRecording ? (elapsed < 180 ? 'text-sky-500' : 'text-slate-600') : 'text-slate-400'}`}>
-                                            {isRecording ? formatStopwatch(elapsed) : "0:00"}
+                                            {isRecording ? formatStopwatch(elapsed) : "3:00"}
                                         </span>
                                         <span className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">
                                             {isRecording ? (elapsed < 180 ? "Ignition" : "Flowing") : "Ready"}
@@ -426,40 +423,40 @@
 
                                 <button 
                                     onClick={toggleTimer}
-                                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 ${isRecording ? 'bg-sky-400 text-white' : 'bg-white text-sky-400 border-2 border-sky-100'}`}
+                                    className={`w-18 h-18 p-4 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 ${isRecording ? 'bg-sky-400 text-white' : 'bg-white text-sky-400 border-2 border-sky-100'}`}
                                 >
                                     {isRecording ? <Icons.Stop className="w-8 h-8" /> : <Icons.Play className="w-8 h-8 ml-1" />}
                                 </button>
                             </div>
                         )}
 
-                        {/* 2. SWITCH TAB */}
+                        {/* 2. SWITCH TAB (간격 축소) */}
                         {activeTab === 'switch' && (
-                            <div className="w-full grid grid-cols-3 gap-3">
+                            <div className="w-full grid grid-cols-3 gap-2">
                                 {switchQuests.map(item => (
                                     <button 
                                         key={item.id} 
                                         onClick={() => handleItemClick(item, 'Switch')}
-                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-2"
+                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5"
                                     >
-                                        {renderIcon(item.icon, `w-7 h-7 ${item.color}`)}
-                                        <span className="text-sm font-bold">{item.name}</span>
+                                        {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
+                                        <span className="text-xs font-bold">{item.name}</span>
                                     </button>
                                 ))}
                             </div>
                         )}
 
-                        {/* 3. REST TAB */}
+                        {/* 3. REST TAB (간격 축소) */}
                         {activeTab === 'rest' && (
-                            <div className="w-full grid grid-cols-3 gap-3">
+                            <div className="w-full grid grid-cols-3 gap-2">
                                 {restOptions.map(item => (
                                     <button 
                                         key={item.id} 
                                         onClick={() => handleItemClick(item, 'Rest')}
-                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-2"
+                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-1.5"
                                     >
-                                        {renderIcon(item.icon, `w-7 h-7 ${item.color}`)}
-                                        <span className="text-sm font-bold">{item.name}</span>
+                                        {renderIcon(item.icon, `w-6 h-6 ${item.color}`)}
+                                        <span className="text-xs font-bold">{item.name}</span>
                                     </button>
                                 ))}
                             </div>
@@ -471,7 +468,6 @@
                         <div className="fixed inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
                             <div className="w-full modal-content p-6 pb-10" onClick={e => e.stopPropagation()}>
                                 
-                                {/* 1. Time Input Modal (Switch/Rest) */}
                                 {modalType === 'time' && pendingItem && (
                                     <>
                                         <div className="flex items-center justify-center gap-2 mb-6">
@@ -496,7 +492,6 @@
                                     </>
                                 )}
 
-                                {/* 2. Flow End Modal */}
                                 {modalType === 'flow-end' && (
                                     <>
                                         <h3 className="text-lg font-bold text-center text-slate-700 mb-4 font-serif">Focus Complete</h3>
@@ -524,7 +519,6 @@
                                     </>
                                 )}
 
-                                {/* 3. WakeUp / BedTime Modal */}
                                 {(modalType === 'wakeup' || modalType === 'bedtime') && (
                                     <>
                                         <h3 className="text-lg font-bold text-center text-slate-700 mb-6 font-serif">
