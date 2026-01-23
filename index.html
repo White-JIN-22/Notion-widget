@@ -480,9 +480,6 @@
 
                             setBlocks(mergedBlocks);
 
-                            // [핵심 수정] 에너지 재계산 로직 삭제! 
-                            // 자연 소모(Decay)는 블록에 없으므로, 로컬에 저장된 수치를 믿어야 함.
-                            // 단, 로컬 데이터가 없거나 날짜가 바뀌었을 때만 기본값 사용.
                             const currentLife = savedData.date === dateStr && savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
                             const currentEnergy = savedData.date === dateStr && savedData.energy !== undefined ? savedData.energy : 100;
                             const currentIntroDone = savedData.introDone || false;
@@ -505,6 +502,7 @@
                                 bedTime: data.bedTime || savedData.bedTime || bedTime,
                                 introDone: currentIntroDone
                             }));
+                            triggerToast("✅ 최신 데이터 동기화 완료");
                         }
                     }
                 } catch (e) { console.error("Sync Load Error:", e); }
@@ -1090,7 +1088,16 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [수정 완료] 퀄리티 기준 현실화 (2.5점 이상이어야 Sun)
+            // [추가] 수동 동기화 핸들러 (구름 버튼용)
+            const manualSync = async () => {
+                if (isSending) return;
+                triggerToast("☁️ 동기화 중...");
+                await syncFromServer(); // 서버 데이터 가져오기 + 로컬 병합
+                // 가져온 후 자동으로 리렌더링 되므로, 굳이 바로 다시 보낼 필요는 없으나
+                // 확실한 저장을 위해 1초 뒤 자동 저장 트리거
+                setTimeout(() => sendToNotion(true), 1000); 
+            };
+            
             const sendToNotion = async (silent = false) => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) {
                     if (!silent) triggerToast("⚠️ 워커 URL을 설정해주세요.");
@@ -1335,16 +1342,17 @@
     <Icons.Moon className="w-4 h-4 text-yellow-100" />
 </button>
                                         
-                                        {/* [오른쪽] 전송 버튼 (구름) */}
+                                        {/* [오른쪽] 동기화 버튼 (변경됨) */}
                                         <button 
-                                            onClick={() => sendToNotion(false)} 
+                                            onClick={manualSync} 
                                             disabled={isSending} 
                                             className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
                                         >
                                             {isSending ? (
                                                 <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
                                             ) : (
-                                                <Icons.Cloud className="w-4 h-4" />
+                                                <Icons.Refresh className="w-4 h-4" /> 
+                                                /* Cloud 아이콘 대신 Refresh 아이콘 추천 (의미 명확화) */
                                             )}
                                         </button>
                                     </div>
