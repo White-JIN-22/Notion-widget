@@ -12,234 +12,538 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Roboto+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
-        /* Fortress Glass: Base Style [cite: 2, 3] */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%); /* Light Sky Base */
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* 모바일은 위에서부터 채움 */
             min-height: 100vh;
-            color: #334155; /* Slate 700 for Readability */
-            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            color: #334155;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Glass Container Style [cite: 10, 11] */
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+
+        /* Fortress Glass Style */
+        .widget-container {
+            width: 100%;
+            max-width: 420px; /* 모바일 너비 제한 */
+            min-height: 100vh;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-section {
+            padding: 20px 20px 10px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
         .glass-panel {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(186, 230, 253, 0.1);
         }
 
-        /* Typography Utilities  */
-        .font-serif-display { font-family: 'Playfair Display', serif; }
-        .font-mono-data { font-family: 'Roboto Mono', monospace; }
+        .tab-btn {
+            transition: all 0.2s;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            padding: 10px 0;
+        }
+        .tab-active {
+            background: rgba(255, 255, 255, 0.5);
+            color: #7dd3fc;
+            border: 1px solid rgba(125, 211, 252, 0.3);
+            box-shadow: 0 2px 10px rgba(186, 230, 253, 0.2);
+        }
 
-        /* Animation */
-        .tap-active:active { transform: scale(0.96); }
+        .quest-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: #475569;
+            transition: all 0.1s;
+        }
+        .quest-btn:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Modal */
+        .modal-overlay { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(4px); }
+        .modal-content {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 40px rgba(14, 165, 233, 0.15);
+        }
+
+        .custom-select {
+            width: 100%; border-radius: 12px; padding: 10px;
+            font-weight: 700; outline: none; text-align: center; appearance: none;
+            background: rgba(241, 245, 249, 0.8);
+            border: 1px solid rgba(203, 213, 225, 0.5);
+            color: #334155; font-size: 1rem;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .toast-message {
+            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(125, 211, 252, 0.4); 
+            color: #0ea5e9;
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 700;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.15);
+            z-index: 100;
+            animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+        /* Colors */
+        .text-bright { color: #334155; } /* 모바일 가독성을 위해 Slate-700 사용 */
+        .text-sky-300 { color: #38bdf8; }
+        .text-purple-300 { color: #c084fc; }
+        .text-slate-400 { color: #94a3b8; }
     </style>
 </head>
 <body>
-    <div id="root" class="w-full h-full"></div>
+    <div id="root" class="w-full"></div>
     <script type="text/babel">
-        const { useState, useEffect } = React;
-        const WORKER_URL = "Yhttps://log-worker.moonkelly601.workers.dev";
+        const { useState, useEffect, useRef } = React;
 
-        // --- Icons (Lucide Style SVG) [cite: 7] ---
+        // ⚠️ 본인의 Cloudflare Worker 주소 입력
+        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+
+        // Icons (Lucide copy)
         const Icons = {
-            Zap: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
-            Moon: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
-            BookOpen: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>,
-            Coffee: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
-            Send: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
-            Dumbbell: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6.5 6.5 11 11"></path><path d="m21 21-1-1"></path><path d="m3 3 1 1"></path><path d="m18 22 4-4"></path><path d="m2 6 4-4"></path><path d="m3 10 7-7"></path><path d="m14 21 7-7"></path></svg>
+            Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
+            Cloud: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
+            Rain: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
+            Play: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Stop: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="6" width="12" height="12" rx="2" ry="2"></rect></svg>,
+            Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
+            // ... (PC 위젯의 나머지 아이콘들 복사) ...
+            Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+            Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
+            Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+            Wind: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
+            Shirt: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
+            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
+            Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
+            Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
+            Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+            Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
+            Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
+            Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>,
+            Pot: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"></path><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path><path d="M4 12V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5"></path><path d="M12 3v-1"></path></svg>,
+            Stretch: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"></circle><path d="M12 20V6"></path><path d="M5 8l7-2 7 2"></path><path d="M8 20l4-9 4 9"></path></svg>,
         };
 
-        // --- Components ---
-
-        // Glass Button Component 
-        const ActionButton = ({ label, time, icon, colorClass, onClick, disabled }) => (
-            <button 
-                onClick={onClick}
-                disabled={disabled}
-                className={`
-                    relative w-full p-4 rounded-2xl border transition-all duration-200 tap-active
-                    flex items-center justify-between group overflow-hidden
-                    ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/40'}
-                    ${colorClass}
-                `}
-            >
-                <div className="flex items-center gap-3 z-10">
-                    <div className="p-2 rounded-full bg-white/40 shadow-sm text-slate-700">
-                        {icon}
-                    </div>
-                    <div className="text-left">
-                        <div className="text-sm font-bold opacity-90">{label}</div>
-                        {time && <div className="text-xs font-mono-data opacity-60">{time}m</div>}
-                    </div>
-                </div>
-                <div className="absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-white/20 to-transparent pointer-events-none" />
-            </button>
-        );
-
         const App = () => {
-            const [status, setStatus] = useState('idle'); // idle, sending, success, error
-            const [customNote, setCustomNote] = useState('');
+            const [activeTab, setActiveTab] = useState('flow');
+            const [toast, setToast] = useState(null);
+            
+            // Timer State (Flow)
+            const [isRecording, setIsRecording] = useState(false);
+            const [startTime, setStartTime] = useState(null);
+            const [elapsed, setElapsed] = useState(0);
 
-            // Data Sending Logic (POST)
-            const sendSignal = async (category, tag, duration) => {
+            // Modal State
+            const [showModal, setShowModal] = useState(false);
+            const [modalType, setModalType] = useState('none'); // 'time', 'flow-end', 'wakeup', 'bedtime'
+            const [pendingItem, setPendingItem] = useState(null); // 운동, 독서 등 항목 임시 저장
+
+            // Inputs
+            const [durHour, setDurHour] = useState(0);
+            const [durMin, setDurMin] = useState(30);
+            const [timeHour, setTimeHour] = useState(7);
+            const [timeMin, setTimeMin] = useState(0);
+            const [memo, setMemo] = useState('');
+
+            // Data Lists (Same as PC)
+            const switchQuests = [
+                { id: 'r_exercise', name: '운동', icon: 'Flame', color: 'text-purple-300' },
+                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' }, 
+                { id: 'r1', name: '독서', icon: 'Book', color: 'text-purple-300' }, 
+                { id: 'q_hygiene', name: '위생관리', icon: 'Droplets', color: 'text-sky-300' },
+                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
+                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300' }, 
+                { id: 'q_pill', name: '알약 소분', icon: 'Pill', color: 'text-sky-300' },
+                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
+                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
+                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
+            ];
+
+            const restOptions = [
+                { id: 'q2_moved', name: '식사', icon: 'Utensils', color: 'text-purple-300' }, 
+                { id: 'q_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300' }, 
+                { id: 'r_stretch', name: '스트레칭', icon: 'Stretch', color: 'text-purple-300' }, 
+                { id: 'r_record', name: '기록', icon: 'Pen', color: 'text-sky-300' }, 
+                { id: 'r_counseling', name: '상담', icon: 'Leaf', color: 'text-sky-300' }, 
+                { id: 'r2', name: '낮잠', icon: 'Zzz', color: 'text-slate-400' }, 
+            ];
+
+            // Modal 대상 ID 목록
+            const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
+
+            // --- Effects ---
+            useEffect(() => {
+                let interval = null;
+                if (isRecording) {
+                    interval = setInterval(() => {
+                        setElapsed(Math.floor((Date.now() - startTime) / 1000));
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isRecording, startTime]);
+
+            useEffect(() => {
+                if (toast) {
+                    const timer = setTimeout(() => setToast(null), 2500);
+                    return () => clearTimeout(timer);
+                }
+            }, [toast]);
+
+            const triggerToast = (msg) => setToast(msg);
+
+            // --- Logic ---
+            const sendSignal = async (payload) => {
                 if (!WORKER_URL || WORKER_URL.includes("YOUR_")) {
-                    alert("코드 내에 WORKER_URL을 설정해주세요.");
+                    triggerToast("⚠️ Worker URL 미설정");
                     return;
                 }
 
-                setStatus('sending');
-                const payload = {
-                    timestamp: new Date().toISOString(),
-                    type: category, // 'Focus', 'Life', 'Rest'
-                    tag: tag,
-                    duration: duration,
-                    note: customNote || "Mobile Input"
-                };
-
+                // 모바일 전송임을 표시
+                payload.timestamp = new Date().toISOString();
+                
                 try {
-                    // Fire and Forget pattern for speed, but we await for feedback
-                    await fetch(WORKER_URL, {
+                    // Fire and Forget (Satellite Mode)
+                    fetch(WORKER_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     
-                    setStatus('success');
-                    setCustomNote(''); // Reset note
-                    setTimeout(() => setStatus('idle'), 2000); // Reset status
+                    if (payload.wakeUpTime) triggerToast(`☀️ 기상 ${payload.wakeUpTime} 전송`);
+                    else if (payload.bedTime) triggerToast(`🌙 취침 ${payload.bedTime} 전송`);
+                    else triggerToast("📡 신호 전송 완료");
+
                 } catch (e) {
-                    console.error(e);
-                    setStatus('error');
-                    setTimeout(() => setStatus('idle'), 3000);
+                    triggerToast("❌ 전송 실패");
                 }
             };
 
+            const toggleTimer = () => {
+                if (!isRecording) {
+                    setIsRecording(true);
+                    setStartTime(Date.now());
+                    setElapsed(0);
+                } else {
+                    setIsRecording(false);
+                    // 3분 미만: 기록 안 함 (PC와 동일)
+                    if (elapsed < 180) {
+                        triggerToast("❄️ 점화 실패 (기록 X)");
+                        setElapsed(0);
+                        return;
+                    }
+                    // 성공: 모달 오픈
+                    setModalType('flow-end');
+                    setShowModal(true);
+                }
+            };
+
+            const handleFlowEnd = (weather) => {
+                const duration = Math.ceil(elapsed / 60);
+                sendSignal({
+                    type: 'Focus',
+                    tag: 'Flow State',
+                    duration: duration,
+                    note: memo || "Mobile Focus",
+                    quality: weather
+                });
+                setShowModal(false);
+                setMemo('');
+                setElapsed(0);
+            };
+
+            const handleItemClick = (item, type) => {
+                if (MODAL_TARGETS.includes(item.id)) {
+                    setPendingItem({ ...item, type }); // type: 'Switch' or 'Rest'
+                    setDurHour(0);
+                    setDurMin(30);
+                    setModalType('time');
+                    setShowModal(true);
+                } else {
+                    // Quick Log
+                    sendSignal({
+                        type: type, // 'Switch' or 'Rest'
+                        tag: item.name,
+                        duration: 15, // Default
+                        note: "Quick Log"
+                    });
+                }
+            };
+
+            const handleManualSave = () => {
+                const duration = (durHour * 60) + durMin;
+                sendSignal({
+                    type: pendingItem.type,
+                    tag: pendingItem.name,
+                    duration: duration,
+                    note: "Manual Log"
+                });
+                setShowModal(false);
+            };
+
+            const handleWakeUp = () => {
+                const now = new Date();
+                setTimeHour(now.getHours());
+                setTimeMin(Math.floor(now.getMinutes() / 5) * 5);
+                setModalType('wakeup');
+                setShowModal(true);
+            };
+
+            const handleBedTime = () => {
+                const now = new Date();
+                setTimeHour(now.getHours());
+                setTimeMin(Math.floor(now.getMinutes() / 5) * 5);
+                setModalType('bedtime');
+                setShowModal(true);
+            };
+
+            const confirmTime = (mode) => {
+                const timeStr = `${String(timeHour).padStart(2,'0')}:${String(timeMin).padStart(2,'0')}`;
+                if (mode === 'wakeup') sendSignal({ wakeUpTime: timeStr });
+                if (mode === 'bedtime') sendSignal({ bedTime: timeStr });
+                setShowModal(false);
+            };
+
+            const renderIcon = (name, className) => {
+                const Icon = Icons[name] || Icons.Sun;
+                return <Icon className={className} />;
+            };
+
+            // Timer Render Logic
+            const formatStopwatch = (sec) => {
+                if (sec < 180) {
+                    const remaining = 180 - sec;
+                    const m = Math.floor(remaining / 60);
+                    const s = remaining % 60;
+                    return `${m}:${String(s).padStart(2, '0')}`;
+                } else {
+                    const extended = sec - 180;
+                    const h = Math.floor(extended / 3600);
+                    const m = Math.floor((extended % 3600) / 60);
+                    const s = extended % 60;
+                    return `+${h > 0 ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
+            };
+
+            const radius = 60; // Mobile Scale
+            const circumference = 2 * Math.PI * radius;
+            const progress = elapsed < 180 ? Math.max(0, (180 - elapsed) / 180) : 1;
+            const dashoffset = circumference - (progress * circumference);
+            const strokeColor = elapsed < 180 ? "#7dd3fc" : "#ffffff";
+
             return (
-                <div className="w-full max-w-md mx-auto min-h-screen p-6 flex flex-col relative overflow-hidden">
-                    
-                    {/* Header Section [cite: 15] */}
-                    <header className="mb-8 pt-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <h1 className="text-2xl font-serif-display font-bold text-slate-700 italic">
-                                Satellite Link <span className="text-sky-400 not-italic">༚✧</span>
-                            </h1>
-                            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.5)]"></div>
+                <div className="widget-container">
+                    {toast && <div className="toast-message">{toast}</div>}
+
+                    {/* Header */}
+                    <div className="header-section flex justify-between items-center">
+                        <h1 className="text-xl font-bold font-serif text-slate-700 italic tracking-tight">Daily Log</h1>
+                        <div className="flex gap-2">
+                            <button onClick={handleWakeUp} className="w-9 h-9 rounded-xl bg-white/40 border border-white/50 flex items-center justify-center text-yellow-500 shadow-sm active:scale-95 transition-transform">
+                                <Icons.Sun className="w-5 h-5" />
+                            </button>
+                            <button onClick={handleBedTime} className="w-9 h-9 rounded-xl bg-white/40 border border-white/50 flex items-center justify-center text-purple-400 shadow-sm active:scale-95 transition-transform">
+                                <Icons.Moon className="w-5 h-5" />
+                            </button>
                         </div>
-                        <p className="text-xs text-slate-500 font-mono-data">Fortress Uplink System v2.0</p>
-                    </header>
-
-                    {/* Main Grid Actions */}
-                    <div className="flex-1 flex flex-col gap-6 overflow-y-auto no-scrollbar pb-20">
-                        
-                        {/* 1. Focus Zone (Sky)  */}
-                        <section>
-                            <h2 className="text-xs font-bold text-sky-600 mb-3 uppercase tracking-wider pl-1">Focus & Work</h2>
-                            <div className="grid grid-cols-1 gap-3">
-                                <ActionButton 
-                                    label="Deep Focus" 
-                                    time="50" 
-                                    icon={<Icons.Zap />} 
-                                    colorClass="bg-sky-50/50 border-sky-100 text-slate-700"
-                                    onClick={() => sendSignal('Focus', 'Deep Work', 50)}
-                                    disabled={status === 'sending'}
-                                />
-                                <ActionButton 
-                                    label="Quick Task" 
-                                    time="25" 
-                                    icon={<Icons.Zap />} 
-                                    colorClass="bg-sky-50/30 border-sky-100 text-slate-700"
-                                    onClick={() => sendSignal('Focus', 'Quick Task', 25)}
-                                    disabled={status === 'sending'}
-                                />
-                            </div>
-                        </section>
-
-                        {/* 2. Life Zone (Purple)  */}
-                        <section>
-                            <h2 className="text-xs font-bold text-purple-600 mb-3 uppercase tracking-wider pl-1">Life & Growth</h2>
-                            <div className="grid grid-cols-2 gap-3">
-                                <ActionButton 
-                                    label="Reading" 
-                                    time="30" 
-                                    icon={<Icons.BookOpen />} 
-                                    colorClass="bg-purple-50/40 border-purple-100 text-slate-700"
-                                    onClick={() => sendSignal('Life', 'Reading', 30)}
-                                    disabled={status === 'sending'}
-                                />
-                                <ActionButton 
-                                    label="Workout" 
-                                    time="60" 
-                                    icon={<Icons.Dumbbell />} 
-                                    colorClass="bg-purple-50/40 border-purple-100 text-slate-700"
-                                    onClick={() => sendSignal('Life', 'Exercise', 60)}
-                                    disabled={status === 'sending'}
-                                />
-                            </div>
-                        </section>
-
-                        {/* 3. Rest Zone (Neutral) */}
-                        <section>
-                            <h2 className="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider pl-1">Rest</h2>
-                            <ActionButton 
-                                label="Recharge" 
-                                time="15" 
-                                icon={<Icons.Coffee />} 
-                                colorClass="bg-white/40 border-white/60 text-slate-600"
-                                onClick={() => sendSignal('Rest', 'Break', 15)}
-                                disabled={status === 'sending'}
-                            />
-                        </section>
-
-                        {/* Manual Note Input */}
-                        <section className="glass-panel p-4 rounded-2xl mt-2">
-                            <div className="flex gap-2">
-                                <input 
-                                    type="text" 
-                                    value={customNote}
-                                    onChange={(e) => setCustomNote(e.target.value)}
-                                    placeholder="Add a quick note..."
-                                    className="flex-1 bg-transparent border-none outline-none text-sm text-slate-700 placeholder-slate-400 font-mono-data"
-                                />
-                                <button 
-                                    onClick={() => sendSignal('Note', 'Log', 0)}
-                                    className="p-2 rounded-lg bg-sky-100/50 text-sky-600 hover:bg-sky-200/50 transition-colors"
-                                >
-                                    <Icons.Send />
-                                </button>
-                            </div>
-                        </section>
                     </div>
 
-                    {/* Toast Notification  */}
-                    {status !== 'idle' && (
-                        <div className={`
-                            absolute bottom-6 left-1/2 transform -translate-x-1/2 
-                            glass-panel px-6 py-3 rounded-full shadow-xl
-                            flex items-center gap-3 transition-all duration-300
-                            ${status === 'sending' ? 'translate-y-0 opacity-100' : ''}
-                            ${status === 'success' ? 'bg-green-50/80 border-green-200' : ''}
-                            ${status === 'error' ? 'bg-rose-50/80 border-rose-200' : ''}
-                        `}>
-                            {status === 'sending' && <span className="animate-spin text-sky-500">❋</span>}
-                            {status === 'success' && <span className="text-green-500">✓</span>}
-                            {status === 'error' && <span className="text-rose-500">!</span>}
-                            
-                            <span className="text-sm font-medium text-slate-700">
-                                {status === 'sending' && 'Sending Signal...'}
-                                {status === 'success' && 'Signal Received'}
-                                {status === 'error' && 'Link Failed'}
-                            </span>
+                    {/* Tabs */}
+                    <div className="flex px-4 py-3 gap-2">
+                        {['flow', 'switch', 'rest'].map(tab => (
+                            <button 
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 tab-btn ${activeTab === tab ? 'tab-active' : 'hover:bg-white/20'}`}
+                            >
+                                {tab === 'flow' ? 'Flow' : tab === 'switch' ? 'Switch' : 'Rest'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1 p-4 flex flex-col items-center overflow-y-auto">
+                        
+                        {/* 1. FLOW TAB */}
+                        {activeTab === 'flow' && (
+                            <div className="w-full flex flex-col items-center justify-center pt-8">
+                                <div className="relative w-48 h-48 flex items-center justify-center mb-8">
+                                    <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 140 140">
+                                        <circle stroke="rgba(255,255,255,0.3)" strokeWidth="8" fill="transparent" r={radius} cx="70" cy="70" />
+                                        <circle 
+                                            className="progress-ring__circle"
+                                            stroke={strokeColor}
+                                            strokeWidth="8"
+                                            fill="transparent"
+                                            r={radius} cx="70" cy="70"
+                                            style={{ strokeDasharray: `${circumference} ${circumference}`, strokeDashoffset: dashoffset, strokeLinecap: "round" }}
+                                        />
+                                    </svg>
+                                    <div className="flex flex-col items-center z-10">
+                                        <span className={`text-4xl font-mono font-bold tracking-tighter ${isRecording ? (elapsed < 180 ? 'text-sky-500' : 'text-slate-600') : 'text-slate-400'}`}>
+                                            {isRecording ? formatStopwatch(elapsed) : "0:00"}
+                                        </span>
+                                        <span className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                                            {isRecording ? (elapsed < 180 ? "Ignition" : "Flowing") : "Ready"}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={toggleTimer}
+                                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-95 ${isRecording ? 'bg-sky-400 text-white' : 'bg-white text-sky-400 border-2 border-sky-100'}`}
+                                >
+                                    {isRecording ? <Icons.Stop className="w-8 h-8" /> : <Icons.Play className="w-8 h-8 ml-1" />}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* 2. SWITCH TAB */}
+                        {activeTab === 'switch' && (
+                            <div className="w-full grid grid-cols-3 gap-3">
+                                {switchQuests.map(item => (
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => handleItemClick(item, 'Switch')}
+                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-2"
+                                    >
+                                        {renderIcon(item.icon, `w-7 h-7 ${item.color}`)}
+                                        <span className="text-sm font-bold">{item.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* 3. REST TAB */}
+                        {activeTab === 'rest' && (
+                            <div className="w-full grid grid-cols-3 gap-3">
+                                {restOptions.map(item => (
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => handleItemClick(item, 'Rest')}
+                                        className="quest-btn aspect-square rounded-2xl flex flex-col items-center justify-center gap-2"
+                                    >
+                                        {renderIcon(item.icon, `w-7 h-7 ${item.color}`)}
+                                        <span className="text-sm font-bold">{item.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* MODALS */}
+                    {showModal && (
+                        <div className="fixed inset-0 modal-overlay z-50 flex items-end justify-center" onClick={() => setShowModal(false)}>
+                            <div className="w-full modal-content p-6 pb-10" onClick={e => e.stopPropagation()}>
+                                
+                                {/* 1. Time Input Modal (Switch/Rest) */}
+                                {modalType === 'time' && pendingItem && (
+                                    <>
+                                        <div className="flex items-center justify-center gap-2 mb-6">
+                                            {renderIcon(pendingItem.icon, `w-6 h-6 ${pendingItem.color}`)}
+                                            <h3 className="text-lg font-bold text-slate-700">{pendingItem.name}</h3>
+                                        </div>
+                                        <div className="flex gap-3 mb-6">
+                                            <div className="flex-1">
+                                                <select value={durHour} onChange={e => setDurHour(Number(e.target.value))} className="custom-select">
+                                                    {[0,1,2,3,4,5].map(h => <option key={h} value={h}>{h} 시간</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="flex-1">
+                                                <select value={durMin} onChange={e => setDurMin(Number(e.target.value))} className="custom-select">
+                                                    {[0,10,15,20,30,40,50].map(m => <option key={m} value={m}>{m} 분</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button onClick={handleManualSave} className="w-full py-4 rounded-xl bg-slate-800 text-white font-bold text-lg shadow-lg active:scale-95 transition-transform">
+                                            전송하기
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* 2. Flow End Modal */}
+                                {modalType === 'flow-end' && (
+                                    <>
+                                        <h3 className="text-lg font-bold text-center text-slate-700 mb-4 font-serif">Focus Complete</h3>
+                                        <input 
+                                            type="text" 
+                                            placeholder="어떤 일에 집중했나요?" 
+                                            value={memo}
+                                            onChange={e => setMemo(e.target.value)}
+                                            className="w-full p-4 rounded-xl bg-white border border-slate-200 mb-6 font-bold text-slate-700 focus:outline-none focus:border-sky-300"
+                                        />
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <button onClick={() => handleFlowEnd('Sun')} className="p-4 rounded-xl bg-white border border-slate-100 flex flex-col items-center gap-2 shadow-sm active:scale-95">
+                                                <Icons.Sun className="w-8 h-8 text-purple-300" />
+                                                <span className="text-xs font-bold text-slate-500">Clear</span>
+                                            </button>
+                                            <button onClick={() => handleFlowEnd('Cloud')} className="p-4 rounded-xl bg-white border border-slate-100 flex flex-col items-center gap-2 shadow-sm active:scale-95">
+                                                <Icons.Cloud className="w-8 h-8 text-sky-300" />
+                                                <span className="text-xs font-bold text-slate-500">Cloudy</span>
+                                            </button>
+                                            <button onClick={() => handleFlowEnd('Rain')} className="p-4 rounded-xl bg-white border border-slate-100 flex flex-col items-center gap-2 shadow-sm active:scale-95">
+                                                <Icons.Rain className="w-8 h-8 text-slate-400" />
+                                                <span className="text-xs font-bold text-slate-500">Heavy</span>
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* 3. WakeUp / BedTime Modal */}
+                                {(modalType === 'wakeup' || modalType === 'bedtime') && (
+                                    <>
+                                        <h3 className="text-lg font-bold text-center text-slate-700 mb-6 font-serif">
+                                            {modalType === 'wakeup' ? 'Wake Up Time' : 'Bed Time'}
+                                        </h3>
+                                        <div className="flex gap-3 mb-6">
+                                            <select value={timeHour} onChange={e => setTimeHour(Number(e.target.value))} className="custom-select">
+                                                {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h} 시</option>)}
+                                            </select>
+                                            <select value={timeMin} onChange={e => setTimeMin(Number(e.target.value))} className="custom-select">
+                                                {Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')} 분</option>)}
+                                            </select>
+                                        </div>
+                                        <button onClick={() => confirmTime(modalType)} className="w-full py-4 rounded-xl bg-slate-800 text-white font-bold text-lg shadow-lg active:scale-95 transition-transform">
+                                            시간 기록
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
