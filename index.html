@@ -874,16 +874,17 @@
                     newLife = Math.min(lifeEnergy + (itemData.recovery || 10), 100);
                     msg = `💾 ${itemData.name} 완료 (+${itemData.recovery || 10} Life)`;
                 } else { // Focus
-                    if (totalDuration < 10 && type === 'auto') {
-                        newEnergy = 20; // 집중 실패 페널티
-                        msg = "⚠️ 집중 실패. 휴식이 시급합니다! (Energy 📉 20%)";
-                    } else {
-                        const consumption = Math.floor(totalDuration / 10) * 5;
-                        newEnergy = Math.max(energy - consumption, 0);
-                        msg = `💾 저장 완료! (Energy -${consumption}%)`;
-                    }
+                    // [수정] 15분당 10% 소모 (1시간 = 40% 소모)
+                    // 10분 미만 페널티 로직은 삭제됨 (점화 성공 시 기록만 되고 소모 없음)
+                    const consumption = Math.floor(totalDuration / 15) * 10;
+                    newEnergy = Math.max(energy - consumption, 0);
+                    
+                    // 소모량이 0일 때(15분 미만)와 아닐 때 메시지 구분
+                    msg = consumption > 0 
+                        ? `💾 저장 완료! (Energy -${consumption}%)` 
+                        : `💾 점화 성공! (Energy 소모 없음)`;
                 }
-
+                
                 // [상태 초기화 및 저장]
                 setPendingQuest(null); // 대기 중인 퀘스트 초기화
                 setFocusMemo('');
