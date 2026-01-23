@@ -1064,30 +1064,25 @@
     // 모달을 띄울 항목들의 ID 리스트
     const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
     
+    // [공통] 어떤 행동이든 일단 현재 시간 기준으로 변수를 갱신합니다. (이게 없어서 입력이 과거로 날아갔던 것!)
+    const now = new Date();
+    let h = now.getHours();
+    let m = Math.round(now.getMinutes() / 5) * 5; 
+    if (m === 60) { m = 0; h = h + 1; if (h === 24) h = 0; }
+
+    // [중요] 수동 시간 변수를 강제로 현재로 동기화
+    setManualEndHour(h);
+    setManualEndMin(m);
+    setTimeRef('end'); // 빠른 기록은 보통 '지금 끝냄'을 의미하므로 종료 기준
+
     if (MODAL_TARGETS.includes(item.id)) {
-        // [추가] 현재 시간 기준 5분 단위 반올림 계산
-        const now = new Date();
-        let h = now.getHours();
-        let m = Math.round(now.getMinutes() / 5) * 5; // 5분 단위 반올림
-        
-        if (m === 60) {
-            m = 0;
-            h = h + 1;
-            if (h === 24) h = 0;
-        }
-
-        // [설정] 계산된 시간 적용 및 기준점 '종료'로 고정
-        setManualEndHour(h);
-        setManualEndMin(m);
-        setTimeRef('end'); // 기본값을 '종료'로 설정
-
         setPendingQuest({ ...item, type });
         setManualDurHour(0);
-        setManualDurMin(30); // 기본 소요시간 30분
+        setManualDurMin(30);
         setModalType('specific-log');
         setShowModal(true);
     } else {
-        // 그 외 항목은 즉시 기록 (Quick Add)
+        // 그 외 항목은 갱신된 시간 변수를 사용하여 즉시 기록
         addRecord(null, `manual-${type}`, item);
     }
 };
