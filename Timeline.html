@@ -455,8 +455,12 @@ else if (rangeIconBlock) {
         const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
         content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
     } else {
-        // 나머지: 점(·) 표시 (크기를 text-2xl로 키우고, 투명도를 80으로 올림)
-        content = <span className={`text-2xl leading-none ${color} opacity-80 font-bold relative z-10 pb-0.5`}>·</span>;
+        // 나머지: 점 대신 '흐름선' (Flow Line) 적용
+        // w-[70%]: 칸을 가득 채우지 않고 여백을 주어 세련된 대시(-) 형태 유지
+        // bg-current: 텍스트 색상(color 변수)을 배경색으로 가져와 투명도 적용
+        content = (
+            <div className={`w-[70%] h-[1.5px] rounded-full ${color} bg-current opacity-40 relative z-10 mx-auto`} />
+        );
     }
 }
                         // C. 단발성 아이콘
