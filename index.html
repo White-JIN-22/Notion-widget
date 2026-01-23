@@ -594,6 +594,7 @@
                     setEnergy(savedData.energy !== undefined ? savedData.energy : 100);
                     setBlocks(savedData.blocks || []);
                     setWakeUpTime(savedData.wakeUpTime || null);
+                    setBedTime(savedData.bedTime || null); // [Fix] 로컬 스토리지에서 취침 시간 복구
 
                     // 3. 인트로 표시 여부 결정: 기상 시간이 있거나 OR 인트로 체크를 마쳤다면 패스
                     if (savedData.wakeUpTime || savedData.introDone) {
