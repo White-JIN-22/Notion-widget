@@ -278,13 +278,29 @@
 
             const handleFlowEnd = (weather) => {
                 const duration = Math.ceil(elapsed / 60);
+                
+                // [수정됨] 날씨 선택에 따라 아이콘과 색상을 자동으로 매핑합니다.
+                let selectedIcon = "Sun";
+                let selectedColor = "text-purple-300"; // 기본: 맑음(보라)
+
+                if (weather === 'Cloud') {
+                    selectedIcon = "Cloud";
+                    selectedColor = "text-sky-300"; // 흐림(하늘)
+                } else if (weather === 'Rain') {
+                    selectedIcon = "Rain";
+                    selectedColor = "text-slate-400"; // 비(회색)
+                }
+
                 sendSignal({
                     type: 'Focus',
                     tag: 'Flow State',
                     duration: duration,
                     note: memo || "Mobile Focus",
-                    quality: weather
+                    quality: weather,
+                    icon: selectedIcon,   // ★ [수정] 날씨에 맞는 아이콘 전송
+                    color: selectedColor  // ★ [수정] 날씨에 맞는 색상 전송
                 });
+                
                 setShowModal(false);
                 setMemo('');
                 setElapsed(0);
