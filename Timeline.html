@@ -455,11 +455,12 @@ else if (rangeIconBlock) {
         const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
         content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
     } else {
-        // 나머지: 점 대신 '흐름선' (Flow Line) 적용
-        // w-[70%]: 칸을 가득 채우지 않고 여백을 주어 세련된 대시(-) 형태 유지
-        // bg-current: 텍스트 색상(color 변수)을 배경색으로 가져와 투명도 적용
+        // [디자인 수정] 아이콘 색상 동기화 + 도톰한 연결선
+        // ${color}: 아이콘과 동일한 텍스트 컬러 클래스 적용 (예: text-purple-custom)
+        // bg-current: 텍스트 컬러를 배경색으로 강제 변환 -> 아이콘과 색상 완벽 일치
+        // opacity-60: 색감을 살리되, 아이콘보다는 살짝 뒤에 있는 느낌
         content = (
-            <div className={`w-[70%] h-[1.5px] rounded-full ${color} bg-current opacity-40 relative z-10 mx-auto`} />
+            <div className={`w-[80%] h-[4px] rounded-full ${color} bg-current opacity-60 relative z-10 mx-auto`} />
         );
     }
 }
