@@ -832,14 +832,18 @@
                     // Focus 수동: Focus 전용 시간 선택기 사용
                     totalDuration = (manualDurHour * 60) + manualDurMin;
                 } else if (type === 'manual-switch' || type === 'manual-rest') {
-                    // Switch/Rest 수동: 
-                    // - pendingQuest(운동/독서 모달)가 있으면 manualDur 사용
-                    // - 아니면(일반 탭) optDur(회색 선택기) 사용
-                    const h = pendingQuest ? manualDurHour : optDurHour;
-                    const m = pendingQuest ? manualDurMin : optDurMin;
+                // [수정] 퀵 버튼(요리, 티타임, 청소 등)은 무조건 10분으로 고정 (타임블록 시각화 최적화)
+                // 모달을 거치는 항목(운동, 독서, 낮잠 등)만 사용자가 설정한 시간을 반영
+                if (pendingQuest) {
+                    const h = manualDurHour;
+                    const m = manualDurMin;
                     const calcDur = (h * 60) + m;
-                    totalDuration = calcDur > 0 ? calcDur : 10; // 0분이면 10분으로 보정
+                    totalDuration = calcDur > 0 ? calcDur : 10; 
+                } else {
+                    // 퀵 액션은 10분 고정
+                    totalDuration = 10; 
                 }
+            }
 
                 if (type === 'manual' && totalDuration <= 3) { 
                     triggerToast("⚠️ 시간이 너무 짧아요."); return; 
@@ -1140,19 +1144,6 @@
                 triggerToast("🗑️ 기록 삭제 및 에너지 복구 완료");
                 
                 // 삭제 내용 서버 동기화
-                setTimeout(() => sendToNotion(true), 100);
-            };
-
-            const executeDelete = () => {
-                const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
-                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                // 기존 데이터 유지하며 블록만 업데이트
-                saveData(lifeEnergy, energy, newBlocks);
-                
-                setDeleteTargetId(null);
-                setShowModal(false);
-                triggerToast("🗑️ 기록이 삭제되었습니다.");
-                // 삭제 후 동기화
                 setTimeout(() => sendToNotion(true), 100);
             };
 
