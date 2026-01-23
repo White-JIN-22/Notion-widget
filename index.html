@@ -901,17 +901,6 @@
 
                 const resolvedType = (type === 'auto' || type === 'manual') ? 'focus' : (type.includes('switch') ? 'switch' : 'rest');
 
-                // [수정] 점화 시도(10분 이하 타이머)일 경우 메타데이터 변경
-                let finalName = itemData?.name;
-                let finalIcon = itemData?.icon;
-                let finalColor = itemData?.color;
-
-                if (type === 'auto' && totalDuration <= 10) {
-                    finalName = "점화 시도";
-                    finalIcon = "Flame"; // 아이콘 이름 문자열
-                    finalColor = "text-sky-300";
-                }
-
                 const newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
                     quality: quality || 'Cloud', type: resolvedType, 
@@ -938,10 +927,9 @@
                     const consumption = Math.floor(totalDuration / 15) * 10;
                     newEnergy = Math.max(energy - consumption, 0);
                     
-                    // 소모량이 0일 때(15분 미만)와 아닐 때 메시지 구분
                     msg = consumption > 0 
                         ? `💾 저장 완료! (Energy -${consumption}%)` 
-                        : `💾 점화 성공! (Energy 소모 없음)`;
+                        : `💾 저장 완료! (Energy 소모 없음)`;
                 }
                 
                 // [상태 초기화 및 저장]
@@ -1572,7 +1560,8 @@
                                                     <div className="text-center text-dim py-8 text-xs italic">기록이 없습니다.</div>
                                                 ) : (
                                                     visibleData.map((block) => {
-                                                        const isCompact = block.type === 'switch' || block.type === 'rest' || (block.type === 'focus' && block.name === '점화 시도');
+                                                        // [수정] 점화 시도 조건 삭제 -> Focus는 무조건 확장형 UI
+                                                        const isCompact = block.type === 'switch' || block.type === 'rest';
                                                         const isFocus = (block.type === 'focus' || !block.type) && !isCompact; // 점화 시도는 Focus UI(더하기 버튼 등) 제외
                                                         
                                                         return (
