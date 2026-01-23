@@ -1510,18 +1510,16 @@
 
                                     {/* 오른쪽: 기상 시간 (변경 없음) */}
                                     <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
-                                        {wakeUpTime && (
-                    <div className="flex items-center gap-1 text-yellow-100">
-                        <Icons.Sun className="w-2.5 h-2.5 text-yellow-100" />
-                        <span className="text-[10px] font-bold tracking-tight">{wakeUpTime}</span>
-                    </div>
-                )}
-                                        {bedTime && (
-                    <div className="flex items-center gap-1 text-yellow-100">
-                        <Icons.Moon className="w-2.5 h-2.5 text-yellow-100" />
-                        <span className="text-[10px] font-bold tracking-tight">{bedTime}</span>
-                    </div>
-                )}
+                                        {/* 기상 시간: 값이 없으면 '-' 표시 (항상 노출) */}
+                                        <div className="flex items-center gap-1 text-yellow-100">
+                                            <Icons.Sun className="w-2.5 h-2.5 text-yellow-100" />
+                                            <span className="text-[10px] font-bold tracking-tight">{wakeUpTime || "-"}</span>
+                                        </div>
+                                        {/* 취침 시간: 값이 없으면 '-' 표시 (항상 노출) */}
+                                        <div className="flex items-center gap-1 text-yellow-100">
+                                            <Icons.Moon className="w-2.5 h-2.5 text-yellow-100" />
+                                            <span className="text-[10px] font-bold tracking-tight">{bedTime || "-"}</span>
+                                        </div>
                                     </div>
                                 </div>
 
