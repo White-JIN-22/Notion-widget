@@ -183,7 +183,7 @@
                 }
             };
 
-            // 2. [서버 동기화/조회] (디버깅 모드 ON)
+            // 2. [서버 조회] (Read-Only: 절대 로컬에 저장하지 않음)
             const syncOrFetch = async () => {
                 const targetDate = viewDate;
                 const isCurrentToday = isToday(targetDate);
@@ -193,23 +193,18 @@
                 const d = String(targetDate.getDate()).padStart(2, '0');
                 const dateYMD = `${y}-${m}-${d}`;
 
-                // (1) 캘린더 가져오기
-                // 🔍 디버깅: 캘린더 API가 살아있는지 확인
+                // (1) 캘린더 가져오기 (단순 조회)
                 try {
-                    console.log("📅 캘린더 데이터 요청 중...");
                     const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
                     if (calRes.ok) {
                         const calData = await calRes.json();
-                        console.log(`✅ 캘린더 수신 성공: ${calData.length}개의 일정`);
                         if (Array.isArray(calData)) setEvents(calData);
-                    } else {
-                        console.error(`❌ 캘린더 서버 응답 오류: ${calRes.status}`);
                     }
                 } catch (e) { 
-                    console.error("❌ 캘린더 불러오기 실패(네트워크/CORS):", e); 
+                    /* 캘린더 에러 무시 */ 
                 }
 
-                // (2) 블록 데이터 가져오기 (스마트 병합 로직 유지)
+                // (2) 블록 데이터 가져오기 (뷰어 모드)
                 if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
                     try {
                         const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
@@ -217,43 +212,25 @@
                             const data = await res.json();
                             const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
                             
-                            // [오늘 날짜: 스마트 병합]
+                            // [핵심 변경] 오늘 날짜인 경우:
+                            // 로컬 데이터(loadLocalData)가 이미 화면에 그려지고 있다면, 
+                            // 서버 데이터가 덮어씌워져서 깜빡이는 것을 방지하기 위해 업데이트를 건너뜁니다.
+                            // (단, 다른 기기라서 로컬 데이터가 텅 비어있다면 서버 데이터를 보여줍니다.)
                             if (isCurrentToday) {
-                                const currentLocal = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                                const localBlocks = currentLocal.blocks || [];
-                                const blockMap = new Map();
-
-                                localBlocks.forEach(b => blockMap.set(b.id, b)); // 내 기기 우선
-
-                                let hasNewData = false;
-                                fetchedBlocks.forEach(b => {
-                                    if (!blockMap.has(b.id)) {
-                                        blockMap.set(b.id, b);
-                                        hasNewData = true;
-                                    }
-                                });
-
-                                const serverWakeUp = (data.wakeUpTime && data.wakeUpTime !== "-") ? data.wakeUpTime : null;
-                                const needWakeUpUpdate = serverWakeUp && serverWakeUp !== currentLocal.wakeUpTime;
-
-                                if (hasNewData || needWakeUpUpdate) {
-                                    const mergedBlocks = Array.from(blockMap.values());
-                                    const finalWakeUp = serverWakeUp || currentLocal.wakeUpTime;
-                                    localStorage.setItem('fortressData', JSON.stringify({
-                                        ...currentLocal, date: dateYMD, blocks: mergedBlocks, wakeUpTime: finalWakeUp, bedTime: data.bedTime || currentLocal.bedTime
-                                    }));
-                                    setBlocks(mergedBlocks);
-                                    if(finalWakeUp) setWakeUpTime(finalWakeUp);
-                                    if(data.bedTime) setBedTime(data.bedTime);
+                                if (blocks.length === 0 && fetchedBlocks.length > 0) {
+                                    setBlocks(fetchedBlocks);
+                                    if (data.wakeUpTime) setWakeUpTime(data.wakeUpTime);
+                                    if (data.bedTime) setBedTime(data.bedTime);
                                 }
+                                // 로컬에 데이터가 있다면 loadLocalData가 처리하므로 건드리지 않음 (충돌 방지)
                             } else {
-                                // [과거 날짜] 읽기 전용
+                                // 과거 날짜인 경우: 서버 데이터 그대로 표시
                                 setBlocks(fetchedBlocks);
-                                if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
-                                if (data.bedTime) setBedTime(data.bedTime);
+                                if (data.wakeUpTime) setWakeUpTime(data.wakeUpTime || null);
+                                if (data.bedTime) setBedTime(data.bedTime || null);
                             }
                         }
-                    } catch (e) { /* 블록 오류는 조용히 넘김 */ }
+                    } catch (e) { /* 조회 에러 무시 */ }
                 }
             };
 
