@@ -832,18 +832,22 @@
                     // Focus 수동: Focus 전용 시간 선택기 사용
                     totalDuration = (manualDurHour * 60) + manualDurMin;
                 } else if (type === 'manual-switch' || type === 'manual-rest') {
-                // [수정] 퀵 버튼(요리, 티타임, 청소 등)은 무조건 10분으로 고정 (타임블록 시각화 최적화)
-                // 모달을 거치는 항목(운동, 독서, 낮잠 등)만 사용자가 설정한 시간을 반영
-                if (pendingQuest) {
-                    const h = manualDurHour;
-                    const m = manualDurMin;
-                    const calcDur = (h * 60) + m;
-                    totalDuration = calcDur > 0 ? calcDur : 10; 
-                } else {
-                    // 퀵 액션은 10분 고정
-                    totalDuration = 10; 
-                }
-            }
+    // 1. 특정 퀘스트 모달 (운동, 독서 등)을 통한 입력
+    if (pendingQuest) {
+        const h = manualDurHour;
+        const m = manualDurMin;
+        const calcDur = (h * 60) + m;
+        totalDuration = calcDur > 0 ? calcDur : 10; 
+    } 
+    // 2. [추가] 일반 수동 모달에서 '소요 시간(optDur)'을 입력한 경우 (우선순위 높음)
+    else if (optDurHour > 0 || optDurMin > 0) {
+        totalDuration = (optDurHour * 60) + optDurMin;
+    }
+    // 3. 그 외 퀵 액션 (10분 고정)
+    else {
+        totalDuration = 10; 
+    }
+}
 
                 if (type === 'manual' && totalDuration <= 3) { 
                     triggerToast("⚠️ 시간이 너무 짧아요."); return; 
@@ -1063,22 +1067,37 @@
                 setShowModal(true);
             };
 
-            // [수정] 통합된 활동 핸들러 (지정된 ID는 모달, 나머지는 즉시 기록)
             const handleActivity = (item, type) => {
-                // 모달을 띄울 항목들의 ID 리스트
-                const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
-                
-                if (MODAL_TARGETS.includes(item.id)) {
-                    setPendingQuest({ ...item, type }); // type(switch/rest) 정보를 포함해 저장
-                    setManualDurHour(0);
-                    setManualDurMin(30);
-                    setModalType('specific-log'); // 통합 모달 타입
-                    setShowModal(true);
-                } else {
-                    // 그 외 항목은 즉시 기록 (Quick Add)
-                    addRecord(null, `manual-${type}`, item);
-                }
-            };
+    // 모달을 띄울 항목들의 ID 리스트
+    const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r2', 'r4'];
+    
+    if (MODAL_TARGETS.includes(item.id)) {
+        // [추가] 현재 시간 기준 5분 단위 반올림 계산
+        const now = new Date();
+        let h = now.getHours();
+        let m = Math.round(now.getMinutes() / 5) * 5; // 5분 단위 반올림
+        
+        if (m === 60) {
+            m = 0;
+            h = h + 1;
+            if (h === 24) h = 0;
+        }
+
+        // [설정] 계산된 시간 적용 및 기준점 '종료'로 고정
+        setManualEndHour(h);
+        setManualEndMin(m);
+        setTimeRef('end'); // 기본값을 '종료'로 설정
+
+        setPendingQuest({ ...item, type });
+        setManualDurHour(0);
+        setManualDurMin(30); // 기본 소요시간 30분
+        setModalType('specific-log');
+        setShowModal(true);
+    } else {
+        // 그 외 항목은 즉시 기록 (Quick Add)
+        addRecord(null, `manual-${type}`, item);
+    }
+};
 
             // 4. 시간 포맷팅 (리스트 렌더링용)
             const formatDuration = (min) => {
