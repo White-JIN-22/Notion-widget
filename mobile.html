@@ -303,7 +303,8 @@
                         tag: item.name,
                         duration: 15,
                         note: "Quick Log",
-                        icon: item.icon // ★ [추가됨] 아이콘 정보 전송
+                        icon: item.icon, 
+                        color: item.color // ★ [추가됨] 색상 정보(text-purple-300 등) 전송!
                     });
                 }
             };
@@ -315,7 +316,8 @@
                     tag: pendingItem.name,
                     duration: duration,
                     note: "Manual Log",
-                    icon: pendingItem.icon // ★ [추가됨] 여기서도 아이콘을 꼭 보내야 함
+                    icon: pendingItem.icon,
+                    color: pendingItem.color // ★ [추가됨] 여기서도 색상을 꼭 보내야 함
                 });
                 setShowModal(false);
             };
