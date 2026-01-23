@@ -520,9 +520,8 @@
                                     calcEnergy = Math.min(100, calcEnergy + recoveryVal);
                                 }
                                 else if (b.type === 'focus' || !b.type) {
-                                    // 집중 행동: 15분당 10 소모
-                                    // (점화 시도 등 10분 이하는 소모 없음)
-                                    const consumption = Math.floor((b.duration || 0) / 15) * 10;
+                                    // [수정] 밸런스 조정: 20분당 10 소모 (1시간 = 30%)
+                                    const consumption = Math.floor((b.duration || 0) / 20) * 10;
                                     calcEnergy = Math.max(0, calcEnergy - consumption);
                                 }
                             });
@@ -943,12 +942,11 @@
                     newLife = Math.min(lifeEnergy + (itemData.recovery || 10), 100);
                     msg = `💾 ${itemData.name} 완료 (+${itemData.recovery || 10} Life)`;
                 } else { // Focus
-                    // [수정] 15분당 10% 소모 (1시간 = 40% 소모)
-                    // 10분 미만 페널티 로직은 삭제됨 (점화 성공 시 기록만 되고 소모 없음)
-                    const consumption = Math.floor(totalDuration / 15) * 10;
+                    // [수정] 밸런스 조정: 20분당 10% 소모 (1시간 = 30% 소모)
+                    const consumption = Math.floor(totalDuration / 20) * 10;
                     newEnergy = Math.max(energy - consumption, 0);
                     
-                    msg = consumption > 0 
+                    msg = consumption > 0
                         ? `💾 저장 완료! (Energy -${consumption}%)` 
                         : `💾 저장 완료! (Energy 소모 없음)`;
                 }
@@ -1157,9 +1155,8 @@
                     newEnergy = Math.max(0, newEnergy - recoveryVal);
                 } 
                 else if (targetBlock.type === 'focus' || !targetBlock.type) {
-                    // [Focus 삭제] 썼던 에너지를 환불해줌(+)
-                    // 예: 30분 집중 삭제 -> 에너지 +20 복구
-                    const consumption = Math.floor((targetBlock.duration || 0) / 15) * 10;
+                    // [Focus 삭제] 썼던 에너지를 환불해줌(+) (20분당 10 환불)
+                    const consumption = Math.floor((targetBlock.duration || 0) / 20) * 10;
                     newEnergy = Math.min(100, newEnergy + consumption);
                 }
 
@@ -1192,7 +1189,7 @@
                     if (b.id === id) {
                         // 1. 기존 소모량 계산 (환불용)
                         const oldConsumption = (b.type === 'focus' || !b.type) 
-                            ? Math.floor((b.duration || 0) / 15) * 10 
+                            ? Math.floor((b.duration || 0) / 20) * 10 
                             : 0;
 
                         // 2. 시간 갱신
@@ -1201,7 +1198,7 @@
                         
                         // 3. 신규 소모량 계산 (재차감용)
                         const newConsumption = (b.type === 'focus' || !b.type) 
-                            ? Math.floor(finalDuration / 15) * 10 
+                            ? Math.floor(finalDuration / 20) * 10 
                             : 0;
 
                         // 4. 에너지 최종 반영 (현재 + 환불 - 재차감)
