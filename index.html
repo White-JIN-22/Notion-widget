@@ -831,12 +831,12 @@
                 }
             };
 
-            const addRecord = (quality, type, itemData) => {
-                const now = new Date();
-                
-                // [시간 계산]
-                // 1. 기준 시간 설정 (Manual 탭의 시/분 선택값)
-                const inputTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
+            const addRecord = (quality, type, itemData, customTime = null) => {
+    const now = new Date();
+    
+    // [시간 계산]
+    // 1. 기준 시간 설정 (customTime이 있으면 그것을 사용, 없으면 Manual 탭의 설정값 사용)
+    const inputTime = customTime || new Date(now.getFullYear(), now.getMonth(), now.getDate(), manualEndHour, manualEndMin).getTime();
                 
                 let totalDuration = 10; // 기본값
                 let startTs, endTs;
@@ -1098,8 +1098,8 @@
         setModalType('specific-log');
         setShowModal(true);
     } else {
-        // 그 외 항목은 갱신된 시간 변수를 사용하여 즉시 기록
-        addRecord(null, `manual-${type}`, item);
+        // [수정] 퀵 액션은 상태 업데이트를 기다리지 않고 현재 시간을 직접 주입하여 즉시 기록
+        addRecord(null, `manual-${type}`, item, Date.now());
     }
 };
 
