@@ -137,6 +137,15 @@
         .text-purple-300 { color: #c084fc; }
         .text-slate-400 { color: #94a3b8; }
         .text-yellow-custom { color: #fde047; } /* 밝은 노란색 */
+        
+        /* [추가] 은은한 화이트 글로우 애니메이션 */
+        @keyframes whiteGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)); stroke-opacity: 0.8; }
+            50% { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)); stroke-opacity: 1; }
+        }
+        .animate-glow {
+            animation: whiteGlow 2.5s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -440,13 +449,13 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
 
                     {/* 1. FLOW TAB */}
                     {activeTab === 'flow' && (
-                        /* [수정] pt-10 제거, justify-center 추가 (수직 정중앙 정렬) */
                         <div className="w-full flex flex-col items-center justify-center h-full">
                             <div className="relative w-40 h-40 flex items-center justify-center mb-6">
                                 <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 140 140">
                                     <circle stroke="rgba(255,255,255,0.3)" strokeWidth="8" fill="transparent" r={radius} cx="70" cy="70" />
                                     <circle 
-                                        className="progress-ring__circle"
+                                        /* [수정] 기록 중일 때 은은한 반짝임(animate-glow) 효과 적용 */
+                                        className={`progress-ring__circle ${isRecording ? 'animate-glow' : ''}`}
                                         stroke={strokeColor}
                                         strokeWidth="8"
                                         fill="transparent"
@@ -455,7 +464,8 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                                     />
                                 </svg>
                                 <div className="flex flex-col items-center z-10">
-                                    <span className={`text-3xl font-mono font-bold tracking-tighter ${isRecording ? (elapsed < 180 ? 'text-sky-500' : 'text-slate-600') : 'text-slate-400'}`}>
+                                    {/* [수정] 3분 초과 시(elapsed >= 180) 텍스트를 흰색(text-white)으로 변경 */}
+                                    <span className={`text-3xl font-mono font-bold tracking-tighter ${isRecording ? (elapsed < 180 ? 'text-sky-500' : 'text-white drop-shadow-md') : 'text-slate-400'}`}>
                                         {isRecording ? formatStopwatch(elapsed) : "3:00"}
                                     </span>
                                     <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
@@ -472,7 +482,7 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                             </button>
                         </div>
                     )}
-
+                    
                     {/* 2. SWITCH TAB (간격 gap-2 -> gap-1.5 로 축소) */}
                     {activeTab === 'switch' && (
                         <div className="w-full grid grid-cols-3 gap-1.5 content-start">
@@ -581,7 +591,7 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                                 {(modalType === 'wakeup' || modalType === 'bedtime') && (
                                     <>
                                         <h3 className="text-lg font-bold text-center text-slate-700 mb-6 font-serif">
-                                            {modalType === 'wakeup' ? 'Wake Up Time' : 'Bed Time'}
+                                            ༚✧ {modalType === 'wakeup' ? 'Wake Up Time' : 'Bed Time'} ✧༚
                                         </h3>
                                         <div className="flex gap-3 mb-6">
                                             <select value={timeHour} onChange={e => setTimeHour(Number(e.target.value))} className="custom-select">
