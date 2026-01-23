@@ -901,6 +901,11 @@
 
                 const resolvedType = (type === 'auto' || type === 'manual') ? 'focus' : (type.includes('switch') ? 'switch' : 'rest');
 
+                // [수정] 변수 선언 복구: 10분 이하도 일반 Focus로 처리하기 위해 itemData 값을 그대로 사용
+                let finalName = itemData?.name;
+                let finalIcon = itemData?.icon;
+                let finalColor = itemData?.color;
+
                 const newBlock = {
                     id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
                     quality: quality || 'Cloud', type: resolvedType, 
