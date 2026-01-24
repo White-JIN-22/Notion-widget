@@ -883,14 +883,17 @@
                 }
 
                 // 3. 시작/종료 시간 확정 (TimeRef: 시작 기준 vs 종료 기준)
+                // [수정] 퀵 액션(customTime 있음)은 강제로 '종료(end)' 기준 적용 (React 상태 지연 방지)
+                const effectiveRef = customTime ? 'end' : timeRef;
+
                 if (type === 'auto') {
                     startTs = tempSession.startTime;
                     endTs = tempSession.endTime;
                 } else {
-                    if (timeRef === 'start') {
+                    if (effectiveRef === 'start') {
                         startTs = inputTime;
                         endTs = startTs + (totalDuration * 60 * 1000);
-                    } else { // timeRef === 'end'
+                    } else { // effectiveRef === 'end'
                         endTs = inputTime;
                         startTs = endTs - (totalDuration * 60 * 1000);
                     }
