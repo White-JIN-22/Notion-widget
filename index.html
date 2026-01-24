@@ -273,17 +273,17 @@
                 return () => clearInterval(timer);
             }, []);
 
-            // [수정] 생활 에너지 자연 소모 시스템 (2시간마다 -20%로 상향, 00~06시 제외)
+            // [수정] 생활 에너지 자연 소모 시스템 (1시간마다 -10%로 변경, 00~06시 제외)
             useEffect(() => {
                 const decayCheck = setInterval(() => {
                     const now = new Date();
                     const currentHour = now.getHours();
                     const currentTime = now.getTime();
 
-                    // 1. 새벽 00:00 ~ 06:00 사이엔 소모 없음
+                    // 1. 새벽 00:00 ~ 06:00 사이엔 소모 없음 (수면 보호)
                     if (currentHour >= 0 && currentHour < 6) return;
 
-                    // 2. 마지막 소모 시간 확인 (없으면 현재 시간으로 초기화)
+                    // 2. 마지막 소모 시간 확인
                     const lastDecayStr = localStorage.getItem('lastDecayTime');
                     if (!lastDecayStr) {
                         localStorage.setItem('lastDecayTime', currentTime.toString());
@@ -291,18 +291,18 @@
                     }
 
                     const lastDecay = parseInt(lastDecayStr);
-                    const twoHours = 2 * 60 * 60 * 1000; // 2시간 (ms 단위)
+                    const oneHour = 60 * 60 * 1000; // 1시간 (ms 단위)
 
-                    // 3. 2시간이 지났는지 확인
-                    if (currentTime - lastDecay >= twoHours) {
+                    // 3. 1시간이 지났는지 확인
+                    if (currentTime - lastDecay >= oneHour) {
                         const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                         const currentLife = savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
 
                         if (currentLife > 0) {
-                            // [변경됨] 감소폭 상향: -10 -> -20
-                            const newLife = Math.max(0, currentLife - 20);
+                            // [변경] 감소폭 수정: 1시간에 -10%
+                            const newLife = Math.max(0, currentLife - 10);
                             
-                            // 로컬스토리지 업데이트 (데이터 무결성을 위해 직접 수정)
+                            // 로컬스토리지 업데이트
                             savedData.lifeEnergy = newLife;
                             localStorage.setItem('fortressData', JSON.stringify(savedData));
                             
