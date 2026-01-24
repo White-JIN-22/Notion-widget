@@ -1563,17 +1563,17 @@
                                         </div>
                                     </div>
 
-                                    {/* 오른쪽: 기상 시간 (변경 없음) */}
+                                    {/* 오른쪽: 기상/취침 시간 (아이콘 고정) */}
                                     <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
-                                        {/* 기상 시간: w-16으로 너비 고정, justify-end로 우측 밀착 */}
+                                        {/* 기상 시간: 텍스트 너비(w-8) 고정으로 아이콘 밀림 방지 */}
                                         <div className="w-16 flex items-center justify-end gap-1.5 text-yellow-100">
                                             <Icons.Sun className="w-2.5 h-2.5 text-yellow-100" />
-                                            <span className="text-[10px] font-bold tracking-tight tabular-nums">{wakeUpTime || "-"}</span>
+                                            <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{wakeUpTime || "-"}</span>
                                         </div>
-                                        {/* 취침 시간: 동일한 w-16 적용으로 세로선 일치 */}
+                                        {/* 취침 시간 */}
                                         <div className="w-16 flex items-center justify-end gap-1.5 text-yellow-100">
                                             <Icons.Moon className="w-2.5 h-2.5 text-yellow-100" />
-                                            <span className="text-[10px] font-bold tracking-tight tabular-nums">{bedTime || "-"}</span>
+                                            <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{bedTime || "-"}</span>
                                         </div>
                                     </div>
                                 </div>
