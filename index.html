@@ -1002,15 +1002,9 @@
             // [복구] 취침(업무 종료) 시간 모달 열기
             const openBedTimeModal = () => {
                 const now = new Date();
-                let h = now.getHours();
-                let m = Math.round(now.getMinutes() / 5) * 5;
-
-                // 58분, 59분 등이라서 60분으로 반올림된 경우, 0분으로 만들고 시간을 1시간 더함
-                if (m === 60) {
-                    m = 0;
-                    h = h + 1;
-                    if (h === 24) h = 0; // 24시면 0시로 변경
-                }
+                const h = now.getHours();
+                // [수정] 5분 단위 내림 (53분 -> 50분)
+                const m = Math.floor(now.getMinutes() / 5) * 5;
 
                 setBedHour(h);
                 setBedMin(m);
@@ -1054,22 +1048,20 @@
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
-            // 1. 수동 입력 모달 열기 (현재 시간 5분 단위 반올림 적용)
+            // 1. 수동 입력 모달 열기 (현재 시간 5분 단위 내림 적용)
             const openManual = () => {
                 const now = new Date();
-                let h = now.getHours();
-                // 5분 단위 반올림 로직
-                let m = Math.round(now.getMinutes() / 5) * 5;
-                if (m === 60) {
-                    m = 0;
-                    h = h + 1;
-                    if (h === 24) h = 0;
-                }
+                const h = now.getHours();
+                // [수정] 5분 단위 내림 로직 (53분 -> 50분)
+                const m = Math.floor(now.getMinutes() / 5) * 5;
 
                 setManualEndHour(h);
                 setManualEndMin(m);
                 setModalType('manual');
                 setManualTab('focus');
+                
+                // [수정] 모달이 열릴 때 Focus 탭은 항상 '종료' 기준, Switch/Rest는 탭 클릭 시 '시작'으로 전환됨
+                setTimeRef('end');
                 setOptDurHour(0);
                 setOptDurMin(0);
                 setShowModal(true);
@@ -1081,9 +1073,9 @@
     
     // [공통] 어떤 행동이든 일단 현재 시간 기준으로 변수를 갱신합니다.
     const now = new Date();
-    let h = now.getHours();
-    let m = Math.round(now.getMinutes() / 5) * 5; 
-    if (m === 60) { m = 0; h = h + 1; if (h === 24) h = 0; }
+    const h = now.getHours();
+    // [수정] 5분 단위 내림 (53분 -> 50분)
+    const m = Math.floor(now.getMinutes() / 5) * 5; 
 
     // [중요] 수동 시간 변수를 강제로 현재로 동기화
     setManualEndHour(h);
