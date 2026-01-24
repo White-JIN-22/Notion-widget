@@ -110,8 +110,6 @@
         const { useState, useEffect, useRef } = React;
 
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
-        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
-
         const categoryColors = {
             '업무': 'bg-[#7dd3fc]',      
             '자기계발': 'bg-[#d8b4fe]', 
@@ -187,88 +185,24 @@
                 }
             };
 
-            // 2. [서버 조회] (Read-Only: 절대 로컬에 저장하지 않음)
-            const syncOrFetch = async () => {
-                const targetDate = viewDate;
-                const isCurrentToday = isToday(targetDate);
-                
-                const y = targetDate.getFullYear();
-                const m = String(targetDate.getMonth() + 1).padStart(2, '0');
-                const d = String(targetDate.getDate()).padStart(2, '0');
-                const dateYMD = `${y}-${m}-${d}`;
-
-                // (1) 캘린더 가져오기 (단순 조회)
-                try {
-                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
-                    if (calRes.ok) {
-                        const calData = await calRes.json();
-                        if (Array.isArray(calData)) setEvents(calData);
-                    }
-                } catch (e) { 
-                    /* 캘린더 에러 무시 */ 
-                }
-
-                // (2) 블록 데이터 가져오기 (뷰어 모드)
-                if (WORKER_URL && !WORKER_URL.includes("your-worker")) {
-                    try {
-                        const res = await fetch(`${WORKER_URL}?date=${dateYMD}`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            const fetchedBlocks = (data.blocks && Array.isArray(data.blocks)) ? data.blocks : [];
-                            
-                            // [핵심 변경] 오늘 날짜인 경우:
-                            // 로컬 데이터(loadLocalData)가 이미 화면에 그려지고 있다면, 
-                            // 서버 데이터가 덮어씌워져서 깜빡이는 것을 방지하기 위해 업데이트를 건너뜁니다.
-                            // (단, 다른 기기라서 로컬 데이터가 텅 비어있다면 서버 데이터를 보여줍니다.)
-                            if (isCurrentToday) {
-                                // [수정] blocks 대신 blocksRef.current를 사용하여 최신 상태 확인
-                                if (blocksRef.current.length === 0 && fetchedBlocks.length > 0) {
-                                    setBlocks(fetchedBlocks);
-                                    if (data.wakeUpTime) setWakeUpTime(data.wakeUpTime);
-                                    if (data.bedTime) setBedTime(data.bedTime);
-                                }
-                                // 로컬에 데이터가 있다면 loadLocalData가 처리하므로 건드리지 않음 (충돌 방지)
-                            } else {
-                                // 과거 날짜인 경우: 서버 데이터 그대로 표시
-                                setBlocks(fetchedBlocks);
-                                if (data.wakeUpTime) setWakeUpTime(data.wakeUpTime || null);
-                                if (data.bedTime) setBedTime(data.bedTime || null);
-                            }
-                        }
-                    } catch (e) { /* 조회 에러 무시 */ }
-                }
-            };
-
             // [Effect 1] 초기 로드 및 날짜 변경 시 즉시 실행
             useEffect(() => {
-                // 날짜 표시 문자열 갱신
                 const month = viewDate.getMonth() + 1;
                 const date = viewDate.getDate();
                 const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
                 const day = days[viewDate.getDay()];
                 setDateStr(`${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')} ${day}`);
 
-                // 화면 켜자마자 데이터 한 번 가져오기
                 if (isToday(viewDate)) loadLocalData();
-                syncOrFetch();
             }, [viewDate]);
 
-            // [Effect 2] 주기적 갱신 (로컬과 서버의 속도를 다르게 설정)
+            // [Effect 2] 주기적 갱신
             useEffect(() => {
-                // 1. 로컬 데이터 (Log 위젯 연동) - 3초마다 빠르게 (네트워크 안 씀)
                 const localInterval = setInterval(() => {
                     if (isToday(viewDate)) loadLocalData();
                 }, 3000);
 
-                // 2. 서버 데이터 (캘린더/다른 기기) - 60초마다 천천히 (차단 방지)
-                const serverInterval = setInterval(() => {
-                    syncOrFetch();
-                }, 60000);
-
-                return () => {
-                    clearInterval(localInterval);
-                    clearInterval(serverInterval);
-                };
+                return () => clearInterval(localInterval);
             }, [viewDate]);
 
             // [Effect 2] 총 시간 계산 (blocks 변경 시)
