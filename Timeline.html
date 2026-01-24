@@ -185,6 +185,17 @@
                 }
             };
 
+            // [추가] 캘린더 데이터만 가져오기 (블록 데이터는 안 건드림 -> 깜빡임 없음)
+            const fetchCalendar = async () => {
+                try {
+                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
+                    if (calRes.ok) {
+                        const calData = await calRes.json();
+                        if (Array.isArray(calData)) setEvents(calData);
+                    }
+                } catch (e) { /* 에러 무시 */ }
+            };
+
             // [Effect 1] 초기 로드 및 날짜 변경 시 즉시 실행
             useEffect(() => {
                 const month = viewDate.getMonth() + 1;
@@ -194,18 +205,28 @@
                 setDateStr(`${String(month).padStart(2, '0')}/${String(date).padStart(2, '0')} ${day}`);
 
                 if (isToday(viewDate)) loadLocalData();
+                fetchCalendar(); // [복구] 캘린더 즉시 조회
             }, [viewDate]);
 
             // [Effect 2] 주기적 갱신
             useEffect(() => {
+                // 1. 로컬 데이터 (3초)
                 const localInterval = setInterval(() => {
                     if (isToday(viewDate)) loadLocalData();
                 }, 3000);
 
-                return () => clearInterval(localInterval);
+                // 2. [복구] 캘린더 데이터 (60초)
+                const calendarInterval = setInterval(() => {
+                    fetchCalendar();
+                }, 60000);
+
+                return () => {
+                    clearInterval(localInterval);
+                    clearInterval(calendarInterval);
+                };
             }, [viewDate]);
 
-            // [Effect 2] 총 시간 계산 (blocks 변경 시)
+            // [Effect 3] 총 시간 계산 (blocks 변경 시)
             useEffect(() => {
                 const focusBlocks = blocks.filter(b => !b.type || b.type === 'focus');
                 const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
