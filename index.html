@@ -527,6 +527,19 @@
                                 }
                             });
 
+                            // [추가] 새로고침 시 시간 경과에 따른 생활 에너지(Life) 자연 소모 반영
+                            // 06시부터 현재까지 흐른 시간만큼 차감합니다. (00~06시는 소모 없음)
+                            const nowHour = new Date().getHours();
+                            let activeHours = 0;
+                            
+                            if (nowHour >= 6) {
+                                activeHours = nowHour - 6; 
+                            }
+                            
+                            // [설정] 1시간당 10% 차감 (2시간마다 깎이게 하려면 activeHours * 5 로 변경하세요)
+                            const totalDecay = activeHours * 10; 
+                            calcLife = Math.max(0, calcLife - totalDecay);
+
                             // ---------------------------------------------------------
                             
                             // 4. 상태 업데이트
