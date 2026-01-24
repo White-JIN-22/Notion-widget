@@ -1002,9 +1002,25 @@
             // [복구] 취침(업무 종료) 시간 모달 열기
             const openBedTimeModal = () => {
                 const now = new Date();
-                const h = now.getHours();
-                // [수정] 5분 단위 내림 (53분 -> 50분)
-                const m = Math.floor(now.getMinutes() / 5) * 5;
+                let h = now.getHours();
+                const rawM = now.getMinutes();
+                const unit = rawM % 10;
+
+                let m;
+                // [로직] 5분은 유지, 4 이하는 내림, 6 이상은 올림
+                if (unit === 5) {
+                    m = rawM;
+                } else if (unit < 5) {
+                    m = Math.floor(rawM / 10) * 10;
+                } else {
+                    m = Math.ceil(rawM / 10) * 10;
+                }
+
+                if (m === 60) {
+                    m = 0;
+                    h = h + 1;
+                    if (h === 24) h = 0;
+                }
 
                 setBedHour(h);
                 setBedMin(m);
@@ -1048,20 +1064,38 @@
 
             const loadMoreLogs = () => { setVisibleLogs(prev => prev + 3); };
 
-            // 1. 수동 입력 모달 열기 (현재 시간 5분 단위 내림 적용)
+            // 1. 수동 입력 모달 열기 (사용자 지정 반올림 로직 적용)
             const openManual = () => {
                 const now = new Date();
-                const h = now.getHours();
-                // [수정] 5분 단위 내림 로직 (53분 -> 50분)
-                const m = Math.floor(now.getMinutes() / 5) * 5;
+                let h = now.getHours();
+                const rawM = now.getMinutes();
+                const unit = rawM % 10; // 1의 자리 숫자 확인
+
+                let m;
+                // [로직] 5분은 유지, 4 이하는 내림(0), 6 이상은 올림(10)
+                if (unit === 5) {
+                    m = rawM;
+                } else if (unit < 5) {
+                    m = Math.floor(rawM / 10) * 10;
+                } else {
+                    m = Math.ceil(rawM / 10) * 10;
+                }
+
+                // 60분이 되면 시간을 올림
+                if (m === 60) {
+                    m = 0;
+                    h = h + 1;
+                    if (h === 24) h = 0;
+                }
 
                 setManualEndHour(h);
                 setManualEndMin(m);
                 setModalType('manual');
                 setManualTab('focus');
                 
-                // [수정] 모달이 열릴 때 Focus 탭은 항상 '종료' 기준, Switch/Rest는 탭 클릭 시 '시작'으로 전환됨
-                setTimeRef('end');
+                // [설정] Focus 탭은 항상 '종료' 기준으로 시작
+                setTimeRef('end'); 
+                
                 setOptDurHour(0);
                 setOptDurMin(0);
                 setShowModal(true);
@@ -1073,9 +1107,21 @@
     
     // [공통] 어떤 행동이든 일단 현재 시간 기준으로 변수를 갱신합니다.
     const now = new Date();
-    const h = now.getHours();
-    // [수정] 5분 단위 내림 (53분 -> 50분)
-    const m = Math.floor(now.getMinutes() / 5) * 5; 
+    let h = now.getHours();
+    const rawM = now.getMinutes();
+    const unit = rawM % 10;
+
+    let m;
+    // [로직] 5분은 유지, 4 이하는 내림, 6 이상은 올림
+    if (unit === 5) {
+        m = rawM;
+    } else if (unit < 5) {
+        m = Math.floor(rawM / 10) * 10;
+    } else {
+        m = Math.ceil(rawM / 10) * 10;
+    }
+
+    if (m === 60) { m = 0; h = h + 1; if (h === 24) h = 0; }
 
     // [중요] 수동 시간 변수를 강제로 현재로 동기화
     setManualEndHour(h);
