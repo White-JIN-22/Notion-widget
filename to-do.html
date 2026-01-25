@@ -387,34 +387,39 @@
             };
 
             const parseTaskLog = (logText) => {
-                if (!logText) return [];
-                return logText.split('\n').map((line, idx) => {
-                    const done = line.includes('✅');
-                    const isImportant = line.includes('⭐');
-                    let zone = 'morning';
-                    if (line.includes('[AFTERNOON]')) zone = 'afternoon';
-                    if (line.includes('[NIGHT]')) zone = 'night';
-                    
-                    let text = line.replace(/✅|⬜|⭐/g, '').replace(/\[.*?\]/, '').trim();
-                    const timeMatch = text.match(/\((.*?)\)$/);
-                    let timeDisplay = null;
-                    if (timeMatch) {
-                        timeDisplay = timeMatch[1].toUpperCase();
-                        text = text.replace(timeMatch[0], '').trim();
-                    }
+    if (!logText) return [];
+    return logText.split('\n').map((line, idx) => {
+        const done = line.includes('✅');
+        const isImportant = line.includes('⭐');
+        const isUrgent = line.includes('❗'); // [1] 느낌표가 있으면 긴급으로 인식
+        
+        let zone = 'morning';
+        if (line.includes('[AFTERNOON]')) zone = 'afternoon';
+        if (line.includes('[NIGHT]')) zone = 'night';
+        
+        // [2] 텍스트 정리할 때 ❗도 같이 지워버리기 (정규식에 |❗ 추가)
+        let text = line.replace(/✅|⬜|⭐|❗/g, '').replace(/\[.*?\]/, '').trim();
+        
+        const timeMatch = text.match(/\((.*?)\)$/);
+        let timeDisplay = null;
+        if (timeMatch) {
+            timeDisplay = timeMatch[1].toUpperCase();
+            text = text.replace(timeMatch[0], '').trim();
+        }
 
-                    return {
-                        id: `remote-${idx}`,
-                        text: text,
-                        zone: zone,
-                        done: done,
-                        isImportant: isImportant,
-                        elapsed: 0, 
-                        timeDisplay: timeDisplay, 
-                        isRemote: !isToday(viewDate)
-                    };
-                });
-            };
+        return {
+            id: `remote-${idx}`,
+            text: text,
+            zone: zone,
+            done: done,
+            isImportant: isImportant,
+            isUrgent: isUrgent, // [3] 여기에 감지한 긴급도 상태 연결
+            elapsed: 0, 
+            timeDisplay: timeDisplay, 
+            isRemote: !isToday(viewDate) // [수정] 오늘이면 내 것처럼 수정 가능 (아까 요청하신 수정사항 포함)
+        };
+    });
+};
 
             const fetchCalendarData = async (targetDate) => {
                 try {
