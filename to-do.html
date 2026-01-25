@@ -333,7 +333,12 @@
                     const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                     // 리모트 데이터가 섞여있지 않도록 보장
                     const localOnly = savedTodos.filter(t => !t.isRemote);
-                    setTodos(localOnly);
+                    // 로컬 데이터가 텅 비었으면 서버에서 가져오기 시도
+                    if (localOnly.length === 0) {
+                        fetchRemoteTodos(viewDate);
+                    } else {
+                        setTodos(localOnly);
+                    }
                     
                     const lastDate = localStorage.getItem('lastDate');
                     if (lastDate && lastDate !== viewDate.toDateString()) {
@@ -406,7 +411,7 @@
                         isImportant: isImportant,
                         elapsed: 0, 
                         timeDisplay: timeDisplay, 
-                        isRemote: true 
+                        isRemote: !isToday(viewDate)
                     };
                 });
             };
