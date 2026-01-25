@@ -563,12 +563,24 @@
                             setLifeEnergy(calcLife);
                             setEnergy(calcEnergy);
 
-                            // 시간 동기화
-                            if (data.wakeUpTime && data.wakeUpTime !== "-") setWakeUpTime(data.wakeUpTime);
-                            if (data.bedTime && data.bedTime !== "-") setBedTime(data.bedTime);
+                            // [수정] 시간 동기화 (로컬 우선 정책: 내가 방금 수정한 값이 서버 값보다 우선)
+                            // 저장된 데이터가 오늘 날짜인 경우에만 로컬 값을 신뢰합니다.
+                            const isLocalToday = savedData.date === dateStr;
+                            
+                            const decidedWakeUp = (isLocalToday && savedData.wakeUpTime && savedData.wakeUpTime !== "-") 
+                                ? savedData.wakeUpTime 
+                                : data.wakeUpTime;
+                                
+                            const decidedBedTime = (isLocalToday && savedData.bedTime && savedData.bedTime !== "-") 
+                                ? savedData.bedTime 
+                                : data.bedTime;
+
+                            // UI 업데이트
+                            if (decidedWakeUp && decidedWakeUp !== "-") setWakeUpTime(decidedWakeUp);
+                            if (decidedBedTime && decidedBedTime !== "-") setBedTime(decidedBedTime);
 
                             const currentIntroDone = savedData.introDone || false;
-                            if (serverBlocks.length > 0 || (data.wakeUpTime && data.wakeUpTime !== "-") || currentIntroDone) {
+                            if (serverBlocks.length > 0 || (decidedWakeUp && decidedWakeUp !== "-") || currentIntroDone) {
                                 setShowIntro(false);
                             }
 
@@ -579,8 +591,9 @@
                                 lifeEnergy: calcLife,
                                 energy: calcEnergy,
                                 blocks: mergedBlocks,
-                                wakeUpTime: data.wakeUpTime || savedData.wakeUpTime || wakeUpTime,
-                                bedTime: data.bedTime || savedData.bedTime || bedTime,
+                                // [수정] 위에서 결정된(decided) 값을 저장 (or 연산자 순서 의존성 제거)
+                                wakeUpTime: decidedWakeUp || wakeUpTime,
+                                bedTime: decidedBedTime || bedTime,
                                 introDone: currentIntroDone
                             }));
                             
