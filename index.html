@@ -489,11 +489,24 @@
                             
                             // 1. 기초 데이터 로드 (오늘의 시작 에너지 & 집중 에너지)
                             const initialLife = savedData.date === dateStr && savedData.initialLifeEnergy !== undefined ? savedData.initialLifeEnergy : 50;
-                            // [수정] 아침 컨디션 값을 불러옵니다. 없으면 기본 100.
-                            const initialFocus = savedData.date === dateStr && savedData.initialFocusEnergy !== undefined ? savedData.initialFocusEnergy : 100;
+                            // [수정] 아침 컨디션 값을 불러옵니다. 
+                            // ★ 리셋 방지 로직: 저장된 초기값(initialFocusEnergy)이 없는 경우(구버전 데이터 등),
+                            // 무조건 100으로 리셋하지 않고 현재 저장된 에너지(savedData.energy)를 유지하며 재계산을 건너뜁니다.
+                            let initialFocus = 100;
+                            let enableEnergyReplay = true; // 에너지 재계산 수행 여부
+
+                            if (savedData.date === dateStr) {
+                                if (savedData.initialFocusEnergy !== undefined) {
+                                    initialFocus = savedData.initialFocusEnergy;
+                                } else if (savedData.energy !== undefined) {
+                                    // 초기값은 없지만 현재 값이 있다면, 리셋 방지를 위해 현재 값을 사용하고 재계산을 건너뜁니다.
+                                    initialFocus = savedData.energy;
+                                    enableEnergyReplay = false; 
+                                }
+                            }
                             
                             let calcLife = initialLife;
-                            let calcEnergy = initialFocus; // <--- 100 대신 저장된 컨디션 값 사용
+                            let calcEnergy = initialFocus;
 
                             // 2. 시간순 정렬 (과거 -> 현재)
                             const chronoBlocks = [...mergedBlocks].sort((a, b) => a.startTime - b.startTime);
@@ -513,17 +526,20 @@
                                 // (B) 타입별 계산 적용
                                 if (b.type === 'switch') {
                                     // 전환 행동: 에너지 -5, 생활력 +회복량(기본10)
-                                    calcEnergy = Math.max(0, calcEnergy - 5);
+                                    // [수정] 초기값이 확실할 때만 에너지 재계산 수행 (리셋 방지)
+                                    if (enableEnergyReplay) calcEnergy = Math.max(0, calcEnergy - 5);
                                     calcLife = Math.min(100, calcLife + (recoveryVal || 10));
                                 } 
                                 else if (b.type === 'rest') {
                                     // 휴식 행동: 집중 에너지 +회복량
-                                    calcEnergy = Math.min(100, calcEnergy + recoveryVal);
+                                    if (enableEnergyReplay) calcEnergy = Math.min(100, calcEnergy + recoveryVal);
                                 }
                                 else if (b.type === 'focus' || !b.type) {
                                     // [수정] 밸런스 조정: 20분당 10 소모 (1시간 = 30%)
-                                    const consumption = Math.floor((b.duration || 0) / 20) * 10;
-                                    calcEnergy = Math.max(0, calcEnergy - consumption);
+                                    if (enableEnergyReplay) {
+                                        const consumption = Math.floor((b.duration || 0) / 20) * 10;
+                                        calcEnergy = Math.max(0, calcEnergy - consumption);
+                                    }
                                 }
                             });
 
