@@ -329,23 +329,38 @@
                 setCurrentDateDisplay(viewDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
                 
                 if (isToday(viewDate)) {
-                    // 오늘일 때만 로컬 스토리지에서 데이터 로드
-                    const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-                    // 리모트 데이터가 섞여있지 않도록 보장
-                    const localOnly = savedTodos.filter(t => !t.isRemote);
-                    // 로컬 데이터가 텅 비었으면 서버에서 가져오기 시도
-                    if (localOnly.length === 0) {
-                        fetchRemoteTodos(viewDate);
-                    } else {
-                        setTodos(localOnly);
-                    }
-                    
-                    const lastDate = localStorage.getItem('lastDate');
-                    if (lastDate && lastDate !== viewDate.toDateString()) {
-                        handleNewDayReset(viewDate.toDateString(), localOnly);
-                    } else {
-                        localStorage.setItem('lastDate', viewDate.toDateString());
-                    }
+    // 오늘일 때만 로컬 스토리지에서 데이터 로드
+    const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+    
+    // [수정] 저장된 데이터 꺼낼 때도 '느낌표 세탁' 한번 돌리기
+    const localOnly = savedTodos
+        .filter(t => !t.isRemote)
+        .map(t => {
+            // 혹시 텍스트에 느낌표가 남아있다면?
+            const hasMark = t.text.includes('❗') || t.text.includes('❗️');
+            return {
+                ...t,
+                // 긴급 버튼(isUrgent)이 안 켜져 있으면, 텍스트의 느낌표를 보고 켜주기
+                isUrgent: t.isUrgent || hasMark,
+                // 텍스트에서는 느낌표 박멸
+                text: t.text.replace(/❗|❗️/g, '').trim()
+            };
+        });
+
+    // 로컬 데이터가 텅 비었으면 서버에서 가져오기 시도
+    if (localOnly.length === 0) {
+        fetchRemoteTodos(viewDate);
+    } else {
+        setTodos(localOnly);
+    }
+    
+    const lastDate = localStorage.getItem('lastDate');
+    if (lastDate && lastDate !== viewDate.toDateString()) {
+        handleNewDayReset(viewDate.toDateString(), localOnly);
+    } else {
+        localStorage.setItem('lastDate', viewDate.toDateString());
+    }
+}
                 } else {
                     // 과거 날짜는 서버(Worker) 데이터만 표시 (로컬 저장소 보호)
                     fetchRemoteTodos(viewDate);
