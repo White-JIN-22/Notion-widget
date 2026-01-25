@@ -360,7 +360,6 @@
                     } else {
                         localStorage.setItem('lastDate', viewDate.toDateString());
                     }
-                }
                 } else {
                     // 과거 날짜는 서버(Worker) 데이터만 표시 (로컬 저장소 보호)
                     fetchRemoteTodos(viewDate);
