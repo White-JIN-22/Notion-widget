@@ -156,40 +156,51 @@
             const dustColor = getDustColor(dust.aqi);
 
             return (
-                <div className="relative w-[260px] p-4 flex flex-col justify-center select-none"
+                <div className="relative w-[260px] h-[160px] flex flex-col select-none overflow-hidden"
                      style={{
-                         background: 'var(--glass-bg)',
+                         background: 'var(--glass-bg)', // 전체 기본 배경
                          backdropFilter: 'blur(30px)',
                          borderRadius: '24px',
                          border: 'var(--glass-border)',
                          boxShadow: 'var(--glass-shadow)',
                      }}>
                     
-                    {/* Row 1: Time (Left) & Date (Right) */}
-                    <div className="flex flex-row justify-between items-baseline w-full mb-3 px-1">
-                        {/* Time: 크기 42px -> 38px로 미세 조정하여 공간 확보 */}
-                        <div className="font-mono text-[38px] font-bold text-sky-400 leading-none tracking-tight drop-shadow-sm">
-                            {timeStr}
+                    {/* Section 1: Header (Time & Date) - 진한 반투명 흰색 */}
+                    <div className="flex-1 w-full flex flex-col justify-center px-6"
+                         style={{ 
+                             [cite_start]background: 'rgba(255, 255, 255, 0.15)', // Header Background [cite: 15]
+                             borderBottom: '1px solid rgba(255, 255, 255, 0.2)' 
+                         }}>
+                        <div className="flex justify-between items-end">
+                            {/* Time: 강조 */}
+                            <div className="font-mono text-[40px] font-bold text-sky-300 leading-none tracking-tight drop-shadow-sm">
+                                {timeStr}
+                            </div>
                         </div>
-                        {/* Date: 이탤릭 제거, Playfair -> Sans 교체, 흰색 변경 */}
-                        <div className="font-sans text-lg font-bold text-white tracking-tight drop-shadow-sm opacity-90">
-                            {dateStr}
+                        {/* Date: 하단 배치 */}
+                        <div className="font-sans text-sm font-medium text-white/90 mt-2 tracking-wide flex items-center gap-2">
+                             <span className="bg-white/20 px-2 py-0.5 rounded text-[11px] font-bold tracking-wider text-white">TODAY</span>
+                             {dateStr}
                         </div>
                     </div>
 
-                    {/* Row 2: Weather Pill & Dust Pill */}
-                    <div className="w-full grid grid-cols-2 gap-2">
+                    {/* Section 2: Body (Weather & Dust) - 연한 반투명 흰색, 박스 제거 */}
+                    <div className="h-[60px] w-full flex flex-row items-center justify-between px-6"
+                         [cite_start]style={{ background: 'rgba(255, 255, 255, 0.05)' }}> {/* Inner Panel Background  */}
                         
-                        {/* Weather Pill (텍스트 색상 화이트로 수정) */}
-                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/40 border border-white/40 shadow-sm">
+                        {/* Weather - No Box */}
+                        <div className="flex flex-row items-center gap-2.5">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-white font-bold translate-y-[1px] drop-shadow-sm">{weather.temp}°</span>
+                            <span className="font-mono text-xl text-white font-bold drop-shadow-sm">{weather.temp}°</span>
                         </div>
 
-                        {/* Dust Pill (밝은 테마용 배경 수정) */}
-                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/40 border border-white/40 shadow-sm">
+                        {/* Divider */}
+                        <div className="h-6 w-[1px] bg-white/20"></div>
+
+                        {/* Dust - No Box */}
+                        <div className="flex flex-row items-center gap-2.5">
                             {getDustIcon(dust.aqi, dustColor)}
-                            <span className="font-sans text-base font-bold translate-y-[1px]" style={{ color: dustColor }}>
+                            <span className="font-sans text-base font-bold drop-shadow-sm" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
                         </div>
