@@ -509,7 +509,7 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
 
                     {/* 3. REST TAB (간격 gap-2 -> gap-1.5 로 축소) */}
                     {activeTab === 'rest' && (
-                        <div className="w-full grid grid-cols-3 gap-1.5 content-start">
+                        <div className="w-full grid grid-cols-3 gap-1.5 content-start pr-3">
                             {restOptions.map(item => {
                                 const isSpecial = ['r_record', 'r_counseling', 'r2', 'r4'].includes(item.id);
                                 const bgClass = isSpecial 
