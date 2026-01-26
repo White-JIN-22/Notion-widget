@@ -408,12 +408,6 @@ else if (rangeIconBlock) {
                             content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
                         }
 
-                        // 기상 시간 아이콘
-                        if (isWakeUpSlot) {
-                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
-                            content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
-                        }
-
                         // 캘린더 라인
                         if (calendarEvent) {
                             const category = calendarEvent.category || 'default';
