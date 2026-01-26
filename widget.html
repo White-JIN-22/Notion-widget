@@ -156,7 +156,12 @@
                 return <CloudRain />;
             };
 
-            const dateStr = time.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+            // 날짜 포맷 변경: 01/26 MON
+            const month = String(time.getMonth() + 1).padStart(2, '0');
+            const day = String(time.getDate()).padStart(2, '0');
+            const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+            const dateStr = `${month}/${day} ${weekday}`;
+            
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
             return (
