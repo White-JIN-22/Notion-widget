@@ -12,13 +12,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap');
+        /* 폰트: Playfair Display(날씬한 명조) 재추가 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Roboto+Mono:wght@500;700&display=swap');
 
-        /* Fortress Design System Tokens */
+        /* Fortress Design System Tokens (오리지널 투명 테마 복구) */
         :root {
-            --glass-bg: linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            --glass-bg: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            --glass-border: 1px solid rgba(224, 242, 254, 0.4);
+            --glass-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
         }
 
         body {
@@ -35,6 +36,7 @@
         
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .font-sans { font-family: 'Noto Sans KR', sans-serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; } /* 클래스 부활 */
     </style>
 </head>
 <body>
@@ -165,12 +167,12 @@
                     
                     {/* Row 1: Time (Left) & Date (Right) */}
                     <div className="flex flex-row justify-between items-baseline w-full mb-3 px-1">
-                        {/* Time: Big, Sky Blue, Mono */}
-                        <div className="font-mono text-[42px] font-bold text-sky-300 leading-none tracking-tight drop-shadow-sm">
+                        {/* Time: 크기 42px -> 38px로 미세 조정하여 공간 확보 */}
+                        <div className="font-mono text-[38px] font-bold text-sky-400 leading-none tracking-tight drop-shadow-sm">
                             {timeStr}
                         </div>
-                        {/* Date: Smaller, White, Gothic */}
-                        <div className="font-sans text-lg font-bold text-white opacity-90">
+                        {/* Date: Playfair 폰트(좁음) + 자간 축소 + 짙은 색상(가독성) */}
+                        <div className="font-playfair italic text-lg font-bold text-slate-600 tracking-tighter">
                             {dateStr}
                         </div>
                     </div>
@@ -178,14 +180,14 @@
                     {/* Row 2: Weather Pill & Dust Pill */}
                     <div className="w-full grid grid-cols-2 gap-2">
                         
-                        {/* Weather Pill */}
-                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/5 border border-white/10">
+                        {/* Weather Pill (텍스트 색상 진하게 수정) */}
+                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/40 border border-white/40 shadow-sm">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-white font-bold translate-y-[1px]">{weather.temp}°</span>
+                            <span className="font-mono text-lg text-slate-600 font-bold translate-y-[1px]">{weather.temp}°</span>
                         </div>
 
-                        {/* Dust Pill */}
-                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/5 border border-white/10">
+                        {/* Dust Pill (밝은 테마용 배경 수정) */}
+                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/40 border border-white/40 shadow-sm">
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-base font-bold translate-y-[1px]" style={{ color: dustColor }}>
                                 {dust.status}
