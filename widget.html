@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Compact Dashboard</title>
+    <title>Fortress Ultra Compact</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -12,13 +12,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto+Mono:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto+Mono:wght@500;700&display=swap');
 
         /* Fortress Design System Tokens */
         :root {
-            --glass-bg: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            --glass-border: 1px solid rgba(224, 242, 254, 0.4);
-            --glass-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            --glass-bg: linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
 
         body {
@@ -30,18 +30,11 @@
             align-items: flex-start;
             min-height: 100vh;
             overflow: hidden;
-            padding-top: 10px; /* 상단 여백 축소 */
+            padding-top: 10px; 
         }
         
-        .font-playfair { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
-        
-        @keyframes drift {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-3px); }
-            100% { transform: translateY(0px); }
-        }
-        .animate-drift { animation: drift 4s ease-in-out infinite; }
+        .font-sans { font-family: 'Noto Sans KR', sans-serif; }
     </style>
 </head>
 <body>
@@ -49,40 +42,31 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- Weather Icons (Color Mapped & Updated Shapes) ---
-        // 1. Sun (Clear) -> 연보라 (#d8b4fe)
-        const Sun = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d8b4fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
+        // --- Custom Weather Icons (Requested Shapes) ---
+        const Sun = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#d8b4fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         );
-        // 2. Cloud (Cloudy) -> 스카이블루 (#7dd3fc)
-        const Cloud = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
-            </svg>
+        const Cloud = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
         );
-        // 3. Rain/Fog (Rainy) -> 회색 (#94a3b8)
-        const CloudRain = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
-            </svg>
+        const CloudRain = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>
         );
-        // 4. Snow (Snowy) -> 흰색 (#ffffff) - 기존 유지
-        const CloudSnow = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>
+        const CloudSnow = ({ className }) => (
+             <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>
         );
-        // 5. Lightning (Storm) -> 흰색 (#ffffff) - 기존 유지
-        const CloudLightning = () => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>
+        const CloudLightning = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>
         );
 
-        // --- Dust Icons (Accepts Dynamic Pastel Color) ---
-        const FaceHappy = ({ color }) => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceNormal = ({ color }) => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceBad = ({ color }) => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
-        const FaceDevil = ({ color }) => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
-        const GasMask = ({ color }) => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
+        // --- Dust Icons (Face) ---
+        // Accepts 'color' prop to sync with text
+        const FaceHappy = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceNormal = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceBad = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
+        const FaceDevil = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
+        const GasMask = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
+
         const App = () => {
             const [time, setTime] = useState(new Date());
             const [weather, setWeather] = useState({ temp: '--', code: 0 });
@@ -130,94 +114,80 @@
                 return '최악'; 
             };
 
-            // 파스텔 톤 색상 정의 (Pastel Palette)
+            // Pastel Colors for Dust
             const getDustColor = (aqi) => {
-                if (aqi <= 50) return '#7dd3fc';  // 좋음: 파스텔 스카이 (Sky 300)
-                if (aqi <= 100) return '#86efac'; // 보통: 파스텔 그린 (기존 형광색 제거됨)
-                if (aqi <= 150) return '#fdba74'; // 나쁨: 파스텔 오렌지
-                if (aqi <= 250) return '#fda4af'; // 매우나쁨: 파스텔 로즈
-                return '#cbd5e1';                 // 최악: 파스텔 그레이 (방독면)
+                if (aqi <= 50) return '#7dd3fc';  // Sky
+                if (aqi <= 100) return '#86efac'; // Green (Soft)
+                if (aqi <= 150) return '#fdba74'; // Orange
+                if (aqi <= 250) return '#fda4af'; // Red/Rose
+                return '#cbd5e1';                 // Grey
             };
 
             const getDustIcon = (aqi, color) => {
-                if (aqi <= 50) return <FaceHappy color={color} />;
-                if (aqi <= 100) return <FaceNormal color={color} />;
-                if (aqi <= 150) return <FaceBad color={color} />;
-                if (aqi <= 250) return <FaceDevil color={color} />;
-                return <GasMask color={color} />;
+                const className = "w-6 h-6"; // Fixed size for horizontal layout
+                if (aqi <= 50) return <FaceHappy color={color} className={className} />;
+                if (aqi <= 100) return <FaceNormal color={color} className={className} />;
+                if (aqi <= 150) return <FaceBad color={color} className={className} />;
+                if (aqi <= 250) return <FaceDevil color={color} className={className} />;
+                return <GasMask color={color} className={className} />;
             };
 
-            // Enhanced Weather Icon Mapping
             const getWeatherIcon = (code) => {
-                // 0: Clear
-                if (code === 0) return <Sun />;
-                // 1-3: Cloudy
-                if (code <= 3) return <Cloud />;
-                // 45, 48: Fog (Use Rain color)
-                if (code <= 48) return <CloudRain />;
-                // 71-77, 85-86: Snow
-                if (code >= 71 && code <= 77) return <CloudSnow />;
-                if (code >= 85 && code <= 86) return <CloudSnow />;
-                // 95-99: Thunderstorm
-                if (code >= 95) return <CloudLightning />;
-                // Rest: Rain (Drizzle, Rain, Showers)
-                return <CloudRain />;
+                const className = "w-6 h-6"; // Fixed size
+                if (code === 0) return <Sun className={className} />;
+                if (code <= 3) return <Cloud className={className} />;
+                if (code <= 48) return <CloudRain className={className} />;
+                if (code >= 71 && code <= 77) return <CloudSnow className={className} />;
+                if (code >= 85 && code <= 86) return <CloudSnow className={className} />;
+                if (code >= 95) return <CloudLightning className={className} />;
+                return <CloudRain className={className} />;
             };
 
-            // 날짜 포맷 변경: 01/26 MON
+            // Formatting
             const month = String(time.getMonth() + 1).padStart(2, '0');
             const day = String(time.getDate()).padStart(2, '0');
             const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
             const dateStr = `${month}/${day} ${weekday}`;
-            
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-            // 렌더링 시 사용할 색상 계산
+            // Color Logic
             const dustColor = getDustColor(dust.aqi);
 
             return (
-                <div className="relative w-[260px] p-4 flex flex-col items-center select-none"
+                <div className="relative w-[260px] p-4 flex flex-col justify-center select-none"
                      style={{
                          background: 'var(--glass-bg)',
-                         backdropFilter: 'blur(25px)',
-                         borderRadius: '28px',
+                         backdropFilter: 'blur(30px)',
+                         borderRadius: '24px',
                          border: 'var(--glass-border)',
                          boxShadow: 'var(--glass-shadow)',
                      }}>
                     
-                    {/* Compact Header */}
-                    <div className="text-center mb-3 w-full border-b border-white/20 pb-2">
-                        <div className="font-playfair text-white text-xl font-bold tracking-tight mb-0.5">
-                            {dateStr}
-                        </div>
-                        <div className="font-mono text-4xl font-bold text-sky-300 drop-shadow-sm leading-tight">
+                    {/* Row 1: Time (Left) & Date (Right) */}
+                    <div className="flex flex-row justify-between items-baseline w-full mb-3 px-1">
+                        {/* Time: Big, Sky Blue, Mono */}
+                        <div className="font-mono text-[42px] font-bold text-sky-300 leading-none tracking-tight drop-shadow-sm">
                             {timeStr}
+                        </div>
+                        {/* Date: Smaller, White, Gothic */}
+                        <div className="font-sans text-lg font-bold text-white opacity-90">
+                            {dateStr}
                         </div>
                     </div>
 
-                    {/* Compact Grid */}
+                    {/* Row 2: Weather Pill & Dust Pill */}
                     <div className="w-full grid grid-cols-2 gap-2">
                         
-                        {/* Weather Card */}
-                        <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors h-[80px]">
-                            {/* animate-drift 제거됨 */}
-                            <div className="mb-1 scale-90">
-                                {getWeatherIcon(weather.code)}
-                            </div>
-                            <div className="flex items-baseline gap-1">
-                                <span className="font-mono text-lg text-sky-100 font-bold">{weather.temp}°</span>
-                                <span className="text-[10px] text-slate-400">부천</span>
-                            </div>
+                        {/* Weather Pill */}
+                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/5 border border-white/10">
+                            {getWeatherIcon(weather.code)}
+                            <span className="font-mono text-lg text-white font-bold translate-y-[1px]">{weather.temp}°</span>
                         </div>
 
-                        {/* Dust Card */}
-                        <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors h-[80px]">
-                            {/* hover 확대 효과 제거됨 */}
-                            <div className="mb-1 scale-90">
-                                {getDustIcon(dust.aqi, dustColor)}
-                            </div>
-                            {/* 폰트 변경: Playfair(명조) -> sans(고딕), 색상 동기화 */}
-                            <span className="font-sans text-base font-bold leading-none" style={{ color: dustColor }}>
+                        {/* Dust Pill */}
+                        <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/5 border border-white/10">
+                            {getDustIcon(dust.aqi, dustColor)}
+                            <span className="font-sans text-base font-bold translate-y-[1px]" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
                         </div>
