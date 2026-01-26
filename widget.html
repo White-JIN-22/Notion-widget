@@ -171,8 +171,8 @@
                         <div className="font-mono text-[38px] font-bold text-sky-400 leading-none tracking-tight drop-shadow-sm">
                             {timeStr}
                         </div>
-                        {/* Date: Playfair 폰트(좁음) + 자간 축소 + 짙은 색상(가독성) */}
-                        <div className="font-playfair italic text-lg font-bold text-slate-600 tracking-tighter">
+                        {/* Date: 이탤릭 제거, Playfair -> Sans 교체, 흰색 변경 */}
+                        <div className="font-sans text-lg font-bold text-white tracking-tight drop-shadow-sm opacity-90">
                             {dateStr}
                         </div>
                     </div>
@@ -180,10 +180,10 @@
                     {/* Row 2: Weather Pill & Dust Pill */}
                     <div className="w-full grid grid-cols-2 gap-2">
                         
-                        {/* Weather Pill (텍스트 색상 진하게 수정) */}
+                        {/* Weather Pill (텍스트 색상 화이트로 수정) */}
                         <div className="flex flex-row items-center justify-center gap-2 h-10 rounded-xl bg-white/40 border border-white/40 shadow-sm">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-slate-600 font-bold translate-y-[1px]">{weather.temp}°</span>
+                            <span className="font-mono text-lg text-white font-bold translate-y-[1px] drop-shadow-sm">{weather.temp}°</span>
                         </div>
 
                         {/* Dust Pill (밝은 테마용 배경 수정) */}
