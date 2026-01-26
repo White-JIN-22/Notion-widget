@@ -118,11 +118,9 @@
 
             // Pastel Colors for Dust
             const getDustColor = (aqi) => {
-                if (aqi <= 50) return '#7dd3fc';  // Sky
-                if (aqi <= 100) return '#86efac'; // Green (Soft)
-                if (aqi <= 150) return '#fdba74'; // Orange
-                if (aqi <= 250) return '#fda4af'; // Red/Rose
-                return '#cbd5e1';                 // Grey
+                if (aqi <= 50) return '#d8b4fe';  // 좋음: Purple 300 (연보라)
+                if (aqi <= 100) return '#7dd3fc'; // 보통: Sky 300 (스카이블루)
+                return '#94a3b8';                 // 나쁨/매우나쁨/최악: Slate 400 (회색)
             };
 
             const getDustIcon = (aqi, color) => {
