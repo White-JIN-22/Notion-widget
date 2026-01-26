@@ -1080,7 +1080,7 @@
                 // 1. 내부 저장
                 saveData(lifeEnergy, energy, blocks, timeStr); 
                 setShowModal(false);
-                triggerToast(`☀️ 기상 시간 기록: ${timeStr}`);
+                triggerToast(`☀️ 알찬 하루 되세요! ${timeStr}`);
                 setTimeout(() => sendToNotion(true), 100); 
             };
 
@@ -1089,7 +1089,7 @@
                     setBedTime(timeStr);
                     saveData(lifeEnergy, energy, blocks, undefined, timeStr); // bedTime 갱신
                     setShowModal(false);
-                    triggerToast(`🌙 하루를 마무리합니다: ${timeStr}`);
+                    triggerToast(`🌙 하루를 마무리합니다! ${timeStr}`);
                     setTimeout(() => sendToNotion(true), 100);
                 };
             
