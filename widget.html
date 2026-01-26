@@ -172,14 +172,16 @@
                      }}>
                     
                     {/* Header: Date & Time */}
-                    <div className="text-center mb-6 w-full border-b border-white/20 pb-4">
-                        <div className="font-playfair text-sky-200 text-lg italic tracking-wide opacity-90 mb-1">
-                            {dateStr}
-                        </div>
-                        <div className="font-mono text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-100 to-white drop-shadow-sm">
-                            {timeStr}
-                        </div>
-                    </div>
+            <div className="text-center mb-6 w-full border-b border-white/20 pb-4">
+                {/* 날짜: 흰색, 두껍게 (Daily Log 스타일) */}
+                <div className="font-playfair text-white text-2xl font-bold tracking-tight mb-1">
+                    {dateStr}
+                </div>
+                {/* 시간: 스카이블루 단색 */}
+                <div className="font-mono text-4xl font-bold text-sky-300 drop-shadow-sm">
+                    {timeStr}
+                </div>
+            </div>
 
                     {/* Content Grid: Weather & Dust */}
                     <div className="w-full grid grid-cols-2 gap-4">
@@ -206,14 +208,11 @@
                             }`}>
                                 {dust.status}
                             </span>
-                            <span className="text-xs text-slate-400 mt-1 font-mono">AQI {dust.aqi}</span>
+                            {/* AQI 지수 삭제됨 */}
                         </div>
                     </div>
 
-                    {/* Minimal Footer Decoration */}
-                    <div className="absolute bottom-2 text-[10px] text-white/20 font-playfair italic">
-                        Fortress System
-                    </div>
+                    {/* Minimal Footer Decoration Deleted */}
                 </div>
             );
         };
