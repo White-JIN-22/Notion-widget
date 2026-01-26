@@ -517,7 +517,8 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                     {activeTab === 'rest' && (
                         <div className="w-full grid grid-cols-3 gap-1.5 content-start">
                             {restOptions.map(item => {
-                                const isSpecial = ['r_record', 'r_counseling', 'r2', 'r4'].includes(item.id);
+                                /* [수정] 사교(r_social)도 모달이 뜨므로 배경색을 진하게 처리 */
+                                const isSpecial = ['r_record', 'r_counseling', 'r_social', 'r2', 'r4'].includes(item.id);
                                 const bgClass = isSpecial 
                                     ? "bg-white/20 border-white/30 hover:bg-white/30" 
                                     : "bg-white/5 border-white/10 hover:bg-white/10";
