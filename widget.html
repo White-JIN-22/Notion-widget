@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortress Compact Dashboard</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Roboto+Mono:wght@400;500&display=swap');
+
+        /* Fortress Design System Tokens */
+        :root {
+            --glass-bg: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            --glass-border: 1px solid rgba(224, 242, 254, 0.4);
+            --glass-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            --text-main: #334155;
+            --text-dim: #94a3b8;
+            --sky-300: #7dd3fc;
+            --purple-300: #d8b4fe;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 상단 배치 */
+            min-height: 100vh;
+            overflow: hidden;
+            padding-top: 20px; /* 여백 */
+        }
+        
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        
+        /* Custom Animations */
+        @keyframes drift {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-drift { animation: drift 4s ease-in-out infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icons (Lucide Style & Custom Faces) ---
+        const CloudRain = ({ color }) => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 14v6"/><path d="M8 14v6"/><path d="M12 16v6"/></svg>
+        );
+        const Sun = ({ color }) => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        );
+        const Cloud = ({ color }) => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19c0-3.037-2.463-5.5-5.5-5.5S6.5 15.963 6.5 19"/><path d="M17.5 13.5c0-3.037-2.463-5.5-5.5-5.5S6.5 10.463 6.5 13.5"/><path d="M4 19h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.6a5 5 0 1 0-8.8 0H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2Z"/></svg>
+        );
+
+        // Custom Face Icons based on AQI
+        const FaceHappy = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4fa3ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        );
+        const FaceNormal = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7ed957" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        );
+        const FaceBad = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ff9b4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>
+        );
+        const FaceDevil = () => (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#f35a5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>
+        );
+        const GasMask = () => (
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <circle cx="9" cy="10" r="2.5"/>
+                <circle cx="15" cy="10" r="2.5"/>
+                <path d="M12 14v3"/>
+                <rect x="10" y="17" width="4" height="3" rx="1"/>
+            </svg>
+        );
+
+        const App = () => {
+            const [time, setTime] = useState(new Date());
+            const [weather, setWeather] = useState({ temp: '--', code: 0 });
+            const [dust, setDust] = useState({ aqi: 0, status: 'Loading' });
+            
+            // Configuration
+            const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
+            const LAT = 37.5015609; // 부천 중동
+            const LON = 126.7690559;
+
+            // 1. Clock Logic
+            useEffect(() => {
+                const timer = setInterval(() => setTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            // 2. Weather & Dust Fetch
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        // Weather (Open-Meteo)
+                        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true`);
+                        const wData = await wRes.json();
+                        setWeather({
+                            temp: Math.round(wData.current_weather.temperature),
+                            code: wData.current_weather.weathercode
+                        });
+
+                        // Dust (WAQI)
+                        const dRes = await fetch(`https://api.waqi.info/feed/geo:${LAT};${LON}/?token=${WAQI_TOKEN}`);
+                        const dData = await dRes.json();
+                        if (dData.status === 'ok') {
+                            setDust({
+                                aqi: dData.data.aqi,
+                                status: getDustStatus(dData.data.aqi)
+                            });
+                        }
+                    } catch (e) {
+                        console.error("API Error", e);
+                    }
+                };
+                fetchData();
+                const interval = setInterval(fetchData, 600000); // 10분마다 갱신
+                return () => clearInterval(interval);
+            }, []);
+
+            // Helpers
+            const getDustStatus = (aqi) => {
+                if (aqi <= 50) return '좋음';
+                if (aqi <= 100) return '보통';
+                if (aqi <= 150) return '나쁨';
+                if (aqi <= 250) return '매우나쁨';
+                return '최악'; // 250+ (Gas Mask territory)
+            };
+
+            const getDustIcon = (aqi) => {
+                if (aqi <= 50) return <FaceHappy />;
+                if (aqi <= 100) return <FaceNormal />;
+                if (aqi <= 150) return <FaceBad />;
+                if (aqi <= 250) return <FaceDevil />;
+                return <GasMask />; // The Gas Mask Request
+            };
+
+            const getWeatherIcon = (code) => {
+                if (code <= 3) return <Sun color="#fcd34d" />;
+                if (code <= 48) return <Cloud color="#94a3b8" />;
+                return <CloudRain color="#60a5fa" />;
+            };
+
+            // Formatting
+            const dateStr = time.toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' });
+            const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+            return (
+                <div className="relative w-[260px] p-6 flex flex-col items-center select-none"
+                     style={{
+                         background: 'var(--glass-bg)',
+                         backdropFilter: 'blur(25px)',
+                         borderRadius: '28px',
+                         border: 'var(--glass-border)',
+                         boxShadow: 'var(--glass-shadow)',
+                     }}>
+                    
+                    {/* Header: Date & Time */}
+                    <div className="text-center mb-6 w-full border-b border-white/20 pb-4">
+                        <div className="font-playfair text-sky-200 text-lg italic tracking-wide opacity-90 mb-1">
+                            {dateStr}
+                        </div>
+                        <div className="font-mono text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-100 to-white drop-shadow-sm">
+                            {timeStr}
+                        </div>
+                    </div>
+
+                    {/* Content Grid: Weather & Dust */}
+                    <div className="w-full grid grid-cols-2 gap-4">
+                        
+                        {/* Weather Card */}
+                        <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                            <div className="mb-2 animate-drift">
+                                {getWeatherIcon(weather.code)}
+                            </div>
+                            <span className="font-mono text-xl text-sky-100 font-bold">{weather.temp}°</span>
+                            <span className="text-xs text-slate-400 mt-1">부천시</span>
+                        </div>
+
+                        {/* Dust Card */}
+                        <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                            <div className="mb-2 transform hover:scale-110 transition-transform">
+                                {getDustIcon(dust.aqi)}
+                            </div>
+                            <span className={`font-playfair text-lg font-bold ${
+                                dust.aqi <= 50 ? 'text-blue-300' :
+                                dust.aqi <= 100 ? 'text-green-300' :
+                                dust.aqi <= 150 ? 'text-orange-300' :
+                                dust.aqi <= 250 ? 'text-red-300' : 'text-slate-200'
+                            }`}>
+                                {dust.status}
+                            </span>
+                            <span className="text-xs text-slate-400 mt-1 font-mono">AQI {dust.aqi}</span>
+                        </div>
+                    </div>
+
+                    {/* Minimal Footer Decoration */}
+                    <div className="absolute bottom-2 text-[10px] text-white/20 font-playfair italic">
+                        Fortress System
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
