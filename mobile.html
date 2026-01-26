@@ -29,6 +29,10 @@
 
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
+        
+        /* [추가] 스크롤바 숨김 처리 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .widget-container {
     width: 100%;
@@ -445,7 +449,7 @@ else colorClass = "bg-white/20 text-sky-300 border border-sky-300/30 shadow-sm b
                     </div>
 
                     {/* Content Area (좁아진 폭에 맞춰 여백 p-3 -> p-2 축소) */}
-                <div className="flex-1 p-2 flex flex-col items-center overflow-y-auto w-full">
+                <div className="flex-1 p-2 flex flex-col items-center overflow-y-auto w-full no-scrollbar">
 
                     {/* 1. FLOW TAB */}
                     {activeTab === 'flow' && (
