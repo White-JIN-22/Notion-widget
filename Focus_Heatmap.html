@@ -137,12 +137,11 @@
             // [수정] 서버 주소 (Daily_Log와 동일하게 설정)
             const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
             
-            // [수정] Total(숫자) 값을 최우선으로 사용하여 정확도 100% 보장 + 안전장치 적용
+            // [수정] Total(숫자) 값을 최우선으로 사용하여 정확도 100% 보장
             const loadData = async () => {
                 const map = {};
                 const formatYMD = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 
-                // [헬퍼] 텍스트 시간 포맷 파싱
                 const parseTimeStr = (str) => {
                     if (!str) return 0;
                     let min = 0;
@@ -153,7 +152,6 @@
                     return min;
                 };
 
-                // [헬퍼] 데이터 추출 (Total 우선)
                 const extractMinutes = (data) => {
                     if (!data) return 0;
                     if (typeof data.Total === 'number') return data.Total;
@@ -189,6 +187,7 @@
                             map[formatYMD(d.getFullYear(), d.getMonth() + 1, d.getDate())] = extractMinutes(day);
                         }
                     });
+                    
                     const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     if (todayData.date) {
                         const d = new Date(todayData.date);
@@ -222,9 +221,9 @@
                             } catch (err) { }
                         }));
                         
-                        await new Promise(r => setTimeout(r, 300)); 
+                        await new Promise(r => setTimeout(r, 300));
 
-                        // [중간 업데이트] 안전장치 적용
+                        // [최종 업데이트] 안전장치 적용
                         setFocusData(prev => {
                             const merged = { ...prev };
                             Object.keys(map).forEach(key => {
@@ -234,19 +233,10 @@
                             });
                             return merged;
                         });
-                    }
-                } catch (e) { console.warn("Server sync failed", e); }
-
-                // [최종 업데이트] 안전장치 적용
-                setFocusData(prev => {
-                    const merged = { ...prev };
-                    Object.keys(map).forEach(key => {
-                        const newVal = map[key];
-                        const oldVal = prev[key] || 0;
-                        if (newVal >= oldVal) merged[key] = newVal;
-                    });
-                    return merged;
-                });
+                    } 
+                } catch (e) { 
+                    console.error("Server Load Error", e); 
+                }
             };
 
             const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
