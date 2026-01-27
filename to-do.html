@@ -13,11 +13,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&display=swap');
 
-        /* 기본 설정 */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: transparent;
             margin: 0;
             display: flex;
@@ -28,21 +27,13 @@
         }
         
         .font-serif { font-family: 'Playfair Display', serif; } 
-
-        /* 스크롤바 디자인 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.4); border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
 
-        /* [핵심] Fortress Glass 컨테이너 */
         .widget-container {
             position: relative;
             width: 260px; 
             height: 540px;
-            /* Icy Blue Gradient */
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             border-radius: 24px;
@@ -54,30 +45,27 @@
             color: #334155;
         }
 
-        /* 헤더 스타일 */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
             padding: 18px 18px 14px 18px;
             backdrop-filter: blur(5px);
             flex-shrink: 0;
         }
 
-        /* 투두 아이템 스타일 */
         .todo-item {
             animation: slideIn 0.3s ease-out forwards;
-            padding: 3px 4px;
+            padding: 3px 4px; /* 여백 축소 */
             border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
             transition: all 0.2s ease;
-            border-radius: 6px;
         }
         .todo-item:hover {
-            background: rgba(255, 255, 255, 0.15); 
+            background: rgba(255, 255, 255, 0.1); 
+            border-radius: 8px;
         }
-        .todo-done { opacity: 0.5; filter: grayscale(0.5); }
+        .todo-done { opacity: 0.5; }
         .event-passed { opacity: 0.5; }
 
-        /* 체크박스 커스텀 */
         .custom-checkbox {
             appearance: none;
             width: 14px; height: 14px;
@@ -86,7 +74,6 @@
             cursor: pointer;
             position: relative;
             transition: all 0.2s;
-            background-color: rgba(255, 255, 255, 0.3);
         }
         .custom-checkbox:checked {
             background-color: currentColor;
@@ -101,15 +88,56 @@
             font-size: 8px;
         }
 
-        /* 섹션 구분 스타일 */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-custom { 0% { box-shadow: 0 0 0 0 currentColor; opacity: 1; } 70% { box-shadow: 0 0 0 6px rgba(0,0,0,0); opacity: 0.9; } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); opacity: 1; } }
+
+        .toast-message {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 230, 253, 0.5); 
+            color: #0ea5e9;
+            padding: 6px 14px; border-radius: 20px; 
+            font-size: 0.75rem; font-weight: 700;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            pointer-events: none; z-index: 100;
+            animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
+        }
+        @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+        .modal-overlay {
+            position: absolute; inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .log-link-modal-content {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 16px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            width: 90%; max-height: 70%; display: flex; flex-direction: column;
+        }
+        .weather-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 16px; border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            width: 85%;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .section-header { display: flex; align-items: center; gap: 8px; padding: 10px 4px 6px 4px; }
         .section-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-        .section-line { flex: 1; height: 1px; opacity: 0.5; }
+        .section-line { flex: 1; height: 1px; }
 
-        /* 버튼류 스타일 */
         .add-btn { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer; background: rgba(255,255,255,0.2); }
-        .add-btn:hover { background: rgba(255,255,255,0.6); transform: scale(1.1); color: #0ea5e9; }
-        
+        .add-btn:hover { background: rgba(255,255,255,0.5); transform: scale(1.1); }
+        .edit-input { width: 100%; background: transparent; border: none; outline: none; font-size: 0.75rem; font-weight: 700; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; }
+
         .timer-btn {
             width: 20px; height: 20px;
             border-radius: 50%;
@@ -125,114 +153,53 @@
             border-color: transparent;
         }
 
-        /* 입력창 스타일 */
-        .edit-input { width: 100%; background: transparent; border: none; outline: none; font-size: 0.75rem; font-weight: 700; color: inherit; border-bottom: 1px solid rgba(255,255,255,0.5); padding-bottom: 2px; }
-
-        /* 모달 스타일 (Glassmorphism 강화) */
-        .modal-overlay {
-            position: absolute; inset: 0;
-            background: rgba(15, 23, 42, 0.25);
-            backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 200;
-            animation: fadeIn 0.3s ease-out;
-        }
-        .log-link-modal-content, .weather-modal-content {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
-            padding: 16px; border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(186, 230, 253, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            width: 90%; max-height: 70%; display: flex; flex-direction: column;
-        }
         .weather-btn {
             display: flex; flex-direction: column; items-center; justify-content: center;
             padding: 10px; border-radius: 16px;
-            background: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.5);
             border: 1px solid rgba(255,255,255,0.6);
             transition: all 0.2s;
         }
-        .weather-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(186, 230, 253, 0.3); border-color: #bae6fd; }
+        .weather-btn:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        
+        .nav-btn {
+            width: 20px; height: 20px;
+            display: flex; align-items: center; justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.2s;
+            border-radius: 50%;
+        }
+        .nav-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
-        /* 토스트 메시지 */
-        .toast-message {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+        /* [NEW] 하루 시작 알림 (Pill Style)
+        .new-day-toast {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(186, 230, 253, 0.5); 
             color: #0ea5e9;
-            padding: 6px 14px; border-radius: 20px; 
-            font-size: 0.75rem; font-weight: 700;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.05);
-            pointer-events: none; z-index: 100;
-            animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
+            padding: 8px 20px; border-radius: 30px; 
+            font-size: 0.9rem; font-weight: 800;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            pointer-events: none; z-index: 150;
+            display: flex; align-items: center; gap: 8px;
+            animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            white-space: nowrap;
         }
-
-        /* 애니메이션 */
-        @keyframes slideIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse-custom { 0% { box-shadow: 0 0 0 0 currentColor; opacity: 1; } 70% { box-shadow: 0 0 0 6px rgba(0,0,0,0); opacity: 0.9; } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); opacity: 1; } }
-        @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        sky: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' },
-                        purple: { 50: '#faf5ff', 100: '#f3e8ff', 200: '#e9d5ff', 300: '#d8b4fe', 500: '#a855f7' },
-                        slate: { 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155' },
-                        yellow: { 200: '#fef08a' }
-                    },
-                    fontFamily: {
-                        sans: ['"Noto Sans KR"', 'sans-serif'],
-                        serif: ['"Playfair Display"', 'serif'],
-                        mono: ['"Roboto Mono"', 'monospace'],
-                    }
-                }
-            }
-        }
-    </script>
-<style>
-        /* 1. 가장 바깥 컨테이너: 배경색 제거 (완전 투명에 가까운 2%) */
-        .widget-container {
-            background: rgba(255, 255, 255, 0.02) !important; /* 배경색 거의 없음 */
-            backdrop-filter: none !important; /* 뒷배경 흐림 제거 (선명하게 투과) */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리만 은은하게 */
-            box-shadow: none !important; /* 그림자 제거 (깔끔하게) */
-        }
-
-        /* 2. 내부 패널들: 살짝 반투명하게 (유리 조각 느낌) */
-        .header-section, 
-        .glass-panel, 
-        .event-card, 
-        .todo-item:hover,
-        .quest-btn,
-        .modal-content,
-        .weather-btn {
-            background: rgba(255, 255, 255, 0.05) !important; /* 5% 흰색 */
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(8px) !important; /* 내부 요소만 살짝 흐리게 */
-        }
-
-        /* 3. 글씨 강제 미백 (검은 배경에서 잘 보이게) */
-        body, .text-slate-700, .text-slate-600, .text-slate-500, .text-dim {
-            color: rgba(255, 255, 255, 0.9) !important;
+        @keyframes popUp { 
+            0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); } 
+            100% { opacity: 1; transform: translate(-50%, 0) scale(1); } 
         }
         
-        /* 4. 포인트 컬러는 형광빛으로 (가독성 확보) */
-        .text-sky-300, .text-sky-custom { color: #7dd3fc !important; text-shadow: 0 0 10px rgba(125,211,252,0.4); }
-        .text-purple-300, .text-purple-custom { color: #d8b4fe !important; text-shadow: 0 0 10px rgba(216,180,254,0.4); }
-
-        /* 5. 모달창 등 부가 요소 */
-        .modal-overlay { background: rgba(0, 0, 0, 0.6) !important; }
-        input, select, .custom-select {
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
     </style>
-    </head>
+</head>
 <body>
     <div id="root"></div>
 
@@ -248,7 +215,8 @@
             Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
             Cloud: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>,
             Rain: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>,
-            Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>,            X: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+            Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
+            X: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
             Sparkle: () => <svg className="w-6 h-6 text-sky-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>,
             Play: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
             Pause: () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>,
@@ -268,7 +236,6 @@
             Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
             Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
-            ArrowRight: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>,
         };
 
         const App = () => {
@@ -278,7 +245,6 @@
             const [isLoading, setIsLoading] = useState(false);
 
             const [activeInputZone, setActiveInputZone] = useState(null);
-            const [addMode, setAddMode] = useState('today'); // 'today' | 'tomorrow'
             const [inputText, setInputText] = useState('');
             // [NEW] 소일거리 모달 상태
             const [showQuestModal, setShowQuestModal] = useState(false);
@@ -530,22 +496,11 @@
             };
 
             const handleNewDayReset = (todayStr, currentTodos) => {
-                // 완료되지 않은 일 + '내일 하기로 한 일'을 모두 가져와서 '오늘의 일반 할 일'로 초기화
-                const remainingTodos = currentTodos
-                    .filter(t => !t.done || t.isTomorrow)
-                    .map(t => ({
-                        ...t, 
-                        elapsed: 0, 
-                        isRunning: false, 
-                        lastStartTime: null,
-                        isTomorrow: false, // 내일 할 일 -> 오늘 할 일로 승격
-                        done: false // 혹시라도 체크되어 있었다면 해제
-                    }));
-                
+                const remainingTodos = currentTodos.filter(t => !t.done).map(t => ({...t, elapsed: 0, isRunning: false, lastStartTime: null}));
                 setTodos(remainingTodos);
                 localStorage.setItem('jinsolTodos', JSON.stringify(remainingTodos));
                 localStorage.setItem('lastDate', todayStr);
-                triggerToast("☀️ 좋은 아침, 새로운 하루를 시작해요!");
+                triggerToast("☀️ 좋은 아침! 새로운 하루가 시작됐어요");
             };
 
             useEffect(() => {
@@ -558,16 +513,9 @@
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
 
             const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
-            
-            const startAdding = (zone, mode = 'today') => { 
+            const startAdding = (zone) => { 
                 if (!isToday(viewDate)) return; 
-                if (activeInputZone === zone && addMode === mode) {
-                    setActiveInputZone(null); 
-                } else { 
-                    setActiveInputZone(zone); 
-                    setAddMode(mode);
-                    setInputText(''); 
-                } 
+                if (activeInputZone === zone) setActiveInputZone(null); else { setActiveInputZone(zone); setInputText(''); } 
             };
             
             const confirmAdd = () => {
@@ -578,15 +526,14 @@
                     zone: activeInputZone, 
                     done: false, 
                     isImportant: false,
-                    isUrgent: false,
-                    isTomorrow: addMode === 'tomorrow', // [NEW] 내일 할 일 플래그
+                    isUrgent: false, // [NEW] 긴급도 속성 추가
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
                     lastStartTime: null,
                     type: 'todo'
                 };
-                setTodos([...todos, newTodo]); setInputText(''); triggerToast(addMode === 'tomorrow' ? "🌙 내일 할 일로 저장됨" : "✨ 저장됨!");
+                setTodos([...todos, newTodo]); setInputText(''); triggerToast("✨ 저장됨!");
             };
 
             // ... (앞부분 생략: startAdding, confirmAdd, startEditing 등) ...
@@ -974,8 +921,7 @@
                         if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
 
                         // ★ 아이콘 장식 달기
-                        // [수정] 내일 할 일이면 화살표(➡️), 완료는 체크(✅), 미완료는 빈칸(⬜)
-                        const status = t.done ? "✅" : (t.isTomorrow ? "➡️" : "⬜");
+                        const status = t.done ? "✅" : "⬜";
                         const star = t.isImportant ? "⭐" : "";  // 중요도 체크
                         const urgent = t.isUrgent ? "❗" : "";   // 긴급도 체크
                         
@@ -1163,10 +1109,7 @@
 
                 // [핵심 수정] 투두 정렬 로직 변경
                 const sortedTodos = [...zoneTodos].sort((a, b) => {
-                    // 0순위: 내일 할 일은 무조건 맨 아래
-                    if (!!a.isTomorrow !== !!b.isTomorrow) return a.isTomorrow ? 1 : -1;
-
-                    // 1순위: 완료 여부 (완료된 건 그 위)
+                    // 1순위: 완료 여부 (완료된 건 무조건 맨 아래)
                     if (a.done !== b.done) return a.done ? 1 : -1; 
                     
                     // 2순위: 소일거리 여부 (같은 완료 상태라면, 소일거리는 무조건 아래로)
@@ -1208,19 +1151,11 @@
                             
                             {isToday(viewDate) && (
                                 <div className="flex gap-1">
-                                    {/* 1. [맨 왼쪽] 내일 할 일 추가 */}
-                                    <button onClick={() => startAdding(zone, 'tomorrow')} className={`add-btn ${config.colorClass}`} title="내일 할 일 추가">
-                                        {activeInputZone === zone && addMode === 'tomorrow' ? <Icons.X /> : <Icons.ArrowRight className="w-3 h-3" />}
-                                    </button>
-
-                                    {/* 2. [가운데] 소일거리 추가 */}
                                     <button onClick={() => openQuestModal(zone)} className={`add-btn ${config.colorClass}`} title="소일거리 추가">
                                         <Icons.ListPlus />
                                     </button>
-
-                                    {/* 3. [맨 오른쪽] 오늘 할 일 추가 */}
-                                    <button onClick={() => startAdding(zone, 'today')} className={`add-btn ${config.colorClass}`} title="할 일 추가">
-                                        {activeInputZone === zone && addMode === 'today' ? <Icons.X /> : <Icons.Plus />}
+                                    <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
+                                        {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
                                     </button>
                                 </div>
                             )}
@@ -1271,29 +1206,19 @@
                                 const timeDisplay = todo.isRemote ? todo.timeDisplay : formatTime(currentMs);
                                 
                                 const QuestIcon = todo.isChore ? (Icons[todo.choreIcon] || Icons.Zap) : null;
-                        
-                                const isTomorrow = todo.isTomorrow;
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-2 ${todo.done ? 'todo-done' : ''}`}>
-                                    {/* 별+느낌표+체크박스(또는 화살표) 그룹 */}
+                                    
+                                    {/* 별+느낌표+체크박스 그룹 */}
                                     <div className="flex items-center gap-0.5 shrink-0">
-                                        {/* 중요/긴급 버튼은 내일 할 일에서도 항상 활성화 */}
                                         <button onClick={(e) => { e.stopPropagation(); toggleImportant(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isImportant ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
                                             <Icons.Star filled={todo.isImportant} className="w-3.5 h-3.5" />
                                         </button>
                                         <button onClick={(e) => { e.stopPropagation(); toggleUrgent(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isUrgent ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
                                             <Icons.Alert filled={todo.isUrgent} className="w-3.5 h-3.5" />
                                         </button>
-
-                                        {/* 체크박스 영역: 내일 할 일이면 화살표로 대체 */}
-                                        {!isTomorrow ? (
-                                            <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} disabled={todo.isRemote} className="custom-checkbox shrink-0 ml-0.5" style={{ color: config.checkboxColor }} />
-                                        ) : (
-                                            <div className="flex items-center justify-center w-[14px] h-[14px] ml-0.5 opacity-80">
-                                                <Icons.ArrowRight className={`w-3.5 h-3.5 ${config.colorClass}`} />
-                                            </div>
-                                        )}
+                                        <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} disabled={todo.isRemote} className="custom-checkbox shrink-0 ml-0.5" style={{ color: config.checkboxColor }} />
                                     </div>
                                     
                                     <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
@@ -1301,10 +1226,7 @@
                                             <input ref={editInputRef} type="text" value={editText} onChange={(e) => setEditText(e.target.value)} onKeyDown={handleEditKeyDown} onBlur={saveEdit} className={`edit-input ${config.textClass}`} /> 
                                         ) : ( 
                                             <div className="flex flex-col">
-                                                <div className={`text-xs font-medium transition-colors cursor-text whitespace-pre-wrap break-all ${
-                                                    todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : 
-                                                    isTomorrow ? `${config.textClass} opacity-80 italic` : config.textClass 
-                                                }`} title="더블 클릭하여 수정">
+                                                <div className={`text-xs font-medium transition-colors cursor-text whitespace-pre-wrap break-all ${todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50' : config.textClass}`} title="더블 클릭하여 수정">
                                                     {todo.text}
                                                 </div>
                                             </div>
@@ -1318,8 +1240,7 @@
                                         
                                         {timeDisplay && <span className="text-[10px] text-slate-400 font-medium">{timeDisplay}</span>}
                                         
-                                        {/* [FIX] 내일 할 일(!isTomorrow)이면 타이머 버튼 숨김 */}
-                                        {!todo.done && !todo.isRemote && !todo.isChore && !isTomorrow && (
+                                        {!todo.done && !todo.isRemote && !todo.isChore && (
                                             <button onClick={(e) => handleTimerClick(e, todo)} className={`timer-btn ${todo.isRunning ? 'timer-active' : ''}`} style={{ color: todo.isRunning ? '#fff' : config.checkboxColor, backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)', borderColor: config.checkboxColor }}>
                                                 {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
                                             </button>
