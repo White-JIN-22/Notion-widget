@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Combined Widget</title>
+    <title>Clock Info</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -102,11 +102,11 @@
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
                              background: `conic-gradient(
-                                 rgba(254, 240, 138, 0.3) 0deg 90deg,   
-                                 rgba(216, 180, 254, 0.3) 90deg 180deg, 
-                                 rgba(125, 211, 252, 0.3) 180deg 270deg, 
-                                 rgba(148, 163, 184, 0.3) 270deg 360deg 
-                             )`,
+     rgba(148, 163, 184, 0.3) 0deg 90deg,   
+     rgba(216, 180, 254, 0.3) 90deg 180deg, 
+     rgba(125, 211, 252, 0.3) 180deg 270deg, 
+     rgba(254, 240, 138, 0.3) 270deg 360deg 
+ )`,
                              border: '1px solid rgba(255,255,255,0.6)',
                              boxShadow: 'none' 
                          }}>
@@ -114,16 +114,16 @@
                          <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/40 transform -translate-x-1/2"></div>
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/40 transform -translate-y-1/2"></div>
 
-                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">24</div>
-                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 opacity-90 z-20">6</div>
-                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-300 opacity-90 z-20">18</div>
+                        <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-300 opacity-90 z-20">24</div>
+                        <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 opacity-90 z-20">6</div>
+                        <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
+                        <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">18</div>
 
-                         {/* [수정] 초승달 아이콘 색상 변경: 형광 노랑(#fef08a) -> 은은한 크림색(#fdf4ce) */}
-                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fdf4ce" /></div>
-                         <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
-                         <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
-                         <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
+                        {/* [수정] 달(Moon)은 회색(#94a3b8), 반짝임(Sparkles)은 연노랑(#fdf4ce)으로 교체 */}
+                        <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#94a3b8" /></div>
+                        <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
+                        <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
+                        <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#fdf4ce" /></div>
 
                          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white border border-slate-200 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
 
