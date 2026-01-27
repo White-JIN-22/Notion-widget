@@ -190,21 +190,26 @@
                 if (aqi <= 250) return '매우나쁨';
                 return '최악'; 
             };
-            // 파스텔 톤으로 미세먼지 색상 변경
+
+            // [수정 1] 미세먼지 색상을 형광색에서 부드러운 파스텔 톤으로 변경
             const getDustColor = (aqi) => {
-                if (aqi <= 50) return '#a78bfa'; // Soft Purple
-                if (aqi <= 100) return '#38bdf8'; // Soft Sky
-                return '#94a3b8'; // Grey
+                if (aqi <= 50) return '#d8b4fe'; // 파스텔 보라 (Timeline 위젯과 동일)
+                if (aqi <= 100) return '#7dd3fc'; // 파스텔 하늘
+                return '#94a3b8'; // 파스텔 그레이
             };
+
             const getDustIcon = (aqi, color) => {
                 const className = "w-6 h-6";
-                if (aqi <= 50) return <FaceHappy color={color} className={className} />;
-                if (aqi <= 100) return <FaceNormal color={color} className={className} />;
-                if (aqi <= 150) return <FaceBad color={color} className={className} />;
-                if (aqi <= 250) return <FaceDevil color={color} className={className} />;
-                return <GasMask color={color} className={className} />;
+                // 아이콘 획 두께(strokeWidth)를 살짝 줄여서 더 부드럽게 표현
+                const props = { color, className, strokeWidth: "2" };
+                
+                if (aqi <= 50) return <FaceHappy {...props} />;
+                if (aqi <= 100) return <FaceNormal {...props} />;
+                if (aqi <= 150) return <FaceBad {...props} />;
+                if (aqi <= 250) return <FaceDevil {...props} />;
+                return <GasMask {...props} />;
             };
-            // 날씨 아이콘 색상도 파스텔톤으로
+
             const getWeatherIcon = (code) => {
                 const className = "w-6 h-6";
                 if (code === 0) return <Sun className={className} />;
@@ -221,34 +226,36 @@
             const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
             const dateStr = `${month}/${day} ${weekday}`;
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            
             const dustColor = getDustColor(dust.aqi);
 
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    {/* 상단: 시간 및 날짜 (글씨 색상 Slate-700으로 변경) */}
                     <div className="flex-1 w-full flex flex-row items-baseline justify-between px-6 pt-2"
                          style={{ 
-                             background: 'rgba(255, 255, 255, 0.15)', 
+                             background: 'rgba(255, 255, 255, 0.1)', 
                              borderBottom: '1px dashed rgba(255, 255, 255, 0.4)' 
                          }}>
-                        <div className="font-mono text-[40px] font-bold text-slate-700 leading-[64px] tracking-tight drop-shadow-sm">
+                        {/* [수정 2] 시간: 파스텔 하늘색(#7dd3fc) + 자간 좁힘(tracking-tighter) */}
+                        <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-[64px] tracking-tighter drop-shadow-sm">
                             {timeStr}
                         </div>
-                        <div className="font-serif text-sm font-bold text-sky-custom tracking-wide opacity-80 pb-[15px]">
+                        {/* [수정 3] 날짜: 흰색 + 고딕체(font-sans) */}
+                        <div className="font-sans text-sm font-bold text-white tracking-wide opacity-90 pb-[15px]">
                             {dateStr}
                         </div>
                     </div>
 
-                    {/* 하단: 날씨 및 미세먼지 */}
                     <div className="h-[50px] w-full flex flex-row items-center justify-center gap-6"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-2">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-slate-700 font-bold pt-0.5">{weather.temp}°</span>
+                            {/* 온도 색상도 부드러운 그레이로 통일 */}
+                            <span className="font-mono text-lg text-slate-600 font-bold pt-0.5">{weather.temp}°</span>
                         </div>
-                        {/* 구분선 색상 연하게 변경 */}
-                        <div className="h-4 w-[1px] bg-slate-300 rounded-full"></div>
+                        <div className="h-4 w-[1px] bg-white/40 rounded-full"></div>
                         <div className="flex flex-row items-center gap-2">
+                            {/* 미세먼지 아이콘과 텍스트에 파스텔 컬러 적용 */}
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-sm font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
