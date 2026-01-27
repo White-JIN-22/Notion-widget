@@ -414,9 +414,15 @@
                         if (calendarEvent) {
                             const category = calendarEvent.category || 'default';
                             const colorClass = categoryColors[category] || categoryColors['default'];
+                            
+                            // [수정] 가로선 -> 중앙 정렬된 세로선으로 변경
+                            // h-full: 높이를 꽉 채움
+                            // w-[3px]: 두께 설정 (취향에 따라 2px~4px 조절)
+                            // left-1/2 -translate-x-1/2: 정확히 중앙에 위치
                             lineOverlay = (
-                                <div className={`absolute h-[2px] w-[80%] rounded-full left-[10%] bottom-[10%] z-20 ${colorClass}`} title={calendarEvent.title} />
+                                <div className={`absolute h-full w-[3px] left-1/2 -translate-x-1/2 top-0 z-20 ${colorClass}`} title={calendarEvent.title} />
                             );
+
                             if (!content && !bgBlock && !rangeIconBlock) {
                                 cellClass += ' relative'; 
                             }
