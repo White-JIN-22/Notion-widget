@@ -249,12 +249,12 @@
                             {timeStr}
                         </div>
 
-                        {/* [수정] 폰트 1px씩 확대(12px, 11px) 및 요일 투명도 제거하여 색상 통일 */}
-                        <div className="flex flex-row items-center justify-center gap-1.5 opacity-90">
+                        {/* [수정] items-baseline으로 글자 밑변 정렬, pt-[1px] 제거하여 높이 맞춤 */}
+                        <div className="flex flex-row items-baseline justify-center gap-1.5 opacity-90">
                             <span className="font-sans text-[12px] font-bold text-white tracking-wide leading-tight">
                                 {dateOnly}
                             </span>
-                            <span className="font-sans text-[11px] font-bold text-white tracking-widest leading-tight pt-[1px]">
+                            <span className="font-sans text-[11px] font-bold text-white tracking-widest leading-tight">
                                 {weekday}
                             </span>
                         </div>
