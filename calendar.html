@@ -14,8 +14,9 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
+        /* 기본 설정 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Noto Sans KR', sans-serif;
             background-color: transparent;
             margin: 0;
             display: flex;
@@ -24,32 +25,39 @@
             min-height: 100vh;
         }
 
+        /* 스크롤바 숨김 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* [핵심] Fortress Glass 컨테이너 */
         .widget-container {
             position: relative;
-            width: 260px; 
+            width: 100%;
+            max-width: 260px; /* 캘린더 표준 너비 */
             height: 540px;
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.2) 0%, rgba(240, 249, 255, 0.1) 100%);
-            backdrop-filter: blur(20px);
+            /* 배경: 은은한 Icy Blue 그라디언트 + 블러 */
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
             border-radius: 28px;
-            border: 1px solid rgba(224, 242, 254, 0.3);
-            box-shadow: 0 0 40px rgba(186, 230, 253, 0.1), inset 0 0 20px rgba(224, 242, 254, 0.1);
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            color: #e0f2fe;
+            color: #334155;
         }
 
-        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
+        /* 타이포그래피 */
+        .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
 
+        /* 캘린더 그리드 스타일 */
         .calendar-fixed-height {
-            height: 260px; 
+            min-height: 260px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -57,70 +65,102 @@
             text-align: center;
         }
         
+        /* 날짜 셀 디자인 */
         .day-cell {
-            height: 38px;
+            height: 36px;
             display: flex;
             flex-direction: column; 
             justify-content: flex-start;
             align-items: center;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.75rem; /* 12px */
             font-family: 'Roboto Mono', monospace;
             position: relative;
             cursor: pointer;
-            padding-top: 2px;
-            padding-bottom: 1px;
-            transition: all 0.2s;
+            padding-top: 4px;
+            transition: all 0.2s ease;
+            color: rgba(51, 65, 85, 0.8); /* Slate 700 */
         }
-        .day-cell:hover { background: rgba(255,255,255,0.1); }
+        .day-cell:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
         .day-cell-empty { pointer-events: none; }
 
+        /* 오늘 날짜 강조 */
         .day-today {
-            background: rgba(224, 242, 254, 0.25) !important;
-            border: 1px solid rgba(186, 230, 253, 0.4);
-            box-shadow: 0 0 10px rgba(186, 230, 253, 0.15);
+            background: rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(186, 230, 253, 0.8);
+            box-shadow: 0 0 15px rgba(186, 230, 253, 0.4);
             font-weight: 700;
+            color: #0ea5e9 !important; /* Sky 500 */
         }
 
+        /* 선택된 날짜 */
         .day-selected {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .dot-wrapper { margin-top: -5px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        .dot-plus-container { display: flex; align-items: center; gap: 1px; white-space: nowrap; }
-        .dot { width: 5px; height: 5px; border-radius: 50%; }
+        /* 일정 도트(점) 스타일 */
+        .dot-wrapper { margin-top: 2px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .dot-plus-container { display: flex; align-items: center; gap: 1px; }
+        .dot { width: 4px; height: 4px; border-radius: 50%; }
 
-        /* Colors */
-        .bg-work { background-color: #7dd3fc; box-shadow: 0 0 4px rgba(125, 211, 252, 0.6); }   
-        .bg-dev { background-color: #d8b4fe; box-shadow: 0 0 4px rgba(216, 180, 254, 0.6); }    
-        .bg-health { background-color: #fef08a; box-shadow: 0 0 4px rgba(254, 240, 138, 0.6); } 
-        .bg-rest { background-color: #94a3b8; }                                                 
+        /* 상태별 컬러 (Tailwind 호환) */
+        .bg-work { background-color: #38bdf8; box-shadow: 0 0 4px rgba(56, 189, 248, 0.6); }   
+        .bg-dev { background-color: #c084fc; box-shadow: 0 0 4px rgba(192, 132, 252, 0.6); }    
+        .bg-health { background-color: #fde047; box-shadow: 0 0 4px rgba(253, 224, 71, 0.6); } 
+        .bg-rest { background-color: #cbd5e1; }                                                 
 
-        .text-rose-custom { color: #fda4af; }
-        .text-blue-custom { color: #93c5fd; }
+        /* 텍스트 컬러 */
+        .text-rose-custom { color: #fb7185; } /* Rose 400 */
+        .text-blue-custom { color: #60a5fa; } /* Blue 400 */
         .text-dim { color: #94a3b8; }
-        .text-sky-point { color: #7dd3fc; text-shadow: 0 0 10px rgba(125, 211, 252, 0.3); }
+        .text-sky-point { color: #0ea5e9; text-shadow: 0 0 10px rgba(186, 230, 253, 0.5); }
 
+        /* 하단 일정 리스트 카드 */
         .event-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(224, 242, 254, 0.15);
-            border-radius: 14px;
-            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.1); /* 더 투명하게 */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0 12px;
             display: flex;
             align-items: center;
             transition: all 0.2s ease; 
+            margin-bottom: 4px;
         }
-        .event-past { opacity: 0.4; filter: grayscale(0.5); border-style: dashed; background: transparent; }
+        .event-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateX(2px);
+        }
+        .event-past { opacity: 0.5; filter: grayscale(0.8); border-style: dashed; background: transparent; }
 
-        .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: rgba(255, 255, 255, 0.6); transition: all 0.2s; }
-        .nav-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+        /* 네비게이션 버튼 */
+        .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: rgba(51, 65, 85, 0.6); transition: all 0.2s; }
+        .nav-btn:hover { color: #0ea5e9; background: rgba(255,255,255,0.3); }
         
-        .list-nav-btn { width: 100%; height: 24px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; transition: all 0.2s; cursor: pointer; border-radius: 8px; }
-        .list-nav-btn:hover { color: #bae6fd; background: rgba(255,255,255,0.05); }
+        .list-nav-btn { width: 100%; height: 20px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; transition: all 0.2s; cursor: pointer; border-radius: 8px; }
+        .list-nav-btn:hover { color: #38bdf8; background: rgba(255,255,255,0.1); }
         .list-nav-btn:disabled { opacity: 0; cursor: default; }
 
     </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
+                        slate: { 400: '#94a3b8', 700: '#334155' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 
