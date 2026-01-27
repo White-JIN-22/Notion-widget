@@ -96,7 +96,6 @@
             const degrees = totalMinutes * 0.25;
 
             return (
-                /* [수정] pl-6 -> pl-4 (좁아진 영역에 맞춰 여백 축소) */
                 <div className="relative w-full h-full flex items-center justify-start pl-4 select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
@@ -113,10 +112,11 @@
                          <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/40 transform -translate-x-1/2"></div>
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/40 transform -translate-y-1/2"></div>
 
-                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">24</div>
-                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">6</div>
-                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">18</div>
+                         {/* [수정] 숫자 컬러 변경: 24(파스텔 옐로), 6(연보라), 12(스카이블루), 18(회색) */}
+                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">24</div>
+                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 opacity-90 z-20">6</div>
+                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
+                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 opacity-90 z-20">18</div>
 
                          <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
                          <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
@@ -190,7 +190,6 @@
                 return '#94a3b8';
             };
 
-            // [수정] 아이콘 크기 축소: w-6 -> w-5
             const getDustIcon = (aqi, color) => {
                 const className = "w-5 h-5"; 
                 const props = { color, className, strokeWidth: "2" };
@@ -210,7 +209,6 @@
                 return '#94a3b8';
             };
 
-            // [수정] 아이콘 크기 축소: w-6 -> w-5
             const getWeatherIcon = (code, color) => {
                 const className = "w-5 h-5"; 
                 const props = { color, className };
@@ -235,24 +233,29 @@
 
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    <div className="flex-1 w-full flex flex-row items-baseline justify-between px-6 pt-2"
+                    {/* [수정] 
+                        1. flex-row -> flex-col (시간 위, 날짜 아래)
+                        2. items-center justify-center (가운데 정렬)
+                        3. border-style: solid (점선 제거) 
+                    */}
+                    <div className="flex-1 w-full flex flex-col items-center justify-center px-6 pt-1"
                          style={{ 
                              background: 'rgba(255, 255, 255, 0.1)', 
-                             borderBottom: '1px dashed rgba(255, 255, 255, 0.4)' 
+                             borderBottom: '1px solid rgba(255, 255, 255, 0.4)' 
                          }}>
-                        <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-[64px] tracking-tighter drop-shadow-sm">
+                        <div className="font-mono text-[42px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm mb-1">
                             {timeStr}
                         </div>
-                        <div className="font-sans text-sm font-bold text-white tracking-wide opacity-90 pb-[15px]">
+                        <div className="font-sans text-sm font-bold text-white tracking-wide opacity-90">
                             {dateStr}
                         </div>
                     </div>
 
-                    <div className="h-[50px] w-full flex flex-row items-center justify-center gap-5"
+                    {/* [수정] 높이 50px -> 58px (하단 영역 확장) */}
+                    <div className="h-[58px] w-full flex flex-row items-center justify-center gap-5"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1.5">
                             {getWeatherIcon(weather.code, weatherColor)}
-                            {/* [수정] 온도 글자 크기 축소: text-lg -> text-base */}
                             <span className="font-mono text-base font-bold pt-0.5" style={{ color: weatherColor }}>
                                 {weather.temp}°
                             </span>
@@ -260,7 +263,6 @@
                         <div className="h-3 w-[1px] bg-white/40 rounded-full"></div>
                         <div className="flex flex-row items-center gap-1.5">
                             {getDustIcon(dust.aqi, dustColor)}
-                            {/* [수정] 미세먼지 글자 크기 축소: text-sm -> text-xs */}
                             <span className="font-sans text-xs font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
