@@ -4,7 +4,7 @@
     <meta name="color-scheme" content="dark light">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Heatmap Mini</title>
+    <title>Focus Heatmap</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -290,7 +290,10 @@
 
                                 return (
                                     <div key={i} className={`day-cell ${heatClass} ${isToday ? 'day-today' : ''} ${!isCurrentMonth ? 'opacity-40 saturate-0' : ''}`}>
-                                        <span className={isToday ? "font-bold text-white" : ""}>{displayDay}</span>
+                                        {/* 오늘인 경우에만 날짜 표시, 나머지는 빈칸 */}
+                                        <span className={isToday ? "font-bold text-white" : ""}>
+                                            {isToday ? displayDay : ""}
+                                        </span>
                                         {minutes > 0 && (
                                             <div className="tooltip">
                                                 {formatTime(minutes)}
