@@ -251,10 +251,10 @@
             const prevMonthLastDate = new Date(year, currentDate.getMonth(), 0).getDate();
 
             const getHeatClass = (minutes) => {
-                if (!minutes || minutes < 60) return 'heat-0';
-                if (minutes <= 180) return 'heat-1';
-                if (minutes <= 300) return 'heat-2';
-                return 'heat-3';
+                if (!minutes || minutes < 120) return 'heat-0';  // 2시간 미만은 색 안 줌
+                if (minutes <= 300) return 'heat-1';             // 5시간까지 1단계
+                if (minutes <= 480) return 'heat-2';             // 8시간까지 2단계
+                return 'heat-3';                                 // 8시간 넘어야 최고 등급
             };
 
             const formatTime = (min) => {
