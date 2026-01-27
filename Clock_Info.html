@@ -96,17 +96,16 @@
             const degrees = totalMinutes * 0.25;
 
             return (
-                <div className="relative w-full h-full flex items-center justify-start pl-6 select-none overflow-hidden">
+                /* [수정] pl-6 -> pl-4 (좁아진 영역에 맞춰 여백 축소) */
+                <div className="relative w-full h-full flex items-center justify-start pl-4 select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
-                             /* [복구] 파스텔톤 4분할 색상 되살림 */
                              background: `conic-gradient(
                                  rgba(254, 240, 138, 0.3) 0deg 90deg,   
                                  rgba(216, 180, 254, 0.3) 90deg 180deg, 
                                  rgba(125, 211, 252, 0.3) 180deg 270deg, 
                                  rgba(148, 163, 184, 0.3) 270deg 360deg 
                              )`,
-                             /* [제거] 내부 흰색 광택(box-shadow inset) 삭제 -> 매트하고 깔끔하게 */
                              border: '1px solid rgba(255,255,255,0.6)',
                              boxShadow: 'none' 
                          }}>
