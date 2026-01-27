@@ -116,11 +116,12 @@
                 };
             }
 
-            // Formatting Time
+            // Formatting Time (Unused but kept for logic)
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
             return (
-                <div className="relative w-[260px] h-[124px] flex flex-row items-center justify-between px-5 select-none overflow-hidden"
+                // 124x124 Square Layout
+                <div className="relative w-[124px] h-[124px] flex items-center justify-center select-none overflow-hidden"
                      style={{
                          background: 'var(--glass-bg)',
                          backdropFilter: 'blur(30px)',
@@ -185,30 +186,7 @@
                              <div className="absolute top-[10%] left-1/2 w-[3px] h-[40%] bg-white rounded-full transform -translate-x-1/2 shadow-sm"></div>
                          </div>
                     </div>
-
-                    {/* Right: Info Panel */}
-                    <div className="flex flex-col items-end justify-center h-full w-full pl-3 text-right">
-                        
-                        {/* Current Zone Name (Icon Removed) */}
-                        <div className="mb-0.5">
-                            <span className="font-serif italic font-bold text-sm tracking-wide" 
-                                  style={{ color: zoneInfo.color, textShadow: `0 0 10px ${zoneInfo.subColor}` }}>
-                                {zoneInfo.title}
-                            </span>
-                        </div>
-
-                        {/* Digital Time */}
-                        <div className="font-mono text-3xl text-white font-bold tracking-tight leading-none drop-shadow-sm mb-1">
-                            {timeStr}
-                        </div>
-
-                        {/* Motivational/Desc Text */}
-                        <div className="font-sans text-[11px] font-medium opacity-80" style={{ color: '#cbd5e1' }}>
-                            {zoneInfo.desc}
-                        </div>
-
-                    </div>
-
+                    {/* Right Panel Removed for Minimal Square Look */}
                     {/* Current Indicator (Small Badge on top right corner of container?) - Optional, clean look preferred */}
                 </div>
             );
