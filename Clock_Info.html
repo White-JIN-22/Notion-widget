@@ -273,13 +273,13 @@
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* [1번 수정] Left: 시계 영역 너비 증가 (130px -> 145px) -> 구분선이 오른쪽으로 이동 */}
-                    <div className="w-[145px] h-full flex-shrink-0">
+                    {/* [수정] 왼쪽 영역 축소: 145px -> 120px */}
+                    <div className="w-[120px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* Right: 정보 영역 너비 감소 (230px -> 215px) */}
-                    <div className="w-[215px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* [수정] 오른쪽 영역 확장: 215px -> 240px (총합 360px 유지) */}
+                    <div className="w-[240px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
