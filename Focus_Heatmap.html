@@ -290,10 +290,6 @@
 
                                 return (
                                     <div key={i} className={`day-cell ${heatClass} ${isToday ? 'day-today' : ''} ${!isCurrentMonth ? 'opacity-40 saturate-0' : ''}`}>
-                                        {/* 오늘인 경우에만 날짜 표시, 나머지는 빈칸 */}
-                                        <span className={isToday ? "font-bold text-white" : ""}>
-                                            {isToday ? displayDay : ""}
-                                        </span>
                                         {minutes > 0 && (
                                             <div className="tooltip">
                                                 {formatTime(minutes)}
