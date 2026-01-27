@@ -73,9 +73,9 @@
             const totalMinutes = hours * 60 + minutes;
             const degrees = totalMinutes * 0.25;
 
-            // 124x124 Square Layout Content
-            return (
-                <div className="relative w-[124px] h-[124px] flex items-center justify-center select-none overflow-hidden">
+            /// 124x124 Square Layout Content -> w-full로 변경
+return (
+    <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
                              background: `conic-gradient(
@@ -247,10 +247,10 @@
         // [Main App] Combined Layout
         // ==========================================
         const App = () => {
-            return (
-                <div className="relative flex flex-row items-center justify-center overflow-hidden"
-                     style={{
-                         width: '384px', // 124(Clock) + 260(Info)
+    return (
+        <div className="relative flex flex-row items-center justify-center overflow-hidden"
+             style={{
+                 width: '360px', // 100(Clock) + 260(Info)로 변경
                          height: '124px',
                          background: 'var(--glass-bg)',
                          backdropFilter: 'blur(30px)',
@@ -259,10 +259,10 @@
                          boxShadow: 'var(--glass-shadow)',
                      }}>
                     
-                    {/* Left: Clock (Border Removed) */}
-                    <div className="w-[124px] h-[124px] flex-shrink-0">
-                        <ClockSection />
-                    </div>
+                    {/* Left: Clock (Border Removed) - 너비 100px로 축소 */}
+<div className="w-[100px] h-[124px] flex-shrink-0">
+    <ClockSection />
+</div>
 
                     {/* Right: Info (Border Left Added) */}
                     <div className="w-[260px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.15)' }}>
