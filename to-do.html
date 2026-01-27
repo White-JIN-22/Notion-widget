@@ -920,7 +920,8 @@
                         if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
 
                         // ★ 아이콘 장식 달기
-                        const status = t.done ? "✅" : "⬜";
+                        // [수정] 내일 할 일이면 화살표(➜), 완료는 체크(✅), 미완료는 빈칸(⬜)
+                        const status = t.done ? "✅" : (t.isTomorrow ? "➡️" : "⬜");
                         const star = t.isImportant ? "⭐" : "";  // 중요도 체크
                         const urgent = t.isUrgent ? "❗" : "";   // 긴급도 체크
                         
