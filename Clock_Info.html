@@ -142,7 +142,7 @@
         const InfoSection = () => {
             const [time, setTime] = useState(new Date());
             const [weather, setWeather] = useState({ temp: '--', code: 0 });
-            const [dust, setDust] = useState({ aqi: 0, status: 'Loading' });
+            const [dust, setDust] = useState({ aqi: 0, status: '…' });
             
             const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
             const LAT = 37.5015609; 
