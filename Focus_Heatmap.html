@@ -135,29 +135,28 @@
             // [수정] 서버 주소 (Daily_Log와 동일하게 설정)
             const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
             
-            // [수정] Total(숫자) 값을 최우선으로 사용하여 정확도 100% 보장
+            // [수정] 속도 개선 및 데이터 파싱 강화
             const loadData = async () => {
                 const map = {};
                 const formatYMD = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 
-                const parseTimeStr = (str) => {
-                    if (!str) return 0;
-                    let min = 0;
-                    const hMatch = str.match(/(\d+)\s*[Hh]/);
-                    const mMatch = str.match(/(\d+)\s*[Mm]/);
-                    if (hMatch) min += parseInt(hMatch[1]) * 60;
-                    if (mMatch) min += parseInt(mMatch[1]);
-                    return min;
-                };
-
+                // 숫자를 확실하게 추출하는 함수 (노션 원본 데이터 구조까지 대응)
                 const extractMinutes = (data) => {
                     if (!data) return 0;
+                    
+                    // 1. 가장 깔끔한 경우 (Total이 바로 숫자로 있을 때)
                     if (typeof data.Total === 'number') return data.Total;
                     if (typeof data.total === 'number') return data.total;
-                    if (data.Total && !isNaN(data.Total)) return Number(data.Total);
-                    if (data.total && !isNaN(data.total)) return Number(data.total);
 
+                    // 2. 문자열로 들어온 경우 ("203" 등)
+                    if (data.Total && !isNaN(data.Total)) return Number(data.Total);
+                    
+                    // 3. 노션 원본 구조 (properties -> Total -> number)
+                    if (data.properties?.Total?.number) return data.properties.Total.number;
+
+                    // 4. 그래도 없으면 기존 방식 (blocks 합산 등)
                     let total = 0;
+                    
                     const blocks = Array.isArray(data) ? data : (data.blocks || []);
                     if (blocks.length > 0) {
                         total += blocks
@@ -193,7 +192,7 @@
                     }
                 } catch (e) { console.error("Local Load Error", e); }
 
-                // 2. 서버 데이터 가져오기
+                // 2. 서버 데이터 가져오기 (고속 모드)
                 try {
                     const year = currentDate.getFullYear();
                     const month = currentDate.getMonth() + 1;
@@ -204,10 +203,13 @@
                         datesToFetch.push(formatYMD(year, month, d));
                     }
 
-                    const BATCH_SIZE = 3;
+                    // [변경] 한 번에 10일치씩 요청, 딜레이 제거
+                    const BATCH_SIZE = 10; 
+                    
                     for (let i = 0; i < datesToFetch.length; i += BATCH_SIZE) {
                         const batch = datesToFetch.slice(i, i + BATCH_SIZE);
                         
+                        // 병렬 요청 시작
                         await Promise.all(batch.map(async (dateKey) => {
                             try {
                                 const res = await fetch(`${WORKER_URL}?date=${dateKey}`);
@@ -217,22 +219,13 @@
                                     if (minutes > 0) map[dateKey] = minutes;
                                 }
                             } catch (err) {
-    console.log("개별 데이터 로드 실패:", dateKey, err);
-}
+                                console.warn(`Failed: ${dateKey}`, err);
+                            }
                         }));
                         
-                        await new Promise(r => setTimeout(r, 300));
-
-                        // [최종 업데이트] 안전장치 적용
-                        setFocusData(prev => {
-                            const merged = { ...prev };
-                            Object.keys(map).forEach(key => {
-                                const newVal = map[key];
-                                const oldVal = prev[key] || 0;
-                                if (newVal >= oldVal) merged[key] = newVal;
-                            });
-                            return merged;
-                        });
+                        // [중요] 딜레이(setTimeout) 삭제함 -> 즉시 다음 배치 실행
+                        // 중간중간 화면 갱신을 위해 상태 업데이트
+                        setFocusData(prev => ({ ...prev, ...map }));
                     } 
                 } catch (e) { 
                     console.error("Server Load Error", e); 
