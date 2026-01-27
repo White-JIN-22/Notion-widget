@@ -150,9 +150,10 @@
         .block-empty { background: rgba(255, 255, 255, 0.04); }
         .block-action-bg { background: transparent; border: none; }
 
-        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
-        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
-        .text-white { color: #ffffff; }
+        /* [수정] 요청하신 연보라색(#d8b4fe)으로 변경 및 네온 효과 조정 */
+        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 10px rgba(14, 165, 233, 0.5); } 
+        .text-purple-custom { color: #d8b4fe; text-shadow: 0 0 10px rgba(216, 180, 254, 0.5); }
+        .text-white { color: #ffffff; text-shadow: 0 0 5px rgba(255, 255, 255, 0.2); }
 
     </style>
 </head>
@@ -260,8 +261,13 @@
             }, [blocks]);
 
             const getTotalColorClass = (min) => {
-                if (min <= 90) return "text-white"; 
-                if (min <= 330) return "text-sky-custom"; 
+                // 1. [2시간 미만] 아직 예열 단계 -> 흰색
+                if (!min || min < 120) return "text-white"; 
+                
+                // 2. [4시간 이하] 오전 루틴 성공 구간 -> 스카이블루
+                if (min <= 240) return "text-sky-custom"; 
+                
+                // 3. [4시간 초과] 6시간 목표를 향해 가는 구간 -> 연보라
                 return "text-purple-custom";               
             };
 
