@@ -225,7 +225,9 @@
             const month = String(time.getMonth() + 1).padStart(2, '0');
             const day = String(time.getDate()).padStart(2, '0');
             const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-            const dateStr = `${month}/${day} ${weekday}`;
+            
+            // 날짜와 요일을 분리해서 표시하기 위해 문자열 생성 방식 변경
+            const dateOnly = `${month}/${day}`;
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
             
             const dustColor = getDustColor(dust.aqi);
@@ -233,26 +235,31 @@
 
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    {/* [수정] 
-                        1. flex-row -> flex-col (시간 위, 날짜 아래)
-                        2. items-center justify-center (가운데 정렬)
-                        3. border-style: solid (점선 제거) 
-                    */}
-                    <div className="flex-1 w-full flex flex-col items-center justify-center px-6 pt-1"
+                    {/* [수정] 상단 영역: 시간(좌) + 날짜/요일(우) 가로 배치 */}
+                    <div className="flex-1 w-full flex flex-row items-center justify-center gap-3 px-2 pt-1"
                          style={{ 
                              background: 'rgba(255, 255, 255, 0.1)', 
                              borderBottom: '1px solid rgba(255, 255, 255, 0.4)' 
                          }}>
-                        <div className="font-mono text-[42px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm mb-1">
+                        
+                        {/* 1. 시간 */}
+                        <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm pb-1">
                             {timeStr}
                         </div>
-                        <div className="font-sans text-sm font-bold text-white tracking-wide opacity-90">
-                            {dateStr}
+
+                        {/* 2. 날짜/요일 (세로 배치) */}
+                        <div className="flex flex-col items-start justify-center">
+                            <div className="font-sans text-[13px] font-bold text-white tracking-wide opacity-90 leading-tight">
+                                {dateOnly}
+                            </div>
+                            <div className="font-sans text-[11px] font-bold text-white tracking-widest opacity-80 leading-tight pt-0.5">
+                                {weekday}
+                            </div>
                         </div>
                     </div>
 
-                    {/* [수정] 높이 50px -> 58px (하단 영역 확장) */}
-                    <div className="h-[58px] w-full flex flex-row items-center justify-center gap-5"
+                    {/* [수정] 하단 영역: 높이 54px로 미세 조정 (너무 좁지도, 넓지도 않게) */}
+                    <div className="h-[54px] w-full flex flex-row items-center justify-center gap-5"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1.5">
                             {getWeatherIcon(weather.code, weatherColor)}
@@ -271,7 +278,6 @@
                 </div>
             );
         };
-
         const App = () => {
             return (
                 <div className="widget-container">
