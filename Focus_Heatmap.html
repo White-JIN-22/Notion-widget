@@ -251,10 +251,11 @@
             const prevMonthLastDate = new Date(year, currentDate.getMonth(), 0).getDate();
 
             const getHeatClass = (minutes) => {
-                if (!minutes || minutes < 120) return 'heat-0';  // 2시간 미만은 색 안 줌
-                if (minutes <= 300) return 'heat-1';             // 5시간까지 1단계
-                if (minutes <= 480) return 'heat-2';             // 8시간까지 2단계
-                return 'heat-3';                                 // 8시간 넘어야 최고 등급
+                // [중간 강도] 2시간 / 4시간 / 6시간 기준
+                if (!minutes || minutes < 120) return 'heat-0';  // 2시간(120분) 미만은 색 없음
+                if (minutes <= 240) return 'heat-1';             // 4시간(240분) 이하 -> 1단계 (노랑)
+                if (minutes <= 360) return 'heat-2';             // 6시간(360분) 이하 -> 2단계 (파랑)
+                return 'heat-3';                                 // 6시간 초과 -> 3단계 (보라)
             };
 
             const formatTime = (min) => {
