@@ -216,7 +216,9 @@
                                     const minutes = extractMinutes(data);
                                     if (minutes > 0) map[dateKey] = minutes;
                                 }
-                            } catch (err) { }
+                            } catch (err) {
+    console.log("개별 데이터 로드 실패:", dateKey, err);
+}
                         }));
                         
                         await new Promise(r => setTimeout(r, 300));
