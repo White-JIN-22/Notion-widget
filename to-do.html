@@ -1171,11 +1171,19 @@
                             
                             {isToday(viewDate) && (
                                 <div className="flex gap-1">
+                                    {/* 1. 소일거리 추가 */}
+                                    <button onClick={() => openQuestModal(zone)} className={`add-btn ${config.colorClass}`} title="소일거리 추가">
+                                        <Icons.ListPlus />
+                                    </button>
+                                    
+                                    {/* 2. 내일 할 일 추가 */}
                                     <button onClick={() => startAdding(zone, 'tomorrow')} className={`add-btn ${config.colorClass}`} title="내일 할 일 추가">
                                         {activeInputZone === zone && addMode === 'tomorrow' ? <Icons.X /> : <Icons.ArrowRight />}
                                     </button>
-                                    <button onClick={() => openQuestModal(zone)} className={`add-btn ${config.colorClass}`} title="소일거리 추가">
-                                        <Icons.ListPlus />
+
+                                    {/* 3. 오늘 할 일 추가 (복구됨) */}
+                                    <button onClick={() => startAdding(zone, 'today')} className={`add-btn ${config.colorClass}`} title="할 일 추가">
+                                        {activeInputZone === zone && addMode === 'today' ? <Icons.X /> : <Icons.Plus />}
                                     </button>
                                 </div>
                             )}
