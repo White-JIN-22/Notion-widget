@@ -260,18 +260,16 @@
                         
                     {/* [수정] gap-2 -> gap-1로 간격 추가 축소 */}
                     <div className="h-[36px] w-full flex flex-row items-center justify-center gap-0.5"
-                         style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
+                        style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
-                            {/* 온도 글자 축소: text-xs */}
                             <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
                                 {weather.temp}°
                             </span>
                         </div>
-                        <div className="h-2.5 w-[1px] bg-white/40 rounded-full"></div>
+                        
                         <div className="flex flex-row items-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
-                            {/* 상태 글자 축소: text-[10px] */}
                             <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
