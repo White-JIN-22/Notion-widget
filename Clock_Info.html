@@ -226,7 +226,6 @@
             const day = String(time.getDate()).padStart(2, '0');
             const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
             
-            // 날짜와 요일을 분리해서 표시하기 위해 문자열 생성 방식 변경
             const dateOnly = `${month}/${day}`;
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
             
@@ -234,8 +233,8 @@
             const weatherColor = getWeatherColor(weather.code);
 
             return (
-                <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    {/* [수정] 상단 영역: 시간(좌) + 날짜/요일(우) 가로 배치 */}
+                /* [수정] pl-2 삭제 -> 가로선이 왼쪽 수직 구분선과 딱 붙게 됨 */
+                <div className="flex flex-col flex-1 h-full select-none overflow-hidden">
                     <div className="flex-1 w-full flex flex-row items-center justify-center gap-3 px-2 pt-1"
                          style={{ 
                              background: 'rgba(255, 255, 255, 0.1)', 
@@ -247,7 +246,7 @@
                             {timeStr}
                         </div>
 
-                        {/* 2. 날짜/요일 (세로 배치) */}
+                        {/* 2. 날짜/요일 */}
                         <div className="flex flex-col items-start justify-center">
                             <div className="font-sans text-[13px] font-bold text-white tracking-wide opacity-90 leading-tight">
                                 {dateOnly}
@@ -258,7 +257,6 @@
                         </div>
                     </div>
 
-                    {/* [수정] 하단 영역: 높이 54px로 미세 조정 (너무 좁지도, 넓지도 않게) */}
                     <div className="h-[54px] w-full flex flex-row items-center justify-center gap-5"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1.5">
@@ -278,16 +276,17 @@
                 </div>
             );
         };
+        
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* [수정] 왼쪽 영역 축소: 145px -> 120px */}
-                    <div className="w-[120px] h-full flex-shrink-0">
+                    {/* [수정] 구분선 이동: 120px -> 136px (조금 더 오른쪽으로) */}
+                    <div className="w-[136px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* [수정] 오른쪽 영역 확장: 215px -> 240px (총합 360px 유지) */}
-                    <div className="w-[240px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* [수정] 나머지 너비: 240px -> 224px (총합 360px) */}
+                    <div className="w-[224px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
