@@ -70,7 +70,42 @@
             }
         }
     </script>
-</head>
+<style>
+        /* 1. 위젯 전체 배경을 아주 투명하게 변경 (안료 농도 25% -> 5%) */
+        .widget-container {
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.05) 0%, rgba(240, 249, 255, 0.02) 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리도 얇게 */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3) !important; /* 그림자는 어둡게 */
+        }
+
+        /* 2. 내부 박스(헤더, 카드 등)들도 투명하게 */
+        .header-section, 
+        .glass-panel, 
+        .event-card, 
+        .todo-item:hover,
+        .quest-btn {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 3. 글씨가 배경에 묻히지 않게 더 밝게 조정 */
+        body { color: #f1f5f9 !important; } /* 기본 글씨: 밝은 회색 */
+        .text-slate-700 { color: #e2e8f0 !important; } /* 진한 글씨 -> 밝게 */
+        .text-slate-600 { color: #cbd5e1 !important; }
+        .text-slate-500 { color: #94a3b8 !important; }
+        
+        /* 4. 입력창도 투명하게 */
+        input, select, .custom-select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+        }
+        
+        /* 5. 투두리스트 완료 항목 더 어둡게 처리 */
+        .todo-done { opacity: 0.3 !important; }
+    </style>
+    </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
