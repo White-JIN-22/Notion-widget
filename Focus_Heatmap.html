@@ -200,10 +200,6 @@
                     <div className="px-3 pt-3 pb-1 flex justify-between items-end border-b border-white/5 bg-white/5 backdrop-blur-sm shrink-0 h-[28px]">
                         <div className="flex items-baseline gap-2">
                             <h1 className="text-sm title-text font-serif tracking-tight text-white font-bold leading-none">{monthStr}</h1>
-                            <div className="text-sky-300 text-[9px] font-bold tracking-tight opacity-90 flex items-center gap-0.5">
-                                <Icons.Flame />
-                                <span className="tabular-nums">{Math.floor(monthTotal / 60)}h {monthTotal % 60}m</span>
-                            </div>
                         </div>
                         <div className="flex gap-0.5 items-center mb-0.5">
                             <button onClick={goToday} className="nav-btn mr-1" title="Go Today"><Icons.RotateCcw /></button>
