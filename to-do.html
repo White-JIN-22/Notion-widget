@@ -1129,7 +1129,10 @@
 
                 // [핵심 수정] 투두 정렬 로직 변경
                 const sortedTodos = [...zoneTodos].sort((a, b) => {
-                    // 1순위: 완료 여부 (완료된 건 무조건 맨 아래)
+                    // 0순위: 내일 할 일은 무조건 맨 아래
+                    if (!!a.isTomorrow !== !!b.isTomorrow) return a.isTomorrow ? 1 : -1;
+
+                    // 1순위: 완료 여부 (완료된 건 그 위)
                     if (a.done !== b.done) return a.done ? 1 : -1; 
                     
                     // 2순위: 소일거리 여부 (같은 완료 상태라면, 소일거리는 무조건 아래로)
