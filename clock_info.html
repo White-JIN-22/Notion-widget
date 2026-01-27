@@ -259,15 +259,15 @@ return (
                          boxShadow: 'var(--glass-shadow)',
                      }}>
                     
-                    {/* Left: Clock (Border Removed) - 너비 100px로 축소 */}
-<div className="w-[100px] h-[124px] flex-shrink-0">
+                    {/* Left: Clock - 너비를 124px -> 154px로 확장 (구분선 오른쪽 이동) */}
+<div className="w-[154px] h-[124px] flex-shrink-0">
     <ClockSection />
 </div>
 
-                    {/* Right: Info (Border Left Added) */}
-                    <div className="w-[260px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.15)' }}>
-                        <InfoSection />
-                    </div>
+{/* Right: Info - 너비를 260px -> 230px로 축소 (전체 합 384px 유지) */}
+<div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.15)' }}>
+    <InfoSection />
+</div>
                 </div>
             );
         };
