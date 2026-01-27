@@ -244,6 +244,7 @@
             const [isLoading, setIsLoading] = useState(false);
 
             const [activeInputZone, setActiveInputZone] = useState(null);
+            const [addMode, setAddMode] = useState('today'); // 'today' | 'tomorrow'
             const [inputText, setInputText] = useState('');
             // [NEW] 소일거리 모달 상태
             const [showQuestModal, setShowQuestModal] = useState(false);
@@ -495,11 +496,22 @@
             };
 
             const handleNewDayReset = (todayStr, currentTodos) => {
-                const remainingTodos = currentTodos.filter(t => !t.done).map(t => ({...t, elapsed: 0, isRunning: false, lastStartTime: null}));
+                // 완료되지 않은 일 + '내일 하기로 한 일'을 모두 가져와서 '오늘의 일반 할 일'로 초기화
+                const remainingTodos = currentTodos
+                    .filter(t => !t.done || t.isTomorrow)
+                    .map(t => ({
+                        ...t, 
+                        elapsed: 0, 
+                        isRunning: false, 
+                        lastStartTime: null,
+                        isTomorrow: false, // 내일 할 일 -> 오늘 할 일로 승격
+                        done: false // 혹시라도 체크되어 있었다면 해제
+                    }));
+                
                 setTodos(remainingTodos);
                 localStorage.setItem('jinsolTodos', JSON.stringify(remainingTodos));
                 localStorage.setItem('lastDate', todayStr);
-                triggerToast("☀️ 좋은 아침! 새로운 하루가 시작됐어요");
+                triggerToast("☀️ 좋은 아침, 새로운 하루를 시작해요!");
             };
 
             useEffect(() => {
@@ -512,9 +524,16 @@
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
 
             const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
-            const startAdding = (zone) => { 
+            
+            const startAdding = (zone, mode = 'today') => { 
                 if (!isToday(viewDate)) return; 
-                if (activeInputZone === zone) setActiveInputZone(null); else { setActiveInputZone(zone); setInputText(''); } 
+                if (activeInputZone === zone && addMode === mode) {
+                    setActiveInputZone(null); 
+                } else { 
+                    setActiveInputZone(zone); 
+                    setAddMode(mode);
+                    setInputText(''); 
+                } 
             };
             
             const confirmAdd = () => {
@@ -525,14 +544,15 @@
                     zone: activeInputZone, 
                     done: false, 
                     isImportant: false,
-                    isUrgent: false, // [NEW] 긴급도 속성 추가
+                    isUrgent: false,
+                    isTomorrow: addMode === 'tomorrow', // [NEW] 내일 할 일 플래그
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
                     lastStartTime: null,
                     type: 'todo'
                 };
-                setTodos([...todos, newTodo]); setInputText(''); triggerToast("✨ 저장됨!");
+                setTodos([...todos, newTodo]); setInputText(''); triggerToast(addMode === 'tomorrow' ? "🌙 내일 할 일로 저장됨" : "✨ 저장됨!");
             };
 
             // ... (앞부분 생략: startAdding, confirmAdd, startEditing 등) ...
@@ -1206,10 +1226,11 @@
                                 const timeDisplay = todo.isRemote ? todo.timeDisplay : formatTime(currentMs);
                                 
                                 const QuestIcon = todo.isChore ? (Icons[todo.choreIcon] || Icons.Zap) : null;
+                        
+                                const isTomorrow = todo.isTomorrow;
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-2 ${todo.done ? 'todo-done' : ''}`}>
-                                    
                                     {/* 별+느낌표+체크박스(또는 화살표) 그룹 */}
                                     <div className="flex items-center gap-0.5 shrink-0">
                                         {/* 중요/긴급 버튼은 내일 할 일에서도 항상 활성화 */}
