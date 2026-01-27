@@ -64,12 +64,26 @@
             position: relative;
         }
 
-        /* Heatmap Colors (기존 유지) */
+        /* Heatmap Colors (글자색 color 속성 제거됨) */
         .heat-0 { background: rgba(255, 255, 255, 0.03); color: #64748b; }
-        .heat-1 { background: rgba(125, 211, 252, 0.3); color: #e0f2fe; border: 0.5px solid rgba(125, 211, 252, 0.1); }
-        .heat-2 { background: rgba(14, 165, 233, 0.6); color: #ffffff; box-shadow: 0 0 4px rgba(14, 165, 233, 0.3); border: 0.5px solid rgba(125, 211, 252, 0.3); }
-        .heat-3 { background: rgba(192, 132, 252, 0.7); color: #ffffff; box-shadow: 0 0 6px rgba(192, 132, 252, 0.4); font-weight: 700; border: 0.5px solid rgba(216, 180, 254, 0.4); }
-
+        
+        .heat-1 { 
+            background: rgba(125, 211, 252, 0.3); 
+            border: 0.5px solid rgba(125, 211, 252, 0.1); 
+        }
+        
+        .heat-2 { 
+            background: rgba(14, 165, 233, 0.6); 
+            box-shadow: 0 0 4px rgba(14, 165, 233, 0.3); 
+            border: 0.5px solid rgba(125, 211, 252, 0.3); 
+        }
+        
+        .heat-3 { 
+            background: rgba(192, 132, 252, 0.7); 
+            box-shadow: 0 0 6px rgba(192, 132, 252, 0.4); 
+            font-weight: 700; 
+            border: 0.5px solid rgba(216, 180, 254, 0.4); 
+        }
         .day-today {
             border: 1px solid #ffffff !important;
             box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
@@ -118,34 +132,67 @@
             const [focusData, setFocusData] = useState({}); 
             const [monthTotal, setMonthTotal] = useState(0);
 
-            const loadData = () => {
+            // [수정] 서버 주소 추가
+            const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+
+            // [수정] 서버 + 로컬 데이터 병합 로직
+            const loadData = async () => {
+                const map = {};
+
+                // 1. 헬퍼 함수: 블록 데이터에서 집중 시간(분) 추출
+                const calcMinutes = (blocks) => {
+                    return (blocks || [])
+                        .filter(b => b.type === 'focus' || !b.type)
+                        .reduce((acc, cur) => acc + (cur.duration || 0), 0);
+                };
+
+                // 2. 로컬 데이터 처리 (우선 순위 낮음)
                 try {
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                    const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    const map = {};
-
-                    // 과거 데이터
                     history.forEach(day => {
                         if (!day.date) return;
-                        const dateObj = new Date(day.date);
-                        const key = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                        const minutes = (day.blocks || [])
-                            .filter(b => b.type === 'focus' || !b.type)
-                            .reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                        map[key] = minutes;
+                        const d = new Date(day.date);
+                        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        map[key] = calcMinutes(day.blocks);
                     });
-
-                    // 오늘 데이터
+                    
+                    // 오늘 로컬 데이터
+                    const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     if (todayData.date) {
-                        const dateObj = new Date(todayData.date);
-                        const key = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-                        const todayMinutes = (todayData.blocks || [])
-                            .filter(b => b.type === 'focus' || !b.type)
-                            .reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                        map[key] = todayMinutes;
+                        const d = new Date(todayData.date);
+                        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        map[key] = calcMinutes(todayData.blocks);
                     }
-                    setFocusData(map);
-                } catch (e) { console.error("Data Load Error", e); }
+                } catch (e) { console.error("Local Load Error", e); }
+
+                // 3. 서버 데이터 가져오기 (비동기)
+                try {
+                    // 서버에 전체 기록 요청 (GET 요청 시 전체 혹은 월간 데이터를 준다고 가정)
+                    const res = await fetch(WORKER_URL);
+                    if (res.ok) {
+                        const serverData = await res.json();
+                        
+                        // 서버 데이터가 배열(History) 형태라면
+                        if (Array.isArray(serverData)) {
+                            serverData.forEach(day => {
+                                if (!day.date) return;
+                                const d = new Date(day.date);
+                                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                                // 로컬 값보다 서버 값이 더 정확하다고 가정하거나, 없는 날짜만 채워넣음
+                                // 여기서는 서버 데이터를 덮어쓰기 (최신 동기화본)
+                                map[key] = calcMinutes(day.blocks);
+                            });
+                        } 
+                        // 만약 단일 객체라면 (오늘 데이터 등)
+                        else if (serverData.date) {
+                            const d = new Date(serverData.date);
+                            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                            map[key] = calcMinutes(serverData.blocks);
+                        }
+                    }
+                } catch (e) { console.warn("Server Fetch Error (Offline Mode)", e); }
+
+                setFocusData(map);
             };
 
             useEffect(() => {
