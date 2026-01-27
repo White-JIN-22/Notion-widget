@@ -260,12 +260,9 @@
 
             return (
                 <div className="widget-container">
-                    {/* Compact Header: [월] [토탈시간] --- [Nav] */}
-                    <div className="px-3 pt-3 pb-1 flex justify-between items-end border-b border-white/5 bg-white/5 backdrop-blur-sm shrink-0 h-[28px]">
-                        <div className="flex items-baseline gap-2">
-                            <h1 className="text-sm title-text font-serif tracking-tight text-white font-bold leading-none">{monthStr}</h1>
-                        </div>
-                        {/* 버튼 간격 수정: gap-0.5 -> gap-0 -space-x-1 */}
+                    {/* Compact Header: 월 표시 삭제 -> 버튼 중앙 정렬 */}
+                    <div className="w-full flex justify-center items-center border-b border-white/5 bg-white/5 backdrop-blur-sm shrink-0 h-[28px]">
+                        {/* 버튼 그룹: 기존의 밀착된 간격(-space-x-1) 유지하며 중앙 배치 */}
                         <div className="flex gap-0 -space-x-1 items-center">
                             <button onClick={goToday} className="nav-btn mr-1 z-10" title="Go Today"><Icons.RotateCcw /></button>
                             <button onClick={prevMonth} className="nav-btn"><Icons.ChevronLeft /></button>
