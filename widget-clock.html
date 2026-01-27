@@ -149,10 +149,28 @@
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/20 transform -translate-y-1/2"></div>
 
                          {/* Boundary Numbers (0, 6, 12, 18) */}
-                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 drop-shadow-sm">24</div>
-                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 drop-shadow-sm">6</div>
-                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 drop-shadow-sm">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 drop-shadow-sm">18</div>
+                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 drop-shadow-sm z-20">24</div>
+                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 drop-shadow-sm z-20">6</div>
+                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 drop-shadow-sm z-20">12</div>
+                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 drop-shadow-sm z-20">18</div>
+
+                         {/* Zone Icons (Inside Arcs) */}
+                         {/* 0~6 Night (Top-Right Area) */}
+                         <div className="absolute top-[20%] right-[20%] opacity-80">
+                             <Moon className="w-3.5 h-3.5" color="#fef08a" />
+                         </div>
+                         {/* 6~12 Morning (Bottom-Right Area) */}
+                         <div className="absolute bottom-[20%] right-[20%] opacity-80">
+                             <Sun className="w-3.5 h-3.5" color="#d8b4fe" />
+                         </div>
+                         {/* 12~18 Afternoon (Bottom-Left Area) */}
+                         <div className="absolute bottom-[20%] left-[20%] opacity-80">
+                             <CloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
+                         </div>
+                         {/* 18~24 Evening (Top-Left Area) */}
+                         <div className="absolute top-[20%] left-[20%] opacity-80">
+                             <Coffee className="w-3.5 h-3.5" color="#94a3b8" />
+                         </div>
 
                          {/* Center Dot */}
                          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
@@ -171,9 +189,8 @@
                     {/* Right: Info Panel */}
                     <div className="flex flex-col items-end justify-center h-full w-full pl-3 text-right">
                         
-                        {/* Current Zone Icon & Name */}
-                        <div className="flex flex-row items-center gap-1.5 mb-1">
-                            {zoneInfo.icon}
+                        {/* Current Zone Name (Icon Removed) */}
+                        <div className="mb-0.5">
                             <span className="font-serif italic font-bold text-sm tracking-wide" 
                                   style={{ color: zoneInfo.color, textShadow: `0 0 10px ${zoneInfo.subColor}` }}>
                                 {zoneInfo.title}
