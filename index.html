@@ -199,46 +199,7 @@
             }
         }
     </script>
-<style>
-        /* 1. 가장 바깥 컨테이너: 배경색 제거 (완전 투명에 가까운 2%) */
-        .widget-container {
-            background: rgba(255, 255, 255, 0.02) !important; /* 배경색 거의 없음 */
-            backdrop-filter: none !important; /* 뒷배경 흐림 제거 (선명하게 투과) */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리만 은은하게 */
-            box-shadow: none !important; /* 그림자 제거 (깔끔하게) */
-        }
-
-        /* 2. 내부 패널들: 살짝 반투명하게 (유리 조각 느낌) */
-        .header-section, 
-        .glass-panel, 
-        .event-card, 
-        .todo-item:hover,
-        .quest-btn,
-        .modal-content,
-        .weather-btn {
-            background: rgba(255, 255, 255, 0.05) !important; /* 5% 흰색 */
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(8px) !important; /* 내부 요소만 살짝 흐리게 */
-        }
-
-        /* 3. 글씨 강제 미백 (검은 배경에서 잘 보이게) */
-        body, .text-slate-700, .text-slate-600, .text-slate-500, .text-dim {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-        
-        /* 4. 포인트 컬러는 형광빛으로 (가독성 확보) */
-        .text-sky-300, .text-sky-custom { color: #7dd3fc !important; text-shadow: 0 0 10px rgba(125,211,252,0.4); }
-        .text-purple-300, .text-purple-custom { color: #d8b4fe !important; text-shadow: 0 0 10px rgba(216,180,254,0.4); }
-
-        /* 5. 모달창 등 부가 요소 */
-        .modal-overlay { background: rgba(0, 0, 0, 0.6) !important; }
-        input, select, .custom-select {
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-    </style>
-    </head>
+</head>
 <body>
 
     <div id="root" style="width: 100%; height: 100%; display: flex; justify-content: center;"></div>
