@@ -241,13 +241,25 @@
                         }));
                         
                         await new Promise(r => setTimeout(r, 300)); // 0.3초 휴식
-                        setFocusData({ ...map });
-                    }
-                    
-                } catch (e) { console.warn("Server sync failed", e); }
 
-                setFocusData({ ...map });
-            };
+                        /* 수정 전 (단순 덮어쓰기: 0이 들어오면 색이 꺼짐) */
+/* 수정 후 (안전장치 적용: 기존 값이 더 크면 유지) */
+setFocusData(prev => {
+    const merged = { ...prev }; // 기존 데이터 복사
+    
+    Object.keys(map).forEach(key => {
+        const newVal = map[key];
+        const oldVal = prev[key] || 0;
+        
+        // [핵심] 새로 들어온 값이 기존 값보다 크거나 같을 때만 업데이트
+        // (서버 오류로 0이 와도 기존 색칠이 유지됨)
+        if (newVal >= oldVal) {
+            merged[key] = newVal;
+        }
+    });
+    
+    return merged;
+});
             
             // [중요] 달(Month)이 바뀔 때마다 서버에서 해당 월 데이터를 새로 긁어옴
             useEffect(() => {
