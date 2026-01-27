@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta name="color-scheme" content="dark light">
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Block Horizontal</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* [가로형 위젯 컨테이너 스타일] */
+        .widget-container {
+            position: relative;
+            width: 600px; /* 요청하신 가로형 너비 */
+            height: 124px; /* 고정 높이 */
+            background: linear-gradient(90deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            border-radius: 20px;
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: row; /* 가로 배치 */
+            overflow: hidden;
+            color: #334155;
+        }
+
+        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
+        .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+        
+        /* 좌측 대시보드 패널 */
+        .left-panel {
+            width: 130px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px 16px 16px 20px;
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 우측 타임라인 그리드 영역 */
+        .timeline-area {
+            flex: 1;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-direction: row; /* 시간축 가로 배치 */
+            height: 100%;
+            justify-content: space-between;
+            align-items: flex-end; /* 하단 정렬 느낌 */
+            gap: 4px; /* 시간 기둥 사이 간격 */
+        }
+
+        .hour-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* 10분 단위는 세로로 쌓임 */
+            height: 100%;
+            min-width: 0;
+            gap: 2px; /* 블록 사이 간격 */
+            position: relative;
+        }
+
+        .time-label {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1;
+        }
+
+        .time-block {
+            flex: 1; /* 높이 균등 분할 */
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative; 
+            overflow: hidden; 
+        }
+        
+        /* 기존 블록 스타일 유지 */
+        .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
+        .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
+        .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
+        .block-empty { background: rgba(255, 255, 255, 0.04); }
+        .block-action-bg { background: transparent; border: none; }
+
+        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
+        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+        .text-white { color: #ffffff; }
+
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
+        const categoryColors = {
+            '업무': 'bg-[#7dd3fc]',      
+            '자기계발': 'bg-[#d8b4fe]', 
+            '휴식': 'bg-[#94a3b8]',     
+            '건강': 'bg-[#fef08a]',    
+            'default': 'bg-white/60'
+        };
+
+        const Icons = {
+            Sun: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>,
+            Refresh: () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#bae6fd" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+            Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+            Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
+            Recycle: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>,
+            Wind: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
+            Shirt: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.4a2 2 0 0 0-2-2h-12.76a2 2 0 0 0-2 2l-.22 2.6a2 2 0 0 0 1.99 2.2h13.22a2 2 0 0 0 1.99-2.2l-.22-2.6z"></path><path d="M9 2v4"></path><path d="M15 2v4"></path><path d="M20 10v12H4V10"></path></svg>,
+            Moon: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>,
+            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
+            Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
+            Zap: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Waves: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"></path></svg>,
+            Home: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+            Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
+            Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
+            Cup: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>,
+            Pill: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="10" rx="5" ry="5"></rect><line x1="12" y1="7" x2="12" y2="17"></line></svg>,
+            Pot: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"></path><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path><path d="M4 12V7a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5"></path><path d="M12 3v-1"></path></svg>,
+            Stretch: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1"></circle><path d="M12 20V6"></path><path d="M5 8l7-2 7 2"></path><path d="M8 20l4-9 4 9"></path></svg>,
+            Message: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+        };
+
+        const App = () => {
+            const [blocks, setBlocks] = useState([]);
+            const [events, setEvents] = useState([]);
+            const [totalDuration, setTotalDuration] = useState(0);
+            const [wakeUpTime, setWakeUpTime] = useState(null);
+            const [bedTime, setBedTime] = useState(null);
+            const [viewDate, setViewDate] = useState(new Date());
+
+            const isToday = (d) => d.toDateString() === new Date().toDateString();
+            
+            const loadLocalData = () => {
+                if (!isToday(viewDate)) return;
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const today = new Date().toDateString();
+                
+                if (savedData.date === today && savedData.blocks) {
+                    setBlocks(savedData.blocks);
+                    setWakeUpTime(savedData.wakeUpTime || null);
+                    setBedTime(savedData.bedTime || null);
+                } else {
+                    setBlocks([]);
+                    setWakeUpTime(null);
+                }
+            };
+
+            const fetchCalendar = async () => {
+                try {
+                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
+                    if (calRes.ok) {
+                        const calData = await calRes.json();
+                        if (Array.isArray(calData)) setEvents(calData);
+                    }
+                } catch (e) { }
+            };
+
+            useEffect(() => {
+                if (isToday(viewDate)) loadLocalData();
+                fetchCalendar();
+            }, [viewDate]);
+
+            useEffect(() => {
+                const localInterval = setInterval(() => {
+                    if (isToday(viewDate)) loadLocalData();
+                }, 3000);
+                const calendarInterval = setInterval(() => {
+                    fetchCalendar();
+                }, 60000);
+                return () => {
+                    clearInterval(localInterval);
+                    clearInterval(calendarInterval);
+                };
+            }, [viewDate]);
+
+            useEffect(() => {
+                const focusBlocks = blocks.filter(b => !b.type || b.type === 'focus');
+                const total = focusBlocks.reduce((acc, curr) => acc + curr.duration, 0);
+                setTotalDuration(total);
+            }, [blocks]);
+
+            const getTotalColorClass = (min) => {
+                if (min <= 90) return "text-white"; 
+                if (min <= 330) return "text-sky-custom"; 
+                return "text-purple-custom";               
+            };
+
+            const formatDuration = (totalMin) => {
+                const h = Math.floor(totalMin / 60);
+                const m = totalMin % 60;
+                const colorClass = getTotalColorClass(totalMin);
+
+                return (
+                    <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
+                        <span className="text-3xl font-bold">{h}</span><span className="text-xs mx-0.5 opacity-60 font-bold">H</span>
+                        <span className="text-3xl font-bold">{String(m).padStart(2, '0')}</span><span className="text-xs ml-0.5 opacity-60 font-bold">M</span>
+                    </span>
+                );
+            };
+
+            const getMessage = (min) => {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const stableIdx = now.getDate() % 3; 
+
+                if (currentHour >= 13 && min === 0) {
+                    const msgs = [
+                        { main: "🧊 아직 시작 전.", sub: "지금 첫 블록을 쌓아보세요." },
+                        { main: "❄️ 시작이 반.", sub: "가볍게 책상에 앉아볼까요?" },
+                        { main: "🕰️ 늦지 않았어요.", sub: "지금 출발하면 충분합니다." }
+                    ];
+                    return msgs[stableIdx];
+                }
+
+                if (min === 0) return { main: "❄️ 준비 되셨나요?", sub: "차근차근 점화를 시작해 봅시다." };
+                
+                if (min < 60) {
+                    return [{ main: "🌱 의미 있는 시작.", sub: "가볍게 리듬을 타보세요." }, { main: "✨ 첫 단추 완성.", sub: "시스템이 가동 중입니다." }, { main: "🧊 차분한 출발.", sub: "이대로만 쭉 가면 됩니다." }][stableIdx];
+                }
+                if (min < 180) {
+                    return [{ main: "🧱 견고한 시간.", sub: "흔들리지 않는 모습이 멋져요." }, { main: "☁️ 훌륭한 페이스.", sub: "무던하게 계속 나아가세요." }, { main: "⚖️ 균형 잡힌 몰입.", sub: "아주 잘하고 있습니다." }][stableIdx];
+                }
+                if (min < 300) {
+                    return [{ main: "🔥 뜨거운 몰입.", sub: "충분히 훌륭한 하루예요." }, { main: "💎 대단한 집중력.", sub: "오늘 하루, 빛나고 있습니다." }, { main: "🚀 한계 돌파 중.", sub: "당신의 노력이 쌓입니다." }][stableIdx];
+                }
+                return [{ main: "🎖️ 성취의 하루.", sub: "충분했으니, 휴식을 권해요." }, { main: "🌌 경이로운 기록.", sub: "이제 편안히 쉬어도 됩니다." }, { main: "🌙 치열했던 끝.", sub: "스스로를 칭찬해 주세요." }][stableIdx];
+            };
+
+            const renderGrid = () => {
+                const hours = Array.from({length: 18}, (_, i) => i + 6); // 06시 ~ 23시 (가로축)
+
+                const roundTime = (ts) => {
+                    const d = new Date(ts);
+                    const m = d.getMinutes();
+                    const roundedM = Math.round(m / 10) * 10; 
+                    d.setMinutes(roundedM); d.setSeconds(0); d.setMilliseconds(0);
+                    return d.getTime();
+                };
+
+                return hours.map(hour => {
+                    const slots = Array.from({length: 6}, (_, i) => { // 00분 ~ 50분 (세로축)
+                        const slotStartMin = i * 10;
+                        const slotEndMin = (i + 1) * 10;
+                        
+                        const slotStartTime = new Date(viewDate); 
+                        slotStartTime.setHours(hour, slotStartMin, 0, 0);
+                        const slotStartTs = slotStartTime.getTime();
+                        
+                        let isBeforeWakeUp = false;
+                        let isWakeUpSlot = false;
+                        let isAfterBedTime = false;
+                        if (wakeUpTime) {
+                            const [wH, wM] = wakeUpTime.split(':').map(Number);
+                            const wakeUpDate = new Date(viewDate); wakeUpDate.setHours(wH, wM, 0, 0);
+                            const wakeUpTs = wakeUpDate.getTime();
+                            const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
+                            if (slotStartTs < wakeUpTs) isBeforeWakeUp = true;
+                            if (bedTime) {
+                                const [bH, bM] = bedTime.split(':').map(Number);
+                                const bedDate = new Date(viewDate); bedDate.setHours(bH, bM, 0, 0);
+                                if (slotStartTs >= bedDate.getTime()) isAfterBedTime = true;
+                            }
+                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) { isWakeUpSlot = true; isBeforeWakeUp = false; }
+                        }
+
+                        const slotEndTime = new Date(viewDate);
+                        slotEndTime.setHours(hour, slotEndMin, 0, 0);
+                        const slotEndTs = slotEndTime.getTime();
+                        
+                        const bgBlock = blocks.find(b => {
+                            if (b.type !== 'focus' && b.type) return false; 
+                            const roundedStart = roundTime(b.startTime);
+                            const roundedEnd = roundTime(b.endTime);
+                            const finalEnd = (roundedStart === roundedEnd) ? roundedEnd + (10 * 60 * 1000) : roundedEnd;
+                            return slotStartTs >= roundedStart && slotStartTs < finalEnd;
+                        });
+
+                        const rangeIconBlock = blocks.find(b => {
+                            if (b.type === 'focus' || !b.type) return false;
+                            if (!b.duration || b.duration <= 10) return false;
+                            const roundedStart = roundTime(b.startTime);
+                            const roundedEnd = roundedStart + (b.duration * 60 * 1000); 
+                            return slotStartTs >= roundedStart && slotStartTs < roundedEnd;
+                        });
+
+                        const pointIconBlock = blocks.find(b => {
+                            if (b.type === 'focus' || !b.type) return false;
+                            if (b.duration > 10) return false; 
+                            return b.endTime > slotStartTs && b.endTime <= slotEndTs;
+                        });
+
+                        const slotCenter = slotStartTs + (5 * 60 * 1000); 
+                        const calendarEvent = events.find(ev => ev.startTime <= slotCenter && ev.endTime >= slotCenter);
+
+                        let cellClass = 'block-empty';
+                        let content = null;
+                        let lineOverlay = null;
+
+                        if ((isBeforeWakeUp || isAfterBedTime) && !bgBlock && !isWakeUpSlot && !rangeIconBlock) {
+                            cellClass = 'opacity-0';
+                        }
+                        else if (bgBlock) {
+                            if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
+                            else if (bgBlock.quality === 'Cloud') cellClass = 'block-cloud';
+                            else cellClass = 'block-rain';
+                        } 
+                        else if (rangeIconBlock) {
+                            cellClass = 'block-action-bg'; 
+                            const roundedStart = roundTime(rangeIconBlock.startTime);
+                            const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
+                            const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
+                            const iconIndex = Math.floor((totalSlots - 1) / 2);
+                            const color = rangeIconBlock.color || 'text-white';
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+
+                            if (currentIndex === iconIndex) {
+                                const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                                content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
+                            } else {
+                                content = <span className={`text-[10px] leading-none ${color} opacity-60 relative z-10 pb-[1px]`}>⊹</span>;
+                            }
+                        }
+                        else if (pointIconBlock) {
+                            cellClass = 'block-action-bg';
+                            const IconComp = Icons[pointIconBlock.icon] || (pointIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                            const iconColor = pointIconBlock.color || 'text-white';
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+                            content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
+                        }
+
+                        if (calendarEvent) {
+                            const category = calendarEvent.category || 'default';
+                            const colorClass = categoryColors[category] || categoryColors['default'];
+                            // 가로형 위젯에서는 캘린더 라인이 세로로 작게 들어가거나, 가로 전체를 덮는 게 나을 수 있음
+                            // 여기서는 기존 느낌 유지를 위해 블록 하단(세로 축 기준)에 표시
+                            lineOverlay = (
+                                <div className={`absolute h-[2px] w-[80%] rounded-full left-[10%] bottom-[10%] z-20 ${colorClass}`} title={calendarEvent.title} />
+                            );
+                            if (!content && !bgBlock && !rangeIconBlock) {
+                                cellClass += ' relative'; 
+                            }
+                        }
+
+                        return (
+                            <div key={i} className={`time-block ${cellClass}`}>
+                                {lineOverlay}
+                                {content}
+                            </div>
+                        )
+                    });
+
+                    return (
+                        <div key={hour} className="hour-column group">
+                             {/* 시간 라벨 (컬럼 상단) */}
+                            <div className="time-label group-hover:text-white transition-colors">{String(hour).padStart(2,'0')}</div>
+                            {slots}
+                        </div>
+                    );
+                });
+            };
+
+            const msg = getMessage(totalDuration);
+
+            return (
+                <div className="widget-container">
+                    {/* 1. 좌측 대시보드 (고정) */}
+                    <div className="left-panel">
+                        <div className="mt-2">
+                             <div className="text-[10px] text-white/40 font-mono-nums mb-1 tracking-widest">TOTAL</div>
+                             {formatDuration(totalDuration)}
+                        </div>
+                        <div className="mb-2">
+                            <p className="text-sm font-bold text-white leading-snug drop-shadow-md mb-1">{msg.main}</p>
+                            <p className="text-[10px] text-sky-200 leading-tight opacity-80 break-keep">{msg.sub}</p>
+                        </div>
+                    </div>
+
+                    {/* 2. 우측 타임라인 (가로 스크롤 가능성 대비) */}
+                    <div className="timeline-area">
+                         {/* 그리드 */}
+                        <div className="grid-container">{renderGrid()}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
