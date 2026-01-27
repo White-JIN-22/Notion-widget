@@ -5,80 +5,62 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fortress Combined Widget</title>
+    <title>Clock Info</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Roboto+Mono:wght@500;700&display=swap');
-
-        /* [다크모드 전용] 배경 제거 및 텍스트 발광 */
-        html, body, #root {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: transparent !important; /* html과 root까지 투명화 필수 */
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden; /* 불필요한 스크롤 방지 */
-        }
-
         body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
 
-        /* [위젯 컨테이너] */
+        /* Timeline_Block과 동일한 밝은 유광 Glassmorphism 적용 */
         .widget-container {
             position: relative;
-            width: 360px; /* 고정 너비 */
-            height: 124px; /* 고정 높이 */
-            
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px); /* 블러 효과 */
-            border: var(--glass-border);
+            width: 360px;
+            height: 124px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
             border-radius: 24px;
-            box-shadow: var(--glass-shadow);
-            
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: row;
             overflow: hidden;
-            color: #f1f5f9;
+            color: #334155; /* 텍스트 색상을 흰색에서 짙은 회색으로 변경 */
         }
 
-        /* 폰트 유틸리티 */
+        .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
-        .font-sans { font-family: 'Noto Sans KR', sans-serif; }
-        .font-playfair { font-family: 'Playfair Display', serif; }
         
-        /* 텍스트 그림자 효과 (가독성 UP) */
-        .text-glow { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-        .text-glow-sky { text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+        /* 네온 글로우 효과 제거하고 부드러운 그림자로 대체 */
+        .text-shadow-sm { text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     </style>
 
     <script>
         tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
-                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
-                        slate: { 400: '#94a3b8', 700: '#334155' },
-                        yellow: { 200: '#fef08a' }
-                    },
-                    fontFamily: {
-                        sans: ['"Noto Sans KR"', 'sans-serif'],
-                        serif: ['"Playfair Display"', 'serif'],
-                        mono: ['"Roboto Mono"', 'monospace'],
-                    }
+        theme: {
+            extend: {
+                colors: {
+                    sky: { 200: '#bae6fd', 300: '#7dd3fc', custom: '#7dd3fc' }, /* 쨍한 파랑 -> 하늘색 */
+                    purple: { 200: '#e9d5ff', 300: '#d8b4fe', custom: '#c4b5fd' }, /* 쨍한 보라 -> 라벤더 */
+                    slate: { 400: '#94a3b8', 700: '#334155', 800: '#1e293b' },
+                    yellow: { 200: '#fef08a' } /* 레몬색 */
                 }
             }
         }
+    }
     </script>
 </head>
 <body>
@@ -119,39 +101,43 @@
 
             return (
                 <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
+                    {/* 시계 배경: 은은한 파스텔 그라디언트 */}
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
                              background: `conic-gradient(
-                                 rgba(254, 240, 138, 0.2) 0deg 90deg,   
-                                 rgba(216, 180, 254, 0.2) 90deg 180deg, 
-                                 rgba(125, 211, 252, 0.2) 180deg 270deg, 
-                                 rgba(148, 163, 184, 0.2) 270deg 360deg 
+                                 rgba(254, 240, 138, 0.3) 0deg 90deg,   
+                                 rgba(216, 180, 254, 0.3) 90deg 180deg, 
+                                 rgba(125, 211, 252, 0.3) 180deg 270deg, 
+                                 rgba(148, 163, 184, 0.3) 270deg 360deg 
                              )`,
-                             border: '1px solid rgba(255,255,255,0.1)',
-                             boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2)'
+                             border: '1px solid rgba(255,255,255,0.6)',
+                             boxShadow: 'inset 0 0 15px rgba(255,255,255,0.5)'
                          }}>
                          
-                         <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/10 transform -translate-x-1/2"></div>
-                         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 transform -translate-y-1/2"></div>
+                         <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/40 transform -translate-x-1/2"></div>
+                         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/40 transform -translate-y-1/2"></div>
 
-                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 drop-shadow-md z-20">24</div>
-                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 drop-shadow-md z-20">6</div>
-                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 drop-shadow-md z-20">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 drop-shadow-md z-20">18</div>
+                         {/* 숫자 색상: 진한 회색으로 변경하여 가독성 확보 */}
+                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">24</div>
+                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">6</div>
+                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">12</div>
+                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">18</div>
 
-                         <div className="absolute top-[20%] right-[20%] opacity-90"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
-                         <div className="absolute bottom-[20%] right-[20%] opacity-90"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
-                         <div className="absolute bottom-[20%] left-[20%] opacity-90"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
-                         <div className="absolute top-[20%] left-[20%] opacity-90"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
+                         {/* 아이콘 색상도 파스텔톤 유지 */}
+                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
+                         <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
+                         <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
+                         <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
 
-                         <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-md"></div>
+                         <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white border border-slate-200 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
 
+                         {/* 시계바늘 */}
                          <div className="absolute top-0 left-0 w-full h-full"
                               style={{ 
                                   transform: `rotate(${degrees}deg)`,
                                   transition: 'transform 1s cubic-bezier(0.4, 2.08, 0.55, 0.44)'
                               }}>
-                             <div className="absolute top-[10%] left-1/2 w-[3px] h-[40%] bg-white rounded-full transform -translate-x-1/2 shadow-lg"></div>
+                             <div className="absolute top-[10%] left-1/2 w-[3px] h-[40%] bg-white border border-slate-100 rounded-full transform -translate-x-1/2 shadow-sm"></div>
                          </div>
                     </div>
                 </div>
@@ -204,10 +190,11 @@
                 if (aqi <= 250) return '매우나쁨';
                 return '최악'; 
             };
+            // 파스텔 톤으로 미세먼지 색상 변경
             const getDustColor = (aqi) => {
-                if (aqi <= 50) return '#d8b4fe';
-                if (aqi <= 100) return '#7dd3fc';
-                return '#94a3b8';
+                if (aqi <= 50) return '#a78bfa'; // Soft Purple
+                if (aqi <= 100) return '#38bdf8'; // Soft Sky
+                return '#94a3b8'; // Grey
             };
             const getDustIcon = (aqi, color) => {
                 const className = "w-6 h-6";
@@ -217,6 +204,7 @@
                 if (aqi <= 250) return <FaceDevil color={color} className={className} />;
                 return <GasMask color={color} className={className} />;
             };
+            // 날씨 아이콘 색상도 파스텔톤으로
             const getWeatherIcon = (code) => {
                 const className = "w-6 h-6";
                 if (code === 0) return <Sun className={className} />;
@@ -237,29 +225,32 @@
 
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    <div className="flex-1 w-full flex flex-row items-baseline justify-between px-6 pt-1"
+                    {/* 상단: 시간 및 날짜 (글씨 색상 Slate-700으로 변경) */}
+                    <div className="flex-1 w-full flex flex-row items-baseline justify-between px-6 pt-2"
                          style={{ 
-                             background: 'rgba(255, 255, 255, 0.05)', 
-                             borderBottom: '1px solid rgba(255, 255, 255, 0.1)' 
+                             background: 'rgba(255, 255, 255, 0.15)', 
+                             borderBottom: '1px dashed rgba(255, 255, 255, 0.4)' 
                          }}>
-                        <div className="font-mono text-[40px] font-bold text-white leading-[64px] tracking-tight text-glow">
+                        <div className="font-mono text-[40px] font-bold text-slate-700 leading-[64px] tracking-tight drop-shadow-sm">
                             {timeStr}
                         </div>
-                        <div className="font-sans text-sm font-bold text-sky-300 tracking-wide opacity-90 pb-[15px] text-glow-sky">
+                        <div className="font-serif text-sm font-bold text-sky-custom tracking-wide opacity-80 pb-[15px]">
                             {dateStr}
                         </div>
                     </div>
 
+                    {/* 하단: 날씨 및 미세먼지 */}
                     <div className="h-[50px] w-full flex flex-row items-center justify-center gap-6"
-                         style={{ background: 'rgba(255, 255, 255, 0.02)' }}> 
+                         style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-2">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-white font-bold text-glow pt-0.5">{weather.temp}°</span>
+                            <span className="font-mono text-lg text-slate-700 font-bold pt-0.5">{weather.temp}°</span>
                         </div>
-                        <div className="h-4 w-[1px] bg-white/20 rounded-full"></div>
+                        {/* 구분선 색상 연하게 변경 */}
+                        <div className="h-4 w-[1px] bg-slate-300 rounded-full"></div>
                         <div className="flex flex-row items-center gap-2">
                             {getDustIcon(dust.aqi, dustColor)}
-                            <span className="font-sans text-sm font-bold pt-0.5" style={{ color: dustColor, textShadow: `0 0 8px ${dustColor}80` }}>
+                            <span className="font-sans text-sm font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
                         </div>
@@ -271,13 +262,13 @@
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* Left: Clock (360px 기준, 약 130px 할당) */}
+                    {/* Left: Clock */}
                     <div className="w-[130px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* Right: Info (나머지 230px 할당) */}
-                    <div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+                    {/* Right: Info (구분선 색상 연하게 변경) */}
+                    <div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
