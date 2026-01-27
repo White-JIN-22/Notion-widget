@@ -205,11 +205,10 @@
             };
 
             const getWeatherColor = (code) => {
-                if (code === 0) return '#d8b4fe';
-                if (code <= 3) return '#7dd3fc';
-                if (code <= 48) return '#94a3b8';
-                if (code >= 71) return '#bae6fd';
-                return '#94a3b8';
+                if (code === 0) return '#d8b4fe'; // 맑음: 연보라
+                if (code <= 3) return '#7dd3fc';  // 구름/흐림: 스카이블루
+                if (code >= 71) return '#94a3b8'; // 눈/천둥번개: 회색
+                return '#fef08a';                 // 비/안개/이슬비: 연노랑
             };
 
             // [수정] 아이콘 크기 더 축소: w-5 -> w-4 (16px)
