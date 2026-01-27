@@ -27,7 +27,8 @@
 
         .widget-container {
             position: relative;
-            width: 360px;
+            /* [수정] 너비 축소: 360px -> 250px */
+            width: 250px;
             height: 124px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
@@ -96,7 +97,8 @@
             const degrees = totalMinutes * 0.25;
 
             return (
-                <div className="relative w-full h-full flex items-center justify-start pl-4 select-none overflow-hidden">
+                /* [수정] 너비가 좁아졌으므로 pl-4 삭제하고 justify-center로 중앙 정렬 추천 */
+                <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
                              background: `conic-gradient(
@@ -115,10 +117,10 @@
                          <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">24</div>
                          <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 opacity-90 z-20">6</div>
                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
-                         {/* [수정] 18 숫자 밝기 UP: text-slate-400 -> text-slate-300 */}
                          <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-300 opacity-90 z-20">18</div>
 
-                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
+                         {/* [수정] 초승달 아이콘 색상 변경: 형광 노랑(#fef08a) -> 은은한 크림색(#fdf4ce) */}
+                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fdf4ce" /></div>
                          <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
                          <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
                          <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
@@ -190,8 +192,9 @@
                 return '#94a3b8';
             };
 
+            // [수정] 아이콘 크기 더 축소: w-5 -> w-4 (16px)
             const getDustIcon = (aqi, color) => {
-                const className = "w-5 h-5"; 
+                const className = "w-4 h-4"; 
                 const props = { color, className, strokeWidth: "2" };
                 
                 if (aqi <= 50) return <FaceHappy {...props} />;
@@ -209,8 +212,9 @@
                 return '#94a3b8';
             };
 
+            // [수정] 아이콘 크기 더 축소: w-5 -> w-4 (16px)
             const getWeatherIcon = (code, color) => {
-                const className = "w-5 h-5"; 
+                const className = "w-4 h-4"; 
                 const props = { color, className };
 
                 if (code === 0) return <Sun {...props} />;
@@ -226,6 +230,7 @@
             const day = String(time.getDate()).padStart(2, '0');
             const weekday = time.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
             
+            // 날짜 표시 형식: MM/DD
             const dateOnly = `${month}/${day}`;
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
             
@@ -234,40 +239,43 @@
 
             return (
                 <div className="flex flex-col flex-1 h-full select-none overflow-hidden">
-                    <div className="flex-1 w-full flex flex-row items-center justify-center gap-3 px-2 pt-1"
+                    <div className="flex-1 w-full flex flex-col items-center justify-center pt-1"
                          style={{ 
                              background: 'rgba(255, 255, 255, 0.1)', 
                              borderBottom: '1px solid rgba(255, 255, 255, 0.4)' 
                          }}>
                         
-                        <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm pb-1">
+                        {/* [수정] 디지털 시계 크기 축소 (40px -> 34px) */}
+                        <div className="font-mono text-[34px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm mb-1">
                             {timeStr}
                         </div>
 
-                        {/* [수정] items-start -> items-center (요일/날짜 가운데 정렬) */}
-                        <div className="flex flex-col items-center justify-center">
-                            <div className="font-sans text-[13px] font-bold text-white tracking-wide opacity-90 leading-tight">
+                        {/* [수정] 날짜/요일 수직 배치 + 가운데 정렬 + 글자 축소 */}
+                        <div className="flex flex-row items-center justify-center gap-1.5 opacity-90">
+                            <span className="font-sans text-[11px] font-bold text-white tracking-wide leading-tight">
                                 {dateOnly}
-                            </div>
-                            <div className="font-sans text-[11px] font-bold text-white tracking-widest opacity-80 leading-tight pt-0.5">
+                            </span>
+                            <span className="font-sans text-[10px] font-bold text-white tracking-widest leading-tight opacity-80 pt-[1px]">
                                 {weekday}
-                            </div>
+                            </span>
                         </div>
                     </div>
 
-                    {/* [수정] 높이 54px -> 40px (여백 다이어트) */}
-                    <div className="h-[40px] w-full flex flex-row items-center justify-center gap-5"
+                    {/* [수정] 하단 높이 36px로 축소 및 아이콘/글자 간격 조정 */}
+                    <div className="h-[36px] w-full flex flex-row items-center justify-center gap-3"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
-                        <div className="flex flex-row items-center gap-1.5">
+                        <div className="flex flex-row items-center gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
-                            <span className="font-mono text-base font-bold pt-0.5" style={{ color: weatherColor }}>
+                            {/* 온도 글자 축소: text-xs */}
+                            <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
                                 {weather.temp}°
                             </span>
                         </div>
-                        <div className="h-3 w-[1px] bg-white/40 rounded-full"></div>
-                        <div className="flex flex-row items-center gap-1.5">
+                        <div className="h-2.5 w-[1px] bg-white/40 rounded-full"></div>
+                        <div className="flex flex-row items-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
-                            <span className="font-sans text-xs font-bold pt-0.5" style={{ color: dustColor }}>
+                            {/* 상태 글자 축소: text-[10px] */}
+                            <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
                         </div>
@@ -275,17 +283,18 @@
                 </div>
             );
         };
-        
+
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* [수정] 구분선 이동: 120px -> 136px (조금 더 오른쪽으로) */}
-                    <div className="w-[136px] h-full flex-shrink-0">
+                    {/* [수정] 너비 재분배 (총합 250px) */}
+                    {/* 왼쪽: 아날로그 시계 (100px) */}
+                    <div className="w-[100px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* [수정] 나머지 너비: 240px -> 224px (총합 360px) */}
-                    <div className="w-[224px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* 오른쪽: 정보 영역 (150px) */}
+                    <div className="w-[150px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
