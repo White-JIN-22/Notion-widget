@@ -135,18 +135,18 @@
             // [수정] 서버 주소 추가
             const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
-            // [수정] 서버 + 로컬 데이터 병합 로직
+            // [수정] 서버 데이터 연동 강화 (월간 데이터 병렬 조회)
             const loadData = async () => {
                 const map = {};
 
-                // 1. 헬퍼 함수: 블록 데이터에서 집중 시간(분) 추출
+                // 헬퍼: 분 계산
                 const calcMinutes = (blocks) => {
                     return (blocks || [])
                         .filter(b => b.type === 'focus' || !b.type)
                         .reduce((acc, cur) => acc + (cur.duration || 0), 0);
                 };
 
-                // 2. 로컬 데이터 처리 (우선 순위 낮음)
+                // 1. 로컬 데이터 먼저 로드 (기본 깔기)
                 try {
                     const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
                     history.forEach(day => {
@@ -156,7 +156,6 @@
                         map[key] = calcMinutes(day.blocks);
                     });
                     
-                    // 오늘 로컬 데이터
                     const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                     if (todayData.date) {
                         const d = new Date(todayData.date);
@@ -165,35 +164,51 @@
                     }
                 } catch (e) { console.error("Local Load Error", e); }
 
-                // 3. 서버 데이터 가져오기 (비동기)
+                // 2. 서버 데이터 가져오기 (현재 달의 모든 날짜를 긁어옴)
                 try {
-                    // 서버에 전체 기록 요청 (GET 요청 시 전체 혹은 월간 데이터를 준다고 가정)
-                    const res = await fetch(WORKER_URL);
-                    if (res.ok) {
-                        const serverData = await res.json();
-                        
-                        // 서버 데이터가 배열(History) 형태라면
-                        if (Array.isArray(serverData)) {
-                            serverData.forEach(day => {
-                                if (!day.date) return;
-                                const d = new Date(day.date);
-                                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                                // 로컬 값보다 서버 값이 더 정확하다고 가정하거나, 없는 날짜만 채워넣음
-                                // 여기서는 서버 데이터를 덮어쓰기 (최신 동기화본)
-                                map[key] = calcMinutes(day.blocks);
-                            });
-                        } 
-                        // 만약 단일 객체라면 (오늘 데이터 등)
-                        else if (serverData.date) {
-                            const d = new Date(serverData.date);
-                            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                            map[key] = calcMinutes(serverData.blocks);
+                    // 현재 보고 있는 달의 1일부터 말일까지 날짜 생성
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth() + 1;
+                    const lastDay = new Date(year, month, 0).getDate();
+                    
+                    const promises = [];
+                    for(let i=1; i<=lastDay; i++) {
+                        const ymd = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        // 이미 로컬에 데이터가 있으면 서버 요청 건너뛰기 (속도 최적화)
+                        // 만약 서버 데이터를 강제로 덮어쓰고 싶다면 if문 제거하세요.
+                        if (!map[ymd]) { 
+                            promises.push(
+                                fetch(`${WORKER_URL}?date=${ymd}`)
+                                    .then(res => res.json())
+                                    .then(data => ({ ymd, data }))
+                                    .catch(() => null)
+                            );
                         }
                     }
-                } catch (e) { console.warn("Server Fetch Error (Offline Mode)", e); }
+
+                    // 병렬 요청 실행
+                    const results = await Promise.all(promises);
+                    
+                    results.forEach(item => {
+                        if (item && item.data) {
+                            // 서버 데이터가 배열이든 객체든 처리
+                            const blocks = Array.isArray(item.data) ? item.data : (item.data.blocks || []);
+                            // 데이터가 유효할 때만 맵에 등록
+                            if(blocks.length > 0) {
+                                map[item.ymd] = calcMinutes(blocks);
+                            }
+                        }
+                    });
+
+                } catch (e) { console.warn("Server Fetch Error", e); }
 
                 setFocusData(map);
             };
+            
+            // [중요] 달이 바뀔 때마다 데이터를 새로 긁어오도록 의존성 배열에 currentDate 추가
+            useEffect(() => {
+                loadData();
+            }, [currentDate]);
 
             useEffect(() => {
                 loadData();
@@ -250,8 +265,9 @@
                         <div className="flex items-baseline gap-2">
                             <h1 className="text-sm title-text font-serif tracking-tight text-white font-bold leading-none">{monthStr}</h1>
                         </div>
-                        <div className="flex gap-0.5 items-center">
-                            <button onClick={goToday} className="nav-btn mr-1" title="Go Today"><Icons.RotateCcw /></button>
+                        {/* 버튼 간격 수정: gap-0.5 -> gap-0 -space-x-1 */}
+                        <div className="flex gap-0 -space-x-1 items-center">
+                            <button onClick={goToday} className="nav-btn mr-1 z-10" title="Go Today"><Icons.RotateCcw /></button>
                             <button onClick={prevMonth} className="nav-btn"><Icons.ChevronLeft /></button>
                             <button onClick={nextMonth} className="nav-btn"><Icons.ChevronRight /></button>
                         </div>
