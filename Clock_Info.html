@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clock Info</title>
+    <title>Fortress Combined Widget</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -25,7 +25,6 @@
             min-height: 100vh;
         }
 
-        /* Timeline_Block과 동일한 밝은 유광 Glassmorphism 적용 */
         .widget-container {
             position: relative;
             width: 360px;
@@ -38,29 +37,27 @@
             display: flex;
             flex-direction: row;
             overflow: hidden;
-            color: #334155; /* 텍스트 색상을 흰색에서 짙은 회색으로 변경 */
+            color: #334155;
         }
 
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
-        
-        /* 네온 글로우 효과 제거하고 부드러운 그림자로 대체 */
         .text-shadow-sm { text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     </style>
 
     <script>
         tailwind.config = {
-        theme: {
-            extend: {
-                colors: {
-                    sky: { 200: '#bae6fd', 300: '#7dd3fc', custom: '#7dd3fc' }, /* 쨍한 파랑 -> 하늘색 */
-                    purple: { 200: '#e9d5ff', 300: '#d8b4fe', custom: '#c4b5fd' }, /* 쨍한 보라 -> 라벤더 */
-                    slate: { 400: '#94a3b8', 700: '#334155', 800: '#1e293b' },
-                    yellow: { 200: '#fef08a' } /* 레몬색 */
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc', custom: '#7dd3fc' },
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe', custom: '#c4b5fd' },
+                        slate: { 400: '#94a3b8', 700: '#334155', 800: '#1e293b' },
+                        yellow: { 200: '#fef08a' }
+                    }
                 }
             }
         }
-    }
     </script>
 </head>
 <body>
@@ -68,23 +65,22 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // [Icons]
         const ClockMoon = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
         const ClockSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
         const ClockCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>;
         const ClockSparkles = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>;
         
-        const Sun = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#d8b4fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
-        const Cloud = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
-        const CloudRain = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
-        const CloudSnow = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
-        const CloudLightning = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
+        const Sun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+        const Cloud = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
+        const CloudRain = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
+        const CloudSnow = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
+        const CloudLightning = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
 
-        const FaceHappy = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceNormal = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceBad = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
-        const FaceDevil = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
-        const GasMask = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
+        const FaceHappy = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceNormal = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceBad = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
+        const FaceDevil = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
+        const GasMask = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
 
         const ClockSection = () => {
             const [time, setTime] = useState(new Date());
@@ -100,30 +96,24 @@
             const degrees = totalMinutes * 0.25;
 
             return (
-                <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
-                    {/* 시계 배경: 은은한 파스텔 그라디언트 */}
+                /* [3번 수정] justify-center -> justify-start, pl-6 추가 (시계 왼쪽으로 이동) */
+                <div className="relative w-full h-full flex items-center justify-start pl-6 select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
-                             background: `conic-gradient(
-                                 rgba(254, 240, 138, 0.3) 0deg 90deg,   
-                                 rgba(216, 180, 254, 0.3) 90deg 180deg, 
-                                 rgba(125, 211, 252, 0.3) 180deg 270deg, 
-                                 rgba(148, 163, 184, 0.3) 270deg 360deg 
-                             )`,
+                             /* [2번 수정] 그라데이션 삭제 -> 배경 투명(혹은 흰색 유리) */
+                             background: 'rgba(255, 255, 255, 0.05)',
                              border: '1px solid rgba(255,255,255,0.6)',
-                             boxShadow: 'inset 0 0 15px rgba(255,255,255,0.5)'
+                             boxShadow: 'inset 0 0 15px rgba(255,255,255,0.2)'
                          }}>
                          
                          <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/40 transform -translate-x-1/2"></div>
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/40 transform -translate-y-1/2"></div>
 
-                         {/* 숫자 색상: 진한 회색으로 변경하여 가독성 확보 */}
                          <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">24</div>
                          <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">6</div>
                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">12</div>
                          <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-700 opacity-60 z-20">18</div>
 
-                         {/* 아이콘 색상도 파스텔톤 유지 */}
                          <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
                          <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
                          <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
@@ -131,7 +121,6 @@
 
                          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white border border-slate-200 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
 
-                         {/* 시계바늘 */}
                          <div className="absolute top-0 left-0 w-full h-full"
                               style={{ 
                                   transform: `rotate(${degrees}deg)`,
@@ -191,16 +180,14 @@
                 return '최악'; 
             };
 
-            // [수정 1] 미세먼지 색상을 형광색에서 부드러운 파스텔 톤으로 변경
             const getDustColor = (aqi) => {
-                if (aqi <= 50) return '#d8b4fe'; // 파스텔 보라 (Timeline 위젯과 동일)
+                if (aqi <= 50) return '#d8b4fe'; // 파스텔 보라
                 if (aqi <= 100) return '#7dd3fc'; // 파스텔 하늘
                 return '#94a3b8'; // 파스텔 그레이
             };
 
             const getDustIcon = (aqi, color) => {
                 const className = "w-6 h-6";
-                // 아이콘 획 두께(strokeWidth)를 살짝 줄여서 더 부드럽게 표현
                 const props = { color, className, strokeWidth: "2" };
                 
                 if (aqi <= 50) return <FaceHappy {...props} />;
@@ -210,15 +197,26 @@
                 return <GasMask {...props} />;
             };
 
-            const getWeatherIcon = (code) => {
+            // [추가] 날씨에 따른 파스텔 컬러 반환 함수
+            const getWeatherColor = (code) => {
+                if (code === 0) return '#d8b4fe'; // 맑음: 파스텔 보라 (요청사항 반영)
+                if (code <= 3) return '#7dd3fc';  // 구름: 파스텔 하늘
+                if (code <= 48) return '#94a3b8'; // 안개: 파스텔 그레이
+                if (code >= 71) return '#bae6fd'; // 눈: 연한 하늘
+                return '#94a3b8'; // 비/기타: 그레이
+            };
+
+            const getWeatherIcon = (code, color) => {
                 const className = "w-6 h-6";
-                if (code === 0) return <Sun className={className} />;
-                if (code <= 3) return <Cloud className={className} />;
-                if (code <= 48) return <CloudRain className={className} />;
-                if (code >= 71 && code <= 77) return <CloudSnow className={className} />;
-                if (code >= 85 && code <= 86) return <CloudSnow className={className} />;
-                if (code >= 95) return <CloudLightning className={className} />;
-                return <CloudRain className={className} />;
+                const props = { color, className }; // color prop 전달
+
+                if (code === 0) return <Sun {...props} />;
+                if (code <= 3) return <Cloud {...props} />;
+                if (code <= 48) return <CloudRain {...props} />;
+                if (code >= 71 && code <= 77) return <CloudSnow {...props} />;
+                if (code >= 85 && code <= 86) return <CloudSnow {...props} />;
+                if (code >= 95) return <CloudLightning {...props} />;
+                return <CloudRain {...props} />;
             };
 
             const month = String(time.getMonth() + 1).padStart(2, '0');
@@ -228,6 +226,7 @@
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
             
             const dustColor = getDustColor(dust.aqi);
+            const weatherColor = getWeatherColor(weather.code); // 날씨 색상 추출
 
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
@@ -236,11 +235,9 @@
                              background: 'rgba(255, 255, 255, 0.1)', 
                              borderBottom: '1px dashed rgba(255, 255, 255, 0.4)' 
                          }}>
-                        {/* [수정 2] 시간: 파스텔 하늘색(#7dd3fc) + 자간 좁힘(tracking-tighter) */}
                         <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-[64px] tracking-tighter drop-shadow-sm">
                             {timeStr}
                         </div>
-                        {/* [수정 3] 날짜: 흰색 + 고딕체(font-sans) */}
                         <div className="font-sans text-sm font-bold text-white tracking-wide opacity-90 pb-[15px]">
                             {dateStr}
                         </div>
@@ -249,13 +246,14 @@
                     <div className="h-[50px] w-full flex flex-row items-center justify-center gap-6"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-2">
-                            {getWeatherIcon(weather.code)}
-                            {/* 온도 색상도 부드러운 그레이로 통일 */}
-                            <span className="font-mono text-lg text-slate-600 font-bold pt-0.5">{weather.temp}°</span>
+                            {/* [4번 수정] 날씨 아이콘과 기온 텍스트 색상 통일 */}
+                            {getWeatherIcon(weather.code, weatherColor)}
+                            <span className="font-mono text-lg font-bold pt-0.5" style={{ color: weatherColor }}>
+                                {weather.temp}°
+                            </span>
                         </div>
                         <div className="h-4 w-[1px] bg-white/40 rounded-full"></div>
                         <div className="flex flex-row items-center gap-2">
-                            {/* 미세먼지 아이콘과 텍스트에 파스텔 컬러 적용 */}
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-sm font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
@@ -269,13 +267,13 @@
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* Left: Clock */}
-                    <div className="w-[130px] h-full flex-shrink-0">
+                    {/* [1번 수정] Left: 시계 영역 너비 증가 (130px -> 145px) -> 구분선이 오른쪽으로 이동 */}
+                    <div className="w-[145px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* Right: Info (구분선 색상 연하게 변경) */}
-                    <div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* Right: 정보 영역 너비 감소 (230px -> 215px) */}
+                    <div className="w-[215px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
