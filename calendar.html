@@ -14,46 +14,48 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
-        /* 기본 설정 */
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: transparent;
+        /* [시스템 기본] 투명 배경 마스터 코드 */
+        html, body, #root {
+            background-color: transparent !important;
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 이중 스크롤 방지 */
+            font-family: 'Noto Sans KR', sans-serif;
         }
 
-        /* 스크롤바 숨김 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* [핵심] Fortress Glass 컨테이너 */
+        /* [위젯 컨테이너] 디자인 최적화 */
         .widget-container {
             position: relative;
             width: 100%;
-            max-width: 260px; /* 캘린더 표준 너비 */
-            height: 540px;
-            /* 배경: 은은한 Icy Blue 그라디언트 + 블러 */
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            backdrop-filter: blur(25px);
-            border-radius: 28px;
-            border: 1px solid rgba(224, 242, 254, 0.4);
-            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            max-width: 260px; /* 캘린더 최적 너비 유지 */
+            height: auto;     /* 내용물에 맞게 높이 자동 조절 */
+            min-height: 0;
+            
+            /* 투명 Glass 스타일 */
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            box-shadow: none;
+            
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            color: #334155;
+            color: #f1f5f9; /* 기본 텍스트: 밝은 회색 */
         }
 
-        /* 타이포그래피 */
+        /* [스크롤바 숨김] */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* [폰트 유틸리티] */
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
 
-        /* 캘린더 그리드 스타일 */
+        /* [캘린더 그리드] */
         .calendar-fixed-height {
-            min-height: 260px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -65,82 +67,87 @@
             text-align: center;
         }
         
-        /* 날짜 셀 디자인 */
+        /* [날짜 셀] */
         .day-cell {
-            height: 36px;
+            height: 32px; /* 셀 높이 약간 축소 (밀도감 향상) */
             display: flex;
             flex-direction: column; 
             justify-content: flex-start;
             align-items: center;
-            border-radius: 8px;
-            font-size: 0.75rem; /* 12px */
+            border-radius: 6px;
+            font-size: 0.75rem; 
             font-family: 'Roboto Mono', monospace;
             position: relative;
             cursor: pointer;
             padding-top: 4px;
             transition: all 0.2s ease;
-            color: rgba(51, 65, 85, 0.8); /* Slate 700 */
+            color: rgba(255, 255, 255, 0.6); 
         }
-        .day-cell:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .day-cell:hover { background: rgba(255,255,255,0.1); }
         .day-cell-empty { pointer-events: none; }
 
-        /* 오늘 날짜 강조 */
+        /* [오늘 날짜] */
         .day-today {
-            background: rgba(255, 255, 255, 0.3) !important;
-            border: 1px solid rgba(186, 230, 253, 0.8);
-            box-shadow: 0 0 15px rgba(186, 230, 253, 0.4);
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(14, 165, 233, 0.5); /* Sky Blue 포인트 */
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
             font-weight: 700;
-            color: #0ea5e9 !important; /* Sky 500 */
+            color: #fff !important;
         }
 
-        /* 선택된 날짜 */
+        /* [선택된 날짜] */
         .day-selected {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* 일정 도트(점) 스타일 */
+        /* [도트 디자인] */
         .dot-wrapper { margin-top: 2px; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
         .dot-plus-container { display: flex; align-items: center; gap: 1px; }
         .dot { width: 4px; height: 4px; border-radius: 50%; }
 
-        /* 상태별 컬러 (Tailwind 호환) */
-        .bg-work { background-color: #38bdf8; box-shadow: 0 0 4px rgba(56, 189, 248, 0.6); }   
-        .bg-dev { background-color: #c084fc; box-shadow: 0 0 4px rgba(192, 132, 252, 0.6); }    
-        .bg-health { background-color: #fde047; box-shadow: 0 0 4px rgba(253, 224, 71, 0.6); } 
+        /* 상태별 컬러 (형광톤 보정) */
+        .bg-work { background-color: #38bdf8; box-shadow: 0 0 4px rgba(56, 189, 248, 0.4); }   
+        .bg-dev { background-color: #c084fc; box-shadow: 0 0 4px rgba(192, 132, 252, 0.4); }    
+        .bg-health { background-color: #fde047; box-shadow: 0 0 4px rgba(253, 224, 71, 0.4); } 
         .bg-rest { background-color: #cbd5e1; }                                                 
 
         /* 텍스트 컬러 */
-        .text-rose-custom { color: #fb7185; } /* Rose 400 */
-        .text-blue-custom { color: #60a5fa; } /* Blue 400 */
-        .text-dim { color: #94a3b8; }
-        .text-sky-point { color: #0ea5e9; text-shadow: 0 0 10px rgba(186, 230, 253, 0.5); }
+        .text-rose-custom { color: #fb7185; text-shadow: 0 0 5px rgba(251, 113, 133, 0.3); }
+        .text-blue-custom { color: #60a5fa; text-shadow: 0 0 5px rgba(96, 165, 250, 0.3); }
+        .text-dim { color: rgba(255, 255, 255, 0.3); }
+        .text-sky-point { color: #38bdf8; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
 
-        /* 하단 일정 리스트 카드 */
+        /* [일정 리스트 카드] */
         .event-card {
-            background: rgba(255, 255, 255, 0.1); /* 더 투명하게 */
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            padding: 0 12px;
+            background: rgba(255, 255, 255, 0.03); 
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0 10px;
             display: flex;
             align-items: center;
             transition: all 0.2s ease; 
             margin-bottom: 4px;
         }
         .event-card:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateX(2px);
+            background: rgba(255, 255, 255, 0.1);
         }
-        .event-past { opacity: 0.5; filter: grayscale(0.8); border-style: dashed; background: transparent; }
+        .event-past { opacity: 0.4; filter: grayscale(1); border-style: dashed; background: transparent; }
 
-        /* 네비게이션 버튼 */
-        .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: rgba(51, 65, 85, 0.6); transition: all 0.2s; }
-        .nav-btn:hover { color: #0ea5e9; background: rgba(255,255,255,0.3); }
+        /* [네비게이션 버튼] */
+        .nav-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: rgba(255, 255, 255, 0.5); transition: all 0.2s; }
+        .nav-btn:hover { color: #38bdf8; background: rgba(255,255,255,0.1); }
         
-        .list-nav-btn { width: 100%; height: 20px; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; transition: all 0.2s; cursor: pointer; border-radius: 8px; }
-        .list-nav-btn:hover { color: #38bdf8; background: rgba(255,255,255,0.1); }
+        .list-nav-btn { width: 100%; height: 20px; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.3); font-size: 10px; transition: all 0.2s; cursor: pointer; border-radius: 8px; }
+        .list-nav-btn:hover { color: #38bdf8; background: rgba(255,255,255,0.05); }
         .list-nav-btn:disabled { opacity: 0; cursor: default; }
 
+        /* [Glass Header] */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
     </style>
 
     <script>
@@ -150,7 +157,7 @@
                     colors: {
                         sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
                         purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
-                        slate: { 400: '#94a3b8', 700: '#334155' }
+                        slate: { 400: '#94a3b8', 700: '#f1f5f9' }
                     },
                     fontFamily: {
                         sans: ['"Noto Sans KR"', 'sans-serif'],
@@ -161,49 +168,10 @@
             }
         }
     </script>
-<style>
-        /* 1. 가장 바깥 컨테이너: 배경색 제거 (완전 투명에 가까운 2%) */
-        .widget-container {
-            background: rgba(255, 255, 255, 0.02) !important; /* 배경색 거의 없음 */
-            backdrop-filter: none !important; /* 뒷배경 흐림 제거 (선명하게 투과) */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리만 은은하게 */
-            box-shadow: none !important; /* 그림자 제거 (깔끔하게) */
-        }
-
-        /* 2. 내부 패널들: 살짝 반투명하게 (유리 조각 느낌) */
-        .header-section, 
-        .glass-panel, 
-        .event-card, 
-        .todo-item:hover,
-        .quest-btn,
-        .modal-content,
-        .weather-btn {
-            background: rgba(255, 255, 255, 0.05) !important; /* 5% 흰색 */
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(8px) !important; /* 내부 요소만 살짝 흐리게 */
-        }
-
-        /* 3. 글씨 강제 미백 (검은 배경에서 잘 보이게) */
-        body, .text-slate-700, .text-slate-600, .text-slate-500, .text-dim {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-        
-        /* 4. 포인트 컬러는 형광빛으로 (가독성 확보) */
-        .text-sky-300, .text-sky-custom { color: #7dd3fc !important; text-shadow: 0 0 10px rgba(125,211,252,0.4); }
-        .text-purple-300, .text-purple-custom { color: #d8b4fe !important; text-shadow: 0 0 10px rgba(216,180,254,0.4); }
-
-        /* 5. 모달창 등 부가 요소 */
-        .modal-overlay { background: rgba(0, 0, 0, 0.6) !important; }
-        input, select, .custom-select {
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-    </style>
-    </head>
+</head>
 <body>
 
-    <div id="root"></div>
+    <div id="root" style="width: 100%; display: flex; justify-content: center;"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
@@ -226,14 +194,11 @@
         };
 
         const Icons = {
-            ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
-            ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>,
-            RotateCcw: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
-            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
-            ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
-            Flame: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path></svg>,
-            Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
-            Pen: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l5.5 5.5"></path><path d="M11 11l5.5 5.5"></path></svg>,
+            ChevronLeft: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>,
+            ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>,
+            RotateCcw: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
+            ArrowUp: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
+            ArrowDown: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
         };
 
         const safeParseDate = (dateStr) => {
@@ -266,61 +231,9 @@
             const [visibleRange, setVisibleRange] = useState({ start: 0, end: 3 });
             const [debugMsg, setDebugMsg] = useState("Loading...");
             const [holidaySet, setHolidaySet] = useState(new Set());
-            const [historyMap, setHistoryMap] = useState({});
-            const [monthlyStats, setMonthlyStats] = useState({ exercise: 0, reading: 0, record: 0 });
-
-            useEffect(() => {
-                const loadHistory = () => {
-                const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
-                const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                
-                const allData = [...history];
-                if (todayData.date) allData.push(todayData);
-
-                const map = {};
-                let exCnt = 0, rdCnt = 0, rcCnt = 0;
-                let monthTotalMin = 0; // 총 시간 합산 변수 추가
-                let validDays = 0;
-
-                const thisMonthPrefix = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-
-                allData.forEach(day => {
-                    const focusBlocks = (day.blocks || []).filter(b => b.type === 'focus' || !b.type);
-                    const totalMin = focusBlocks.reduce((acc, cur) => acc + (cur.duration || 0), 0);
-                    
-                    const d = new Date(day.date);
-                    const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                    map[dateKey] = totalMin;
-
-                    if (dateKey.startsWith(thisMonthPrefix)) {
-                        const blocks = day.blocks || [];
-                        if (blocks.some(b => b.name === '운동')) exCnt++;
-                        if (blocks.some(b => b.name === '독서')) rdCnt++;
-                        if (blocks.some(b => b.name === '기록')) rcCnt++;
-                        monthTotalMin += totalMin; // 이번 달 시간 누적
-                        validDays++; 
-                    }
-                });
-
-                setHistoryMap(map);
-                
-                const calcPct = (cnt) => validDays === 0 ? 0 : Math.round((cnt / validDays) * 100);
-                // 평균 시간 계산 (분 단위)
-                const avgTime = validDays === 0 ? 0 : Math.round(monthTotalMin / validDays);
-
-                setMonthlyStats({ 
-                    exercise: calcPct(exCnt), 
-                    reading: calcPct(rdCnt), 
-                    record: calcPct(rcCnt),
-                    average: avgTime // 상태 추가
-                });
-            };
-
-                loadHistory();
-                window.addEventListener('storage', loadHistory);
-                return () => window.removeEventListener('storage', loadHistory);
-            }, [currentDate, year]);
-
+            
+            // Note: Monthly stats and history features were removed for UI simplicity as they are not visualized in this widget type.
+            
             const isSameDay = (d1, d2) => d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
             
             const isHoliday = (year, month, day) => {
@@ -337,7 +250,7 @@
             const monthStr = monthNames[currentDate.getMonth()];
 
             const fetchAllCalendars = async () => {
-                setDebugMsg("Fetching Data...");
+                setDebugMsg("Fetching...");
                 let newEvents = {};
                 let tempHolidays = new Set(); 
                 let successCount = 0;
@@ -452,9 +365,9 @@
             return (
                 <div className="widget-container">
                     {/* Header */}
-                    <div className="px-5 pt-5 pb-3 flex justify-between items-end border-b border-white/20 bg-white/15 backdrop-blur-sm z-10 shrink-0">
+                    <div className="px-5 pt-5 pb-3 flex justify-between items-end glass-header z-10 shrink-0">
                         <div>
-                            <div className="text-sky-point text-sm font-bold tracking-widest uppercase mb-0.5">
+                            <div className="text-sky-point text-[10px] font-bold tracking-widest uppercase mb-0.5 opacity-80 font-mono">
                              {year}
                             </div>
                             <h1 className="text-xl title-text font-serif tracking-tight text-white font-bold">{monthStr}</h1>
@@ -466,7 +379,7 @@
                         </div>
                     </div>
 
-                    <div className="flex-1 px-4 pt-1 pb-0 relative overflow-hidden flex flex-col justify-between">
+                    <div className="flex-1 px-4 pt-1 pb-2 relative overflow-hidden flex flex-col justify-between">
                         <div className="mb-0 shrink-0 calendar-fixed-height mt-2">
                             <div className="calendar-grid mb-1">
                                 {['S','M','T','W','T','F','S'].map((d, i) => (
@@ -521,12 +434,12 @@
                         </div>
                         
                         {/* Event List */}
-                        <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-0 relative min-h-0">
+                        <div className="flex-1 flex flex-col justify-start border-t border-white/10 pt-2 mt-2 relative min-h-0">
                             <button onClick={handleLoadPrev} disabled={visibleRange.start === 0} className="list-nav-btn shrink-0 mb-1">
                                 {visibleRange.start > 0 && <Icons.ArrowUp />}
                             </button>
                             
-                            <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pb-4">
+                            <div className="flex-1 overflow-y-auto no-scrollbar space-y-1 pb-1 min-h-[50px]">
                                 {visibleEvents.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-dim text-xs italic opacity-60">
                                         <span>{debugMsg ? debugMsg : "일정이 없습니다."}</span>
@@ -561,7 +474,5 @@
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
-</body>
-</html>
 </body>
 </html>
