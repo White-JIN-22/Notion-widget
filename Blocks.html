@@ -25,41 +25,41 @@
             min-height: 100vh;
         }
 
-        /* [가로형 위젯 컨테이너 스타일] */
+        /* [가로형 위젯 컨테이너] */
         .widget-container {
             position: relative;
-            width: 600px; /* 요청하신 가로형 너비 */
-            height: 124px; /* 고정 높이 */
+            width: 600px;
+            height: 124px;
             background: linear-gradient(90deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             border-radius: 20px;
             border: 1px solid rgba(224, 242, 254, 0.4);
             box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
-            flex-direction: row; /* 가로 배치 */
+            flex-direction: row;
             overflow: hidden;
             color: #334155;
         }
 
-        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
-        /* 좌측 대시보드 패널 */
+        /* [좌측 패널] */
         .left-panel {
             width: 130px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 16px 16px 16px 20px;
+            justify-content: space-between; /* 상단 H M, 하단 멘트 분리 */
+            padding: 20px 16px 20px 20px; /* 내부 여백 조정 */
             border-right: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* 우측 타임라인 그리드 영역 */
+        /* [우측 타임라인 영역] */
         .timeline-area {
             flex: 1;
-            padding: 12px 16px;
+            /* 상단 여백(pt)을 22px로 늘려 시간 라벨이 잘리지 않게 확보 */
+            padding: 22px 16px 12px 16px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -67,26 +67,27 @@
 
         .grid-container {
             display: flex;
-            flex-direction: row; /* 시간축 가로 배치 */
+            flex-direction: row;
             height: 100%;
             justify-content: space-between;
-            align-items: flex-end; /* 하단 정렬 느낌 */
-            gap: 4px; /* 시간 기둥 사이 간격 */
+            align-items: flex-end;
+            gap: 4px;
         }
 
         .hour-column {
             flex: 1;
             display: flex;
-            flex-direction: column; /* 10분 단위는 세로로 쌓임 */
+            flex-direction: column;
             height: 100%;
             min-width: 0;
-            gap: 2px; /* 블록 사이 간격 */
+            gap: 2px;
             position: relative;
         }
 
         .time-label {
             position: absolute;
-            top: -14px;
+            /* 그리드 상단 기준 위로 올림. 부모 패딩 덕분에 잘리지 않음 */
+            top: -14px; 
             left: 50%;
             transform: translateX(-50%);
             font-size: 8px;
@@ -96,7 +97,7 @@
         }
 
         .time-block {
-            flex: 1; /* 높이 균등 분할 */
+            flex: 1;
             border-radius: 2px;
             transition: all 0.3s ease;
             display: flex;
@@ -106,7 +107,7 @@
             overflow: hidden; 
         }
         
-        /* 기존 블록 스타일 유지 */
+        /* 블록 스타일 */
         .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
         .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
         .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
@@ -230,9 +231,10 @@
                 const colorClass = getTotalColorClass(totalMin);
 
                 return (
+                    // [수정] text-3xl -> text-2xl로 축소
                     <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
-                        <span className="text-3xl font-bold">{h}</span><span className="text-xs mx-0.5 opacity-60 font-bold">H</span>
-                        <span className="text-3xl font-bold">{String(m).padStart(2, '0')}</span><span className="text-xs ml-0.5 opacity-60 font-bold">M</span>
+                        <span className="text-2xl font-bold">{h}</span><span className="text-[10px] mx-0.5 opacity-60 font-bold">H</span>
+                        <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span><span className="text-[10px] ml-0.5 opacity-60 font-bold">M</span>
                     </span>
                 );
             };
@@ -266,7 +268,7 @@
             };
 
             const renderGrid = () => {
-                const hours = Array.from({length: 18}, (_, i) => i + 6); // 06시 ~ 23시 (가로축)
+                const hours = Array.from({length: 18}, (_, i) => i + 6);
 
                 const roundTime = (ts) => {
                     const d = new Date(ts);
@@ -277,7 +279,7 @@
                 };
 
                 return hours.map(hour => {
-                    const slots = Array.from({length: 6}, (_, i) => { // 00분 ~ 50분 (세로축)
+                    const slots = Array.from({length: 6}, (_, i) => {
                         const slotStartMin = i * 10;
                         const slotEndMin = (i + 1) * 10;
                         
@@ -370,8 +372,6 @@
                         if (calendarEvent) {
                             const category = calendarEvent.category || 'default';
                             const colorClass = categoryColors[category] || categoryColors['default'];
-                            // 가로형 위젯에서는 캘린더 라인이 세로로 작게 들어가거나, 가로 전체를 덮는 게 나을 수 있음
-                            // 여기서는 기존 느낌 유지를 위해 블록 하단(세로 축 기준)에 표시
                             lineOverlay = (
                                 <div className={`absolute h-[2px] w-[80%] rounded-full left-[10%] bottom-[10%] z-20 ${colorClass}`} title={calendarEvent.title} />
                             );
@@ -390,7 +390,6 @@
 
                     return (
                         <div key={hour} className="hour-column group">
-                             {/* 시간 라벨 (컬럼 상단) */}
                             <div className="time-label group-hover:text-white transition-colors">{String(hour).padStart(2,'0')}</div>
                             {slots}
                         </div>
@@ -402,21 +401,20 @@
 
             return (
                 <div className="widget-container">
-                    {/* 1. 좌측 대시보드 (고정) */}
+                    {/* [좌측 패널 수정] TOTAL 삭제, H M 상단 배치, 글자 크기 축소 */}
                     <div className="left-panel">
-                        <div className="mt-2">
-                             <div className="text-[10px] text-white/40 font-mono-nums mb-1 tracking-widest">TOTAL</div>
+                        <div className="mt-1">
                              {formatDuration(totalDuration)}
                         </div>
-                        <div className="mb-2">
-                            <p className="text-sm font-bold text-white leading-snug drop-shadow-md mb-1">{msg.main}</p>
-                            <p className="text-[10px] text-sky-200 leading-tight opacity-80 break-keep">{msg.sub}</p>
+                        <div className="mb-1">
+                            {/* 메인 멘트: text-xs(12px) */}
+                            <p className="text-xs font-bold text-white leading-snug drop-shadow-md mb-0.5">{msg.main}</p>
+                            {/* 서브 멘트: text-[9px] */}
+                            <p className="text-[9px] text-sky-200 leading-tight opacity-80 break-keep">{msg.sub}</p>
                         </div>
                     </div>
 
-                    {/* 2. 우측 타임라인 (가로 스크롤 가능성 대비) */}
                     <div className="timeline-area">
-                         {/* 그리드 */}
                         <div className="grid-container">{renderGrid()}</div>
                     </div>
                 </div>
