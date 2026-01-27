@@ -14,90 +14,68 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
+        /* 기본 바디 설정 (모바일 스크롤 방지) */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Noto Sans KR', sans-serif;
             background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: flex-start; /* 위쪽 정렬 */
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden; /* 전체 스크롤 막기 */
             color: #334155;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; /* 터치 시 파란 박스 제거 */
         }
 
+        /* 폰트 유틸리티 */
         .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono { font-family: 'Roboto Mono', monospace; }
         
-        /* [추가] 스크롤바 숨김 처리 */
+        /* 스크롤바 숨김 (내부 스크롤용) */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+        /* [핵심] Fortress Glass 컨테이너 (모바일 최적화) */
         .widget-container {
-    width: 100%;
-    max-width: 280px;
-    height: 500px;
-    min-height: 500px;
+            width: 100%;
+            max-width: 280px; /* 모바일 폭에 맞춤 */
+            height: 500px;    /* 고정 높이 */
+            
+            /* 유리 질감 그라디언트 복구 */
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.3) 0%, rgba(240, 249, 255, 0.2) 100%);
+            backdrop-filter: blur(25px);
+            
+            display: flex;
+            flex-direction: column;
 
-    padding-bottom: 20px;
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(25px);
-    display: flex;
-    flex-direction: column;
+            border: 1px solid rgba(224, 242, 254, 0.4);
+            border-radius: 28px;
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15);
+            overflow: hidden;
+        }
 
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 28px;
-    box-shadow: 0 0 40px rgba(186, 230, 253, 0.15);
-    overflow: hidden;
-}
-
-/* [추가] index.html과 동일한 노란색 */
-.text-yellow-100 { color: #fef9c3; }
-
+        /* 헤더 섹션 */
         .header-section {
-            /* [수정] 여백 축소 */
             padding: 16px 20px 12px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(5px);
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(186, 230, 253, 0.1);
-        }
-
+        /* 탭 버튼 */
         .tab-btn {
             transition: all 0.2s;
             border-radius: 12px;
             font-weight: 700;
             font-size: 0.75rem;
             color: #94a3b8;
-            padding: 8px 0; /* [수정] 여백 축소 */
+            padding: 8px 0;
         }
-        .tab-active {
-            background: rgba(255, 255, 255, 0.5);
-            color: #7dd3fc;
-            border: 1px solid rgba(125, 211, 252, 0.3);
-            box-shadow: 0 2px 10px rgba(186, 230, 253, 0.2);
-        }
+        .tab-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
-        .quest-btn {
-            background: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            color: #475569;
-            transition: all 0.1s;
-        }
-        .quest-btn:active {
-            transform: scale(0.96);
-            background: rgba(255, 255, 255, 0.6);
-        }
-
-        /* Modal */
-        .modal-overlay { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(4px); }
+        /* 모달 스타일 */
+        .modal-overlay { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
         .modal-content {
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
             border-top: 1px solid rgba(255, 255, 255, 0.8);
@@ -105,20 +83,30 @@
             box-shadow: 0 -10px 40px rgba(14, 165, 233, 0.15);
         }
 
+        /* 선택 박스 (Select) */
         .custom-select {
-            width: 100%; border-radius: 12px; padding: 10px;
+            width: 100%; border-radius: 12px; padding: 12px;
             font-weight: 700; outline: none; text-align: center; appearance: none;
             background: rgba(241, 245, 249, 0.8);
             border: 1px solid rgba(203, 213, 225, 0.5);
             color: #334155; font-size: 1rem;
         }
 
+        /* 타이머 애니메이션 */
         .progress-ring__circle {
             transition: stroke-dashoffset 0.35s;
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
+        
+        /* 은은한 글로우 효과 (기록 중일 때) */
+        @keyframes whiteGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)); stroke-opacity: 0.8; }
+            50% { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)); stroke-opacity: 1; }
+        }
+        .animate-glow { animation: whiteGlow 2.5s ease-in-out infinite; }
 
+        /* 토스트 메시지 */
         .toast-message {
             position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
@@ -133,22 +121,32 @@
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        /* Colors */
-        .text-bright { color: #ffffff; } /* [수정] 제목 흰색 */
-        .text-sky-300 { color: #38bdf8; }
-        .text-purple-300 { color: #c084fc; }
+        /* 컬러 유틸리티 (React 직접 사용 대비) */
+        .text-yellow-100 { color: #fef9c3; }
+        .text-sky-300 { color: #7dd3fc; }
+        .text-purple-300 { color: #d8b4fe; }
         .text-slate-400 { color: #94a3b8; }
-        .text-yellow-custom { color: #fde047; } /* 밝은 노란색 */
-        
-        /* [추가] 은은한 화이트 글로우 애니메이션 */
-        @keyframes whiteGlow {
-            0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4)); stroke-opacity: 0.8; }
-            50% { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)); stroke-opacity: 1; }
-        }
-        .animate-glow {
-            animation: whiteGlow 2.5s ease-in-out infinite;
-        }
     </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9' },
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
+                        slate: { 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 700: '#334155' },
+                        yellow: { 100: '#fef9c3' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <div id="root" class="w-full"></div>
