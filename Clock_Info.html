@@ -112,11 +112,11 @@
                          <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/40 transform -translate-x-1/2"></div>
                          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/40 transform -translate-y-1/2"></div>
 
-                         {/* [수정] 숫자 컬러 변경: 24(파스텔 옐로), 6(연보라), 12(스카이블루), 18(회색) */}
                          <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">24</div>
                          <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 opacity-90 z-20">6</div>
                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 opacity-90 z-20">18</div>
+                         {/* [수정] 18 숫자 밝기 UP: text-slate-400 -> text-slate-300 */}
+                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-300 opacity-90 z-20">18</div>
 
                          <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
                          <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
@@ -233,7 +233,6 @@
             const weatherColor = getWeatherColor(weather.code);
 
             return (
-                /* [수정] pl-2 삭제 -> 가로선이 왼쪽 수직 구분선과 딱 붙게 됨 */
                 <div className="flex flex-col flex-1 h-full select-none overflow-hidden">
                     <div className="flex-1 w-full flex flex-row items-center justify-center gap-3 px-2 pt-1"
                          style={{ 
@@ -241,13 +240,12 @@
                              borderBottom: '1px solid rgba(255, 255, 255, 0.4)' 
                          }}>
                         
-                        {/* 1. 시간 */}
                         <div className="font-mono text-[40px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm pb-1">
                             {timeStr}
                         </div>
 
-                        {/* 2. 날짜/요일 */}
-                        <div className="flex flex-col items-start justify-center">
+                        {/* [수정] items-start -> items-center (요일/날짜 가운데 정렬) */}
+                        <div className="flex flex-col items-center justify-center">
                             <div className="font-sans text-[13px] font-bold text-white tracking-wide opacity-90 leading-tight">
                                 {dateOnly}
                             </div>
@@ -257,7 +255,8 @@
                         </div>
                     </div>
 
-                    <div className="h-[54px] w-full flex flex-row items-center justify-center gap-5"
+                    {/* [수정] 높이 54px -> 40px (여백 다이어트) */}
+                    <div className="h-[40px] w-full flex flex-row items-center justify-center gap-5"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1.5">
                             {getWeatherIcon(weather.code, weatherColor)}
