@@ -286,14 +286,14 @@
         const App = () => {
             return (
                 <div className="widget-container">
-                    {/* [수정] 너비 재분배 (총합 250px) */}
-                    {/* 왼쪽: 아날로그 시계 (100px) */}
-                    <div className="w-[100px] h-full flex-shrink-0">
+                    {/* [수정] 너비 재분배 (총합 250px 유지) */}
+                    {/* 왼쪽: 아날로그 시계 (100px -> 110px로 확장하여 좌우 여백 확보) */}
+                    <div className="w-[110px] h-full flex-shrink-0">
                         <ClockSection />
                     </div>
 
-                    {/* 오른쪽: 정보 영역 (150px) */}
-                    <div className="w-[150px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* 오른쪽: 정보 영역 (150px -> 140px로 축소) */}
+                    <div className="w-[140px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
