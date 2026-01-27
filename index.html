@@ -16,10 +16,9 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
 
-        /* 기본 설정 */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: transparent; /* 노션 투명 배경 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -27,21 +26,14 @@
             min-height: 100vh;
             overflow: hidden;
         }
-
-        /* 스크롤바 숨김 (깔끔한 UI) */
+        .font-serif { font-family: 'Playfair Display', serif; } 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .thin-scrollbar::-webkit-scrollbar { width: 4px; }
-        .thin-scrollbar::-webkit-scrollbar-track { background: transparent; margin: 4px 0; }
-        .thin-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(203, 213, 225, 0.5); border-radius: 10px; }
-        .thin-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.8); }
 
-        /* [핵심] Fortress Glass 컨테이너 */
         .widget-container {
             position: relative;
             width: 260px; 
             height: 540px;
-            /* Icy Blue 그라디언트 + 블러 효과 */
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             border-radius: 24px;
@@ -53,7 +45,6 @@
             color: #334155;
         }
 
-        /* 헤더 섹션 (유리 질감 강화) */
         .header-section {
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -62,7 +53,6 @@
             flex-shrink: 0;
         }
 
-        /* 내부 유리 패널 */
         .glass-panel {
             background: rgba(224, 242, 254, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -70,7 +60,6 @@
             transition: all 0.2s;
         }
 
-        /* 탭 버튼 스타일 */
         .tab-btn {
             transition: all 0.2s;
             border-radius: 10px;
@@ -80,9 +69,13 @@
             letter-spacing: -0.02em;
             padding: 6px 0;
         }
-        .tab-btn:hover { color: #e0f2fe; background: rgba(255,255,255,0.1); }
+        .tab-active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #7dd3fc;
+            border: 1px solid rgba(125, 211, 252, 0.3);
+        }
+        .tab-inactive:hover { color: #e0f2fe; background: rgba(255,255,255,0.1); }
 
-        /* 기록 아이템 리스트 (애니메이션 포함) */
         .log-item {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.05);
@@ -95,6 +88,7 @@
             position: relative; 
             margin-bottom: 4px;
         }
+
         .log-item-compact {
             animation: slideUp 0.3s ease-out forwards;
             background: rgba(255, 255, 255, 0.02);
@@ -109,96 +103,124 @@
             position: relative;
         }
 
-        /* 삭제 버튼 */
         .universal-delete-btn {
-            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-            color: #94a3b8; padding: 4px; transition: color 0.2s; cursor: pointer; z-index: 10;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            padding: 4px;
+            transition: color 0.2s;
+            cursor: pointer;
+            z-index: 10;
         }
-        .universal-delete-btn:hover { color: #ef4444; }
+        .universal-delete-btn:hover { color: #ffffff; } /* 기존 #bae6fd 에서 변경 */
 
         @keyframes slideUp {
             from { transform: translateY(5px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* 모달 스타일 (고급스러운 유리 효과) */
-        .modal-overlay { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); }
+        .modal-overlay { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
         .modal-content {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.95) 100%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 249, 255, 0.98) 100%);
             backdrop-filter: blur(30px);
-            border-top: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 -20px 50px rgba(186, 230, 253, 0.2);
             color: #334155;
         }
 
-        /* 퀘스트 버튼 & 모달 버튼 */
         .quest-btn {
             background: rgba(224, 242, 254, 0.1);
             border: 1px solid rgba(224, 242, 254, 0.2);
-            color: #e0f2fe; transition: all 0.2s;
+            color: #e0f2fe;
+            transition: all 0.2s;
         }
-        .quest-btn:hover { background: rgba(224, 242, 254, 0.2); border-color: #bae6fd; color: white; }
-        
+        .quest-btn:hover {
+            background: rgba(224, 242, 254, 0.2);
+            border-color: #bae6fd;
+            color: white;
+        }
+        .quest-btn:disabled { opacity: 0.4; filter: grayscale(100%); }
+
         .modal-btn {
             background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.6);
-            color: #475569; transition: all 0.2s;
+            color: #475569;
+            transition: all 0.2s;
         }
-        .modal-btn:hover { background: #fff; border-color: #7dd3fc; color: #0ea5e9; transform: translateY(-2px); }
+        .modal-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #7dd3fc;
+            color: #0ea5e9;
+        }
 
-        /* 입력 폼 요소 */
-        .manual-tab { padding: 4px 0; font-size: 0.75rem; font-weight: 700; color: #94a3b8; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .manual-tab {
+            padding: 4px 0; /* 8px -> 4px 로 축소하여 컴팩트하게 */
+            font-size: 0.75rem; 
+            font-weight: 700;
+            color: #94a3b8;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
         .manual-tab.active { color: #7dd3fc; border-bottom-color: #7dd3fc; }
-        
+
         .custom-select {
-            width: 100%; border-radius: 10px; padding: 5px;
+            width: 100%; border-radius: 10px; padding: 5px; /* 8px -> 5px 로 축소 */
             font-weight: 700; outline: none; text-align: center; appearance: none;
-            cursor: pointer; background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.6); color: #334155; font-size: 0.9rem;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: #334155;
+            font-size: 0.9rem;
         }
         
-        /* 토스트 메시지 */
         .toast-message {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px);
-            border: 1px solid rgba(186, 230, 253, 0.5); color: #0ea5e9;
-            padding: 6px 14px; border-radius: 20px; font-size: 0.75rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            font-weight: 700; pointer-events: none; z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 230, 253, 0.5); 
+            color: #0ea5e9;
+            
+            padding: 6px 14px;       /* 여백을 줄여서 날렵하게 */
+            border-radius: 20px;     /* 둥글기 살짝 조정 */
+            font-size: 0.75rem;      /* 글자 크기를 작게 (약 12px) */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 그림자도 은은하게 축소 */
+            
+            font-weight: 700;
+            pointer-events: none; z-index: 100;
             animation: fadeUp 0.3s ease-out forwards; white-space: nowrap;
         }
         @keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-        /* 타이머 원형 진행바 */
-        .progress-ring__circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
 
-        /* 텍스트 글로우 효과 유틸리티 (React 코드 호환용) */
         .text-sky-300 { color: #7dd3fc; text-shadow: 0 0 10px rgba(14, 165, 233, 0.3); } 
         .bg-sky-300 { background-color: #7dd3fc; box-shadow: 0 0 8px rgba(125, 211, 252, 0.6); }
         .text-dim { color: #94a3b8; }
         .text-bright { color: #ffffff; text-shadow: 0 0 10px rgba(186, 230, 253, 0.3); }
-        .font-serif { font-family: 'Playfair Display', serif; }
-    </style>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        sky: { 50: '#f0f9ff', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' },
-                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
-                        slate: { 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155' },
-                        yellow: { 100: '#fef9c3', 200: '#fef08a' }
-                    },
-                    fontFamily: {
-                        sans: ['"Noto Sans KR"', 'sans-serif'],
-                        serif: ['"Playfair Display"', 'serif'],
-                        mono: ['"Roboto Mono"', 'monospace'],
-                    }
-                }
-            }
+        /* 얇고 예쁜 스크롤바 디자인 */
+        .thin-scrollbar::-webkit-scrollbar {
+            width: 4px; /* 두께를 얇게 (4px) */
         }
-    </script>
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: transparent; /* 배경을 투명하게 */
+            margin: 4px 0; /* 위아래 여백 */
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(203, 213, 225, 0.5); /* 은은한 회색 (slate-300) */
+            border-radius: 10px; /* 둥근 모양 */
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(148, 163, 184, 0.8); /* 마우스 올리면 진하게 */
+        }
+        
+    </style>
 </head>
 <body>
 
