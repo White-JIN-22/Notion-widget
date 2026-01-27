@@ -71,18 +71,30 @@
             height: 100%;
             justify-content: space-between;
             align-items: flex-end;
-            gap: 4px;
+            gap: 1px;
         }
 
-        .hour-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            min-width: 0;
-            gap: 2px;
-            position: relative;
-        }
+        /* 기존 코드 전체 교체 추천 */
+.hour-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-width: 0;
+    gap: 1px; /* [수정] 2px -> 1px (블록 위아래 여백을 최소화해서 블록 크기 키움) */
+    position: relative;
+    
+    /* [추가] 오른쪽 점선 구분선 */
+    border-right: 1px dashed rgba(255, 255, 255, 0.15); 
+    padding-right: 1px; /* 선과 블록 사이 아주 미세한 여백 */
+    padding-left: 1px;  /* 균형을 위해 왼쪽도 살짝 */
+}
+
+/* [추가] 마지막 시간대(23시) 오른쪽에는 선 없애기 */
+.hour-column:last-child {
+    border-right: none;
+    padding-right: 0;
+}
 
         .time-label {
             position: absolute;
