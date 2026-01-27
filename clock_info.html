@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <meta name="color-scheme" content="dark light">
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,29 +15,55 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Roboto+Mono:wght@500;700&display=swap');
 
-        /* [핵심] React 코드에서 참조하는 CSS 변수 복구 */
+        /* [핵심] 다크모드 전용 블루 그라디언트 재정의 */
         :root {
-            --glass-bg: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            --glass-border: 1px solid rgba(224, 242, 254, 0.4);
-            --glass-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            /* 기존보다 훨씬 투명하고 깊은 파란색으로 변경하여 다크모드에 녹아들게 함 */
+            --glass-bg: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(30, 58, 138, 0.25) 100%);
+            --glass-border: 1px solid rgba(56, 189, 248, 0.15);
+            --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
         }
 
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: transparent; /* 배경 투명 */
+        /* [시스템 기본] 투명 배경 마스터 코드 */
+        html, body, #root {
+            background-color: transparent !important;
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Noto Sans KR', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 위젯 상단 정렬 */
-            min-height: 100vh;
-            overflow: hidden;
-            padding-top: 10px;
+            align-items: flex-start; /* 상단 기준 정렬 */
+            padding-top: 10px; /* 상단 여백 확보 */
         }
-        
+
+        /* [위젯 컨테이너] */
+        .widget-container {
+            position: relative;
+            width: 360px; /* 고정 너비 */
+            height: 124px; /* 고정 높이 */
+            
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); /* 블러 효과 */
+            border: var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            color: #f1f5f9;
+        }
+
         /* 폰트 유틸리티 */
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .font-sans { font-family: 'Noto Sans KR', sans-serif; }
         .font-playfair { font-family: 'Playfair Display', serif; }
+        
+        /* 텍스트 그림자 효과 (가독성 UP) */
+        .text-glow { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+        .text-glow-sky { text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
     </style>
 
     <script>
@@ -44,22 +71,10 @@
             theme: {
                 extend: {
                     colors: {
-                        sky: { 
-                            200: '#bae6fd', 
-                            300: '#7dd3fc', 
-                            500: '#0ea5e9' 
-                        },
-                        purple: { 
-                            200: '#e9d5ff', 
-                            300: '#d8b4fe' 
-                        },
-                        slate: { 
-                            400: '#94a3b8', 
-                            700: '#334155' 
-                        },
-                        yellow: {
-                            200: '#fef08a' /* 시계 숫자 강조용 */
-                        }
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
+                        slate: { 400: '#94a3b8', 700: '#334155' },
+                        yellow: { 200: '#fef08a' }
                     },
                     fontFamily: {
                         sans: ['"Noto Sans KR"', 'sans-serif'],
@@ -70,66 +85,29 @@
             }
         }
     </script>
-<style>
-        /* 1. 가장 바깥 컨테이너: 배경색 제거 (완전 투명에 가까운 2%) */
-        .widget-container {
-            background: rgba(255, 255, 255, 0.02) !important; /* 배경색 거의 없음 */
-            backdrop-filter: none !important; /* 뒷배경 흐림 제거 (선명하게 투과) */
-            border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리만 은은하게 */
-            box-shadow: none !important; /* 그림자 제거 (깔끔하게) */
-        }
-
-        /* 2. 내부 패널들: 살짝 반투명하게 (유리 조각 느낌) */
-        .header-section, 
-        .glass-panel, 
-        .event-card, 
-        .todo-item:hover,
-        .quest-btn,
-        .modal-content,
-        .weather-btn {
-            background: rgba(255, 255, 255, 0.05) !important; /* 5% 흰색 */
-            border: 1px solid rgba(255, 255, 255, 0.08) !important;
-            backdrop-filter: blur(8px) !important; /* 내부 요소만 살짝 흐리게 */
-        }
-
-        /* 3. 글씨 강제 미백 (검은 배경에서 잘 보이게) */
-        body, .text-slate-700, .text-slate-600, .text-slate-500, .text-dim {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-        
-        /* 4. 포인트 컬러는 형광빛으로 (가독성 확보) */
-        .text-sky-300, .text-sky-custom { color: #7dd3fc !important; text-shadow: 0 0 10px rgba(125,211,252,0.4); }
-        .text-purple-300, .text-purple-custom { color: #d8b4fe !important; text-shadow: 0 0 10px rgba(216,180,254,0.4); }
-
-        /* 5. 모달창 등 부가 요소 */
-        .modal-overlay { background: rgba(0, 0, 0, 0.6) !important; }
-        input, select, .custom-select {
-            background: rgba(0, 0, 0, 0.3) !important;
-            color: #fff !important;
-            border: 1px solid rgba(255,255,255,0.2) !important;
-        }
-    </style>
-    </head>
+</head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ==========================================
-        // [PART 1] Clock Component Icons & Logic
-        // ==========================================
-        const ClockMoon = ({ className, color }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-        );
-        const ClockSun = ({ className, color }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-        );
-        const ClockCloudSun = ({ className, color }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>
-        );
-        const ClockSparkles = ({ className, color }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
-        );
+        // [Icons]
+        const ClockMoon = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
+        const ClockSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
+        const ClockCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>;
+        const ClockSparkles = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>;
+        
+        const Sun = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#d8b4fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+        const Cloud = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
+        const CloudRain = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
+        const CloudSnow = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
+        const CloudLightning = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
+
+        const FaceHappy = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceNormal = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
+        const FaceBad = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
+        const FaceDevil = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
+        const GasMask = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
 
         const ClockSection = () => {
             const [time, setTime] = useState(new Date());
@@ -144,62 +122,46 @@
             const totalMinutes = hours * 60 + minutes;
             const degrees = totalMinutes * 0.25;
 
-            /// 124x124 Square Layout Content -> w-full로 변경
-return (
-    <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
+            return (
+                <div className="relative w-full h-full flex items-center justify-center select-none overflow-hidden">
                     <div className="relative w-[90px] h-[90px] rounded-full flex-shrink-0"
                          style={{
                              background: `conic-gradient(
-                                 rgba(254, 240, 138, 0.25) 0deg 90deg,   
-                                 rgba(216, 180, 254, 0.25) 90deg 180deg, 
-                                 rgba(125, 211, 252, 0.25) 180deg 270deg, 
-                                 rgba(148, 163, 184, 0.25) 270deg 360deg 
+                                 rgba(254, 240, 138, 0.2) 0deg 90deg,   
+                                 rgba(216, 180, 254, 0.2) 90deg 180deg, 
+                                 rgba(125, 211, 252, 0.2) 180deg 270deg, 
+                                 rgba(148, 163, 184, 0.2) 270deg 360deg 
                              )`,
                              border: '1px solid rgba(255,255,255,0.1)',
-                             boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)'
+                             boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2)'
                          }}>
                          
-                         <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/20 transform -translate-x-1/2"></div>
-                         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/20 transform -translate-y-1/2"></div>
+                         <div className="absolute top-0 left-1/2 w-[1px] h-full bg-white/10 transform -translate-x-1/2"></div>
+                         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 transform -translate-y-1/2"></div>
 
-                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 drop-shadow-sm z-20">24</div>
-                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 drop-shadow-sm z-20">6</div>
-                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 drop-shadow-sm z-20">12</div>
-                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 drop-shadow-sm z-20">18</div>
+                         <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-yellow-200 drop-shadow-md z-20">24</div>
+                         <div className="absolute top-1/2 right-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-purple-300 drop-shadow-md z-20">6</div>
+                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 drop-shadow-md z-20">12</div>
+                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-slate-400 drop-shadow-md z-20">18</div>
 
-                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
-                         <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
-                         <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
-                         <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
+                         <div className="absolute top-[20%] right-[20%] opacity-90"><ClockMoon className="w-3.5 h-3.5" color="#fef08a" /></div>
+                         <div className="absolute bottom-[20%] right-[20%] opacity-90"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
+                         <div className="absolute bottom-[20%] left-[20%] opacity-90"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
+                         <div className="absolute top-[20%] left-[20%] opacity-90"><ClockSparkles className="w-3.5 h-3.5" color="#94a3b8" /></div>
 
-                         <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
+                         <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-md"></div>
 
                          <div className="absolute top-0 left-0 w-full h-full"
                               style={{ 
                                   transform: `rotate(${degrees}deg)`,
                                   transition: 'transform 1s cubic-bezier(0.4, 2.08, 0.55, 0.44)'
                               }}>
-                             <div className="absolute top-[10%] left-1/2 w-[3px] h-[40%] bg-white rounded-full transform -translate-x-1/2 shadow-sm"></div>
+                             <div className="absolute top-[10%] left-1/2 w-[3px] h-[40%] bg-white rounded-full transform -translate-x-1/2 shadow-lg"></div>
                          </div>
                     </div>
                 </div>
             );
         };
-
-        // ==========================================
-        // [PART 2] Info Component Icons & Logic
-        // ==========================================
-        const Sun = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#d8b4fe" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
-        const Cloud = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
-        const CloudRain = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
-        const CloudSnow = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
-        const CloudLightning = ({ className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
-
-        const FaceHappy = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceNormal = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
-        const FaceBad = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
-        const FaceDevil = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><path d="M8 8l-2-2"/><path d="M16 8l2-2"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>;
-        const GasMask = ({ color, className }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="2.5"/><circle cx="15" cy="10" r="2.5"/><path d="M12 14v3"/><rect x="10" y="17" width="4" height="3" rx="1"/></svg>;
 
         const InfoSection = () => {
             const [time, setTime] = useState(new Date());
@@ -278,34 +240,31 @@ return (
             const timeStr = time.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
             const dustColor = getDustColor(dust.aqi);
 
-            // Container for Info part (Right Side)
             return (
                 <div className="flex flex-col flex-1 h-full pl-2 select-none overflow-hidden">
-                    {/* Header: Time & Date */}
                     <div className="flex-1 w-full flex flex-row items-baseline justify-between px-6 pt-1"
                          style={{ 
-                             background: 'rgba(255, 255, 255, 0.15)', 
-                             borderBottom: '1px solid rgba(255, 255, 255, 0.2)' 
+                             background: 'rgba(255, 255, 255, 0.05)', 
+                             borderBottom: '1px solid rgba(255, 255, 255, 0.1)' 
                          }}>
-                        <div className="font-mono text-[40px] font-bold text-white leading-[64px] tracking-tight drop-shadow-sm">
+                        <div className="font-mono text-[40px] font-bold text-white leading-[64px] tracking-tight text-glow">
                             {timeStr}
                         </div>
-                        <div className="font-sans text-sm font-bold text-sky-300 tracking-wide opacity-90 pb-[15px]">
+                        <div className="font-sans text-sm font-bold text-sky-300 tracking-wide opacity-90 pb-[15px] text-glow-sky">
                             {dateStr}
                         </div>
                     </div>
 
-                    {/* Body: Weather & Dust */}
                     <div className="h-[50px] w-full flex flex-row items-center justify-center gap-6"
-                         style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
+                         style={{ background: 'rgba(255, 255, 255, 0.02)' }}> 
                         <div className="flex flex-row items-center gap-2">
                             {getWeatherIcon(weather.code)}
-                            <span className="font-mono text-lg text-white font-bold drop-shadow-sm pt-0.5">{weather.temp}°</span>
+                            <span className="font-mono text-lg text-white font-bold text-glow pt-0.5">{weather.temp}°</span>
                         </div>
                         <div className="h-4 w-[1px] bg-white/20 rounded-full"></div>
                         <div className="flex flex-row items-center gap-2">
                             {getDustIcon(dust.aqi, dustColor)}
-                            <span className="font-sans text-sm font-bold drop-shadow-sm pt-0.5" style={{ color: dustColor }}>
+                            <span className="font-sans text-sm font-bold pt-0.5" style={{ color: dustColor, textShadow: `0 0 8px ${dustColor}80` }}>
                                 {dust.status}
                             </span>
                         </div>
@@ -314,31 +273,18 @@ return (
             );
         };
 
-        // ==========================================
-        // [Main App] Combined Layout
-        // ==========================================
         const App = () => {
-    return (
-        <div className="relative flex flex-row items-center justify-center overflow-hidden"
-             style={{
-                 width: '360px', // 100(Clock) + 260(Info)로 변경
-                         height: '124px',
-                         background: 'var(--glass-bg)',
-                         backdropFilter: 'blur(30px)',
-                         borderRadius: '24px',
-                         border: 'var(--glass-border)',
-                         boxShadow: 'var(--glass-shadow)',
-                     }}>
-                    
-                    {/* Left: Clock - 너비를 124px -> 154px로 확장 (구분선 오른쪽 이동) */}
-<div className="w-[154px] h-[124px] flex-shrink-0">
-    <ClockSection />
-</div>
+            return (
+                <div className="widget-container">
+                    {/* Left: Clock (360px 기준, 약 130px 할당) */}
+                    <div className="w-[130px] h-full flex-shrink-0">
+                        <ClockSection />
+                    </div>
 
-{/* Right: Info - 너비를 260px -> 230px로 축소 (전체 합 384px 유지) */}
-<div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.15)' }}>
-    <InfoSection />
-</div>
+                    {/* Right: Info (나머지 230px 할당) */}
+                    <div className="w-[230px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+                        <InfoSection />
+                    </div>
                 </div>
             );
         };
