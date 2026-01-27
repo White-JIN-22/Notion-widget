@@ -78,15 +78,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        {/* [여기 추가] 2. 세로 분 단위 라벨 */}
-        <div className="minute-scale-col">
-            {['00', '10', '20', '30', '40', '50'].map((min, idx) => (
-                <div key={idx} className="minute-label-item">
-                    {min}
-                </div>
-            ))}
-        </div>
-
         /* [우측 타임라인 영역] */
         .timeline-area {
             flex: 1;
@@ -457,6 +448,15 @@
                             <p className="text-[9px] text-sky-200 leading-tight opacity-80 break-keep">{msg.sub}</p>
                         </div>
                     </div>
+
+                    {/* [여기 추가] 2. 세로 분 단위 라벨 */}
+        <div className="minute-scale-col">
+            {['00', '10', '20', '30', '40', '50'].map((min, idx) => (
+                <div key={idx} className="minute-label-item">
+                    {min}
+                </div>
+            ))}
+        </div>
 
                     <div className="timeline-area">
                         <div className="grid-container">{renderGrid()}</div>
