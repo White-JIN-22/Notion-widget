@@ -25,6 +25,29 @@
             min-height: 100vh;
         }
 
+        /* [추가] 분 단위(세로) 컨테이너 */
+.minute-scale-col {
+    display: flex;
+    flex-direction: column;
+    /* 중요: timeline-area와 동일한 상하 패딩을 줘야 블록과 줄이 딱 맞음 */
+    padding: 22px 0 12px 0; 
+    width: 14px; /* 너비는 아주 얇게 */
+    margin-right: 2px; /* 그리드와의 간격 */
+    flex-shrink: 0;
+}
+
+/* [추가] 개별 분 라벨 (블록과 높이 1:1 매칭) */
+.minute-label-item {
+    flex: 1; /* 중요: time-block과 똑같이 높이 균등 분할 */
+    display: flex;
+    align-items: center; /* 수직 중앙 정렬 */
+    justify-content: flex-end; /* 우측 정렬 */
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Roboto Mono', monospace;
+    line-height: 1;
+}
+        
         /* [가로형 위젯 컨테이너] */
         .widget-container {
             position: relative;
@@ -54,6 +77,15 @@
             border-right: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.05);
         }
+
+        {/* [여기 추가] 2. 세로 분 단위 라벨 */}
+        <div className="minute-scale-col">
+            {['00', '10', '20', '30', '40', '50'].map((min, idx) => (
+                <div key={idx} className="minute-label-item">
+                    {min}
+                </div>
+            ))}
+        </div>
 
         /* [우측 타임라인 영역] */
         .timeline-area {
