@@ -11,26 +11,29 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+        /* 3. 기본 레이아웃 & 스크롤바 숨김 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent;
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: transparent; /* 노션 임베드용 투명 배경 */
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
         }
-
+        
+        /* 4. Fortress Glass 컨테이너 스타일 */
         .widget-container {
             position: relative;
             width: 100%;
-            max-width: 160px;
+            max-width: 160px; /* 타임라인 전용 너비 */
             height: 540px;
+            /* 디자인 토큰 적용: Icy Blue Gradient */
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            backdrop-filter: blur(25px);
+            backdrop-filter: blur(25px); /* 유리 효과 */
             border-radius: 24px;
             border: 1px solid rgba(224, 242, 254, 0.4);
             box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
@@ -40,7 +43,8 @@
             color: #334155;
         }
 
-        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
+        /* 5. 타임라인 전용 특수 스타일 (Grid & Blocks) */
+        .font-serif { font-family: 'Playfair Display', serif; }
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
         .grid-container {
@@ -53,7 +57,7 @@
             flex: 1;
             display: flex;
             align-items: center;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15); /* 은은한 점선 */
             min-height: 0;
         }
         .time-label {
@@ -61,7 +65,7 @@
             text-align: right;
             padding-right: 4px;
             font-size: 8px;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(51, 65, 85, 0.5); /* Slate-700의 반투명 */
             font-family: 'Roboto Mono', monospace;
             line-height: 1;
         }
@@ -74,7 +78,7 @@
             padding-right: 6px;
         }
         .time-block {
-            border-radius: 2px;
+            border-radius: 4px; /* 살짝 둥글게 */
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -83,11 +87,11 @@
             overflow: hidden; 
         }
         
-        /* 기존 블록 스타일 */
-        .block-sun { background: rgba(192, 132, 252, 0.7); border: 1px solid rgba(192, 132, 252, 0.9); }
-        .block-cloud { background: rgba(56, 189, 248, 0.6); border: 1px solid rgba(56, 189, 248, 0.8); }
-        .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
-        .block-empty { background: rgba(255, 255, 255, 0.04); }
+        /* 블록 상태별 컬러 (Design Token Colors 적용) */
+        .block-sun { background: rgba(168, 85, 247, 0.6); border: 1px solid rgba(168, 85, 247, 0.4); } /* Purple */
+        .block-cloud { background: rgba(14, 165, 233, 0.5); border: 1px solid rgba(14, 165, 233, 0.3); } /* Sky */
+        .block-rain { background: rgba(148, 163, 184, 0.4); border: 1px solid rgba(148, 163, 184, 0.2); } /* Slate */
+        .block-empty { background: rgba(255, 255, 255, 0.1); }
         .block-action-bg { background: transparent; border: none; }
 
         .footer-blur {
@@ -96,11 +100,30 @@
             border-top: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        .text-sky-custom { color: #7dd3fc; text-shadow: 0 0 8px rgba(14, 165, 233, 0.3); } 
-        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 8px rgba(168, 85, 247, 0.3); }
+        /* 텍스트 글로우 효과 */
+        .text-sky-custom { color: #0ea5e9; text-shadow: 0 0 10px rgba(186, 230, 253, 0.6); } 
+        .text-purple-custom { color: #c4b5fd; text-shadow: 0 0 10px rgba(216, 180, 254, 0.6); }
         .text-white { color: #ffffff; }
-
     </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
+                        slate: { 400: '#94a3b8', 700: '#334155' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 
