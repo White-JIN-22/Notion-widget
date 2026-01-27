@@ -28,7 +28,7 @@
         .widget-container {
             position: relative;
             width: 100%;
-            max-width: 145px;
+            max-width: 160px;
             height: 540px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
@@ -407,12 +407,6 @@ else if (rangeIconBlock) {
                             const iconColor = pointIconBlock.color || 'text-white';
                             if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
                             content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
-                        }
-
-                        // 기상 시간 아이콘
-                        if (isWakeUpSlot) {
-                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
-                            content = <Icons.Sun className="w-4 h-4 text-white relative z-10 drop-shadow-md" />;
                         }
 
                         // 캘린더 라인
