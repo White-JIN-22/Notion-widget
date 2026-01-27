@@ -12,10 +12,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* 폰트 정의 */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Roboto+Mono:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,600;1,600&family=Roboto+Mono:wght@500;700&display=swap');
 
-        /* Fortress Design System Tokens */
+        /* [핵심] React 코드에서 참조하는 CSS 변수 복구 */
         :root {
             --glass-bg: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             --glass-border: 1px solid rgba(224, 242, 254, 0.4);
@@ -24,20 +23,53 @@
 
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: transparent;
+            background-color: transparent; /* 배경 투명 */
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: flex-start; /* 위젯 상단 정렬 */
             min-height: 100vh;
             overflow: hidden;
             padding-top: 10px;
         }
         
+        /* 폰트 유틸리티 */
         .font-mono { font-family: 'Roboto Mono', monospace; }
         .font-sans { font-family: 'Noto Sans KR', sans-serif; }
         .font-playfair { font-family: 'Playfair Display', serif; }
     </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sky: { 
+                            200: '#bae6fd', 
+                            300: '#7dd3fc', 
+                            500: '#0ea5e9' 
+                        },
+                        purple: { 
+                            200: '#e9d5ff', 
+                            300: '#d8b4fe' 
+                        },
+                        slate: { 
+                            400: '#94a3b8', 
+                            700: '#334155' 
+                        },
+                        yellow: {
+                            200: '#fef08a' /* 시계 숫자 강조용 */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                        mono: ['"Roboto Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
     <div id="root"></div>
