@@ -248,19 +248,22 @@
                             {timeStr}
                         </div>
 
-                        {/* [수정] items-baseline으로 글자 밑변 정렬, pt-[1px] 제거하여 높이 맞춤 */}
-                        <div className="flex flex-row items-baseline justify-center gap-1.5 opacity-90">
-                            <span className="font-sans text-[12px] font-bold text-white tracking-wide leading-tight">
-                                {dateOnly}
-                            </span>
-                            <span className="font-sans text-[11px] font-bold text-white tracking-widest leading-tight">
-                                {weekday}
-                            </span>
-                        </div>
-                    </div>
+                        {/* [수정] 폰트 크기 축소: 시간 34px->28px, 날짜 12px->11px */}
+<div className="font-mono text-[28px] font-bold text-[#7dd3fc] leading-none tracking-tighter drop-shadow-sm mb-1">
+    {timeStr}
+</div>
 
-                    {/* [수정] 하단 높이 36px로 축소 및 아이콘/글자 간격 조정 */}
-                    <div className="h-[36px] w-full flex flex-row items-center justify-center gap-3"
+<div className="flex flex-row items-baseline justify-center gap-1.5 opacity-90">
+    <span className="font-sans text-[11px] font-bold text-white tracking-wide leading-tight">
+        {dateOnly}
+    </span>
+    <span className="font-sans text-[10px] font-bold text-white tracking-widest leading-tight">
+        {weekday}
+    </span>
+</div>
+
+                    {/* [수정] gap-3 -> gap-2로 간격 축소 */}
+<div className="h-[36px] w-full flex flex-row items-center justify-center gap-2"
                          style={{ background: 'rgba(255, 255, 255, 0.05)' }}> 
                         <div className="flex flex-row items-center gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
@@ -291,8 +294,8 @@
                         <ClockSection />
                     </div>
 
-                    {/* 오른쪽: 정보 영역 (150px -> 140px로 축소) */}
-                    <div className="w-[140px] h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
+                    {/* w-[140px]를 flex-1로 변경하여 남은 공간(115px)을 자동 채움 */}
+                    <div className="flex-1 h-full flex-shrink-0" style={{ borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
                         <InfoSection />
                     </div>
                 </div>
