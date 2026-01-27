@@ -15,91 +15,104 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto+Mono:wght@400;500;700&display=swap');
 
-        /* [시스템 기본] 투명 배경 및 스크롤 제어 */
+        /* [시스템 기본] */
         html, body, #root {
             font-family: 'Noto Sans KR', sans-serif;
             background-color: transparent !important;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto; /* 내용 넘침 시 스크롤 허용 */
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden; /* 스크롤바 제거하여 깔끔하게 */
         }
 
         body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            display: flex; justify-content: center; align-items: flex-start;
             min-height: 100vh;
         }
 
-        /* [위젯 컨테이너] 중복 코드 통합 및 최적화 */
+        /* [위젯 컨테이너] Icy Glass Theme 적용 */
         .widget-container {
             margin: auto;
             position: relative;
-            width: 100%;
-            max-width: 145px; /* 진솔 님의 Pick: 최적의 비율 */
-            height: auto;     /* 내용물 높이에 맞춤 (Fit) */
-            min-height: 0;
+            width: 100%; max-width: 150px;
+            height: auto;
             
-            /* 배경 및 디자인 */
-            background: transparent !important; 
-            backdrop-filter: none !important;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            box-shadow: none; 
-            color: #f1f5f9;
+            /* [Design Token] 2. Layout & Container (Icy Glass) */
+            background: linear-gradient(
+                180deg, 
+                rgba(240, 249, 255, 0.04) 0%,   /* Icy White-Blue Tint */
+                rgba(0, 0, 0, 0.1) 100%         /* 투명한 그림자 */
+            ) !important;
+            backdrop-filter: blur(30px) !important; /* 강력한 블러 */
+            -webkit-backdrop-filter: blur(30px);
             
-            /* 레이아웃 */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            flex-shrink: 0;
+            border: 1px solid rgba(224, 242, 254, 0.1); /* 미세한 얼음 테두리 */
+            border-radius: 28px; /* Design Token Radius */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); /* 부드러운 깊이감 */
+            
+            color: #e2e8f0;
+            display: flex; flex-direction: column;
+            overflow: hidden; flex-shrink: 0;
         }
 
-        /* [글래스모피즘] 가독성 확보 */
+        /* [글래스모피즘] 헤더/바디/푸터 구분 */
         .glass-header {
-            background: rgba(255, 255, 255, 0.15) !important;
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-bottom: 1px solid rgba(224, 242, 254, 0.05);
+            padding-top: 20px; padding-bottom: 10px;
         }
         .glass-body {
-            background: rgba(255, 255, 255, 0.05) !important;
+            background: transparent !important;
         }
         .footer-blur {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(5px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(240, 249, 255, 0.02);
+            border-top: 1px solid rgba(224, 242, 254, 0.05);
         }
 
         /* [그리드 시스템] */
         .grid-row {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.08); 
-            min-height: 0;
+            flex: 1; display: flex; align-items: center;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.06); 
+            min-height: 14px; /* 행 높이 미세 조정 */
         }
         .time-label {
             width: 20px; text-align: right; padding-right: 4px;
             font-size: 8px; font-family: 'Roboto Mono', monospace; line-height: 1;
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(148, 163, 184, 0.6); /* Slate-400 opacity */
         }
         
-        .blocks-container { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 16px; padding-right: 6px; }
-        .time-block { border-radius: 4px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .blocks-container { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; height: 12px; padding-right: 6px; }
+        .time-block { border-radius: 3px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         
-        /* [블록 스타일] */
-        .block-sun { background: rgba(192, 132, 252, 0.4); border: 1px solid rgba(192, 132, 252, 0.5); box-shadow: 0 0 8px rgba(192,132,252,0.2); }
-        .block-cloud { background: rgba(56, 189, 248, 0.3); border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 0 8px rgba(56,189,248,0.2); }
-        .block-rain { background: rgba(148, 163, 184, 0.2); border: 1px solid rgba(148, 163, 184, 0.3); }
-        .block-empty { background: rgba(255, 255, 255, 0.02); }
+        /* [블록 스타일 - Pastel Tone] */
+        /* Design Token: Primary Accent (Purple) */
+        .block-sun { 
+            background: rgba(216, 180, 254, 0.25); /* Pastel Purple Tint */
+            border: 1px solid rgba(233, 213, 255, 0.3);
+            box-shadow: 0 0 6px rgba(216,180,254,0.1); 
+        }
+        /* Design Token: Secondary Accent (Sky) */
+        .block-cloud { 
+            background: rgba(186, 230, 253, 0.2); /* Pastel Sky Tint */
+            border: 1px solid rgba(186, 230, 253, 0.25);
+        }
+        /* Design Token: Inactive (Slate/Rain) */
+        .block-rain { 
+            background: rgba(148, 163, 184, 0.1); 
+            border: 1px solid rgba(148, 163, 184, 0.15); 
+        }
+        .block-empty { background: rgba(255, 255, 255, 0.015); }
+        .block-action-bg { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); }
         
         /* 폰트 유틸리티 */
+        .font-playfair { font-family: 'Playfair Display', serif; font-style: italic; }
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
-        .text-sky-custom { color: #38bdf8; text-shadow: 0 0 10px rgba(56,189,248,0.6); } 
-        .text-purple-custom { color: #c084fc; text-shadow: 0 0 10px rgba(192,132,252,0.6); }
-        .text-white { color: #ffffff; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
+        
+        /* 텍스트 컬러 (Token 기반) */
+        .text-pastel-sky { color: #bae6fd; text-shadow: 0 0 8px rgba(186, 230, 253, 0.4); } 
+        .text-pastel-purple { color: #e9d5ff; text-shadow: 0 0 8px rgba(233, 213, 255, 0.4); }
+        .text-pastel-yellow { color: #fef08a; }
+        .text-white { color: #f8fafc; opacity: 0.9; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 
@@ -108,11 +121,17 @@
             theme: {
                 extend: {
                     colors: {
-                        sky: { 200: '#bae6fd', 300: '#7dd3fc', 500: '#0ea5e9' },
-                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' },
-                        slate: { 400: '#94a3b8', 700: '#f1f5f9' }
+                        // [Design Token] 4. Color Palette
+                        sky: { 200: '#bae6fd', 300: '#7dd3fc' },   // Secondary Accent
+                        purple: { 200: '#e9d5ff', 300: '#d8b4fe' }, // Primary Accent
+                        yellow: { 200: '#fef08a', 300: '#fde047' }, // Tertiary Accent
+                        slate: { 400: '#94a3b8', 700: '#f1f5f9' }   // Inactive
                     },
-                    fontFamily: { sans: ['"Noto Sans KR"', 'sans-serif'], mono: ['"Roboto Mono"', 'monospace'] }
+                    fontFamily: { 
+                        sans: ['"Noto Sans KR"', 'sans-serif'], 
+                        mono: ['"Roboto Mono"', 'monospace'],
+                        serif: ['"Playfair Display"', 'serif'] 
+                    }
                 }
             }
         }
@@ -126,12 +145,14 @@
         const { useState, useEffect } = React; // useRef 제거 (미사용)
 
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
+        
+        // [Design Token] Category Colors (Pastel)
         const categoryColors = {
-            '업무': 'bg-[#7dd3fc]',      
-            '자기계발': 'bg-[#d8b4fe]', 
-            '휴식': 'bg-[#94a3b8]',     
-            '건강': 'bg-[#fef08a]',    
-            'default': 'bg-white/60'
+            '업무': 'bg-[#bae6fd]',      // Sky 200
+            '자기계발': 'bg-[#e9d5ff]',  // Purple 200
+            '휴식': 'bg-[#94a3b8]',      // Slate 400
+            '건강': 'bg-[#fef08a]',      // Yellow 200
+            'default': 'bg-white/40'
         };
 
         const Icons = {
@@ -233,11 +254,11 @@
             }, [blocks]);
 
             const getTotalColorClass = (min) => {
-                if (min <= 90) return "text-white"; 
-                if (min <= 330) return "text-sky-custom"; 
-                return "text-purple-custom";               
+                if (min <= 90) return "text-white/80"; 
+                if (min <= 330) return "text-pastel-sky";    // Sky
+                return "text-pastel-purple";                 // Purple
             };
-
+            
             const formatDuration = (totalMin) => {
                 const h = Math.floor(totalMin / 60);
                 const m = totalMin % 60;
@@ -424,10 +445,11 @@
             return (
                 <div className="widget-container">
                     {/* 1. 헤더 영역 */}
-                    <div className="px-4 pt-5 pb-2 flex justify-between items-end glass-header z-10 shrink-0">
+                    <div className="px-4 pt-4 pb-2 flex justify-between items-end glass-header z-10 shrink-0">
                         <div>
-                            <div className="text-sky-custom text-[10px] font-bold tracking-widest uppercase mb-0.5 opacity-90 font-mono-nums">{dateStr}</div>
-                            <div className="leading-none mt-1">
+                            {/* Playfair Display 폰트 적용 (Italic) */}
+                            <div className="text-purple-200 text-[11px] font-playfair tracking-wider mb-1 opacity-90">{dateStr}</div>
+                            <div className="leading-none">
                                 {formatDuration(totalDuration)}
                             </div>
                         </div>
