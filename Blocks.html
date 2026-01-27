@@ -269,8 +269,10 @@
                 return (
                     // [수정] text-3xl -> text-2xl로 축소
                     <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
-                        <span className="text-2xl font-bold">{h}</span><span className="text-[10px] mx-0.5 opacity-60 font-bold">H</span>
-                        <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span><span className="text-[10px] ml-0.5 opacity-60 font-bold">M</span>
+                        <span className="text-2xl font-bold">{h}</span>
+                        <span className="text-[12px] mx-0.5 opacity-60 font-bold">H</span>
+                        <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span>
+                        <span className="text-[12px] ml-0.5 opacity-60 font-bold">M</span>
                     </span>
                 );
             };
