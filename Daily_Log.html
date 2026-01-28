@@ -1548,13 +1548,13 @@
                                     <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Daily Log</h1>
                                     <div className="flex gap-2 items-center"> 
                                         {/* [왼쪽] 기상 시간 버튼 (해) */}
-                                        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
-                                            <Icons.Sun className="w-4 h-4 text-yellow-100" />
-                                        </button>
+<button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
+    <Icons.Sun className="w-4 h-4" />
+</button>
 
-                                        {/* [추가] 취침 버튼 (업무 종료) */}
-                                        <button onClick={openBedTimeModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
-    <Icons.Moon className="w-4 h-4 text-yellow-100" />
+{/* [추가] 취침 버튼 (업무 종료) */}
+<button onClick={openBedTimeModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
+    <Icons.Moon className="w-4 h-4" />
 </button>
                                         
                                         {/* [오른쪽] 동기화 버튼 (변경됨) */}
@@ -1595,18 +1595,18 @@
                                     </div>
 
                                     {/* 오른쪽: 기상/취침 시간 (아이콘 고정) */}
-                                    <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
-                                        {/* 기상 시간: 텍스트 너비(w-8) 고정으로 아이콘 밀림 방지 */}
-                                        <div className="w-16 flex items-center justify-end gap-1.5 text-yellow-100">
-                                            <Icons.Sun className="w-2.5 h-2.5 text-yellow-100" />
-                                            <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{wakeUpTime || "-"}</span>
-                                        </div>
-                                        {/* 취침 시간 */}
-                                        <div className="w-16 flex items-center justify-end gap-1.5 text-yellow-100">
-                                            <Icons.Moon className="w-2.5 h-2.5 text-yellow-100" />
-                                            <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{bedTime || "-"}</span>
-                                        </div>
-                                    </div>
+<div className="flex-1 text-right flex flex-col justify-center items-end h-full">
+    {/* 기상 시간: text-yellow-100 -> text-white/60 변경 */}
+    <div className="w-16 flex items-center justify-end gap-1.5 text-white/60">
+        <Icons.Sun className="w-2.5 h-2.5" />
+        <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{wakeUpTime || "-"}</span>
+    </div>
+    {/* 취침 시간: text-yellow-100 -> text-white/60 변경 */}
+    <div className="w-16 flex items-center justify-end gap-1.5 text-white/60">
+        <Icons.Moon className="w-2.5 h-2.5" />
+        <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">{bedTime || "-"}</span>
+    </div>
+</div>
                                 </div>
 
                                 {/* 3. 하단: 에너지 바 */}
