@@ -1573,10 +1573,11 @@
                                     </div>
                                 </div>
 
-                                {/* 2. 중단: 상태바 (수정됨: 빨간색 제거, 기존 색상 유지하며 깜빡임만 적용) */}
+                                {/* 2. 중단: 상태바 */}
                                 <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
                                     {/* 왼쪽: 에너지 상태 */}
-                                    <div className="flex items-center gap-3">
+                                    {/* [수정] gap-3 -> gap-6 로 변경하여 생활에너지를 우측으로 밈 */}
+                                    <div className="flex items-center gap-6">
                                         {/* 에너지(Zap): 항상 하늘색(text-sky-300), 10 이하일 때만 깜빡임 */}
                                         <div className={`flex items-center gap-1 transition-colors text-sky-300 ${energy <= 10 ? 'animate-pulse' : ''}`}>
                                             <Icons.Zap className="w-4 h-4"/>
