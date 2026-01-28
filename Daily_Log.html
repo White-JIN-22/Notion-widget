@@ -582,7 +582,7 @@
                             if (decidedBedTime && decidedBedTime !== "-") setBedTime(decidedBedTime);
 
                             const currentIntroDone = savedData.introDone || false;
-                            if (serverBlocks.length > 0 || (decidedWakeUp && decidedWakeUp !== "-") || currentIntroDone) {
+                            if ((decidedWakeUp && decidedWakeUp !== "-") || currentIntroDone) {
                                 setShowIntro(false);
                             }
 
