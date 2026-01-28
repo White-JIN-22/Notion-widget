@@ -267,14 +267,11 @@
             }, [blocks]);
 
             const getTotalColorClass = (min) => {
-                // 1. [2시간 미만] 아직 예열 단계 -> 흰색
-                if (!min || min < 120) return "text-white"; 
-                
-                // 2. [4시간 이하] 오전 루틴 성공 구간 -> 스카이블루
-                if (min <= 240) return "text-sky-custom"; 
-                
-                // 3. [4시간 초과] 6시간 목표를 향해 가는 구간 -> 연보라
-                return "text-purple-custom";               
+                if (!min || min <= 30) return "text-white";        // 30분 이하
+                if (min < 120) return "text-slate-400";            // 31분 ~ 2시간 미만 (회색)
+                if (min < 240) return "text-yellow-200";           // 2시간 ~ 4시간 미만 (연노랑)
+                if (min <= 360) return "text-sky-300";             // 4시간 ~ 6시간 (스카이블루)
+                return "text-purple-300";                          // 6시간 초과 (연보라)
             };
 
             const formatDuration = (totalMin) => {
@@ -344,18 +341,32 @@
                         let isBeforeWakeUp = false;
                         let isWakeUpSlot = false;
                         let isAfterBedTime = false;
+
+                        // 1. 기상 시간 체크
                         if (wakeUpTime) {
                             const [wH, wM] = wakeUpTime.split(':').map(Number);
-                            const wakeUpDate = new Date(viewDate); wakeUpDate.setHours(wH, wM, 0, 0);
+                            const wakeUpDate = new Date(viewDate); 
+                            wakeUpDate.setHours(wH, wM, 0, 0);
                             const wakeUpTs = wakeUpDate.getTime();
-                            const slotEndTimeTmp = new Date(slotStartTs + 10 * 60 * 1000).getTime();
+                            
+                            // 기상 시간 이전인지 체크
                             if (slotStartTs < wakeUpTs) isBeforeWakeUp = true;
-                            if (bedTime) {
-                                const [bH, bM] = bedTime.split(':').map(Number);
-                                const bedDate = new Date(viewDate); bedDate.setHours(bH, bM, 0, 0);
-                                if (slotStartTs >= bedDate.getTime()) isAfterBedTime = true;
+                            
+                            // [중요] 기상한 딱 그 시간대 블록은 투명화 방지 (네가 찾은 코드)
+                            const slotEndTimeTmp = slotStartTs + 10 * 60 * 1000;
+                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) { 
+                                isWakeUpSlot = true; 
+                                isBeforeWakeUp = false; 
                             }
-                            if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) { isWakeUpSlot = true; isBeforeWakeUp = false; }
+                        }
+
+                        // 2. 취침 시간 체크 (이제 기상 시간과 상관없이 독립적으로 작동)
+                        if (bedTime) {
+                            const [bH, bM] = bedTime.split(':').map(Number);
+                            const bedDate = new Date(viewDate); 
+                            bedDate.setHours(bH, bM, 0, 0);
+                            
+                            if (slotStartTs >= bedDate.getTime()) isAfterBedTime = true;
                         }
 
                         const slotEndTime = new Date(viewDate);
