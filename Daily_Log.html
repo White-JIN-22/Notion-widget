@@ -1314,8 +1314,47 @@
 
                 try {
                     const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                    const targetBlocks = savedData.blocks || []; 
+                    const rawBlocks = savedData.blocks || []; 
                     const formattedDate = formatLocalYMD(new Date(savedData.date));
+
+                    // [수정] Flow 위젯을 위해 12시, 18시 경계에서 블록을 가상으로 쪼개기
+                    const processedBlocks = [];
+                    
+                    rawBlocks.forEach(b => {
+                        // 유효성 체크
+                        if (!b.startTime || !b.endTime) return;
+
+                        let start = b.startTime;
+                        const end = b.endTime;
+                        
+                        // 현재 블록 날짜의 12시, 18시 경계 타임스탬프 구하기
+                        const d = new Date(start);
+                        const noon = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0).getTime();
+                        const evening = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 0, 0).getTime();
+
+                        // 1. 12시(정오)를 가로지르는 경우 쪼개기
+                        if (start < noon && end > noon) {
+                            const dur = (noon - start) / 60000;
+                            processedBlocks.push({ ...b, startTime: start, endTime: noon, duration: dur });
+                            start = noon; // 시작점을 12시로 이동
+                        }
+
+                        // 2. 18시(저녁)를 가로지르는 경우 쪼개기 (예: 17~19시 -> 17~18 / 18~19)
+                        if (start < evening && end > evening) {
+                            const dur = (evening - start) / 60000;
+                            processedBlocks.push({ ...b, startTime: start, endTime: evening, duration: dur });
+                            start = evening; // 시작점을 18시로 이동
+                        }
+
+                        // 3. 나머지 조각 (혹은 쪼개지지 않은 온전한 블록)
+                        const remainingDur = (end - start) / 60000;
+                        if (remainingDur > 0) {
+                            processedBlocks.push({ ...b, startTime: start, endTime: end, duration: remainingDur });
+                        }
+                    });
+
+                    // 이제 통계 계산은 쪼개진 블록(processedBlocks)을 기준으로 수행
+                    const targetBlocks = processedBlocks;
 
                     // 통계 초기화
                     let stats = {
