@@ -68,7 +68,7 @@
         const ClockMoon = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
         const ClockSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41-1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
         const ClockCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/></svg>;
-        const ClockSparkles = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>;
+        const ClockStar = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
         
         const Sun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
         const Cloud = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
@@ -118,11 +118,10 @@
                         <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 font-mono text-[10px] font-bold text-sky-300 opacity-90 z-20">12</div>
                         <div className="absolute top-1/2 left-1 transform -translate-y-1/2 font-mono text-[10px] font-bold text-yellow-200 opacity-90 z-20">18</div>
 
-                        {/* [수정] 달(Moon)은 회색(#94a3b8), 반짝임(Sparkles)은 연노랑(#fdf4ce)으로 교체 */}
                         <div className="absolute top-[20%] right-[20%] opacity-80"><ClockMoon className="w-3.5 h-3.5" color="#94a3b8" /></div>
                         <div className="absolute bottom-[20%] right-[20%] opacity-80"><ClockSun className="w-3.5 h-3.5" color="#d8b4fe" /></div>
                         <div className="absolute bottom-[20%] left-[20%] opacity-80"><ClockCloudSun className="w-3.5 h-3.5" color="#7dd3fc" /></div>
-                        <div className="absolute top-[20%] left-[20%] opacity-80"><ClockSparkles className="w-3.5 h-3.5" color="#fdf4ce" /></div>
+                        <div className="absolute top-[20%] left-[20%] opacity-80"><ClockStar className="w-3.5 h-3.5" color="#fdf4ce" /></div>
 
                          <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-white border border-slate-200 rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10 shadow-sm"></div>
 
