@@ -1342,13 +1342,17 @@
                                 const currentMs = startTs + (i * 60 * 1000);
                                 const h = new Date(currentMs).getHours();
 
-                                if (h >= 0 && h < 12) {
+                                // [수정] 00~12 오전, 12~18 오후, 18~24 저녁 분류
+                                if (h < 12) {
+                                    // 00시 ~ 11시 (오전)
                                     stats.morn.dur++;
                                     stats.morn.scoreSum += score;
-                                } else if (h >= 12 && h < 18) {
+                                } else if (h < 18) {
+                                    // 12시 ~ 17시 (오후/점심)
                                     stats.aft.dur++;
                                     stats.aft.scoreSum += score;
                                 } else { 
+                                    // 18시 ~ 23시 (저녁/밤)
                                     stats.night.dur++;
                                     stats.night.scoreSum += score;
                                 }
