@@ -1595,18 +1595,18 @@
                                     </div>
                                     {/* 오른쪽: 기상/취침 시간 (아이콘 고정) */}
                                     <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
-                                        {/* 기상 시간: 빈 값일 때 숫자 너비만큼의 공백(\u00A0)을 넣어 '  :  ' 형태 유지 */}
+                                        {/* 기상 시간: 값이 없으면 투명한 '00'을 넣어 자리만 차지하게 함 */}
                                         <div className="w-16 flex items-center justify-end gap-1.5 text-white/60">
                                             <Icons.Sun className="w-2.5 h-2.5" />
                                             <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">
-                                                {wakeUpTime || "\u00A0\u00A0:\u00A0\u00A0"}
+                                                {wakeUpTime ? wakeUpTime : <><span className="opacity-0">00</span>:<span className="opacity-0">00</span></>}
                                             </span>
                                         </div>
                                         {/* 취침 시간 */}
                                         <div className="w-16 flex items-center justify-end gap-1.5 text-white/60">
                                             <Icons.Moon className="w-2.5 h-2.5" />
                                             <span className="w-8 text-right text-[10px] font-bold tracking-tight tabular-nums">
-                                                {bedTime || "\u00A0\u00A0:\u00A0\u00A0"}
+                                                {bedTime ? bedTime : <><span className="opacity-0">00</span>:<span className="opacity-0">00</span></>}
                                             </span>
                                         </div>
                                     </div>
