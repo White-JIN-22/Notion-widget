@@ -112,38 +112,16 @@
             useEffect(() => {
                 const fetchData = async () => {
                     try {
-                        // 실제 워커가 준비되기 전까진 더미 데이터로 작동합니다.
-                        // 워커 배포 후 아래 fetch 주석을 해제하세요.
-                        /*
+                        // [수정] 실제 워커와 통신 시작
                         const res = await fetch(WORKER_URL);
                         const json = await res.json();
+                        
                         setData(json);
-                        */
-                       
-                        // [더미 데이터: 워커 연동 전 확인용]
-                        setTimeout(() => {
-                            setData({
-                                goals: {
-                                    keywords: ["안전한 확장", "정서적 보호", "쉬운 꾸준함"],
-                                    monthly: { text: "독서 300p 완료하기", target: 100 },
-                                    weekly: { text: "산책 3회 이상 & 매일 기록", target: 7 }
-                                },
-                                progress: {
-                                    percent: 65, // 월간 달성률
-                                    stats: { readingMinutes: 120, walkCount: 2 }
-                                },
-                                feedback: "이번 주는 독서 시간이 아주 안정적이에요. 주말에 산책을 한 번 더 다녀오면 완벽한 균형이 될 것 같아요.",
-                                routine: {
-                                    morn: { meal: true, walk: false, hygiene: true },
-                                    aft: { meal: true, walk: true, reading: false },
-                                    night: { meal: false, walk: false, hygiene: false, record: false }
-                                }
-                            });
-                            setLoading(false);
-                        }, 800);
+                        setLoading(false); // [중요] 로딩 상태 해제
+
                     } catch (e) {
-                        console.error(e);
-                        setLoading(false);
+                        console.error("데이터 로딩 실패:", e);
+                        setLoading(false); // 에러가 나도 로딩은 꺼줌
                     }
                 };
                 fetchData();
