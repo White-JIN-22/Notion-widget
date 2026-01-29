@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final v5</title>
+    <title>Timeline Widget Final v6</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -35,7 +35,6 @@
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border-radius: 24px;
-            /* 외곽선도 조금 더 선명하게 조정 */
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
@@ -52,10 +51,14 @@
             display: flex;
         }
 
-        /* 구분선 선명하게 변경 (white/30 -> white/80) */
         .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.8); }
         .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.8); }
         .border-r-glass { border-right: 1px solid rgba(255, 255, 255, 0.8); }
+        
+        /* 텍스트 글로우 효과 (미션 달성 시 사용) */
+        .text-glow-purple { text-shadow: 0 0 10px rgba(216, 180, 254, 0.8); }
+        .text-glow-sky { text-shadow: 0 0 10px rgba(125, 211, 252, 0.8); }
+        .text-glow-yellow { text-shadow: 0 0 10px rgba(254, 240, 138, 0.8); }
     </style>
 
     <script>
@@ -69,7 +72,7 @@
                         slate: { 400: '#94a3b8', 600: '#475569' }
                     },
                     fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+                        sans: ['"Noto Sans KR"', '-apple-system', 'sans-serif'],
                         mono: ['"Roboto Mono"', 'monospace']
                     }
                 }
@@ -82,16 +85,28 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // --- Data API Setup ---
+        const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
+        
         // --- Icons ---
+        const IconSparkle = ({ className, color, fill }) => (
+            <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
+            </svg>
+        );
+
         const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2"></path><path d="M12 21v2"></path><path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path><path d="M1 12h2"></path><path d="M21 12h2"></path><path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path></svg>;
         const IconCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>;
         const IconStar = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
 
+        // Weather Icons
         const Sun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
         const Cloud = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
         const CloudRain = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
         const CloudSnow = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
         const CloudLightning = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
+        
+        // Dust Icons
         const FaceHappy = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
         const FaceNormal = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
         const FaceBad = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
@@ -102,16 +117,23 @@
             const [now, setNow] = useState(new Date());
             const [weather, setWeather] = useState({ temp: '--', code: 0 });
             const [dust, setDust] = useState({ aqi: 0, status: '…' });
+            
+            // Data States from Timeline_Block
+            const [blocks, setBlocks] = useState([]);
+            const [events, setEvents] = useState([]);
+            const [missions, setMissions] = useState({ morning: false, afternoon: false, night: false });
 
             const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
             const LAT = 37.5034; 
             const LON = 126.7660;
 
+            // 1. Time Update
             useEffect(() => {
                 const timer = setInterval(() => setNow(new Date()), 1000);
                 return () => clearInterval(timer);
             }, []);
 
+            // 2. Weather & Dust Fetch
             useEffect(() => {
                 const fetchData = async () => {
                     try {
@@ -137,6 +159,94 @@
                 return () => clearInterval(interval);
             }, []);
 
+            // 3. User Data Fetch (Local & Calendar) - Ported from Timeline_Block
+            const isToday = (d) => d.toDateString() === new Date().toDateString();
+
+            const loadLocalData = () => {
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const today = new Date().toDateString();
+                
+                if (savedData.date === today && savedData.blocks) {
+                    setBlocks(savedData.blocks);
+                } else {
+                    setBlocks([]);
+                }
+            };
+
+            const fetchCalendar = async () => {
+                try {
+                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
+                    if (calRes.ok) {
+                        const calData = await calRes.json();
+                        if (Array.isArray(calData)) setEvents(calData);
+                    }
+                } catch (e) { }
+            };
+
+            useEffect(() => {
+                loadLocalData();
+                fetchCalendar();
+                const localInterval = setInterval(loadLocalData, 3000);
+                const calendarInterval = setInterval(fetchCalendar, 60000);
+                return () => {
+                    clearInterval(localInterval);
+                    clearInterval(calendarInterval);
+                };
+            }, []);
+
+            // 4. Mission Checking Logic
+            useEffect(() => {
+                // Helper to check range and keywords
+                const checkStatus = (startH, endH, keywords) => {
+                    // Check Calendar Events
+                    const hasEvent = events.some(ev => {
+                        const evTime = new Date(ev.startTime);
+                        const h = evTime.getHours();
+                        if (!isToday(evTime)) return false;
+                        if (h >= startH && h < endH) {
+                            // Check title for keywords
+                            return keywords.some(k => ev.title && ev.title.includes(k));
+                        }
+                        return false;
+                    });
+
+                    // Check Local Blocks (Focus Timer)
+                    // Assumption: Blocks might have 'category' (e.g. '건강') or 'quality' related to exercise
+                    const hasBlock = blocks.some(b => {
+                        const bTime = new Date(b.startTime);
+                        const h = bTime.getHours();
+                        if (h >= startH && h < endH) {
+                            // Duration > 9 mins (approx 10 min walk)
+                            if (b.duration >= 10) {
+                                // If category is '건강' (Health) or title contains keywords
+                                // Note: timeline_block uses color codes for categories. 
+                                // Yellow usually '건강' in user's system, but we check generically.
+                                // Or purely rely on 'Task' being recorded.
+                                return true; // Any >10min focus block in this time counts as 'Activity'?
+                                             // Let's be stricter: user explicitly said "Walk".
+                                             // Assuming user labels focus blocks or calendar events.
+                            }
+                        }
+                        return false;
+                    });
+
+                    return hasEvent || hasBlock;
+                };
+
+                // Keywords definitions
+                const walkKeywords = ['산책', '걷기', '운동', 'Walk', 'Exercise'];
+                const recordKeywords = ['기록', '일기', '회고', 'Journal', 'Log'];
+
+                setMissions({
+                    morning: checkStatus(6, 12, walkKeywords),
+                    afternoon: checkStatus(12, 18, walkKeywords),
+                    night: checkStatus(18, 24, recordKeywords)
+                });
+
+            }, [blocks, events, now]);
+
+
+            // Helpers
             const getDustStatus = (aqi) => {
                 if (aqi <= 50) return '좋음';
                 if (aqi <= 100) return '보통';
@@ -205,7 +315,6 @@
                 <div className="widget-container">
                     
                     {/* [Header] Clock & Date */}
-                    {/* Header Border also sharpened (border-b-glass) */}
                     <div className="glass-bar border-b-glass h-[50px] px-4 flex items-baseline justify-between pt-4 pb-2">
                         <span className="text-2xl font-bold text-white tracking-tighter leading-none">
                             {timeStr}
@@ -219,18 +328,14 @@
                     <div className="flex-1 w-full flex flex-row relative overflow-hidden">
                         
                         {/* 1. Left Axis (Time) */}
-                        {/* Vertical Border sharpened: border-white/80 */}
                         <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/80"
                              style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
                             
-                            {/* 06시 */}
                             <div className="absolute top-2 w-full text-center text-[9px] font-mono font-bold text-purple-300">06</div>
 
-                            {/* 12시 Line & Text */}
                             <div className="absolute top-[33.33%] w-full h-[1px] bg-sky-300"></div>
                             <div className="absolute top-[33.33%] w-full text-center mt-1 text-[9px] font-mono font-bold text-sky-300">12</div>
                             
-                            {/* 18시 Line & Text */}
                             <div className="absolute top-[66.66%] w-full h-[1px] bg-yellow-200"></div>
                             <div className="absolute top-[66.66%] w-full text-center mt-1 text-[9px] font-mono font-bold text-yellow-200">18</div>
                             
@@ -245,16 +350,32 @@
 
                         {/* 2. Right Content (Zones) */}
                         <div className="flex-1 h-full flex flex-col">
+                            
                             {/* MORNING */}
                             <div className="flex-1 w-full relative p-3 flex flex-col overflow-hidden group">
                                 <div className="absolute inset-0 bg-purple-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
-                                <div className="relative z-10 flex items-center gap-1.5 mb-2">
-                                    <IconSun className="w-3.5 h-3.5" color="#d8b4fe" />
-                                    <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
+                                
+                                <div className="relative z-10 flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-1.5">
+                                        <IconSun className="w-3.5 h-3.5" color="#d8b4fe" />
+                                        <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
+                                    </div>
+                                    
+                                    {/* Mission Indicator: Walk */}
+                                    <div className={`flex items-center gap-1 transition-all duration-500 ${missions.morning ? 'opacity-100' : 'opacity-20'}`}>
+                                        <IconSparkle 
+                                            className={`w-3.5 h-3.5 ${missions.morning ? 'drop-shadow-[0_0_8px_rgba(216,180,254,1)]' : ''}`} 
+                                            color="#d8b4fe" 
+                                            fill={missions.morning} 
+                                        />
+                                        <span className={`text-[9px] font-bold ${missions.morning ? 'text-purple-300 text-glow-purple' : 'text-white'}`}>
+                                            산책
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        {/* Tinted White (Purple-ish) + Shadow */}
                                         <span className="text-[11px] font-bold text-purple-100 drop-shadow-md leading-tight">보컬로이드 & 환기</span>
                                         <span className="text-[10px] text-purple-100/90 drop-shadow-sm leading-tight">산책/샤워/독서</span>
                                     </div>
@@ -265,16 +386,30 @@
                             </div>
 
                             {/* AFTERNOON */}
-                            {/* Horizontal Border sharpened: border-white/80 */}
                             <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-sky-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
-                                <div className="relative z-10 flex items-center gap-1.5 mb-2">
-                                    <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
-                                    <span className="text-[11px] font-bold text-sky-300 tracking-wide uppercase">Afternoon</span>
+                                
+                                <div className="relative z-10 flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-1.5">
+                                        <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
+                                        <span className="text-[11px] font-bold text-sky-300 tracking-wide uppercase">Afternoon</span>
+                                    </div>
+
+                                    {/* Mission Indicator: Walk (Backup) */}
+                                    <div className={`flex items-center gap-1 transition-all duration-500 ${missions.afternoon ? 'opacity-100' : 'opacity-20'}`}>
+                                        <IconSparkle 
+                                            className={`w-3.5 h-3.5 ${missions.afternoon ? 'drop-shadow-[0_0_8px_rgba(125,211,252,1)]' : ''}`} 
+                                            color="#7dd3fc" 
+                                            fill={missions.afternoon}
+                                        />
+                                        <span className={`text-[9px] font-bold ${missions.afternoon ? 'text-sky-300 text-glow-sky' : 'text-white'}`}>
+                                            산책
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        {/* Tinted White (Sky-ish) + Shadow */}
                                         <span className="text-[11px] font-bold text-sky-100 drop-shadow-md leading-tight">Rock/Metal & 저염식</span>
                                         <span className="text-[10px] text-sky-100/90 drop-shadow-sm leading-tight">수업 준비/상담</span>
                                     </div>
@@ -285,16 +420,30 @@
                             </div>
 
                             {/* NIGHT */}
-                            {/* Horizontal Border sharpened: border-white/80 */}
                             <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-yellow-200 opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
-                                <div className="relative z-10 flex items-center gap-1.5 mb-2">
-                                    <IconStar className="w-3.5 h-3.5" color="#fef08a" />
-                                    <span className="text-[11px] font-bold text-yellow-200 tracking-wide uppercase">Night</span>
+                                
+                                <div className="relative z-10 flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-1.5">
+                                        <IconStar className="w-3.5 h-3.5" color="#fef08a" />
+                                        <span className="text-[11px] font-bold text-yellow-200 tracking-wide uppercase">Night</span>
+                                    </div>
+
+                                    {/* Mission Indicator: Record */}
+                                    <div className={`flex items-center gap-1 transition-all duration-500 ${missions.night ? 'opacity-100' : 'opacity-20'}`}>
+                                        <IconSparkle 
+                                            className={`w-3.5 h-3.5 ${missions.night ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} 
+                                            color="#fef08a" 
+                                            fill={missions.night}
+                                        />
+                                        <span className={`text-[9px] font-bold ${missions.night ? 'text-yellow-200 text-glow-yellow' : 'text-white'}`}>
+                                            기록
+                                        </span>
+                                    </div>
                                 </div>
+
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        {/* Tinted White (Yellow-ish) + Shadow */}
                                         <span className="text-[11px] font-bold text-yellow-100 drop-shadow-md leading-tight">Jazz & 주황 조명</span>
                                         <span className="text-[10px] text-yellow-100/90 drop-shadow-sm leading-tight">자기돌봄/일기</span>
                                     </div>
@@ -307,11 +456,9 @@
                     </div>
 
                     {/* [Footer] Info: Weather & Dust */}
-                    {/* Layout changed: Flex with divider */}
                     <div className="glass-bar border-t-glass h-[36px] flex items-stretch"
                          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
                         
-                        {/* Left: Weather (Center Aligned + Right Border) */}
                         <div className="flex-1 flex items-center justify-center border-r-glass gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
                             <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
@@ -319,7 +466,6 @@
                             </span>
                         </div>
                         
-                        {/* Right: Dust (Center Aligned) */}
                         <div className="flex-1 flex items-center justify-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
