@@ -46,9 +46,10 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 1.5px; /* 간격 더 정밀하게 축소 */
+            gap: 1px; /* Block 위젯처럼 선명한 1px 간격 */
             text-align: center;
-            padding: 0 14px; /* 좌우 여백을 늘려 셀 크기 자연 축소 */
+            padding: 0 8px; /* 수학적으로 딱 떨어지는 여백 계산 (좌우 8px씩) */
+            margin-top: 4px; /* 상단 여백 살짝 추가하여 헤더와 분리 */
         }
         
         .day-cell {
@@ -56,8 +57,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 3px;
-            font-size: 8px; /* 폰트 사이즈 축소 */
+            border-radius: 1.5px; /* 모서리 둥글기를 Block 위젯과 유사하게 축소 */
+            font-size: 8px;
             font-family: 'Roboto Mono', monospace;
             cursor: pointer;
             transition: all 0.2s;
