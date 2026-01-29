@@ -25,20 +25,22 @@
         }
         
         .widget-container {
-            width: 430px;
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            color: #334155;
-            transition: all 0.3s ease;
-        }
+    width: 440px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
+
+    /* [수정됨] 여백을 확 줄여서 높이 압축 */
+    padding: 16px 20px; 
+    gap: 8px; /* 요소 사이 간격을 20px -> 8px로 좁힘 */
+
+    display: flex;
+    flex-direction: column;
+    color: #334155;
+}
 
         .section-title {
             font-size: 11px;
