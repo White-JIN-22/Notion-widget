@@ -176,10 +176,11 @@
                     <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-slate-700">{goals.weekly.text}</span>
                     <div className="flex gap-1">
-                        {[...Array(7)].map((_, i) => (
-                            <div key={i} className={`w-2 h-6 rounded-sm ${i < 4 ? 'bg-yellow-200' : 'bg-slate-200/50'}`}></div>
-                        ))}
-                    </div>
+                            <div key={i} className={`w-2 h-6 rounded-sm transition-all duration-500 ${
+                                i < Math.round((progress.percent / 100) * 7) 
+                                ? 'bg-yellow-200 shadow-[0_0_5px_rgba(253,224,71,0.6)]' 
+                                : 'bg-slate-200/50'
+                            }`}></div>
                     </div>
             </div>
 
