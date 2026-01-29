@@ -55,10 +55,6 @@
         .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.8); }
         .border-r-glass { border-right: 1px solid rgba(255, 255, 255, 0.8); }
         
-        /* 텍스트 글로우 효과 (미션 달성 시 사용) */
-        .text-glow-purple { text-shadow: 0 0 10px rgba(216, 180, 254, 0.8); }
-        .text-glow-sky { text-shadow: 0 0 10px rgba(125, 211, 252, 0.8); }
-        .text-glow-yellow { text-shadow: 0 0 10px rgba(254, 240, 138, 0.8); }
     </style>
 
     <script>
@@ -91,7 +87,17 @@
         // --- Icons ---
         const IconSparkle = ({ className, color, fill }) => (
             <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
+                <path d="M12 2l3 7 7 3-7 7-3-3 7-3-7-7-3 7-3z"></path>
+            </svg>
+        );
+
+        // [추가됨] Timeline_Block의 펜 아이콘 이식
+        const IconPen = ({ className, color, fill }) => (
+            <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                <path d="M2 2l5.5 5.5"></path>
+                <path d="M11 11l5.5 5.5"></path>
             </svg>
         );
 
@@ -233,9 +239,9 @@
                     return hasEvent || hasBlock;
                 };
 
-                // Keywords definitions
-                const walkKeywords = ['산책', '걷기', '운동', 'Walk', 'Exercise'];
-                const recordKeywords = ['기록', '일기', '회고', 'Journal', 'Log'];
+                // [수정됨] 정확한 키워드 매칭을 위해 배열 축소
+                const walkKeywords = ['산책(전환행동)'];
+                const recordKeywords = ['기록(휴식행동)'];
 
                 setMissions({
                     morning: checkStatus(6, 12, walkKeywords),
@@ -368,7 +374,7 @@
                                             color="#d8b4fe" 
                                             fill={missions.morning} 
                                         />
-                                        <span className={`text-[9px] font-bold ${missions.morning ? 'text-purple-300 text-glow-purple' : 'text-white'}`}>
+                                        <span className={`text-[9px] font-bold ${missions.morning ? 'text-purple-300' : 'text-white'}`}>
                                             산책
                                         </span>
                                     </div>
@@ -402,7 +408,7 @@
                                             color="#7dd3fc" 
                                             fill={missions.afternoon}
                                         />
-                                        <span className={`text-[9px] font-bold ${missions.afternoon ? 'text-sky-300 text-glow-sky' : 'text-white'}`}>
+                                        <span className={`text-[9px] font-bold ${missions.afternoon ? 'text-sky-300' : 'text-white'}`}>
                                             산책
                                         </span>
                                     </div>
@@ -431,12 +437,14 @@
 
                                     {/* Mission Indicator: Record */}
                                     <div className={`flex items-center gap-1 transition-all duration-500 ${missions.night ? 'opacity-100' : 'opacity-20'}`}>
-                                        <IconSparkle 
+                                        {/* [수정됨] IconSparkle -> IconPen 교체 */}
+                                        <IconPen 
                                             className={`w-3.5 h-3.5 ${missions.night ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} 
                                             color="#fef08a" 
                                             fill={missions.night}
                                         />
-                                        <span className={`text-[9px] font-bold ${missions.night ? 'text-yellow-200 text-glow-yellow' : 'text-white'}`}>
+                                        {/* [수정됨] text-glow-yellow 삭제 */}
+                                        <span className={`text-[9px] font-bold ${missions.night ? 'text-yellow-200' : 'text-white'}`}>
                                             기록
                                         </span>
                                     </div>
