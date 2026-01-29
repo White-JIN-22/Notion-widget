@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Dashboard Widget</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        
+        .widget-container {
+            width: 440px; /* 요청하신 너비 */
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: #334155;
+            transition: all 0.3s ease;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Custom Progress Bar */
+        .progress-bg {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 12px 16px;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        purple: { 300: '#d8b4fe', 100: '#f3e8ff' },
+                        sky: { 300: '#7dd3fc', 100: '#e0f2fe' },
+                        yellow: { 200: '#fef08a', 100: '#fef9c3' },
+                        slate: { 400: '#94a3b8', 50: '#f8fafc' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ★ 워커 주소를 여기에 입력하세요!
+        const WORKER_URL = "https://project-worker.moonkelly601.workers.dev"; 
+
+        const GoalWidget = () => {
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        // 실제 워커가 준비되기 전까진 더미 데이터로 작동합니다.
+                        // 워커 배포 후 아래 fetch 주석을 해제하세요.
+                        /*
+                        const res = await fetch(WORKER_URL);
+                        const json = await res.json();
+                        setData(json);
+                        */
+                       
+                        // [더미 데이터: 워커 연동 전 확인용]
+                        setTimeout(() => {
+                            setData({
+                                goals: {
+                                    keywords: ["안전한 확장", "정서적 보호", "쉬운 꾸준함"],
+                                    monthly: { text: "독서 300p 완료하기", target: 100 },
+                                    weekly: { text: "산책 3회 이상 & 매일 기록", target: 7 }
+                                },
+                                progress: {
+                                    percent: 65, // 월간 달성률
+                                    stats: { readingMinutes: 120, walkCount: 2 }
+                                },
+                                feedback: "이번 주는 독서 시간이 아주 안정적이에요. 주말에 산책을 한 번 더 다녀오면 완벽한 균형이 될 것 같아요.",
+                                routine: {
+                                    morn: { meal: true, walk: false, hygiene: true },
+                                    aft: { meal: true, walk: true, reading: false },
+                                    night: { meal: false, walk: false, hygiene: false, record: false }
+                                }
+                            });
+                            setLoading(false);
+                        }, 800);
+                    } catch (e) {
+                        console.error(e);
+                        setLoading(false);
+                    }
+                };
+                fetchData();
+            }, []);
+
+            if (loading) return <div className="widget-container items-center justify-center opacity-70"><div className="text-sm font-medium text-slate-400">Loading System...</div></div>;
+            if (!data) return <div className="widget-container">Error</div>;
+
+            const { goals, progress, feedback, routine } = data;
+
+            // Routine Icon Component
+            const RoutineItem = ({ label, done }) => (
+                <div className={`flex flex-col items-center gap-1 transition-all duration-300 ${done ? 'opacity-100' : 'opacity-30 grayscale'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${done ? 'bg-white border-slate-200 shadow-sm' : 'bg-transparent border-slate-300'}`}>
+                        {done ? 
+                            <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> 
+                            : <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                        }
+                    </div>
+                    <span className="text-[9px] font-medium text-slate-500">{label}</span>
+                </div>
+            );
+
+            return (
+                <div className="widget-container">
+                    
+                    {/* 1. Annual Keywords (Purple - Priority 1) */}
+                    <div>
+                        <div className="section-title text-purple-300">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            2026 Core Values
+                        </div>
+                        <div className="flex gap-2">
+                            {goals.keywords.map((k, i) => (
+                                <div key={i} className="flex-1 bg-purple-100/50 border border-purple-300/30 rounded-xl py-2 px-1 text-center">
+                                    <span className="text-[12px] font-bold text-slate-600 word-keep-all block">{k}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 2. Monthly Goal (Sky Blue - Priority 2) */}
+                    <div className="glass-card bg-sky-100/20 border-sky-300/40">
+                        <div className="flex justify-between items-end mb-2">
+                            <div className="section-title text-sky-300 mb-0">Monthly Objective</div>
+                            <span className="text-xl font-bold text-slate-600">{progress.percent}%</span>
+                        </div>
+                        <div className="text-sm font-medium text-slate-700 mb-3">{goals.monthly.text}</div>
+                        <div className="progress-bg bg-sky-100">
+                            <div className="progress-fill bg-sky-300 shadow-[0_0_10px_rgba(125,211,252,0.5)]" style={{ width: `${progress.percent}%` }}></div>
+                        </div>
+                    </div>
+
+                    {/* 3. Weekly Goal (Yellow - Priority 3) */}
+                    <div className="glass-card bg-yellow-100/20 border-yellow-200/60">
+                         <div className="section-title text-yellow-200/90" style={{ color:'#dcb028' }}>Weekly Focus</div>
+                         <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-slate-700">{goals.weekly.text}</span>
+                            {/* Simple visual indicator for week */}
+                            <div className="flex gap-1">
+                                {[...Array(7)].map((_, i) => (
+                                    <div key={i} className={`w-2 h-6 rounded-sm ${i < 4 ? 'bg-yellow-200' : 'bg-slate-200/50'}`}></div>
+                                ))}
+                            </div>
+                         </div>
+                    </div>
+
+                    {/* 4. Daily Routine Check (Gray - Priority 4) */}
+                    <div className="pt-2 border-t border-white/60">
+                        <div className="section-title text-slate-400">Today's System</div>
+                        <div className="grid grid-cols-3 gap-4">
+                            {/* Morning */}
+                            <div className="bg-white/30 rounded-xl p-3 flex flex-col items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Morning</span>
+                                <div className="flex gap-2">
+                                    <RoutineItem label="식사" done={routine.morn.meal} />
+                                    <RoutineItem label="산책" done={routine.morn.walk} />
+                                    <RoutineItem label="위생" done={routine.morn.hygiene} />
+                                </div>
+                            </div>
+                            {/* Afternoon */}
+                            <div className="bg-white/30 rounded-xl p-3 flex flex-col items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Afternoon</span>
+                                <div className="flex gap-2">
+                                    <RoutineItem label="식사" done={routine.aft.meal} />
+                                    <RoutineItem label="산책" done={routine.aft.walk} />
+                                    <RoutineItem label="독서" done={routine.aft.reading} />
+                                </div>
+                            </div>
+                            {/* Night */}
+                            <div className="bg-white/30 rounded-xl p-3 flex flex-col items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Night</span>
+                                <div className="flex gap-1">
+                                    <RoutineItem label="식사" done={routine.night.meal} />
+                                    <RoutineItem label="산책" done={routine.night.walk} />
+                                    <RoutineItem label="위생" done={routine.night.hygiene} />
+                                    <RoutineItem label="기록" done={routine.night.record} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 5. AI Feedback */}
+                    <div className="bg-gradient-to-r from-purple-100/40 to-sky-100/40 rounded-xl p-4 border border-white/60 flex gap-3 items-start shadow-sm">
+                        <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
+                            <span className="text-[12px]">🤖</span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                            {feedback}
+                        </p>
+                    </div>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GoalWidget />);
+    </script>
+</body>
+</html>
