@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Flow Timeline</title>
+    <title>Timeline Widget</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -17,29 +17,32 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent; /* 노션 임베드 시 투명 배경 */
+            background-color: transparent;
             margin: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* 상단 정렬 */
+            align-items: flex-start;
             min-height: 100vh;
             padding-top: 20px;
         }
 
-        /* 스크롤바 숨김 */
+        /* 스크롤바 제거 */
         ::-webkit-scrollbar { display: none; }
         
         .widget-container {
             position: relative;
-            width: 225px; /* 요청하신 가로 길이 고정 */
-            height: 380px; /* 세로 길이 조정 (18시간 표현) */
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(240, 249, 255, 0.2) 100%);
-            backdrop-filter: blur(25px);
+            width: 225px; /* 요청하신 가로 고정 */
+            height: 380px; /* 요청하신 비율 유지 */
+            /* 배경: 전체적으로 은은한 화이트/글래스 톤 */
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.3);
+            /* 테두리: 아주 얇고 투명하게 */
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             overflow: hidden;
             color: #334155;
         }
@@ -53,13 +56,18 @@
             theme: {
                 extend: {
                     colors: {
-                        sky: { 300: '#7dd3fc' },     /* 12-18 Afternoon */
-                        purple: { 300: '#d8b4fe' },  /* 06-12 Morning */
-                        yellow: { 200: '#fef08a' },  /* 18-24 Night */
-                        slate: { 400: '#94a3b8', 700: '#334155' }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        /* 요청하신 파스텔 컬러 코드 적용 */
+                        pastel: {
+                            purple: '#d8b4fe', /* Morning */
+                            sky: '#7dd3fc',    /* Afternoon */
+                            yellow: '#fef08a', /* Night */
+                            slate: '#94a3b8'   /* Text/Icon Base */
+                        },
+                        /* 텍스트 가독성을 위한 진한 컬러 */
+                        text: {
+                            main: '#475569',   /* Slate 600 */
+                            dark: '#334155'    /* Slate 700 */
+                        }
                     }
                 }
             }
@@ -69,161 +77,131 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect } = React;
 
-        // 아이콘 컴포넌트
-        const IconMusic = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
-        const IconBook = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
-        const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>;
-        const IconMoon = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
-        const IconCoffee = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>;
+        // 아이콘 (선 굵기를 1.5로 조정하여 더 부드럽게)
+        const IconMusic = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>;
+        const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>;
+        const IconMoon = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
 
         const TimelineWidget = () => {
             const [now, setNow] = useState(new Date());
 
             useEffect(() => {
-                const timer = setInterval(() => setNow(new Date()), 60000); // 1분마다 갱신
+                const timer = setInterval(() => setNow(new Date()), 60000);
                 return () => clearInterval(timer);
             }, []);
 
-            // 시간 계산 로직 (06:00 ~ 24:00, 총 18시간)
+            // 06:00 ~ 24:00 (18시간) 기준 퍼센트 계산
             const START_HOUR = 6;
-            const END_HOUR = 24;
             const TOTAL_HOURS = 18;
-
+            
             const currentHour = now.getHours();
             const currentMin = now.getMinutes();
             
-            // 현재 시간을 0~100% 위치로 변환
             let progress = 0;
-            if (currentHour >= START_HOUR && currentHour < END_HOUR) {
+            if (currentHour < START_HOUR) progress = 0;
+            else if (currentHour >= 24) progress = 100;
+            else {
                 const elapsedMinutes = (currentHour - START_HOUR) * 60 + currentMin;
                 progress = (elapsedMinutes / (TOTAL_HOURS * 60)) * 100;
-            } else if (currentHour < START_HOUR) {
-                progress = 0; // 06시 이전이면 맨 위
-            } else {
-                progress = 100; // 24시 이후면 맨 아래 (취침)
             }
-
-            // 하단 메시지 (시간대별 가이드)
-            const getGuideMessage = () => {
-                if (currentHour >= 6 && currentHour < 12) return "뇌 예열: 산책과 독서로 시스템 가동";
-                if (currentHour >= 12 && currentHour < 15) return "각성: 강렬한 음악과 충분한 수분 섭취";
-                if (currentHour >= 15 && currentHour < 18) return "여백: 에너지 저하 구간, 무리하지 않기";
-                if (currentHour >= 18 && currentHour < 23) return "이완: 조명과 음악으로 휴식 모드 진입";
-                if (currentHour >= 23 || currentHour < 6) return "숙면: 7시간 수면은 회복의 핵심";
-                return "System Flow";
-            };
 
             return (
                 <div className="widget-container">
-                    {/* Header */}
-                    <div className="h-10 w-full flex items-center justify-between px-4 border-b border-white/40 bg-white/10">
-                        <span className="font-serif text-lg font-bold text-slate-700 tracking-wide">Daily Flow</span>
-                        <div className="font-mono text-xs text-slate-500">{now.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})}</div>
-                    </div>
-
-                    {/* Timeline Body */}
-                    <div className="flex-1 relative w-full flex flex-row">
+                    
+                    {/* 1. Time Axis (Left) - 너비 축소, 불필요한 선 제거 */}
+                    <div className="w-[30px] h-full flex flex-col relative flex-shrink-0 border-r border-slate-200/50">
+                        {/* 시간 텍스트 (위치 미세 조정) */}
+                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 text-[10px] font-mono text-slate-400 font-bold">06</div>
+                        <div className="absolute top-[33.33%] left-1/2 transform -translate-x-1/2 -translate-y-2 text-[10px] font-mono text-slate-400 font-bold">12</div>
+                        <div className="absolute top-[66.66%] left-1/2 transform -translate-x-1/2 -translate-y-2 text-[10px] font-mono text-slate-400 font-bold">18</div>
                         
-                        {/* 1. Time Axis (Left) */}
-                        <div className="w-12 h-full flex flex-col items-center border-r border-white/40 bg-white/20 relative z-10">
-                            {/* 시간 표시 (6시간 단위) */}
-                            <div className="absolute top-2 text-[10px] font-mono text-purple-400 font-bold">06</div>
-                            <div className="absolute top-1/3 text-[10px] font-mono text-sky-400 font-bold -mt-2">12</div>
-                            <div className="absolute top-2/3 text-[10px] font-mono text-yellow-500 font-bold -mt-2">18</div>
-                            <div className="absolute bottom-2 text-[10px] font-mono text-slate-400 font-bold">24</div>
-
-                            {/* 진행 바 (배경) */}
-                            <div className="absolute top-0 w-[2px] h-full bg-slate-200/50"></div>
-
-                            {/* 현재 시간 인디케이터 */}
-                            <div 
-                                className="absolute left-0 w-full h-[2px] bg-red-400 z-20 transition-all duration-500 flex items-center justify-end pr-1"
-                                style={{ top: `${progress}%` }}
-                            >
-                                <div className="w-2 h-2 rounded-full bg-red-400 shadow-sm animate-pulse-slow"></div>
-                            </div>
-                        </div>
-
-                        {/* 2. Content Area (Right) - 3등분 */}
-                        <div className="flex-1 h-full flex flex-col">
-                            
-                            {/* Morning (06-12) - Purple */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col justify-between overflow-hidden group">
-                                <div className="absolute inset-0 bg-purple-300 opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                                <div className="relative z-10 flex justify-between items-start">
-                                    <span className="text-xs font-bold text-purple-400 font-mono tracking-widest">MORNING</span>
-                                    <IconMusic className="w-3.5 h-3.5 text-purple-400 opacity-70" />
-                                </div>
-                                <div className="relative z-10 space-y-1 mt-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-purple-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">환기 & 보컬로이드</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-purple-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">산책/샤워/독서</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-purple-100/50 rounded px-1.5 py-0.5 w-fit">
-                                        <span className="text-[10px] font-bold text-purple-600">골든타임: 한자/영어</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Afternoon (12-18) - Sky */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col justify-between border-t border-white/40 overflow-hidden group">
-                                <div className="absolute inset-0 bg-sky-300 opacity-10 group-hover:opacity-20 transition-opacity"></div>
-                                <div className="relative z-10 flex justify-between items-start">
-                                    <span className="text-xs font-bold text-sky-400 font-mono tracking-widest">AFTERNOON</span>
-                                    <IconSun className="w-3.5 h-3.5 text-sky-400 opacity-70" />
-                                </div>
-                                <div className="relative z-10 space-y-1 mt-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-sky-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">Rock/Metal & 저염식</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-sky-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">수업 준비/상담</span>
-                                    </div>
-                                    {/* 15~17시 비워둠 표시 */}
-                                    <div className="mt-1 w-full h-[18px] border border-dashed border-sky-300/40 rounded flex items-center justify-center">
-                                        <span className="text-[9px] text-sky-400/80">Empty Space (15-17)</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Evening (18-24) - Yellow */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col justify-between border-t border-white/40 overflow-hidden group">
-                                <div className="absolute inset-0 bg-yellow-200 opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                                <div className="relative z-10 flex justify-between items-start">
-                                    <span className="text-xs font-bold text-slate-400 font-mono tracking-widest">NIGHT</span>
-                                    <IconMoon className="w-3.5 h-3.5 text-slate-400 opacity-70" />
-                                </div>
-                                <div className="relative z-10 space-y-1 mt-1">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-yellow-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">Jazz & 주황 조명</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-yellow-400"></div>
-                                        <span className="text-[11px] font-medium text-slate-600">자기돌봄/일기</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-slate-100/50 rounded px-1.5 py-0.5 w-fit">
-                                        <span className="text-[10px] font-bold text-slate-500">23:00 취침 시작</span>
-                                    </div>
-                                </div>
-                            </div>
-
+                        {/* 현재 시간 표시 바 (Red Line) */}
+                        <div 
+                            className="absolute w-full flex items-center justify-end pr-[1px] z-20 transition-all duration-500"
+                            style={{ top: `${progress}%` }}
+                        >
+                            <div className="w-[20px] h-[2px] bg-red-400 rounded-full shadow-sm"></div>
                         </div>
                     </div>
 
-                    {/* Footer Guide Text */}
-                    <div className="h-8 w-full bg-white/30 backdrop-blur-sm border-t border-white/40 flex items-center justify-center overflow-hidden px-2">
-                        <p className="text-[10px] text-slate-500 font-sans truncate whitespace-nowrap opacity-90">
-                            Run: {getGuideMessage()}
-                        </p>
+                    {/* 2. Content Area (Right) */}
+                    <div className="flex-1 h-full flex flex-col">
+                        
+                        {/* MORNING (06-12) : 연보라(#d8b4fe) */}
+                        <div className="flex-1 w-full relative p-3 flex flex-col overflow-hidden group">
+                            {/* 배경: 연보라 은은하게 */}
+                            <div className="absolute inset-0 bg-pastel-purple opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
+                            
+                            <div className="relative z-10 flex justify-between items-start mb-2">
+                                <span className="text-[11px] font-bold text-slate-500 font-serif tracking-widest">MORNING</span>
+                                <IconMusic className="w-3.5 h-3.5 text-slate-500" />
+                            </div>
+                            
+                            <div className="relative z-10 space-y-1.5">
+                                <div className="flex items-start gap-2">
+                                    <div className="w-1 h-1 rounded-full bg-pastel-purple mt-1.5 flex-shrink-0" style={{backgroundColor: '#b794f4'}}></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-medium text-text-dark leading-tight">보컬로이드 & 환기</span>
+                                        <span className="text-[10px] text-slate-500 leading-tight">산책/샤워/독서</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-white/40 rounded px-1.5 py-1 w-fit border border-pastel-purple/30">
+                                    <span className="text-[10px] font-bold text-slate-600">골든타임: 한자/영어</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* AFTERNOON (12-18) : 스카이블루(#7dd3fc) */}
+                        <div className="flex-1 w-full relative p-3 flex flex-col border-t border-slate-100 overflow-hidden group">
+                            {/* 배경: 스카이블루 은은하게 */}
+                            <div className="absolute inset-0 bg-pastel-sky opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
+
+                            <div className="relative z-10 flex justify-between items-start mb-2">
+                                <span className="text-[11px] font-bold text-slate-500 font-serif tracking-widest">AFTERNOON</span>
+                                <IconSun className="w-3.5 h-3.5 text-slate-500" />
+                            </div>
+
+                            <div className="relative z-10 space-y-1.5">
+                                <div className="flex items-start gap-2">
+                                    <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{backgroundColor: '#7dd3fc'}}></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-medium text-text-dark leading-tight">Rock/Metal & 저염식</span>
+                                        <span className="text-[10px] text-slate-500 leading-tight">수업 준비/상담</span>
+                                    </div>
+                                </div>
+                                {/* 15-17시 임시 구간 */}
+                                <div className="w-full h-[22px] border border-dashed border-slate-300 rounded flex items-center justify-center bg-white/20">
+                                    <span className="text-[10px] text-slate-400 font-medium">임시 (15-17)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* NIGHT (18-24) : 연노랑(#fef08a) */}
+                        <div className="flex-1 w-full relative p-3 flex flex-col border-t border-slate-100 overflow-hidden group">
+                            {/* 배경: 연노랑 은은하게 */}
+                            <div className="absolute inset-0 bg-pastel-yellow opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
+
+                            <div className="relative z-10 flex justify-between items-start mb-2">
+                                <span className="text-[11px] font-bold text-slate-500 font-serif tracking-widest">NIGHT</span>
+                                <IconMoon className="w-3.5 h-3.5 text-slate-500" />
+                            </div>
+
+                            <div className="relative z-10 space-y-1.5">
+                                <div className="flex items-start gap-2">
+                                    <div className="w-1 h-1 rounded-full mt-1.5 flex-shrink-0" style={{backgroundColor: '#fbbf24'}}></div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[11px] font-medium text-text-dark leading-tight">Jazz & 주황 조명</span>
+                                        <span className="text-[10px] text-slate-500 leading-tight">자기돌봄/일기</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-white/40 rounded px-1.5 py-1 w-fit border border-pastel-yellow/30">
+                                    <span className="text-[10px] font-bold text-slate-600">23:00 취침</span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             );
