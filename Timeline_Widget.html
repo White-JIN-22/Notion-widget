@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final v3</title>
+    <title>Timeline Widget Crystal Clear</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -17,7 +17,7 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: transparent;
+            background-color: transparent; /* 노션에서는 투명, 테스트땐 어두운 배경 추천 */
             margin: 0;
             display: flex;
             justify-content: center;
@@ -32,12 +32,15 @@
             position: relative;
             width: 225px;
             height: 440px;
-            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            /* [수정] 탁한 느낌 제거: 파란끼 뺌 + 투명도 대폭 상향 (뽀얀 느낌) */
+            background: linear-gradient(165deg, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.35) 100%);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-radius: 24px;
-            border: 1px solid rgba(224, 242, 254, 0.4);
-            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            /* [수정] 테두리를 더 선명하고 밝게 */
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            /* [수정] 그림자를 부드럽게 */
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -45,15 +48,16 @@
         }
 
         .glass-bar {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            /* 헤더/푸터도 더 하얗게 */
+            background: rgba(255, 255, 255, 0.3); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             flex-shrink: 0;
             display: flex;
         }
 
-        .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.4); }
-        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.4); }
+        .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.5); }
+        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.5); }
     </style>
 
     <script>
@@ -80,12 +84,11 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- Timeline Icons ---
+        // --- Icons ---
         const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2"></path><path d="M12 21v2"></path><path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path><path d="M1 12h2"></path><path d="M21 12h2"></path><path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path></svg>;
         const IconCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>;
         const IconStar = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
 
-        // --- Weather & Dust Icons (from Clock_Info.html) ---
         const Sun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
         const Cloud = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
         const CloudRain = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
@@ -102,7 +105,6 @@
             const [weather, setWeather] = useState({ temp: '--', code: 0 });
             const [dust, setDust] = useState({ aqi: 0, status: '…' });
 
-            // API Config
             const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
             const LAT = 37.5034; 
             const LON = 126.7660;
@@ -112,7 +114,6 @@
                 return () => clearInterval(timer);
             }, []);
 
-            // Weather & Dust Fetching
             useEffect(() => {
                 const fetchData = async () => {
                     try {
@@ -138,7 +139,6 @@
                 return () => clearInterval(interval);
             }, []);
 
-            // Helper Functions for Info
             const getDustStatus = (aqi) => {
                 if (aqi <= 50) return '좋음';
                 if (aqi <= 100) return '보통';
@@ -182,18 +182,15 @@
                 return <CloudRain {...props} />;
             };
 
-            // Time & Date Strings
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const weekday = now.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
             const dateStr = `${month}/${day} ${weekday}`;
             const timeStr = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-            // Status Colors
             const dustColor = getDustColor(dust.aqi);
             const weatherColor = getWeatherColor(weather.code);
 
-            // Timeline Logic
             const START_HOUR = 6;
             const TOTAL_HOURS = 18;
             const currentHour = now.getHours();
@@ -210,12 +207,11 @@
                 <div className="widget-container">
                     
                     {/* [Header] Clock & Date */}
-                    {/* Size Reduced: text-4xl->2xl, text-lg->[10px]. Aligned baseline */}
                     <div className="glass-bar border-b-glass h-[50px] px-4 flex items-baseline justify-between pt-4 pb-2">
-                        <span className="text-2xl font-bold text-white tracking-tighter leading-none">
+                        <span className="text-2xl font-bold text-slate-600 tracking-tighter leading-none" style={{textShadow: '0 1px 1px rgba(255,255,255,0.8)'}}>
                             {timeStr}
                         </span>
-                        <span className="text-[10px] font-bold text-white/90 tracking-tight">
+                        <span className="text-[10px] font-bold text-slate-500 tracking-tight">
                             {dateStr}
                         </span>
                     </div>
@@ -224,10 +220,10 @@
                     <div className="flex-1 w-full flex flex-row relative overflow-hidden">
                         
                         {/* 1. Left Axis (Time) */}
-                        <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/30"
-                             style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
-                            <div className="absolute top-[33.33%] w-full h-[1px] bg-white/40"></div>
-                            <div className="absolute top-[66.66%] w-full h-[1px] bg-white/40"></div>
+                        <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/50"
+                             style={{ background: 'rgba(255, 255, 255, 0.2)' }}>
+                            <div className="absolute top-[33.33%] w-full h-[1px] bg-white/60"></div>
+                            <div className="absolute top-[66.66%] w-full h-[1px] bg-white/60"></div>
                             <div className="absolute top-2 w-full text-center text-[9px] font-mono font-bold text-purple-300">06</div>
                             <div className="absolute top-[33.33%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[9px] font-mono font-bold text-sky-300">12</div>
                             <div className="absolute top-[66.66%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[9px] font-mono font-bold text-yellow-200">18</div>
@@ -235,7 +231,7 @@
                                 className="absolute w-full flex items-center z-20 transition-all duration-500"
                                 style={{ top: `${progress}%` }}
                             >
-                                <div className="w-full h-[2px] bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)]"></div>
+                                <div className="w-full h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,1)]"></div>
                             </div>
                         </div>
 
@@ -253,14 +249,14 @@
                                         <span className="text-[11px] font-bold text-slate-600 leading-tight">보컬로이드 & 환기</span>
                                         <span className="text-[10px] text-slate-500 leading-tight">산책/샤워/독서</span>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-white/40 rounded px-1.5 py-0.5 w-fit border border-purple-300/30">
+                                    <div className="flex items-center gap-1 bg-white/50 rounded px-1.5 py-0.5 w-fit border border-purple-300/40 shadow-sm">
                                         <span className="text-[10px] font-bold text-slate-600">골든타임: 한자/영어</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* AFTERNOON */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
+                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/50 overflow-hidden group">
                                 <div className="absolute inset-0 bg-sky-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
                                 <div className="relative z-10 flex items-center gap-1.5 mb-2">
                                     <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
@@ -271,14 +267,14 @@
                                         <span className="text-[11px] font-bold text-slate-600 leading-tight">Rock/Metal & 저염식</span>
                                         <span className="text-[10px] text-slate-500 leading-tight">수업 준비/상담</span>
                                     </div>
-                                    <div className="w-full h-[20px] border border-dashed border-slate-300/60 rounded flex items-center justify-center bg-white/20">
+                                    <div className="w-full h-[20px] border border-dashed border-slate-300/60 rounded flex items-center justify-center bg-white/30">
                                         <span className="text-[10px] text-slate-400 font-medium">임시 (15-17)</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* NIGHT */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
+                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/50 overflow-hidden group">
                                 <div className="absolute inset-0 bg-yellow-200 opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
                                 <div className="relative z-10 flex items-center gap-1.5 mb-2">
                                     <IconStar className="w-3.5 h-3.5" color="#fef08a" />
@@ -289,7 +285,7 @@
                                         <span className="text-[11px] font-bold text-slate-600 leading-tight">Jazz & 주황 조명</span>
                                         <span className="text-[10px] text-slate-500 leading-tight">자기돌봄/일기</span>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-white/40 rounded px-1.5 py-0.5 w-fit border border-yellow-200/50">
+                                    <div className="flex items-center gap-1 bg-white/50 rounded px-1.5 py-0.5 w-fit border border-yellow-200/50 shadow-sm">
                                         <span className="text-[10px] font-bold text-slate-600">23:00 취침</span>
                                     </div>
                                 </div>
@@ -299,7 +295,6 @@
 
                     {/* [Footer] Info: Weather & Dust */}
                     <div className="glass-bar border-t-glass h-[36px] px-3 flex items-center justify-center gap-4">
-                        {/* Weather Block */}
                         <div className="flex flex-row items-center gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
                             <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
@@ -307,7 +302,6 @@
                             </span>
                         </div>
                         
-                        {/* Dust Block */}
                         <div className="flex flex-row items-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
