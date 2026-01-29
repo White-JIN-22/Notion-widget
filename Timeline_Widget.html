@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final Complete</title>
+    <title>Timeline Widget</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -506,19 +506,20 @@
                         
                         <div className="flex-1 flex items-center justify-center border-r-glass gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
-                            <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
+                            {/* pt-0.5 삭제됨 */}
+                            <span className="font-mono text-xs font-bold" style={{ color: weatherColor }}>
                                 {weather.temp}°
                             </span>
                         </div>
                         
                         <div className="flex-1 flex items-center justify-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
-                            <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
+                            {/* pt-0.5 삭제됨 */}
+                            <span className="font-sans text-[10px] font-bold" style={{ color: dustColor }}>
                                 {dust.status}
                             </span>
                         </div>
                     </div>
-
                 </div>
             );
         };
