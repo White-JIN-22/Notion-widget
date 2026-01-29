@@ -33,9 +33,9 @@
     border: 1px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
 
-    /* [수정됨] 여백을 확 줄여서 높이 압축 */
-    padding: 16px 20px; 
-    gap: 8px; /* 요소 사이 간격을 20px -> 8px로 좁힘 */
+    /* [수정] 상하 패딩 16px->12px, 좌우 유지, 간격 8px->6px */
+    padding: 12px 20px; 
+    gap: 6px; 
 
     display: flex;
     flex-direction: column;
@@ -44,13 +44,14 @@
 
         .section-title {
             font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    /* [수정] 마진 8px -> 4px */
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
         }
 
         /* Custom Progress Bar */
@@ -69,11 +70,12 @@
 
         /* Glass Cards */
         .glass-card {
-            background: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            padding: 12px 16px;
-        }
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    /* [수정] 패딩 12px -> 8px, 좌우 14px로 미세 조정 */
+    padding: 8px 14px;
+}
     </style>
     
     <script>
@@ -168,41 +170,42 @@
                     </div>
 
                     {/* 2. Monthly Goal (Sky Blue - Priority 2) */}
-                    <div className="glass-card bg-sky-100/20 border-sky-300/40">
-                        <div className="flex justify-between items-end mb-2">
-                            <div className="section-title text-sky-300 mb-0">Monthly Objective</div>
-                            <span className="text-xl font-bold text-slate-600">{progress.percent}%</span>
-                        </div>
-                        <div className="text-sm font-medium text-slate-700 mb-3">{goals.monthly.text}</div>
-                        <div className="progress-bg bg-sky-100">
-                            <div className="progress-fill bg-sky-300 shadow-[0_0_10px_rgba(125,211,252,0.5)]" style={{ width: `${progress.percent}%` }}></div>
-                        </div>
-                    </div>
+            <div className="glass-card bg-sky-100/20 border-sky-300/40">
+                {/* [수정] mb-2 -> mb-1 */}
+                <div className="flex justify-between items-end mb-1">
+                    <div className="section-title text-sky-300 mb-0">Monthly Objective</div>
+                    <span className="text-xl font-bold text-slate-600">{progress.percent}%</span>
+                </div>
+                {/* [수정] mb-3 -> mb-2 */}
+                <div className="text-sm font-medium text-slate-700 mb-2">{goals.monthly.text}</div>
+                <div className="progress-bg bg-sky-100">
+                    <div className="progress-fill bg-sky-300 shadow-[0_0_10px_rgba(125,211,252,0.5)]" style={{ width: `${progress.percent}%` }}></div>
+                </div>
+            </div>
 
-                    {/* 3. Weekly Goal (Yellow - Priority 3) */}
-                    <div className="glass-card bg-yellow-100/20 border-yellow-200/60">
-                         <div className="section-title text-yellow-200/90" style={{ color:'#dcb028' }}>Weekly Focus</div>
-                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">{goals.weekly.text}</span>
-                            {/* Simple visual indicator for week */}
-                            <div className="flex gap-1">
-                                {[...Array(7)].map((_, i) => (
-                                    <div key={i} className={`w-2 h-6 rounded-sm ${i < 4 ? 'bg-yellow-200' : 'bg-slate-200/50'}`}></div>
-                                ))}
-                            </div>
-                         </div>
+            {/* 3. Weekly Goal (Yellow - Priority 3) */}
+            <div className="glass-card bg-yellow-100/20 border-yellow-200/60">
+                    <div className="section-title text-yellow-200/90" style={{ color:'#dcb028' }}>Weekly Focus</div>
+                    <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700">{goals.weekly.text}</span>
+                    <div className="flex gap-1">
+                        {[...Array(7)].map((_, i) => (
+                            <div key={i} className={`w-2 h-6 rounded-sm ${i < 4 ? 'bg-yellow-200' : 'bg-slate-200/50'}`}></div>
+                        ))}
                     </div>
-
-                    {/* 4. AI Feedback */}
-                    <div className="bg-gradient-to-r from-purple-100/40 to-sky-100/40 rounded-xl p-4 border border-white/60 flex gap-3 items-start shadow-sm">
-                        <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
-                            <span className="text-[12px]">🤖</span>
-                        </div>
-                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                            {feedback}
-                        </p>
                     </div>
+            </div>
 
+            {/* 4. AI Feedback */}
+            {/* [수정] p-4 -> p-2.5 */}
+            <div className="bg-gradient-to-r from-purple-100/40 to-sky-100/40 rounded-xl p-2.5 border border-white/60 flex gap-3 items-start shadow-sm">
+                <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
+                    <span className="text-[12px]">🤖</span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    {feedback}
+                </p>
+            </div>
                 </div>
             );
         };
