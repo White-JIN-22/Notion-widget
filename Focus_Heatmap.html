@@ -46,10 +46,10 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
+            gap: 2px; /* 1px -> 2px : 박스 사이 틈을 벌려서 여유 확보 */
             text-align: center;
-            padding: 0 8px;
-            margin-top: 0px; /* 4px -> 0px으로 변경 */
+            padding: 0 12px; /* 8px -> 12px : 양옆을 더 눌러서 박스 크기 축소 */
+            margin-top: 0px;
         }
         
         .day-cell {
