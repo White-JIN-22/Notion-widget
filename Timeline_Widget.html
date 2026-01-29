@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final</title>
+    <title>Timeline Widget Final v2</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -16,7 +16,6 @@
 
     <style>
         body {
-            /* Daily_Flow.html의 폰트 적용 (고딕) */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: transparent;
             margin: 0;
@@ -27,14 +26,12 @@
             padding-top: 20px;
         }
 
-        /* 스크롤바 제거 */
         ::-webkit-scrollbar { display: none; }
         
-        /* Daily_Flow.html의 컨테이너 스타일 적용 */
         .widget-container {
             position: relative;
-            width: 225px; /* 가로 고정 */
-            height: 440px; /* 헤더/푸터 포함하여 적절한 높이 */
+            width: 225px;
+            height: 440px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -47,14 +44,12 @@
             color: #334155;
         }
 
-        /* 상단/하단 바 스타일 (Daily_Flow.html 참고) */
         .glass-bar {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             flex-shrink: 0;
             display: flex;
-            align-items: center;
         }
 
         .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.4); }
@@ -66,15 +61,14 @@
             theme: {
                 extend: {
                     colors: {
-                        /* 요청하신 파스텔 컬러 코드 */
                         purple: { 300: '#d8b4fe' },
                         sky: { 300: '#7dd3fc' },
                         yellow: { 200: '#fef08a' },
-                        slate: { 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155' }
+                        slate: { 400: '#94a3b8', 600: '#475569' }
                     },
                     fontFamily: {
                         sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
-                        mono: ['"Roboto Mono"', 'monospace'] // 시간 숫자는 모노스페이스 유지
+                        mono: ['"Roboto Mono"', 'monospace']
                     }
                 }
             }
@@ -86,23 +80,18 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- 아이콘 컴포넌트 (요청하신 해, 구름해, 별) ---
-        
-        // Morning: Sun
         const IconSun = ({ className, color }) => (
             <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="5"></circle><path d="M12 1v2"></path><path d="M12 21v2"></path><path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path><path d="M1 12h2"></path><path d="M21 12h2"></path><path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path>
             </svg>
         );
 
-        // Afternoon: CloudSun (구름이 약간 가린 해)
         const IconCloudSun = ({ className, color }) => (
             <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path>
             </svg>
         );
 
-        // Night: Star
         const IconStar = ({ className, color }) => (
             <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -113,11 +102,10 @@
             const [now, setNow] = useState(new Date());
 
             useEffect(() => {
-                const timer = setInterval(() => setNow(new Date()), 60000);
+                const timer = setInterval(() => setNow(new Date()), 1000);
                 return () => clearInterval(timer);
             }, []);
 
-            // 06:00 ~ 24:00 (18시간) 로직
             const START_HOUR = 6;
             const TOTAL_HOURS = 18;
             
@@ -132,44 +120,47 @@
                 progress = (elapsedMinutes / (TOTAL_HOURS * 60)) * 100;
             }
 
-            // 하단 가이드 메시지
-            const getGuideMessage = () => {
-                if (currentHour >= 6 && currentHour < 12) return "뇌 예열: 산책과 독서로 시스템 가동";
-                if (currentHour >= 12 && currentHour < 15) return "각성: 강렬한 음악과 충분한 수분";
-                if (currentHour >= 15 && currentHour < 18) return "여백: 에너지 저하 구간, 무리 금지";
-                if (currentHour >= 18 && currentHour < 23) return "이완: 조명과 음악으로 휴식 모드";
-                if (currentHour >= 23 || currentHour < 6) return "숙면: 7시간 수면은 회복의 핵심";
-                return "Ready to Start";
-            };
+            // 날짜 포맷 (MM/DD DDD)
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const weekday = now.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+            const dateStr = `${month}/${day} ${weekday}`;
+
+            // 시간 포맷 (HH:mm) - 24시간제
+            const timeStr = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
             return (
                 <div className="widget-container">
                     
-                    {/* [Header] Daily Flow */}
-                    <div className="glass-bar border-b-glass h-[50px] px-4 justify-between">
-                        <h1 className="text-lg font-bold text-white tracking-tight">Daily Flow</h1>
-                        <span className="text-[10px] font-mono font-bold text-white/80">
-                            {now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                    {/* [Header] Clock & Date */}
+                    <div className="glass-bar border-b-glass h-[60px] px-4 flex items-end justify-between pb-3">
+                        {/* 큼직한 시간 */}
+                        <span className="text-4xl font-bold text-white tracking-tighter leading-none">
+                            {timeStr}
+                        </span>
+                        {/* 절반 크기의 날짜/요일 */}
+                        <span className="text-lg font-bold text-white/90 mb-0.5 tracking-tight">
+                            {dateStr}
                         </span>
                     </div>
 
                     {/* [Body] Timeline + Content */}
                     <div className="flex-1 w-full flex flex-row relative overflow-hidden">
                         
-                        {/* 1. Left Axis (Time) */}
-                        <div className="w-[36px] h-full flex flex-col relative flex-shrink-0 border-r border-white/30"
+                        {/* 1. Left Axis (Time) - 너비 축소 (36px -> 20px) */}
+                        <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/30"
                              style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
                             
-                            {/* Dividers (12, 18) */}
+                            {/* Dividers */}
                             <div className="absolute top-[33.33%] w-full h-[1px] bg-white/40"></div>
                             <div className="absolute top-[66.66%] w-full h-[1px] bg-white/40"></div>
 
-                            {/* Time Labels */}
-                            <div className="absolute top-2 w-full text-center text-[10px] font-mono text-white font-bold opacity-90">06</div>
-                            <div className="absolute top-[33.33%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[10px] font-mono text-white font-bold opacity-90">12</div>
-                            <div className="absolute top-[66.66%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[10px] font-mono text-white font-bold opacity-90">18</div>
+                            {/* Time Labels - 각 시간대 색상 적용 */}
+                            <div className="absolute top-2 w-full text-center text-[9px] font-mono font-bold text-purple-300">06</div>
+                            <div className="absolute top-[33.33%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[9px] font-mono font-bold text-sky-300">12</div>
+                            <div className="absolute top-[66.66%] w-full text-center transform -translate-y-1/2 mt-[2px] text-[9px] font-mono font-bold text-yellow-200">18</div>
                             
-                            {/* Current Time Bar (White) */}
+                            {/* Current Time Bar */}
                             <div 
                                 className="absolute w-full flex items-center z-20 transition-all duration-500"
                                 style={{ top: `${progress}%` }}
@@ -181,11 +172,10 @@
                         {/* 2. Right Content (Zones) */}
                         <div className="flex-1 h-full flex flex-col">
                             
-                            {/* MORNING (Purple) */}
+                            {/* MORNING */}
                             <div className="flex-1 w-full relative p-3 flex flex-col overflow-hidden group">
                                 <div className="absolute inset-0 bg-purple-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
                                 
-                                {/* Header: Icon + Text (Color synced) */}
                                 <div className="relative z-10 flex items-center gap-1.5 mb-2">
                                     <IconSun className="w-3.5 h-3.5" color="#d8b4fe" />
                                     <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
@@ -202,7 +192,7 @@
                                 </div>
                             </div>
 
-                            {/* AFTERNOON (Sky) */}
+                            {/* AFTERNOON */}
                             <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
                                 <div className="absolute inset-0 bg-sky-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
 
@@ -216,14 +206,13 @@
                                         <span className="text-[11px] font-bold text-slate-600 leading-tight">Rock/Metal & 저염식</span>
                                         <span className="text-[10px] text-slate-500 leading-tight">수업 준비/상담</span>
                                     </div>
-                                    {/* 15-17 Space */}
                                     <div className="w-full h-[20px] border border-dashed border-slate-300/60 rounded flex items-center justify-center bg-white/20">
                                         <span className="text-[10px] text-slate-400 font-medium">임시 (15-17)</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* NIGHT (Yellow) */}
+                            {/* NIGHT */}
                             <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
                                 <div className="absolute inset-0 bg-yellow-200 opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
 
@@ -246,11 +235,10 @@
                         </div>
                     </div>
 
-                    {/* [Footer] Run Status */}
-                    <div className="glass-bar border-t-glass h-[36px] px-3 justify-center">
-                        <p className="text-[11px] text-slate-500 font-medium truncate opacity-90">
-                            <span className="font-bold text-slate-400 mr-1">Run:</span> 
-                            {getGuideMessage()}
+                    {/* [Footer] Status */}
+                    <div className="glass-bar border-t-glass h-[36px] px-3 items-center justify-center">
+                        <p className="text-[11px] text-slate-500 font-bold opacity-80">
+                            임시
                         </p>
                     </div>
 
