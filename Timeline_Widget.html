@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final v4</title>
+    <title>Timeline Widget Final v5</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -36,7 +36,8 @@
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border-radius: 24px;
-            border: 1px solid rgba(224, 242, 254, 0.4);
+            /* 외곽선도 조금 더 선명하게 조정 */
+            border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
@@ -52,9 +53,10 @@
             display: flex;
         }
 
-        .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.4); }
-        /* Footer의 상단 테두리는 유지하되 배경색은 인라인 스타일로 오버라이드 예정 */
-        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.4); }
+        /* 구분선 선명하게 변경 (white/30 -> white/80) */
+        .border-b-glass { border-bottom: 1px solid rgba(255, 255, 255, 0.8); }
+        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.8); }
+        .border-r-glass { border-right: 1px solid rgba(255, 255, 255, 0.8); }
     </style>
 
     <script>
@@ -62,9 +64,9 @@
             theme: {
                 extend: {
                     colors: {
-                        purple: { 300: '#d8b4fe' },
-                        sky: { 300: '#7dd3fc' },
-                        yellow: { 200: '#fef08a' },
+                        purple: { 100: '#f3e8ff', 300: '#d8b4fe' },
+                        sky: { 100: '#e0f2fe', 300: '#7dd3fc' },
+                        yellow: { 100: '#fef9c3', 200: '#fef08a' },
                         slate: { 400: '#94a3b8', 600: '#475569' }
                     },
                     fontFamily: {
@@ -204,6 +206,7 @@
                 <div className="widget-container">
                     
                     {/* [Header] Clock & Date */}
+                    {/* Header Border also sharpened (border-b-glass) */}
                     <div className="glass-bar border-b-glass h-[50px] px-4 flex items-baseline justify-between pt-4 pb-2">
                         <span className="text-2xl font-bold text-white tracking-tighter leading-none">
                             {timeStr}
@@ -217,7 +220,8 @@
                     <div className="flex-1 w-full flex flex-row relative overflow-hidden">
                         
                         {/* 1. Left Axis (Time) */}
-                        <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/30"
+                        {/* Vertical Border sharpened: border-white/80 */}
+                        <div className="w-[20px] h-full flex flex-col relative flex-shrink-0 border-r border-white/80"
                              style={{ background: 'rgba(255, 255, 255, 0.1)' }}>
                             
                             {/* 06시 */}
@@ -251,18 +255,19 @@
                                 </div>
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-slate-600 leading-tight">보컬로이드 & 환기</span>
-                                        <span className="text-[10px] text-slate-500 leading-tight">산책/샤워/독서</span>
+                                        {/* Tinted White (Purple-ish) + Shadow */}
+                                        <span className="text-[11px] font-bold text-purple-100 drop-shadow-md leading-tight">보컬로이드 & 환기</span>
+                                        <span className="text-[10px] text-purple-100/90 drop-shadow-sm leading-tight">산책/샤워/독서</span>
                                     </div>
-                                    {/* 박스 제거 후 텍스트만 유지 */}
                                     <div className="mt-0.5">
-                                        <span className="text-[10px] font-bold text-slate-600">골든타임: 한자/영어</span>
+                                        <span className="text-[10px] font-bold text-purple-100/80 drop-shadow-sm">골든타임: 한자/영어</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* AFTERNOON */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
+                            {/* Horizontal Border sharpened: border-white/80 */}
+                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-sky-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
                                 <div className="relative z-10 flex items-center gap-1.5 mb-2">
                                     <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
@@ -270,18 +275,19 @@
                                 </div>
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-slate-600 leading-tight">Rock/Metal & 저염식</span>
-                                        <span className="text-[10px] text-slate-500 leading-tight">수업 준비/상담</span>
+                                        {/* Tinted White (Sky-ish) + Shadow */}
+                                        <span className="text-[11px] font-bold text-sky-100 drop-shadow-md leading-tight">Rock/Metal & 저염식</span>
+                                        <span className="text-[10px] text-sky-100/90 drop-shadow-sm leading-tight">수업 준비/상담</span>
                                     </div>
-                                    {/* 임시 박스 제거 후 텍스트만 유지 */}
                                     <div className="mt-0.5">
-                                        <span className="text-[10px] text-slate-400 font-medium">임시 (15-17)</span>
+                                        <span className="text-[10px] text-sky-100/70 drop-shadow-sm font-medium">임시 (15-17)</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* NIGHT */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/30 overflow-hidden group">
+                            {/* Horizontal Border sharpened: border-white/80 */}
+                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-yellow-200 opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
                                 <div className="relative z-10 flex items-center gap-1.5 mb-2">
                                     <IconStar className="w-3.5 h-3.5" color="#fef08a" />
@@ -289,12 +295,12 @@
                                 </div>
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-slate-600 leading-tight">Jazz & 주황 조명</span>
-                                        <span className="text-[10px] text-slate-500 leading-tight">자기돌봄/일기</span>
+                                        {/* Tinted White (Yellow-ish) + Shadow */}
+                                        <span className="text-[11px] font-bold text-yellow-100 drop-shadow-md leading-tight">Jazz & 주황 조명</span>
+                                        <span className="text-[10px] text-yellow-100/90 drop-shadow-sm leading-tight">자기돌봄/일기</span>
                                     </div>
-                                    {/* 박스 제거 후 텍스트만 유지 */}
                                     <div className="mt-0.5">
-                                        <span className="text-[10px] font-bold text-slate-600">23:00 취침</span>
+                                        <span className="text-[10px] font-bold text-yellow-100/80 drop-shadow-sm">23:00 취침</span>
                                     </div>
                                 </div>
                             </div>
@@ -302,18 +308,20 @@
                     </div>
 
                     {/* [Footer] Info: Weather & Dust */}
-                    <div className="glass-bar border-t-glass h-[36px] px-3 flex items-center justify-center gap-8"
+                    {/* Layout changed: Flex with divider */}
+                    <div className="glass-bar border-t-glass h-[36px] flex items-stretch"
                          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}>
-                        {/* Weather Block */}
-                        <div className="flex flex-row items-center gap-1">
+                        
+                        {/* Left: Weather (Center Aligned + Right Border) */}
+                        <div className="flex-1 flex items-center justify-center border-r-glass gap-1">
                             {getWeatherIcon(weather.code, weatherColor)}
                             <span className="font-mono text-xs font-bold pt-0.5" style={{ color: weatherColor }}>
                                 {weather.temp}°
                             </span>
                         </div>
                         
-                        {/* Dust Block */}
-                        <div className="flex flex-row items-center gap-1">
+                        {/* Right: Dust (Center Aligned) */}
+                        <div className="flex-1 flex items-center justify-center gap-1">
                             {getDustIcon(dust.aqi, dustColor)}
                             <span className="font-sans text-[10px] font-bold pt-0.5" style={{ color: dustColor }}>
                                 {dust.status}
