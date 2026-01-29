@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeline Widget Final</title>
+    <title>Timeline Widget Final Complete</title>
     
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -85,13 +85,14 @@
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
         
         // --- Icons ---
+        // 1. 산책(전환) 아이콘 - 모양 수정됨
         const IconSparkle = ({ className, color, fill }) => (
             <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
             </svg>
         );
 
-        // [추가됨] Timeline_Block의 펜 아이콘 이식
+        // 2. 기록(휴식) 아이콘 - 펜
         const IconPen = ({ className, color, fill }) => (
             <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
@@ -101,6 +102,7 @@
             </svg>
         );
 
+        // 3. 식사 아이콘 - 포크나이프
         const IconUtensils = ({ className, color, fill }) => (
             <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
@@ -109,18 +111,18 @@
             </svg>
         );
 
+        // Header Icons
         const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2"></path><path d="M12 21v2"></path><path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path><path d="M1 12h2"></path><path d="M21 12h2"></path><path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path></svg>;
         const IconCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>;
         const IconStar = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
 
-        // Weather Icons
+        // Weather & Dust Icons
         const Sun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
         const Cloud = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>;
         const CloudRain = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="16" y1="13" x2="16" y2="21"></line><line x1="8" y1="13" x2="8" y2="21"></line><line x1="12" y1="15" x2="12" y2="23"></line><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path></svg>;
         const CloudSnow = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M8 15h.01"/><path d="M8 19h.01"/><path d="M12 17h.01"/><path d="M12 21h.01"/><path d="M16 15h.01"/><path d="M16 19h.01"/></svg>;
         const CloudLightning = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/></svg>;
         
-        // Dust Icons
         const FaceHappy = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
         const FaceNormal = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 1.5 4 1.5 4-1.5 4-1.5"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>;
         const FaceBad = ({ color, className, strokeWidth }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 15s1.5-1 3-1 3 1 3 1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/><path d="M8 7 L10 9"/><path d="M16 7 L14 9"/></svg>;
@@ -132,10 +134,14 @@
             const [weather, setWeather] = useState({ temp: '--', code: 0 });
             const [dust, setDust] = useState({ aqi: 0, status: '…' });
             
-            // Data States from Timeline_Block
+            // Data States
             const [blocks, setBlocks] = useState([]);
             const [events, setEvents] = useState([]);
-            const [missions, setMissions] = useState({ morning: false, afternoon: false, night: false });
+            const [missions, setMissions] = useState({ 
+                morningMeal: false, morningWalk: false,
+                afternoonMeal: false, afternoonWalk: false,
+                nightMeal: false, nightRecord: false
+            });
 
             const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
             const LAT = 37.5034; 
@@ -173,7 +179,7 @@
                 return () => clearInterval(interval);
             }, []);
 
-            // 3. User Data Fetch (Local & Calendar) - Ported from Timeline_Block
+            // 3. User Data Fetch
             const isToday = (d) => d.toDateString() === new Date().toDateString();
 
             const loadLocalData = () => {
@@ -208,11 +214,11 @@
                 };
             }, []);
 
-            // 4. Mission Checking Logic
+            // 4. Mission Checking Logic (Strict Matching)
             useEffect(() => {
-                // Helper to check range and keywords
+                // Helper
                 const checkStatus = (startH, endH, keywords) => {
-                    // 1. 캘린더/노션 데이터 체크 (이벤트 제목에 키워드가 포함되는지)
+                    // 1. 캘린더 (이벤트 제목에 키워드 포함)
                     const hasEvent = events.some(ev => {
                         const evTime = new Date(ev.startTime);
                         const h = evTime.getHours();
@@ -223,14 +229,13 @@
                         return false;
                     });
 
-                    // 2. 로컬 블록(타이머) 데이터 체크 (여기도 키워드 검사 추가!)
+                    // 2. 로컬 블록 (Task 제목에 키워드 포함)
                     const hasBlock = blocks.some(b => {
                         const bTime = new Date(b.startTime);
                         const h = bTime.getHours();
                         if (h >= startH && h < endH) {
-                            // 10분 이상이면서, task(제목)에 키워드가 포함되어야 함
                             if (b.duration >= 10) {
-                                // b.task가 존재하고, 키워드가 포함된 경우만 true
+                                // task가 존재하고 키워드 포함 시 true
                                 return b.task && keywords.some(k => b.task.includes(k));
                             }
                         }
@@ -240,21 +245,21 @@
                     return hasEvent || hasBlock;
                 };
 
-                // [수정됨] 키워드 단순화 및 '식사' 추가
+                // 키워드 정의
                 const mealKeywords = ['식사'];
                 const walkKeywords = ['산책'];
                 const recordKeywords = ['기록'];
 
                 setMissions({
-                    // 아침: 식사, 산책
+                    // Morning (06-12)
                     morningMeal: checkStatus(6, 12, mealKeywords),
                     morningWalk: checkStatus(6, 12, walkKeywords),
                     
-                    // 점심(오후): 식사, 산책
+                    // Afternoon (12-18)
                     afternoonMeal: checkStatus(12, 18, mealKeywords),
                     afternoonWalk: checkStatus(12, 18, walkKeywords),
                     
-                    // 저녁(밤): 식사, 기록
+                    // Night (18-24)
                     nightMeal: checkStatus(18, 24, mealKeywords),
                     nightRecord: checkStatus(18, 24, recordKeywords)
                 });
