@@ -111,6 +111,13 @@
             </svg>
         );
 
+        // 4. 위생(물방울) 아이콘 - 추가됨
+        const IconDroplets = ({ className, color, fill }) => (
+            <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+        );
+
         // Header Icons
         const IconSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2"></path><path d="M12 21v2"></path><path d="M4.22 4.22l1.42 1.42"></path><path d="M18.36 18.36l1.42 1.42"></path><path d="M1 12h2"></path><path d="M21 12h2"></path><path d="M4.22 19.78l1.42-1.42"></path><path d="M18.36 5.64l1.42-1.42"></path></svg>;
         const IconCloudSun = ({ className, color }) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="M20 12h2"></path><path d="m19.07 4.93-1.41 1.41"></path><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"></path><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"></path></svg>;
@@ -218,7 +225,6 @@
             useEffect(() => {
                 // Helper
                 const checkStatus = (startH, endH, keywords) => {
-                    // 1. 캘린더 (이벤트 제목에 키워드 포함)
                     const hasEvent = events.some(ev => {
                         const evTime = new Date(ev.startTime);
                         const h = evTime.getHours();
@@ -229,13 +235,11 @@
                         return false;
                     });
 
-                    // 2. 로컬 블록 (Task 제목에 키워드 포함)
                     const hasBlock = blocks.some(b => {
                         const bTime = new Date(b.startTime);
                         const h = bTime.getHours();
                         if (h >= startH && h < endH) {
                             if (b.duration >= 10) {
-                                // task가 존재하고 키워드 포함 시 true
                                 return b.task && keywords.some(k => b.task.includes(k));
                             }
                         }
@@ -249,11 +253,13 @@
                 const mealKeywords = ['식사'];
                 const walkKeywords = ['산책'];
                 const recordKeywords = ['기록'];
+                const hygieneKeywords = ['위생관리'];
 
                 setMissions({
                     // Morning (06-12)
                     morningMeal: checkStatus(6, 12, mealKeywords),
                     morningWalk: checkStatus(6, 12, walkKeywords),
+                    morningHygiene: checkStatus(6, 12, hygieneKeywords), // 추가됨
                     
                     // Afternoon (12-18)
                     afternoonMeal: checkStatus(12, 18, mealKeywords),
@@ -261,6 +267,7 @@
                     
                     // Night (18-24)
                     nightMeal: checkStatus(18, 24, mealKeywords),
+                    nightWalk: checkStatus(18, 24, walkKeywords), // 추가됨
                     nightRecord: checkStatus(18, 24, recordKeywords)
                 });
 
@@ -382,7 +389,7 @@
                                         <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
                                     </div>
                                     
-                                    {/* Indicators: 식사(위) -> 산책(아래) */}
+                                    {/* Indicators: 식사 -> 산책 -> 위생 */}
                                     <div className="absolute right-0.5 top-0.5 flex flex-col items-end gap-1 z-20">
                                         <div className={`flex items-center gap-1 transition-all duration-500 ${missions.morningMeal ? 'opacity-100' : 'opacity-20'}`}>
                                             <IconUtensils className={`w-3 h-3 ${missions.morningMeal ? 'drop-shadow-[0_0_8px_rgba(216,180,254,1)]' : ''}`} color="#d8b4fe" fill={missions.morningMeal} />
@@ -391,6 +398,10 @@
                                         <div className={`flex items-center gap-1 transition-all duration-500 ${missions.morningWalk ? 'opacity-100' : 'opacity-20'}`}>
                                             <IconSparkle className={`w-3 h-3 ${missions.morningWalk ? 'drop-shadow-[0_0_8px_rgba(216,180,254,1)]' : ''}`} color="#d8b4fe" fill={missions.morningWalk} />
                                             <span className={`text-[9px] font-bold ${missions.morningWalk ? 'text-purple-300' : 'text-white'}`}>산책</span>
+                                        </div>
+                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.morningHygiene ? 'opacity-100' : 'opacity-20'}`}>
+                                            <IconDroplets className={`w-3 h-3 ${missions.morningHygiene ? 'drop-shadow-[0_0_8px_rgba(216,180,254,1)]' : ''}`} color="#d8b4fe" fill={missions.morningHygiene} />
+                                            <span className={`text-[9px] font-bold ${missions.morningHygiene ? 'text-purple-300' : 'text-white'}`}>위생</span>
                                         </div>
                                     </div>
                                 </div>
@@ -416,15 +427,19 @@
                                         <span className="text-[11px] font-bold text-sky-300 tracking-wide uppercase">Afternoon</span>
                                     </div>
 
-                                    {/* Indicators: 식사(위) -> 산책(아래) */}
+                                    {/* Indicators: 식사 -> 산책 -> 기록 */}
                                     <div className="absolute right-0.5 top-0.5 flex flex-col items-end gap-1 z-20">
-                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.afternoonMeal ? 'opacity-100' : 'opacity-20'}`}>
-                                            <IconUtensils className={`w-3 h-3 ${missions.afternoonMeal ? 'drop-shadow-[0_0_8px_rgba(125,211,252,1)]' : ''}`} color="#7dd3fc" fill={missions.afternoonMeal} />
-                                            <span className={`text-[9px] font-bold ${missions.afternoonMeal ? 'text-sky-300' : 'text-white'}`}>식사</span>
+                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.nightMeal ? 'opacity-100' : 'opacity-20'}`}>
+                                            <IconUtensils className={`w-3 h-3 ${missions.nightMeal ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} color="#fef08a" fill={missions.nightMeal} />
+                                            <span className={`text-[9px] font-bold ${missions.nightMeal ? 'text-yellow-200' : 'text-white'}`}>식사</span>
                                         </div>
-                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.afternoonWalk ? 'opacity-100' : 'opacity-20'}`}>
-                                            <IconSparkle className={`w-3 h-3 ${missions.afternoonWalk ? 'drop-shadow-[0_0_8px_rgba(125,211,252,1)]' : ''}`} color="#7dd3fc" fill={missions.afternoonWalk} />
-                                            <span className={`text-[9px] font-bold ${missions.afternoonWalk ? 'text-sky-300' : 'text-white'}`}>산책</span>
+                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.nightWalk ? 'opacity-100' : 'opacity-20'}`}>
+                                            <IconSparkle className={`w-3 h-3 ${missions.nightWalk ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} color="#fef08a" fill={missions.nightWalk} />
+                                            <span className={`text-[9px] font-bold ${missions.nightWalk ? 'text-yellow-200' : 'text-white'}`}>산책</span>
+                                        </div>
+                                        <div className={`flex items-center gap-1 transition-all duration-500 ${missions.nightRecord ? 'opacity-100' : 'opacity-20'}`}>
+                                            <IconPen className={`w-3 h-3 ${missions.nightRecord ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} color="#fef08a" fill={missions.nightRecord} />
+                                            <span className={`text-[9px] font-bold ${missions.nightRecord ? 'text-yellow-200' : 'text-white'}`}>기록</span>
                                         </div>
                                     </div>
                                 </div>
