@@ -25,24 +25,26 @@
         }
         
         .widget-container {
-            position: relative;
-            width: 430px;
-            background: rgba(255, 255, 255, 0.45);
-            backdrop-filter: blur(25px);
-            border-radius: 20px;
-            
-            /* [수정] 테두리도 푸른빛 제거 -> 흰색 계열로 통일 */
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            
-            /* [수정] 그림자 색상도 톤 맞춤 (선택사항) */
-            box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
-            
-            display: flex;
-            flex-direction: row;
-            overflow: hidden;
-            color: #334155;
-        }
+    /* [복구] 골 위젯은 세로로 쌓여야 하므로 width 고정 */
+    width: 440px; 
+    
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(25px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
 
+    /* [핵심 수정] row(가로배치) -> column(세로쌓기) */
+    display: flex;
+    flex-direction: column; 
+
+    /* [복구] 내부 여백과 간격 다시 살리기 (압축 버전) */
+    padding: 12px 20px;
+    gap: 6px;
+    
+    overflow: hidden;
+    color: #334155;
+}
         .section-title {
             font-size: 11px;
     font-weight: 700;
