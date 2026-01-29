@@ -373,17 +373,31 @@
                         <div className="flex-1 h-full flex flex-col">
                             
                             {/* MORNING */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col overflow-hidden group">
+                            <div className="flex-1 w-full relative p-3 overflow-hidden group">
                                 <div className="absolute inset-0 bg-purple-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
                                 
-                                <div className="relative z-10 flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <IconSun className="w-3.5 h-3.5" color="#d8b4fe" />
-                                        <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
-                                    </div>
+                                {/* [수정됨] 좌우 분할 레이아웃 적용 */}
+                                <div className="relative z-10 flex flex-row justify-between h-full">
                                     
-                                    {/* Indicators: 식사(위) -> 산책(아래) */}
-                                    <div className="flex flex-col items-end gap-1">
+                                    {/* 왼쪽 기둥 (제목+텍스트) : 너비 75% 제한 */}
+                                    <div className="flex flex-col w-[75%]">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <IconSun className="w-3.5 h-3.5" color="#d8b4fe" />
+                                            <span className="text-[11px] font-bold text-purple-300 tracking-wide uppercase">Morning</span>
+                                        </div>
+                                        <div className="space-y-1.5 pl-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-purple-100 drop-shadow-md leading-tight">보컬로이드 & 환기</span>
+                                                <span className="text-[10px] text-purple-100/90 drop-shadow-sm leading-tight">산책/샤워/독서</span>
+                                            </div>
+                                            <div className="mt-0.5">
+                                                <span className="text-[10px] font-bold text-purple-100/80 drop-shadow-sm">골든타임: 한자/영어</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 오른쪽 기둥 (아이콘) */}
+                                    <div className="flex flex-col items-end gap-1 mt-0.5">
                                         <div className={`flex items-center gap-1 transition-all duration-500 ${missions.morningMeal ? 'opacity-100' : 'opacity-20'}`}>
                                             <IconUtensils className={`w-3 h-3 ${missions.morningMeal ? 'drop-shadow-[0_0_8px_rgba(216,180,254,1)]' : ''}`} color="#d8b4fe" fill={missions.morningMeal} />
                                             <span className={`text-[9px] font-bold ${missions.morningMeal ? 'text-purple-300' : 'text-white'}`}>식사</span>
@@ -394,30 +408,34 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="relative z-10 space-y-1.5 pl-1">
-                                    <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-purple-100 drop-shadow-md leading-tight">보컬로이드 & 환기</span>
-                                        <span className="text-[10px] text-purple-100/90 drop-shadow-sm leading-tight">산책/샤워/독서</span>
-                                    </div>
-                                    <div className="mt-0.5">
-                                        <span className="text-[10px] font-bold text-purple-100/80 drop-shadow-sm">골든타임: 한자/영어</span>
-                                    </div>
-                                </div>
                             </div>
 
                             {/* AFTERNOON */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
+                            <div className="flex-1 w-full relative p-3 border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-sky-300 opacity-[0.25] group-hover:opacity-[0.35] transition-opacity"></div>
                                 
-                                <div className="relative z-10 flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
-                                        <span className="text-[11px] font-bold text-sky-300 tracking-wide uppercase">Afternoon</span>
+                                {/* [수정됨] 좌우 분할 레이아웃 */}
+                                <div className="relative z-10 flex flex-row justify-between h-full">
+                                    
+                                    {/* 왼쪽 (제목+텍스트) */}
+                                    <div className="flex flex-col w-[75%]">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <IconCloudSun className="w-3.5 h-3.5" color="#7dd3fc" />
+                                            <span className="text-[11px] font-bold text-sky-300 tracking-wide uppercase">Afternoon</span>
+                                        </div>
+                                        <div className="space-y-1.5 pl-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-sky-100 drop-shadow-md leading-tight">Rock/Metal & 저염식</span>
+                                                <span className="text-[10px] text-sky-100/90 drop-shadow-sm leading-tight">수업 준비/상담</span>
+                                            </div>
+                                            <div className="mt-0.5">
+                                                <span className="text-[10px] text-sky-100/70 drop-shadow-sm font-medium">임시 (15-17)</span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Indicators: 식사(위) -> 산책(아래) */}
-                                    <div className="flex flex-col items-end gap-1">
+                                    {/* 오른쪽 (아이콘) */}
+                                    <div className="flex flex-col items-end gap-1 mt-0.5">
                                         <div className={`flex items-center gap-1 transition-all duration-500 ${missions.afternoonMeal ? 'opacity-100' : 'opacity-20'}`}>
                                             <IconUtensils className={`w-3 h-3 ${missions.afternoonMeal ? 'drop-shadow-[0_0_8px_rgba(125,211,252,1)]' : ''}`} color="#7dd3fc" fill={missions.afternoonMeal} />
                                             <span className={`text-[9px] font-bold ${missions.afternoonMeal ? 'text-sky-300' : 'text-white'}`}>식사</span>
@@ -428,30 +446,34 @@
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="relative z-10 space-y-1.5 pl-1">
-                                    <div className="flex flex-col">
-                                        <span className="text-[11px] font-bold text-sky-100 drop-shadow-md leading-tight">Rock/Metal & 저염식</span>
-                                        <span className="text-[10px] text-sky-100/90 drop-shadow-sm leading-tight">수업 준비/상담</span>
-                                    </div>
-                                    <div className="mt-0.5">
-                                        <span className="text-[10px] text-sky-100/70 drop-shadow-sm font-medium">임시 (15-17)</span>
-                                    </div>
-                                </div>
                             </div>
 
                             {/* NIGHT */}
-                            <div className="flex-1 w-full relative p-3 flex flex-col border-t border-white/80 overflow-hidden group">
+                            <div className="flex-1 w-full relative p-3 border-t border-white/80 overflow-hidden group">
                                 <div className="absolute inset-0 bg-yellow-200 opacity-[0.3] group-hover:opacity-[0.4] transition-opacity"></div>
                                 
-                                <div className="relative z-10 flex items-start justify-between mb-2">
-                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                        <IconStar className="w-3.5 h-3.5" color="#fef08a" />
-                                        <span className="text-[11px] font-bold text-yellow-200 tracking-wide uppercase">Night</span>
+                                {/* [수정됨] 좌우 분할 레이아웃 */}
+                                <div className="relative z-10 flex flex-row justify-between h-full">
+                                    
+                                    {/* 왼쪽 (제목+텍스트) */}
+                                    <div className="flex flex-col w-[75%]">
+                                        <div className="flex items-center gap-1.5 mb-2">
+                                            <IconStar className="w-3.5 h-3.5" color="#fef08a" />
+                                            <span className="text-[11px] font-bold text-yellow-200 tracking-wide uppercase">Night</span>
+                                        </div>
+                                        <div className="space-y-1.5 pl-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-yellow-100 drop-shadow-md leading-tight">Jazz & 주황 조명</span>
+                                                <span className="text-[10px] text-yellow-100/90 drop-shadow-sm leading-tight">자기돌봄/일기</span>
+                                            </div>
+                                            <div className="mt-0.5">
+                                                <span className="text-[10px] font-bold text-yellow-100/80 drop-shadow-sm">23:00 취침</span>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Indicators: 식사(위) -> 기록(아래) */}
-                                    <div className="flex flex-col items-end gap-1">
+                                    {/* 오른쪽 (아이콘) */}
+                                    <div className="flex flex-col items-end gap-1 mt-0.5">
                                         <div className={`flex items-center gap-1 transition-all duration-500 ${missions.nightMeal ? 'opacity-100' : 'opacity-20'}`}>
                                             <IconUtensils className={`w-3 h-3 ${missions.nightMeal ? 'drop-shadow-[0_0_8px_rgba(254,240,138,1)]' : ''}`} color="#fef08a" fill={missions.nightMeal} />
                                             <span className={`text-[9px] font-bold ${missions.nightMeal ? 'text-yellow-200' : 'text-white'}`}>식사</span>
@@ -462,6 +484,8 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
                                 <div className="relative z-10 space-y-1.5 pl-1">
                                     <div className="flex flex-col">
