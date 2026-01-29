@@ -204,33 +204,26 @@
             useEffect(() => {
                 // Helper to check range and keywords
                 const checkStatus = (startH, endH, keywords) => {
-                    // Check Calendar Events
+                    // 1. 캘린더/노션 데이터 체크 (이벤트 제목에 키워드가 포함되는지)
                     const hasEvent = events.some(ev => {
                         const evTime = new Date(ev.startTime);
                         const h = evTime.getHours();
                         if (!isToday(evTime)) return false;
                         if (h >= startH && h < endH) {
-                            // Check title for keywords
                             return keywords.some(k => ev.title && ev.title.includes(k));
                         }
                         return false;
                     });
 
-                    // Check Local Blocks (Focus Timer)
-                    // Assumption: Blocks might have 'category' (e.g. '건강') or 'quality' related to exercise
+                    // 2. 로컬 블록(타이머) 데이터 체크 (여기도 키워드 검사 추가!)
                     const hasBlock = blocks.some(b => {
                         const bTime = new Date(b.startTime);
                         const h = bTime.getHours();
                         if (h >= startH && h < endH) {
-                            // Duration > 9 mins (approx 10 min walk)
+                            // 10분 이상이면서, task(제목)에 키워드가 포함되어야 함
                             if (b.duration >= 10) {
-                                // If category is '건강' (Health) or title contains keywords
-                                // Note: timeline_block uses color codes for categories. 
-                                // Yellow usually '건강' in user's system, but we check generically.
-                                // Or purely rely on 'Task' being recorded.
-                                return true; // Any >10min focus block in this time counts as 'Activity'?
-                                             // Let's be stricter: user explicitly said "Walk".
-                                             // Assuming user labels focus blocks or calendar events.
+                                // b.task가 존재하고, 키워드가 포함된 경우만 true
+                                return b.task && keywords.some(k => b.task.includes(k));
                             }
                         }
                         return false;
@@ -239,7 +232,7 @@
                     return hasEvent || hasBlock;
                 };
 
-                // [수정됨] 정확한 키워드 매칭을 위해 배열 축소
+                // [설정] 정확한 키워드 (이 글자가 포함되어야만 켜짐)
                 const walkKeywords = ['산책(전환행동)'];
                 const recordKeywords = ['기록(휴식행동)'];
 
