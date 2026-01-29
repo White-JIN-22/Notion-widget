@@ -25,60 +25,56 @@
         }
         
         .widget-container {
-    /* [복구] 골 위젯은 세로로 쌓여야 하므로 width 고정 */
-    width: 440px;
-    height: 310px;
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(25px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
-
-    /* [핵심 수정] row(가로배치) -> column(세로쌓기) */
-    display: flex;
-    flex-direction: column; 
-
-    /* [복구] 내부 여백과 간격 다시 살리기 (압축 버전) */
-    padding: 17px 20px;
-    gap: 6px;
-    
-    overflow: hidden;
-    color: #334155;
-}
-        .section-title {
-            font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    /* [수정] 마진 8px -> 4px */
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-        }
-
-        /* Custom Progress Bar */
-        .progress-bg {
-            height: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 99px;
+            width: 440px;
+            height: 310px; /* 높이 고정 */
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 40px rgba(216, 180, 254, 0.1);
+            display: flex;
+            flex-direction: column; 
+            padding: 16px 20px;
+            gap: 10px; /* 간격 조정 */
             overflow: hidden;
-            position: relative;
+            color: #334155;
         }
-        .progress-fill {
-            height: 100%;
-            border-radius: 99px;
-            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* Glass Cards */
         .glass-card {
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 16px;
-    /* [수정] 패딩 12px -> 8px, 좌우 14px로 미세 조정 */
-    padding: 8px 14px;
-}
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 14px;
+            padding: 10px 14px;
+            flex: 1; /* 남은 공간 균등 분배 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* 그리드 아이템 스타일 */
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .item-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
     
     <script>
@@ -87,9 +83,9 @@
                 extend: {
                     colors: {
                         purple: { 300: '#d8b4fe', 100: '#f3e8ff' },
-                        sky: { 300: '#7dd3fc', 100: '#e0f2fe' },
-                        yellow: { 200: '#fef08a', 100: '#fef9c3' },
-                        slate: { 400: '#94a3b8', 50: '#f8fafc' }
+                        sky: { 300: '#7dd3fc', 100: '#e0f2fe', 500: '#0ea5e9' },
+                        yellow: { 200: '#fef08a', 400: '#facc15' },
+                        slate: { 400: '#94a3b8', 600: '#475569' }
                     }
                 }
             }
@@ -102,7 +98,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ★ 워커 주소를 여기에 입력하세요!
+        // ★ 워커 주소
         const WORKER_URL = "https://project-worker.moonkelly601.workers.dev"; 
 
         const GoalWidget = () => {
@@ -110,93 +106,90 @@
             const [loading, setLoading] = useState(true);
 
             useEffect(() => {
-                const fetchData = async () => {
-                    try {
-                        // [수정] 실제 워커와 통신 시작
-                        const res = await fetch(WORKER_URL);
-                        const json = await res.json();
-                        
+                fetch(WORKER_URL)
+                    .then(res => res.json())
+                    .then(json => {
                         setData(json);
-                        setLoading(false); // [중요] 로딩 상태 해제
-
-                    } catch (e) {
-                        console.error("데이터 로딩 실패:", e);
-                        setLoading(false); // 에러가 나도 로딩은 꺼줌
-                    }
-                };
-                fetchData();
+                        setLoading(false);
+                    })
+                    .catch(e => setLoading(false));
             }, []);
 
-            if (loading) return <div className="widget-container items-center justify-center opacity-70"><div className="text-sm font-medium text-slate-400">Loading System...</div></div>;
+            if (loading) return <div className="widget-container items-center justify-center"><div className="text-xs text-slate-400">Syncing...</div></div>;
             if (!data) return <div className="widget-container">Error</div>;
 
-            const { goals, progress, feedback } = data;
+            const { goals, monthly, weekly, feedback } = data;
             
             return (
                 <div className="widget-container">
                     
-                    {/* 1. Annual Keywords (Purple - Priority 1) */}
-                    <div>
-                        <div className="section-title text-purple-300">
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            2026 Main Theme
+                    {/* 1. Annual Keyword Only (No Label) */}
+                    <div className="flex gap-2 shrink-0">
+                        {goals.keywords.map((k, i) => (
+                            <div key={i} className="flex-1 bg-purple-100/60 border border-purple-300/40 rounded-lg py-1.5 px-2 text-center shadow-sm">
+                                <span className="text-[11px] font-bold text-slate-600 block">{k}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* 2. Monthly Goal (Blue Theme - 6 Grid) */}
+                    <div className="glass-card bg-sky-50/30 border-sky-200/40">
+                        <div className="section-title text-sky-500">
+                            Monthly Objective
                         </div>
-                        <div className="flex gap-2">
-                            {goals.keywords.map((k, i) => (
-                                <div key={i} className="flex-1 bg-purple-100/50 border border-purple-300/30 rounded-xl py-2 px-1 text-center">
-                                    <span className="text-[12px] font-bold text-slate-600 word-keep-all block">{k}</span>
+                        {/* 2열 그리드 배치 */}
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            {monthly.map((item, i) => (
+                                <div key={i} className="grid-item">
+                                    <div className="item-label">
+                                        <span>{item.label}</span>
+                                        <span className="text-sky-600 font-bold">{item.percent}%</span>
+                                    </div>
+                                    <div className="h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-sky-400 rounded-full transition-all duration-1000"
+                                            style={{ width: `${item.percent}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 2. Monthly Goal (Sky Blue - Priority 2) */}
-            <div className="glass-card bg-sky-100/20 border-sky-300/40">
-                <div className="flex justify-between items-end mb-1">
-                    <div className="section-title text-sky-300 mb-0">Monthly Objective</div>
-                    {/* [수정] 퍼센트 텍스트 삭제됨 */}
-                </div>
-                <div className="text-sm font-medium text-slate-700 mb-2">{goals.monthly.text}</div>
-                
-                {/* [수정] 에너지 바 형태: 10칸 분할, 높이 얇게(h-1.5), 10%당 1칸 */}
-                <div className="flex gap-1">
-                    {[...Array(10)].map((_, i) => (
-                        <div key={i} className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
-                            i < Math.round(progress.percent / 10) 
-                            ? 'bg-sky-300 shadow-[0_0_6px_rgba(125,211,252,0.8)]' 
-                            : 'bg-slate-200/50'
-                        }`}></div>
-                    ))}
-                </div>
-            </div>
-
-            {/* 3. Weekly Goal (Yellow - Priority 3) */}
-            <div className="glass-card bg-yellow-100/20 border-yellow-200/60">
-                <div className="section-title text-yellow-200/90" style={{ color:'#dcb028' }}>Weekly Focus</div>
-                <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-slate-700">{goals.weekly.text}</span>
-                    <div className="flex gap-1">
-                        {[...Array(7)].map((_, i) => (
-                            <div key={i} className={`w-2 h-6 rounded-sm transition-all duration-500 ${
-                                i < Math.round((progress.percent / 100) * 7) 
-                                ? 'bg-yellow-200 shadow-[0_0_5px_rgba(253,224,71,0.6)]' 
-                                : 'bg-slate-200/50'
-                            }`}></div>
-                        ))}
+                    {/* 3. Weekly Focus (Yellow Theme - 6 Grid) */}
+                    <div className="glass-card bg-yellow-50/30 border-yellow-200/50">
+                        <div className="section-title text-yellow-500" style={{ color:'#d97706' }}>
+                            Weekly Focus
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                            {weekly.map((item, i) => (
+                                <div key={i} className="grid-item">
+                                    <div className="item-label">
+                                        <span>{item.label}</span>
+                                        <span className="text-yellow-600 font-bold">{item.percent}%</span>
+                                    </div>
+                                    <div className="h-1.5 bg-slate-200/50 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-yellow-400 rounded-full transition-all duration-1000"
+                                            style={{ width: `${item.percent}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* 4. AI Feedback */}
-            {/* [수정] p-4 -> p-2.5 */}
-            <div className="bg-gradient-to-r from-purple-100/40 to-sky-100/40 rounded-xl p-2.5 border border-white/60 flex gap-3 items-start shadow-sm">
-                <div className="w-6 h-6 rounded-full bg-white flex-shrink-0 flex items-center justify-center mt-0.5 shadow-sm">
-                    <span className="text-[12px]">🤖</span>
-                </div>
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    {feedback}
-                </p>
-            </div>
+                    {/* 4. AI Feedback (Speech Bubble) */}
+                    <div className="bg-white/40 rounded-xl p-2.5 border border-white/60 flex gap-2.5 items-center shadow-sm shrink-0">
+                        {/* 말풍선 아이콘 */}
+                        <div className="text-purple-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-snug font-medium line-clamp-2">
+                            {feedback}
+                        </p>
+                    </div>
+
                 </div>
             );
         };
