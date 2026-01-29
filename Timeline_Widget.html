@@ -265,10 +265,10 @@
                 const readingKeywords = ['독서']; // 추가됨
 
                 setMissions({
-                    // Morning (06-12)
-                    morningMeal: checkStatus(6, 12, mealKeywords),
-                    morningWalk: checkStatus(6, 12, walkKeywords),
-                    morningHygiene: checkStatus(6, 12, hygieneKeywords),
+                    // Morning (00-12) : 0시부터 12시까지 감지
+                    morningMeal: checkStatus(0, 12, mealKeywords),
+                    morningWalk: checkStatus(0, 12, walkKeywords),
+                    morningHygiene: checkStatus(0, 12, hygieneKeywords),
                     
                     // Afternoon (12-18) : 식사 -> 산책 -> 독서
                     afternoonMeal: checkStatus(12, 18, mealKeywords),
