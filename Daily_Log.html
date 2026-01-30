@@ -1612,26 +1612,28 @@
                                 </div>
 
                                 {/* 2. 중단: 상태바 */}
-                                <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
-                                    {/* 왼쪽: 에너지 상태 */}
-                                    {/* [수정] gap-3 -> gap-6 로 변경하여 생활에너지를 우측으로 밈 */}
-                                    <div className="flex items-center gap-6">
-                                        {/* 에너지(Zap): 항상 하늘색(text-sky-300), 10 이하일 때만 깜빡임 */}
-                                        <div className={`flex items-center gap-1 transition-colors text-sky-300 ${energy <= 10 ? 'animate-pulse' : ''}`}>
-                                            <Icons.Zap className="w-4 h-4"/>
-                                            <span>
-                                                {energy <= 10 ? "충전 필요" : `${energy}%`}
-                                            </span>
-                                        </div>
-                                        
-                                        {/* 생활 에너지(Heart): 항상 연보라색(text-purple-300), 10 이하일 때만 깜빡임 */}
-                                        <div className={`flex items-center gap-1 transition-colors text-purple-300 ${lifeEnergy <= 10 ? 'animate-pulse' : ''}`}>
-                                            <Icons.Heart className="w-4 h-4"/>
-                                            <span>
-                                                {lifeEnergy <= 10 ? "생활 정비" : `${lifeEnergy}%`}
-                                            </span>
-                                        </div>
-                                    </div>
+<div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
+    {/* 왼쪽: 에너지 상태 */}
+    <div className="flex items-center gap-6">
+        {/* 에너지(Zap) */}
+        <div className={`flex items-center gap-1 transition-colors text-sky-300 ${energy <= 10 ? 'animate-pulse' : ''}`}>
+            <Icons.Zap className="w-4 h-4"/>
+            {/* ▼ 여기 수정됨: className="whitespace-nowrap" 추가 */}
+            <span className="whitespace-nowrap">
+                {energy <= 10 ? "충전 필요" : `${energy}%`}
+            </span>
+        </div>
+        
+        {/* 생활 에너지(Heart) */}
+        <div className={`flex items-center gap-1 transition-colors text-purple-300 ${lifeEnergy <= 10 ? 'animate-pulse' : ''}`}>
+            <Icons.Heart className="w-4 h-4"/>
+            {/* ▼ 여기 수정됨: className="whitespace-nowrap" 추가 */}
+            <span className="whitespace-nowrap">
+                {lifeEnergy <= 10 ? "생활 정비" : `${lifeEnergy}%`}
+            </span>
+        </div>
+    </div>
+    
                                     {/* 오른쪽: 기상/취침 시간 (아이콘 고정) */}
                                     <div className="flex-1 text-right flex flex-col justify-center items-end h-full">
                                         {/* 기상 시간: 값이 없으면 투명한 '00'을 넣어 자리만 차지하게 함 */}
