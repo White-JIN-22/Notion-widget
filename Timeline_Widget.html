@@ -222,10 +222,15 @@
                     // 워커가 보내준 blocks 데이터를 위젯의 상태에 반영
                     if (data.blocks && Array.isArray(data.blocks)) {
                         setBlocks(data.blocks);
-                    }
-                }
-            } catch (e) { console.error("Fetch Error:", e); }
-        };
+                        // ★ [추가] 가져온 데이터를 로컬 저장소에도 넣어줘야 3초마다 지워지지 않음
+                localStorage.setItem('fortressData', JSON.stringify({
+                    date: new Date().toDateString(),
+                    blocks: data.blocks
+                }));
+            }
+        }
+    } catch (e) { console.error("Fetch Error:", e); }
+};
 
             useEffect(() => {
                 loadLocalData();
