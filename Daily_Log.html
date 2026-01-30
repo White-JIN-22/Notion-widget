@@ -428,11 +428,12 @@
                 { id: 'r_social', name: '사교', recovery: 15, icon: 'Message', color: 'text-sky-300' },
                 { id: 'gap_r3', gap: true },
 
-                // 3행: 낮잠, 딥 슬립, (공란), (공란)
+                // 3행: 낮잠, (나머지 공란 처리)
                 { id: 'r2', name: '낮잠', recovery: 30, icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r4', name: '딥 슬립', recovery: 50, icon: 'Moon', color: 'text-slate-400' }, 
-                { id: 'gap_r4', gap: true },
+                // ★ [삭제됨] 딥 슬립 버튼 제거
+                { id: 'gap_r4', gap: true }, 
                 { id: 'gap_r5', gap: true },
+                { id: 'gap_r6', gap: true },
             ];
             
             const hours24 = Array.from({length: 24}, (_, i) => i);
@@ -1544,39 +1545,40 @@
 <div className="flex justify-between items-center">
     <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Daily Log</h1>
     <div className="flex gap-2 items-center"> 
-        {/* [왼쪽] 기상 시간 버튼 (해) */}
-        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
-            <Icons.Sun className="w-4 h-4" />
-        </button>
+                                        {/* [왼쪽] 기상 시간 버튼 (해) */}
+                                        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
+                                            <Icons.Sun className="w-4 h-4" />
+                                        </button>
 
-        {/* ★ [부활] 시스템 종료 버튼 (딥 슬립 즉시 기록) */}
-        <button 
-            onClick={() => {
-                // 딥 슬립 데이터(r4)를 찾아서, 현재 시간으로 즉시 기록
-                const deepSleep = restOptions.find(r => r.id === 'r4');
-                if (deepSleep) {
-                    addRecord(null, 'manual-rest', deepSleep, Date.now());
-                }
-            }} 
-            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-purple-300 hover:text-purple-100 hover:bg-purple-500/20 transition-all shadow-sm group"
-        >
-            {/* 달 아이콘: 평소엔 보라색, 호버 시 밝아짐 */}
-            <Icons.Moon className="w-4 h-4" />
-        </button>
-        
-        {/* [오른쪽] 동기화 버튼 */}
-        <button 
-            onClick={manualSync} 
-            disabled={isSending} 
-            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
-        >
-            {isSending ? (
-                <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
-            ) : (
-                <Icons.Refresh className="w-4 h-4" /> 
-            )}
-        </button>
-    </div>
+                                        {/* ★ [New] 시스템 종료 버튼 (딥 슬립) */}
+                                        {/* 클릭 시: 회복량 0, 이름은 '딥 슬립', 현재 시간으로 즉시 저장 */}
+                                        <button 
+                                            onClick={() => {
+                                                addRecord(
+                                                    null, 
+                                                    'manual-rest', 
+                                                    { name: '딥 슬립', icon: 'Moon', color: 'text-slate-400', recovery: 0 }, 
+                                                    Date.now()
+                                                );
+                                            }} 
+                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-purple-300 hover:text-purple-100 hover:bg-purple-500/20 transition-all shadow-sm group"
+                                        >
+                                            <Icons.Moon className="w-4 h-4" />
+                                        </button>
+                                        
+                                        {/* [오른쪽] 동기화 버튼 */}
+                                        <button 
+                                            onClick={manualSync} 
+                                            disabled={isSending} 
+                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
+                                        >
+                                            {isSending ? (
+                                                <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
+                                            ) : (
+                                                <Icons.Refresh className="w-4 h-4" /> 
+                                            )}
+                                        </button>
+                                    </div>
 </div>
 
                                 {/* 2. 중단: 상태바 */}
