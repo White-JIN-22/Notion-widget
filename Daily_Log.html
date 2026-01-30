@@ -1540,33 +1540,44 @@
                 <div className="widget-container">
                     {toast && <div className="toast-message">{toast}</div>}
 
-                    <div className="header-section">
-                        <div className="flex justify-between items-start">
-                            <div className="w-full">
-                                {/* 1. 상단: 제목 + 버튼들 */}
-                                <div className="flex justify-between items-center">
-                                    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Daily Log</h1>
-                                    <div className="flex gap-2 items-center"> 
-                                        {/* [왼쪽] 기상 시간 버튼 (해) */}
-<button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
-    <Icons.Sun className="w-4 h-4" />
-</button>
-                                        
-                                        {/* [오른쪽] 동기화 버튼 (변경됨) */}
-                                        <button 
-                                            onClick={manualSync} 
-                                            disabled={isSending} 
-                                            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
-                                        >
-                                            {isSending ? (
-                                                <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
-                                            ) : (
-                                                <Icons.Refresh className="w-4 h-4" /> 
-                                                /* Cloud 아이콘 대신 Refresh 아이콘 추천 (의미 명확화) */
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
+                    {/* 1. 상단: 제목 + 버튼들 */}
+<div className="flex justify-between items-center">
+    <h1 className="text-lg font-bold text-bright tracking-tight font-serif">Daily Log</h1>
+    <div className="flex gap-2 items-center"> 
+        {/* [왼쪽] 기상 시간 버튼 (해) */}
+        <button onClick={openWakeUpModal} className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:text-white hover:bg-white/20 transition-all shadow-sm">
+            <Icons.Sun className="w-4 h-4" />
+        </button>
+
+        {/* ★ [부활] 시스템 종료 버튼 (딥 슬립 즉시 기록) */}
+        <button 
+            onClick={() => {
+                // 딥 슬립 데이터(r4)를 찾아서, 현재 시간으로 즉시 기록
+                const deepSleep = restOptions.find(r => r.id === 'r4');
+                if (deepSleep) {
+                    addRecord(null, 'manual-rest', deepSleep, Date.now());
+                }
+            }} 
+            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-purple-300 hover:text-purple-100 hover:bg-purple-500/20 transition-all shadow-sm group"
+        >
+            {/* 달 아이콘: 평소엔 보라색, 호버 시 밝아짐 */}
+            <Icons.Moon className="w-4 h-4" />
+        </button>
+        
+        {/* [오른쪽] 동기화 버튼 */}
+        <button 
+            onClick={manualSync} 
+            disabled={isSending} 
+            className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all shadow-sm"
+        >
+            {isSending ? (
+                <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
+            ) : (
+                <Icons.Refresh className="w-4 h-4" /> 
+            )}
+        </button>
+    </div>
+</div>
 
                                 {/* 2. 중단: 상태바 */}
 <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
