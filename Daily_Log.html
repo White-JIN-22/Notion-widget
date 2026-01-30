@@ -595,10 +595,6 @@
                 } catch (e) { console.error("Sync Load Error:", e); }
             };
 
-                window.addEventListener('storage', handleStorageChange);
-                return () => window.removeEventListener('storage', handleStorageChange);
-            }, []);
-
             // [보완됨] 초기 로딩 및 인트로 결정 로직
             useEffect(() => {
                 const today = new Date().toDateString();
