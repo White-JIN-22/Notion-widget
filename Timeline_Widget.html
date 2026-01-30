@@ -240,31 +240,36 @@
 
             // 4. Mission Checking Logic (Strict Matching)
             useEffect(() => {
-                // Helper
-                const checkStatus = (startH, endH, keywords) => {
-                    const hasEvent = events.some(ev => {
-                        const evTime = new Date(ev.startTime);
-                        const h = evTime.getHours();
-                        if (!isToday(evTime)) return false;
-                        if (h >= startH && h < endH) {
-                            return keywords.some(k => ev.title && ev.title.includes(k));
-                        }
-                        return false;
-                    });
+const checkStatus = (startH, endH, keywords) => {
+    // 1. 캘린더 이벤트 확인 (기존 로직 유지)
+    const hasEvent = events.some(ev => {
+        const evTime = new Date(ev.startTime);
+        const h = evTime.getHours();
+        if (!isToday(evTime)) return false;
+        if (h >= startH && h < endH) {
+            return keywords.some(k => ev.title && ev.title.includes(k));
+        }
+        return false;
+    });
 
-                    const hasBlock = blocks.some(b => {
-                        const bTime = new Date(b.startTime);
-                        const h = bTime.getHours();
-                        if (h >= startH && h < endH) {
-                            if (b.duration >= 10) {
-                                return b.task && keywords.some(k => b.task.includes(k));
-                            }
-                        }
-                        return false;
-                    });
+    // 2. 노션 블록(RawData) 확인 (수정된 부분)
+    const hasBlock = blocks.some(b => {
+        const bTime = new Date(b.startTime);
+        const h = bTime.getHours();
+        if (h >= startH && h < endH) {
+            // 10분 이상 지속된 활동만 인정
+            if (b.duration >= 10) {
+                // ★ 핵심 수정: b.task -> b.name (혹은 b.memo) 확인
+                // 스크린샷의 RawData에 "name":"식사"로 되어 있으므로 b.name을 봐야 함
+                const content = b.name || b.memo || ""; 
+                return keywords.some(k => content.includes(k));
+            }
+        }
+        return false;
+    });
 
-                    return hasEvent || hasBlock;
-                };
+    return hasEvent || hasBlock;
+};
 
                 // 키워드 정의
                 const mealKeywords = ['식사'];
