@@ -53,9 +53,6 @@
     overflow: hidden;
 }
 
-/* [추가] index.html과 동일한 노란색 */
-.text-yellow-100 { color: #fef9c3; }
-
         .header-section {
             /* [수정] 여백 축소 */
             padding: 16px 20px 12px 20px;
@@ -414,7 +411,7 @@
                         <h1 className="text-xl font-bold font-serif text-white tracking-tight">Daily Log</h1>
                        <div className="flex gap-2">
         {/* [왼쪽] 기상 시간 버튼 (해) - 기존 유지 */}
-        <button onClick={handleWakeUp} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20">
+        <button onClick={handleWakeUp} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white shadow-sm active:scale-95 transition-transform hover:bg-white/20">
             <Icons.Sun className="w-4 h-4" />
         </button>
         
@@ -431,7 +428,7 @@
                 });
                 triggerToast("🌙 딥 슬립 기록 (하루 마감)");
             }} 
-            className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20"
+            className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white shadow-sm active:scale-95 transition-transform hover:bg-white/20"
         >
             <Icons.Moon className="w-4 h-4" />
         </button>
