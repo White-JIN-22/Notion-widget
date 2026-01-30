@@ -595,23 +595,6 @@
                 } catch (e) { console.error("Sync Load Error:", e); }
             };
 
-            useEffect(() => {
-                const handleStorageChange = (e) => {
-                    if (e.key === 'fortressData' && e.newValue) {
-                        try {
-                            const newData = JSON.parse(e.newValue);
-                            if (newData.date === new Date().toDateString()) {
-                                setBlocks(newData.blocks || []);
-                                setLifeEnergy(newData.lifeEnergy || 0); // Ticket 대신 LifeEnergy
-                                setEnergy(newData.energy || 0);
-                                if (newData.wakeUpTime) setWakeUpTime(newData.wakeUpTime);
-                                triggerToast("🔄 외부 기록 연동됨");
-                            }
-                        } catch (err) {
-                            console.error("Storage sync error:", err);
-                        }
-                    }
-                };
                 window.addEventListener('storage', handleStorageChange);
                 return () => window.removeEventListener('storage', handleStorageChange);
             }, []);
