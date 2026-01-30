@@ -750,7 +750,7 @@
                     blocks: newBlocks,
                     wakeUpTime: finalWakeUpTime,
                     bedTime: finalBedTime,
-                    introDone: saved.introDone || false // [추가] 기존 도장 상태 유지
+                    introDone: (finalWakeUpTime && finalWakeUpTime !== "-") ? true : (saved.introDone || false)
                 }));
             };
 
