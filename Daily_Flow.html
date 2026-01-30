@@ -933,8 +933,10 @@
                         if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
                         if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
 
-                        // ★ 아이콘 장식 달기
-                        const status = t.done ? "✅" : "⬜";
+                        // ★ [수정됨] 아이콘 장식 달기
+                        // 기존: const status = t.done ? "✅" : "⬜";
+                        // 변경: 내일 할 일이면 '➡️', 아니면 기존 로직(완료/미완료)
+                        const status = t.isTomorrow ? "➡️" : (t.done ? "✅" : "⬜");
                         const star = t.isImportant ? "⭐" : "";  // 중요도 체크
                         const urgent = t.isUrgent ? "❗" : "";   // 긴급도 체크
                         
