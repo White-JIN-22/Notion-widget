@@ -208,15 +208,24 @@
                 }
             };
 
-            const fetchCalendar = async () => {
-                try {
-                    const calRes = await fetch(`${CALENDAR_API}?type=calendar`);
-                    if (calRes.ok) {
-                        const calData = await calRes.json();
-                        if (Array.isArray(calData)) setEvents(calData);
+            // [수정됨] 워커와 규격 맞춤 (type=calendar -> date=YYYY-MM-DD)
+        const fetchCalendar = async () => {
+            try {
+                // KST 기준 오늘 날짜 계산
+                const nowKst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+                const dateParam = nowKst.toISOString().split('T')[0];
+                
+                // log-worker에 오늘 날짜 데이터 요청
+                const res = await fetch(`${CALENDAR_API}?date=${dateParam}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    // 워커가 보내준 blocks 데이터를 위젯의 상태에 반영
+                    if (data.blocks && Array.isArray(data.blocks)) {
+                        setBlocks(data.blocks);
                     }
-                } catch (e) { }
-            };
+                }
+            } catch (e) { console.error("Fetch Error:", e); }
+        };
 
             useEffect(() => {
                 loadLocalData();
