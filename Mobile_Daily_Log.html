@@ -227,13 +227,12 @@
                 { id: 'r_stretch', name: '스트레칭', icon: 'Stretch', color: 'text-purple-300' }, 
                 { id: 'r_record', name: '기록', icon: 'Pen', color: 'text-sky-300' }, 
                 { id: 'r_counseling', name: '상담', icon: 'Leaf', color: 'text-sky-300' }, 
-                /* [추가] 사교 (회복량 15) */
                 { id: 'r_social', name: '사교', icon: 'Message', color: 'text-sky-300' },
                 { id: 'r2', name: '낮잠', icon: 'Zzz', color: 'text-slate-400' }, 
-                { id: 'r4', name: '딥 슬립', icon: 'Moon', color: 'text-slate-400' },
+                /* [삭제] 딥 슬립 버튼 제거됨 */
             ];
 
-            const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r_social', 'r2', 'r4'];
+            const MODAL_TARGETS = ['r_exercise', 'r1', 'r_record', 'r_counseling', 'r_social', 'r2'];
 
             useEffect(() => {
                 let interval = null;
@@ -414,14 +413,29 @@
                         {/* [수정] 제목: 흰색, 기울임 제거 */}
                         <h1 className="text-xl font-bold font-serif text-white tracking-tight">Daily Log</h1>
                        <div className="flex gap-2">
-    {/* [수정] 아이콘: index.html과 동일한 연한 노란색 (text-yellow-100) */}
-    <button onClick={handleWakeUp} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20">
-        <Icons.Sun className="w-4 h-4" />
-    </button>
-    <button onClick={handleBedTime} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20">
-        <Icons.Moon className="w-4 h-4" />
-    </button>
-</div>
+        {/* [왼쪽] 기상 시간 버튼 (해) - 기존 유지 */}
+        <button onClick={handleWakeUp} className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20">
+            <Icons.Sun className="w-4 h-4" />
+        </button>
+        
+        {/* [오른쪽] ★ 시스템 종료 버튼 (딥 슬립 즉시 전송) */}
+        <button 
+            onClick={() => {
+                sendSignal({
+                    type: 'Rest',       // Rest 타입으로 전송
+                    tag: '딥 슬립',      // 이름: 딥 슬립 (서버가 이걸 보고 취침시간으로 인식함)
+                    duration: 0,        // 소요 시간 0
+                    note: "System Shutdown",
+                    icon: 'Moon',
+                    color: 'text-slate-400'
+                });
+                triggerToast("🌙 딥 슬립 기록 (하루 마감)");
+            }} 
+            className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-yellow-100 shadow-sm active:scale-95 transition-transform hover:bg-white/20"
+        >
+            <Icons.Moon className="w-4 h-4" />
+        </button>
+    </div>
                     </div>
 
                     {/* Tabs (여백 축소) */}
