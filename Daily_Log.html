@@ -1452,7 +1452,8 @@
                         quality: calcAvgWeather(finalTotalDur, finalTotalScore),
                         q_morn: calcAvgWeather(stats.morn.dur, stats.morn.scoreSum),
                         q_aft: calcAvgWeather(stats.aft.dur, stats.aft.scoreSum),
-                        q_night: calcAvgWeather(stats.night.dur, stats.night.scoreSum)
+                        q_night: calcAvgWeather(stats.night.dur, stats.night.scoreSum),
+                        deletedIds: getDeletedIds()
                     };
 
                     const res = await fetch(WORKER_URL, {
