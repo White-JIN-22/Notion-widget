@@ -178,7 +178,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
-        /* [NEW] 하루 시작 알림 (Pill Style)
+        /* [NEW] 하루 시작 알림 (Pill Style) */
         .new-day-toast {
             position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.95);
@@ -534,7 +534,7 @@
             const confirmAdd = () => {
                 if (!inputText.trim()) { setActiveInputZone(null); return; }
                 const newTodo = { 
-                    id: Date.now(), 
+                    id: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, 
                     text: inputText, 
                     zone: activeInputZone, 
                     done: false, 
@@ -583,7 +583,7 @@
                     if (savedData.blocks) {
                         let isUpdated = false;
                         savedData.blocks = savedData.blocks.map(b => {
-                            if (b.id === selectedSwitchId) {
+                            if (String(b.id) === String(selectedSwitchId)) {
                                 isUpdated = true;
                                 return { 
                                     ...b, 
@@ -833,7 +833,7 @@
                     }
 
                     const newBlock = { 
-                        id: Date.now(), 
+                        id: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                         startTime: startTime, 
                         endTime: endTime, 
                         duration: Math.floor(durationMs / 1000 / 60), 
@@ -842,9 +842,6 @@
                         name: todoText 
                     };
 
-                    const consumption = Math.floor(newBlock.duration / 10) * 5;
-                    savedData.tickets = (savedData.tickets || 0) + 1;
-                    savedData.energy = Math.max(0, (savedData.energy !== undefined ? savedData.energy : 100) - consumption);
                     savedData.blocks = [newBlock, ...(savedData.blocks || [])];
 
                     localStorage.setItem('fortressData', JSON.stringify(savedData));
@@ -1000,7 +997,7 @@
                 }, 60000); 
 
                 return () => clearInterval(checkInterval);
-            }, [todos, viewDate, isSending]);
+            }, [todos.length, viewDate, isSending]);
 
             useEffect(() => {
                 const handleStorageChange = (e) => {
@@ -1018,7 +1015,7 @@
                                 setTodos(prevTodos => {
                                     return prevTodos.map(todo => {
                                         if (todo.linkedBlockId) {
-                                            const targetBlock = newData.blocks.find(b => b.id === todo.linkedBlockId);
+                                            const targetBlock = newData.blocks.find(b => String(b.id) === String(todo.linkedBlockId));
                                             if (targetBlock) {
                                                 // 시간이나 이름이 변경되었다면 반영
                                                 const newDurationMs = (targetBlock.endTime - targetBlock.startTime);
