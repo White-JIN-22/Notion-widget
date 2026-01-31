@@ -906,99 +906,6 @@
                 return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
             };
 
-            const sendToNotion = async () => {
-                // 1. 전송 중이거나 오늘이 아니면 중단
-                if (isSending) return;
-                if (!isToday(viewDate)) {
-                    triggerToast("⚠️ 과거 날짜는 수정할 수 없습니다.");
-                    return;
-                }
-                
-                setIsSending(true);
-                triggerToast("☁️ 노션에 저장하는 중...");
-
-                try {
-                    // 2. 텍스트 예쁘게 포장하기 (여기가 핵심!)
-                    const todoSummary = todos.map(t => {
-                        // 시간 계산 로직
-                        let totalMs = t.elapsed;
-                        if (t.isRunning && t.lastStartTime) {
-                            totalMs += (Date.now() - t.lastStartTime);
-                        }
-                        
-                        let timeStr = formatTime(totalMs);
-                        if (t.isChore && t.done && (!timeStr || totalMs === 0)) timeStr = "10M";
-                        if (t.linkedBlockId && t.done && !timeStr && t.elapsed > 0) timeStr = formatTime(t.elapsed);
-
-                        // ★ [수정됨] 아이콘 장식 달기
-                        // 기존: const status = t.done ? "✅" : "⬜";
-                        // 변경: 내일 할 일이면 '➡️', 아니면 기존 로직(완료/미완료)
-                        const status = t.isTomorrow ? "➡️" : (t.done ? "✅" : "⬜");
-                        const star = t.isImportant ? "⭐" : "";  // 중요도 체크
-                        const urgent = t.isUrgent ? "❗" : "";   // 긴급도 체크
-                        
-                        // 말머리 (Routine 등)
-                        const prefix = t.isChore ? "(Routine) " : "";
-                        const timeDisplay = timeStr ? `(${timeStr})` : '';
-
-                        // ★ 최종 합체: 별이랑 느낌표를 문자열 사이에 쏙 넣음
-                        return `${status} ${star}${urgent} [${t.zone.toUpperCase()}] ${prefix}${t.text} ${timeDisplay}`;
-                    }).join('\n');
-                    
-                    if (!todoSummary) {
-                        triggerToast("⚠️ 저장할 데이터가 없습니다.");
-                        setIsSending(false);
-                        return;
-                    }
-
-                    // 3. 서버로 발송
-                    const payload = { 
-                        date: formatLocalYMD(new Date()), 
-                        todos: todoSummary, 
-                        isTodoUpdate: true 
-                    };
-
-                    // 캐시 방지용 시간 추가 (?t=...)
-                    const res = await fetch(`${WORKER_URL}?t=${Date.now()}`, { 
-                        method: "POST", 
-                        headers: { "Content-Type": "application/json" }, 
-                        body: JSON.stringify(payload) 
-                    });
-
-                    const resultText = await res.text();
-
-                    if (res.ok) {
-                        triggerToast("✅ 저장 성공!");
-                        console.log("Notion Sync Success:", resultText);
-                    } else {
-                        console.error("Notion Sync Error:", resultText);
-                        triggerToast("❌ 저장 실패 (콘솔 확인)");
-                    }
-
-                } catch (e) { 
-                    console.error("Network Error:", e); 
-                    triggerToast("⚠️ 네트워크 에러 발생"); 
-                } finally { 
-                    setIsSending(false); 
-                }
-            };
-
-            useEffect(() => {
-                const checkInterval = setInterval(() => {
-                    const now = Date.now();
-                    const lastSync = parseInt(localStorage.getItem('lastTodoSyncTime') || '0');
-                    const ONE_HOUR = 60 * 60 * 1000; 
-
-                    if (now - lastSync >= ONE_HOUR && isToday(viewDate) && !isSending && todos.length > 0) {
-                        triggerToast("☁️ 정기 데이터 동기화 중...");
-                        sendToNotion();
-                        localStorage.setItem('lastTodoSyncTime', now.toString());
-                    }
-                }, 60000); 
-
-                return () => clearInterval(checkInterval);
-            }, [todos.length, viewDate, isSending]);
-
             useEffect(() => {
                 const handleStorageChange = (e) => {
                     // [1] FortressData(로그 위젯) 변경 감지
@@ -1410,28 +1317,8 @@
                                 {/* 1. 상단: 제목 + 구름 버튼 (index 구조와 동일) */}
                                 <div className="flex justify-between items-center">
                                     <h1 className="text-lg font-bold text-white font-serif tracking-tight">Daily Flow</h1>
-                                    
-                                    {/* 동기화 버튼 (Refresh 아이콘 & 회전 애니메이션 적용) */}
-                                    <button 
-                                        onClick={sendToNotion} 
-                                        disabled={isSending || !isToday(viewDate)} 
-                                        className={`w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center transition-all shadow-sm ${!isToday(viewDate) ? 'opacity-30 cursor-default' : 'text-white/60 hover:text-white hover:bg-white/20'}`}
-                                    >
-                                        {isSending ? (
-                                            <Icons.Refresh className="w-4 h-4 animate-spin text-white" />
-                                        ) : (
-                                            <Icons.Refresh className="w-4 h-4" />
-                                        )}
-                                    </button>
-                                </div>
 
-                                <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
-                                    <div className="flex items-center text-white">
-                                        {currentDateDisplay}
-                                    </div>
-                                </div>
-
-                                {/* 3. 하단: 프로그래스 바 (이전 단계에서 수정한 코드 유지) */}
+                                {/* 2. 하단: 프로그래스 바 (이전 단계에서 수정한 코드 유지) */}
                                 <div className="flex flex-col gap-1 w-full">
                                     {/* Focus Task Bar (Sky Blue) */}
                                     <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
