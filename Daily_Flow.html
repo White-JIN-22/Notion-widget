@@ -237,6 +237,7 @@
             Book: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             ArrowRight: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>,
+            Scale: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 16h6"></path><path d="M19 13v6"></path><path d="M12 15V3"></path><path d="m4 7 4-4 4 4"></path><path d="M4 11h7"></path><path d="M8 11v5a4 4 0 0 0 8 0"></path></svg>,
         };
 
         const App = () => {
@@ -290,6 +291,9 @@
             const [editingId, setEditingId] = useState(null);
             const [editText, setEditText] = useState('');
             const [ticker, setTicker] = useState(0);
+            // 체중 입력 관련
+            const [showWeightModal, setShowWeightModal] = useState(false);
+            const [weightInput, setWeightInput] = useState('');const [ticker, setTicker] = useState(0);
             const lastProcessedBlockId = useRef(null);
 
             const inputRef = useRef(null);
@@ -516,6 +520,36 @@
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
 
             const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2000); };
+
+            // 체중 저장 함수
+            const saveWeight = async () => {
+                const weight = parseFloat(weightInput);
+                if (!weight || weight <= 0) {
+                    triggerToast("⚠️ 올바른 체중을 입력해주세요");
+                    return;
+                }
+                
+                try {
+                    const res = await fetch(WORKER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            date: formatLocalYMD(new Date()),
+                            weight: weight
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        triggerToast(`⚖️ 체중 ${weight}kg 저장 완료!`);
+                        setShowWeightModal(false);
+                        setWeightInput('');
+                    } else {
+                        triggerToast("❌ 저장 실패");
+                    }
+                } catch (e) {
+                    triggerToast("⚠️ 네트워크 에러");
+                }
+            };
             
             // [MODIFIED] 일반 추가 (오늘)
             const startAdding = (zone) => { 
@@ -1317,6 +1351,14 @@
                                 {/* 1. 상단: 제목 + 구름 버튼 (index 구조와 동일) */}
                                 <div className="flex justify-between items-center">
                                     <h1 className="text-lg font-bold text-white font-serif tracking-tight">Daily Flow</h1>
+                                    
+                                    {/* 체중 입력 버튼 */}
+                                    <button 
+                                        onClick={() => setShowWeightModal(true)}
+                                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-all shadow-sm"
+                                    >
+                                        <Icons.Scale className="w-4 h-4" />
+                                    </button>
                                 </div>
 
                                 {/* 2. 하단: 프로그래스 바 (이전 단계에서 수정한 코드 유지) */}
@@ -1350,6 +1392,38 @@
                         {renderSection('afternoon')}
                         {renderSection('night')}
                     </div>
+
+                    {/* 체중 입력 모달 */}
+                    {showWeightModal && (
+                        <div className="modal-overlay" onClick={() => setShowWeightModal(false)}>
+                            <div className="weather-modal-content" onClick={e => e.stopPropagation()}>
+                                <h3 className="text-sm font-bold text-slate-700 mb-3 font-serif">⚖️ 아침 공복 체중</h3>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    placeholder="예: 65.5"
+                                    value={weightInput}
+                                    onChange={(e) => setWeightInput(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-center text-lg font-bold text-slate-700 mb-3"
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => setShowWeightModal(false)}
+                                        className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-sm"
+                                    >
+                                        취소
+                                    </button>
+                                    <button 
+                                        onClick={saveWeight}
+                                        className="flex-1 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-600 font-bold text-sm"
+                                    >
+                                        저장
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
