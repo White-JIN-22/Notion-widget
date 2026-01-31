@@ -483,7 +483,11 @@
                             );
                             
                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
-                            localBlocks.forEach(b => blockMap.set(b.id, b)); // 로컬 데이터가 덮어씀(수정사항 반영)
+                            localBlocks.forEach(b => blockMap.set(b.id, b));
+                            // ★ [추가] 현재 React state의 블록도 병합 (타이밍 이슈 방지)
+                            blocks.forEach(b => {
+                                if (!deletedIds.includes(b.id)) blockMap.set(b.id, b);
+                            });
                             
                             const mergedBlocks = Array.from(blockMap.values());
                             mergedBlocks.sort((a, b) => b.startTime - a.startTime); // 최신순 정렬
@@ -712,13 +716,13 @@
                     if (elapsedSinceLastSync >= SYNC_INTERVAL) {
                         if (blocks.length > 0 && !isSending) {
                             triggerToast("☁️ 정기 데이터 동기화 중...");
-                            sendToNotion();
+                            sendToNotion(true); // ★ [수정] silent 모드로 변경
                             localStorage.setItem('lastSyncTime', now.toString());
                         }
                     }
-                }, 10000); 
+                }, 60000); // ★ [수정] 10초 -> 60초 (불필요한 체크 감소)
                 return () => clearInterval(checkInterval);
-            }, [blocks, isSending]); 
+            }, [blocks.length, isSending]); // ★ [수정] blocks -> blocks.length (무한 리렌더 방지)
 
             const triggerToast = (msg) => { setToast(msg); };
 
@@ -745,6 +749,7 @@
                 localStorage.setItem('fortressData', JSON.stringify({
                     date: new Date().toDateString(),
                     initialLifeEnergy: base,
+                    initialFocusEnergy: saved.initialFocusEnergy, // ★ [추가] 시작값 보존
                     lifeEnergy: newLife,
                     energy: newEnergy,
                     blocks: newBlocks,
