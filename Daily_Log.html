@@ -1244,6 +1244,16 @@
                 // 2. 블록 리스트에서 제거
                 const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
 
+                // 2-1. [추가] 연결된 투두에서 linkedBlockId 제거
+                const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                const updatedTodos = savedTodos.map(t => {
+                    if (String(t.linkedBlockId) === targetIdStr) {
+                        return { ...t, linkedBlockId: null, done: false };
+                    }
+                    return t;
+                });
+                localStorage.setItem('jinsolTodos', JSON.stringify(updatedTodos));
+
                 // 3. 저장 및 업데이트
                 saveData(newLife, newEnergy, newBlocks);
                 
