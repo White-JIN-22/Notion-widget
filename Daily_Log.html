@@ -1257,7 +1257,7 @@
                 
                 setDeleteTargetId(null);
                 setShowModal(false);
-                triggerToast("🗑️ 기록 영구 삭제 완료");
+                triggerToast("🗑️ 기록 삭제 완료");
                 
                 // 삭제 후 즉시 서버 동기화 + 로컬 데이터 강제 갱신
                 sendToNotion(true).then(() => {
