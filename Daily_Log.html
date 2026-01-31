@@ -1598,10 +1598,8 @@
                                                 <Icons.Refresh className="w-4 h-4" /> 
                                             )}
                                         </button>
-                                    </div>
-                                </div>
 
-                                {/* [임시] 오늘 로컬 데이터 초기화 버튼 */}
+                                        {/* [임시] 오늘 로컬 데이터 초기화 버튼 */}
                                         <button 
                                             onClick={() => {
                                                 if (!confirm("⚠️ 오늘 로컬 데이터를 모두 삭제할까요?\n(노션 데이터는 유지됨)")) return;
@@ -1633,6 +1631,9 @@
                                             <Icons.Trash />
                                         </button>
                                     </div>
+                                        
+                                    </div>
+                                </div>
                             
                                 {/* 2. 중단: 상태바 (기상시간 흰색 유지) */}
                                 <div className="flex items-center justify-between mt-2 mb-2 text-xs font-bold h-[16px]">
