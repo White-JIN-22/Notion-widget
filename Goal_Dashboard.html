@@ -59,33 +59,31 @@
             justify-content: flex-start;
         }
         
-        /* [수정] 가로 배치를 위한 그리드 아이템 스타일 */
         .grid-item {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* 라벨과 블록 양끝 정렬 */
-            height: 18px; /* 행 높이 고정 */
+            justify-content: space-between;
+            height: 18px;
         }
         
         .item-label {
-            font-size: 10px; /* 폰트 사이즈 미세 조정 */
+            font-size: 10px;
             font-weight: 500;
             color: #64748b;
-            white-space: nowrap; /* 줄바꿈 방지 */
+            white-space: nowrap;
             margin-right: 8px;
         }
 
-        /* 블록 컨테이너 */
         .block-container {
             display: flex;
             gap: 2px;
         }
-        /* 개별 블록 (기본) */
+
         .block {
             width: 8px;
             height: 8px;
             border-radius: 2px;
-            background-color: rgba(203, 213, 225, 0.4); /* slate-300 연하게 */
+            background-color: rgba(203, 213, 225, 0.4);
             transition: all 0.5s ease;
         }
     </style>
@@ -111,12 +109,147 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ★ 워커 주소를 확인해주세요
-        const WORKER_URL = "https://project-worker.moonkelly601.workers.dev/"; 
+        // ★ log-worker 주소
+        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
 
-        // [컴포넌트] 5칸 블록 프로그래스 바
+        // ========================================
+        // [워커에서 이식] 목표 설정
+        // ========================================
+        const TARGETS = {
+            exercise: 20,    // 운동 (회)
+            reading: 600,    // 독서 (분)
+            english: 15,     // 영어 (회)
+            japanese: 20,    // 일어 (회)
+            record: 15,      // 일기/기록 (회)
+            coding: 1200     // 개발/코딩 (분)
+        };
+
+        const GOALS = {
+            keywords: ["신체와 환경의 주도권 회복"],
+            monthly_text: "체중 -4kg, 독서 2권, 어학(영~D15/일~103p), 일기 15회, 대시보드 완성",
+            weekly_text: "주간 체중 관리, 독서, 어학 분량 소화, 시스템 구축 집중"
+        };
+
+        // ========================================
+        // [워커에서 이식] 데이터 집계 로직
+        // ========================================
+        const analyzeBlocks = (blocks) => {
+            const stats = {
+                exercise: 0, reading: 0, english: 0, 
+                japanese: 0, record: 0, coding: 0
+            };
+
+            blocks.forEach(b => {
+                const name = (b.name || "").trim();
+                const memo = (b.memo || "").trim();
+                const content = (name + " " + memo).toLowerCase();
+                const duration = b.duration || 0;
+
+                // 횟수 기반 (1회씩 카운트)
+                if (content.includes("산책") || content.includes("운동") || content.includes("러닝")) {
+                    stats.exercise += 1;
+                }
+                if (content.includes("영어") || content.includes("보카")) {
+                    stats.english += 1;
+                }
+                if (content.includes("일어") || content.includes("일본어") || content.includes("상용한자")) {
+                    stats.japanese += 1;
+                }
+                if (content.includes("기록") || content.includes("일기") || content.includes("상담")) {
+                    stats.record += 1;
+                }
+
+                // 시간 기반 (분 누적)
+                if (content.includes("독서") || content.includes("책")) {
+                    stats.reading += duration;
+                }
+                if (content.includes("위젯") || content.includes("개발") || 
+                    content.includes("디버깅") || content.includes("개선")) {
+                    stats.coding += duration;
+                }
+            });
+
+            return stats;
+        };
+
+        // 달성률 계산
+        const getPercent = (current, target) => Math.min(100, Math.round((current / target) * 100));
+
+        // ========================================
+        // [Gemini 대체] 규칙 기반 피드백 생성
+        // ========================================
+        const generateFeedback = (stats, percents) => {
+            const avgPercent = Math.round(
+                (percents.exercise + percents.reading + percents.english + 
+                 percents.japanese + percents.record + percents.coding) / 6
+            );
+
+            // 가장 잘하고 있는 항목 찾기
+            const items = [
+                { name: '운동', p: percents.exercise },
+                { name: '독서', p: percents.reading },
+                { name: '영어', p: percents.english },
+                { name: '일어', p: percents.japanese },
+                { name: '기록', p: percents.record },
+                { name: '코딩', p: percents.coding }
+            ];
+            const best = items.reduce((a, b) => a.p > b.p ? a : b);
+            const worst = items.reduce((a, b) => a.p < b.p ? a : b);
+
+            // 상태별 피드백
+            if (avgPercent === 0) {
+                const starters = [
+                    "아직 시작 전이야. 의지 문제가 아니라 시스템 문제야. 오늘은 딱 5분만 책상에 앉아보자. 🌱",
+                    "0%는 게으름이 아니야. 환경 세팅부터 해보자. 공기청정기 켜고, 물 한 잔 마시고. ☁️",
+                    "시작이 어려운 거지, 못하는 게 아니야. 아주 작은 것부터. 책 한 권 펴두는 것만으로도 OK. 🍃"
+                ];
+                return starters[new Date().getDate() % 3];
+            }
+            
+            if (avgPercent < 20) {
+                return `${worst.name}이 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐. 🌿`;
+            }
+            
+            if (avgPercent < 40) {
+                return `${best.name}(${best.p}%)이 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자. 💪`;
+            }
+            
+            if (avgPercent < 60) {
+                return `절반 가까이 왔어. ${best.name}에서 주도권을 잡고 있네. 꾸준함이 결국 이겨. 🔥`;
+            }
+            
+            if (avgPercent < 80) {
+                return `평균 ${avgPercent}% 달성 중. 신체와 환경의 통제권을 확실히 되찾고 있어. 이대로 가자. ✨`;
+            }
+            
+            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 4평 공간 안에서도 네가 주도권을 쥐고 있다는 증거야. 🎖️`;
+        };
+
+        // ========================================
+        // 날짜 유틸
+        // ========================================
+        const formatDateYMD = (date) => {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        const getMonthDates = () => {
+            const now = new Date();
+            const dates = [];
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            for (let d = new Date(startOfMonth); d <= now; d.setDate(d.getDate() + 1)) {
+                dates.push(formatDateYMD(new Date(d)));
+            }
+            return dates;
+        };
+
+        // ========================================
+        // 컴포넌트
+        // ========================================
         const BlockBar = ({ percent, activeColor }) => {
-            // 20% 단위로 반올림하여 채울 블록 수 계산 (0~5)
             const filledCount = Math.round(percent / 20);
             
             return (
@@ -132,30 +265,96 @@
         };
 
         const GoalWidget = () => {
-            const [data, setData] = useState(null);
+            const [stats, setStats] = useState({
+                exercise: 0, reading: 0, english: 0, 
+                japanese: 0, record: 0, coding: 0
+            });
             const [loading, setLoading] = useState(true);
+            const [progress, setProgress] = useState(0); // 로딩 진행률
 
             useEffect(() => {
-                fetch(WORKER_URL)
-                    .then(res => res.json())
-                    .then(json => {
-                        setData(json);
-                        setLoading(false);
-                    })
-                    .catch(e => setLoading(false));
+                const fetchAllData = async () => {
+                    const dates = getMonthDates();
+                    const allBlocks = [];
+                    
+                    // 배치 처리 (5개씩)
+                    const batchSize = 5;
+                    for (let i = 0; i < dates.length; i += batchSize) {
+                        const batch = dates.slice(i, i + batchSize);
+                        
+                        await Promise.all(batch.map(async (dateKey) => {
+                            try {
+                                const res = await fetch(`${WORKER_URL}?date=${dateKey}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    if (data.blocks && Array.isArray(data.blocks)) {
+                                        allBlocks.push(...data.blocks);
+                                    }
+                                }
+                            } catch (err) {
+                                console.warn(`Failed: ${dateKey}`, err);
+                            }
+                        }));
+                        
+                        // 진행률 업데이트
+                        setProgress(Math.round(((i + batchSize) / dates.length) * 100));
+                    }
+
+                    // 집계
+                    const analyzed = analyzeBlocks(allBlocks);
+                    setStats(analyzed);
+                    setLoading(false);
+                };
+
+                fetchAllData();
             }, []);
 
-            if (loading) return <div className="widget-container items-center justify-center"><div className="text-xs text-slate-400">Syncing...</div></div>;
-            if (!data) return <div className="widget-container">Error</div>;
+            // 달성률 계산
+            const percents = {
+                exercise: getPercent(stats.exercise, TARGETS.exercise),
+                reading: getPercent(stats.reading, TARGETS.reading),
+                english: getPercent(stats.english, TARGETS.english),
+                japanese: getPercent(stats.japanese, TARGETS.japanese),
+                record: getPercent(stats.record, TARGETS.record),
+                coding: getPercent(stats.coding, TARGETS.coding)
+            };
 
-            const { goals, monthly, weekly, feedback } = data;
-            
+            // 피드백 생성
+            const feedback = generateFeedback(stats, percents);
+
+            // 월간/주간 데이터 구성
+            const monthly = [
+                { label: "독서", percent: percents.reading },
+                { label: "영어", percent: percents.english },
+                { label: "일어", percent: percents.japanese },
+                { label: "코딩", percent: percents.coding },
+                { label: "운동", percent: percents.exercise },
+                { label: "기록", percent: percents.record }
+            ];
+
+            const weekly = [
+                { label: "독서", percent: percents.reading },
+                { label: "영어", percent: percents.english },
+                { label: "일어", percent: percents.japanese },
+                { label: "코딩", percent: percents.coding },
+                { label: "운동", percent: percents.exercise },
+                { label: "기록", percent: percents.record }
+            ];
+
+            if (loading) {
+                return (
+                    <div className="widget-container items-center justify-center">
+                        <div className="text-xs text-slate-400">데이터 수집 중... {progress}%</div>
+                    </div>
+                );
+            }
+
             return (
                 <div className="widget-container">
                     
                     {/* 1. Keyword Block */}
                     <div className="flex gap-2 shrink-0">
-                        {goals.keywords.map((k, i) => (
+                        {GOALS.keywords.map((k, i) => (
                             <div key={i} className="flex-1 bg-purple-100/60 border border-purple-300/40 rounded-lg py-1.5 px-2 text-center shadow-sm">
                                 <span className="text-[11px] font-bold text-slate-600 block">{k}</span>
                             </div>
@@ -167,12 +366,10 @@
                         <div className="section-title text-sky-500">
                             Monthly Objective
                         </div>
-                        {/* 3열 그리드: cols-3으로 변경, 간격 gap-x-2로 축소 */}
                         <div className="grid grid-cols-3 gap-x-2 gap-y-1">
                             {monthly.map((item, i) => (
                                 <div key={i} className="grid-item">
                                     <span className="item-label">{item.label}</span>
-                                    {/* 블록 컴포넌트: Sky 색상 */}
                                     <BlockBar percent={item.percent} activeColor="bg-sky-400 shadow-[0_0_4px_rgba(56,189,248,0.4)]" />
                                 </div>
                             ))}
@@ -188,17 +385,15 @@
                             {weekly.map((item, i) => (
                                 <div key={i} className="grid-item">
                                     <span className="item-label">{item.label}</span>
-                                    {/* 블록 컴포넌트: Yellow 색상 */}
                                     <BlockBar percent={item.percent} activeColor="bg-yellow-400 shadow-[0_0_4px_rgba(250,204,21,0.4)]" />
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* 4. AI Feedback */}
+                    {/* 4. Feedback (규칙 기반) */}
                     <div className="bg-white/40 rounded-xl p-2.5 border border-white/60 flex gap-2.5 items-center shadow-sm shrink-0">
                         <div className="text-purple-400 shrink-0">
-                            {/* 말풍선 아이콘 */}
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         </div>
                         <p className="text-[11px] text-slate-600 leading-snug font-medium line-clamp-2">
