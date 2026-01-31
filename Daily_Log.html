@@ -276,7 +276,7 @@
                 return () => clearInterval(timer);
             }, []);
 
-            // [수정] 생활 에너지 자연 소모 시스템 (1시간마다 -10%로 변경, 00~06시 제외)
+            // [수정] 생활 에너지 자연 소모 시스템 (2시간마다 -15%, 00~06시 제외, 5% 이하면 멈춤)
             useEffect(() => {
                 const decayCheck = setInterval(() => {
                     const now = new Date();
@@ -294,26 +294,23 @@
                     }
 
                     const lastDecay = parseInt(lastDecayStr);
-                    const oneHour = 60 * 60 * 1000; // 1시간 (ms 단위)
+                    const twoHours = 2 * 60 * 60 * 1000; // 2시간 (ms 단위)
 
-                    // 3. 1시간이 지났는지 확인
-                    if (currentTime - lastDecay >= oneHour) {
+                    // 3. 2시간이 지났는지 확인
+                    if (currentTime - lastDecay >= twoHours) {
                         const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                         const currentLife = savedData.lifeEnergy !== undefined ? savedData.lifeEnergy : 50;
 
-                        if (currentLife > 0) {
-                            // [변경] 감소폭 수정: 1시간에 -10%
-                            const newLife = Math.max(0, currentLife - 10);
+                        // 5% 이하면 더 이상 감소하지 않음 (빚 방지)
+                        if (currentLife > 5) {
+                            const newLife = Math.max(5, currentLife - 15);
                             
-                            // 로컬스토리지 업데이트
                             savedData.lifeEnergy = newLife;
                             localStorage.setItem('fortressData', JSON.stringify(savedData));
-                            
-                            // UI 상태 업데이트
                             setLifeEnergy(newLife);
                         }
 
-                        // 소모 기준 시간 갱신 (현재 시간으로 리셋)
+                        // 소모 기준 시간 갱신 (1회만 감소, 빚 방지)
                         localStorage.setItem('lastDecayTime', currentTime.toString());
                     }
                 }, 60000); // 1분마다 체크
