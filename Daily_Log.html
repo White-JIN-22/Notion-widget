@@ -1598,39 +1598,6 @@
                                                 <Icons.Refresh className="w-4 h-4" /> 
                                             )}
                                         </button>
-
-                                        {/* [임시] 오늘 로컬 데이터 초기화 버튼 (더블클릭) */}
-                                        <button 
-                                            onDoubleClick={() => {
-                                                const today = new Date().toDateString();
-                                                const resetData = {
-                                                    date: today,
-                                                    initialLifeEnergy: 50,
-                                                    initialFocusEnergy: 100,
-                                                    lifeEnergy: 50,
-                                                    energy: 100,
-                                                    blocks: [],
-                                                    wakeUpTime: null,
-                                                    bedTime: null,
-                                                    introDone: false
-                                                };
-                                                localStorage.setItem('fortressData', JSON.stringify(resetData));
-                                                localStorage.removeItem('fortressDeletedIds');
-                                                localStorage.removeItem('fortressTimer');
-                                                setLifeEnergy(50);
-                                                setEnergy(100);
-                                                setBlocks([]);
-                                                setWakeUpTime(null);
-                                                setBedTime(null);
-                                                setShowIntro(true);
-                                                triggerToast("🗑️ 로컬 데이터 초기화 완료");
-                                            }}
-                                            className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-400/30 flex items-center justify-center text-red-300 hover:text-white hover:bg-red-500/40 transition-all shadow-sm"
-                                            title="더블클릭: 오늘 로컬 데이터 초기화"
-                                        >
-                                            <Icons.Trash />
-                                        </button>
-                                        
                                     </div>
                                 </div>
                             
