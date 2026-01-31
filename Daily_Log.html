@@ -1299,6 +1299,9 @@
 
                 saveData(lifeEnergy, nextEnergy, newBlocks);
                 triggerToast("🔥 종료 시간 갱신!");
+                
+                // 노션 DB에도 반영
+                setTimeout(() => sendToNotion(true), 100);
             };
 
             const manualSync = async () => {
