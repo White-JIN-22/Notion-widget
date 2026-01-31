@@ -1268,14 +1268,19 @@
                 triggerToast("🔥 종료 시간 갱신!");
             };
 
-            // [추가] 수동 동기화 핸들러 (구름 버튼용)
             const manualSync = async () => {
                 if (isSending) return;
+                setIsSending(true);
                 triggerToast("☁️ 동기화 중...");
-                await syncFromServer(); // 서버 데이터 가져오기 + 로컬 병합
-                // 가져온 후 자동으로 리렌더링 되므로, 굳이 바로 다시 보낼 필요는 없으나
-                // 확실한 저장을 위해 1초 뒤 자동 저장 트리거
-                setTimeout(() => sendToNotion(true), 1000); 
+                try {
+                    await syncFromServer();
+                    triggerToast("✅ 동기화 완료!");
+                } catch (e) {
+                    console.error("Sync Error:", e);
+                    triggerToast("⚠️ 동기화 실패");
+                } finally {
+                    setIsSending(false);
+                }
             };
             
             const sendToNotion = async (silent = false) => {
