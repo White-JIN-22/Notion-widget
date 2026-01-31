@@ -153,9 +153,9 @@
             const [blocks, setBlocks] = useState([]);
             const [events, setEvents] = useState([]);
             const [missions, setMissions] = useState({ 
-                morningMeal: false, morningWalk: false,
-                afternoonMeal: false, afternoonWalk: false,
-                nightMeal: false, nightRecord: false
+                morningMeal: false, morningWalk: false, morningHygiene: false,
+                afternoonMeal: false, afternoonWalk: false, afternoonReading: false,
+                nightMeal: false, nightWalk: false, nightHygiene: false, nightRecord: false
             });
 
             const WAQI_TOKEN = "724216be2f8a00c8b378a9cde2a8744e669d11d7"; 
@@ -211,9 +211,9 @@
             // [수정됨] 워커와 규격 맞춤 (type=calendar -> date=YYYY-MM-DD)
         const fetchCalendar = async () => {
             try {
-                // KST 기준 오늘 날짜 계산
-                const nowKst = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-                const dateParam = nowKst.toISOString().split('T')[0];
+                // 로컬 시간 기준 오늘 날짜 (다른 위젯과 통일)
+                const now = new Date();
+                const dateParam = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
                 
                 // log-worker에 오늘 날짜 데이터 요청
                 const res = await fetch(`${CALENDAR_API}?date=${dateParam}`);
@@ -222,11 +222,14 @@
                     // 워커가 보내준 blocks 데이터를 위젯의 상태에 반영
                     if (data.blocks && Array.isArray(data.blocks)) {
                         setBlocks(data.blocks);
-                        // ★ [추가] 가져온 데이터를 로컬 저장소에도 넣어줘야 3초마다 지워지지 않음
-                localStorage.setItem('fortressData', JSON.stringify({
-                    date: new Date().toDateString(),
-                    blocks: data.blocks
-                }));
+                        // ★ [수정] 기존 데이터 보존하면서 blocks만 병합
+                        const existing = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                        if (existing.date === new Date().toDateString()) {
+                            // 오늘 데이터면 blocks만 업데이트 (다른 필드 보존)
+                            existing.blocks = data.blocks;
+                            localStorage.setItem('fortressData', JSON.stringify(existing));
+                        }
+                        // 날짜가 다르면 저장 안 함 (Daily_Log가 처리)
             }
         }
     } catch (e) { console.error("Fetch Error:", e); }
@@ -235,9 +238,17 @@
             useEffect(() => {
                 loadLocalData();
                 fetchCalendar();
+                
+                // 다른 탭에서 변경 시 즉시 반영
+                const handleStorage = (e) => {
+                    if (e.key === 'fortressData') loadLocalData();
+                };
+                window.addEventListener('storage', handleStorage);
+                
                 const localInterval = setInterval(loadLocalData, 3000);
                 const calendarInterval = setInterval(fetchCalendar, 60000);
                 return () => {
+                    window.removeEventListener('storage', handleStorage);
                     clearInterval(localInterval);
                     clearInterval(calendarInterval);
                 };
