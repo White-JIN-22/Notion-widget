@@ -477,16 +477,24 @@
                             const deletedIds = getDeletedIds();
 
                             // 서버 데이터 중 오늘 날짜이면서 + 블랙리스트에 없는 것만 통과
-                            const cleanServerBlocks = serverBlocks.filter(b => 
-                                new Date(b.startTime).toDateString() === dateStr &&
-                                !deletedIds.includes(b.id)
-                            );
+                            // ★ [수정] _split_ ID도 원본 ID 기준으로 필터링
+                            const cleanServerBlocks = serverBlocks.filter(b => {
+                                if (new Date(b.startTime).toDateString() !== dateStr) return false;
+                                
+                                // ID가 _split_ 형태면 원본 ID 추출해서 비교
+                                const baseId = String(b.id).includes('_split_') 
+                                    ? String(b.id).split('_split_')[0] 
+                                    : b.id;
+                                
+                                // 원본 ID가 블랙리스트에 있으면 제외
+                                return !deletedIds.some(delId => String(delId) === String(baseId));
+                            });
                             
                             cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
                             localBlocks.forEach(b => blockMap.set(b.id, b));
-                            // ★ [추가] 현재 React state의 블록도 병합 (타이밍 이슈 방지)
                             blocks.forEach(b => {
-                                if (!deletedIds.includes(b.id)) blockMap.set(b.id, b);
+                                const isDeleted = deletedIds.some(delId => String(delId) === String(b.id));
+                                if (!isDeleted) blockMap.set(b.id, b);
                             });
                             
                             const mergedBlocks = Array.from(blockMap.values());
@@ -943,7 +951,8 @@
                 let finalColor = itemData?.color;
 
                 const newBlock = {
-                    id: Date.now(), startTime: startTs, endTime: endTs, duration: totalDuration,
+                    id: `${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, 
+                    startTime: startTs, endTime: endTs, duration: totalDuration,
                     quality: quality || 'Cloud', type: resolvedType, 
                     icon: finalIcon, name: finalName, color: finalColor,
                     recovery: itemData?.recovery, 
@@ -1216,10 +1225,10 @@
                     newEnergy = Math.min(100, newEnergy + consumption);
                 }
 
-                // ★ [핵심] 삭제된 ID를 블랙리스트에 영구 등록 (서버 동기화 시 부활 방지)
                 const deletedIds = JSON.parse(localStorage.getItem('fortressDeletedIds') || '[]');
-                if (!deletedIds.includes(deleteTargetId)) {
-                    deletedIds.push(deleteTargetId);
+                const targetIdStr = String(deleteTargetId);
+                if (!deletedIds.some(id => String(id) === targetIdStr)) {
+                    deletedIds.push(targetIdStr); // 문자열로 통일
                     localStorage.setItem('fortressDeletedIds', JSON.stringify(deletedIds));
                 }
 
