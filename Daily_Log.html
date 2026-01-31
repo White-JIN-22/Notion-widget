@@ -988,13 +988,20 @@
                     } catch (e) { console.error("Todo update failed", e); }
                 }
 
-                // [최종 저장] 저장소에서 최신 블록을 다시 불러와서 합침 (동기화 안전장치)
+                // [최종 저장] ID 기준 중복 제거 후 저장
                 const savedDataSafe = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 const currentBlocksSafe = (savedDataSafe.date === new Date().toDateString() && Array.isArray(savedDataSafe.blocks)) 
                     ? savedDataSafe.blocks 
                     : blocks;
 
-                saveData(newLife, newEnergy, [newBlock, ...currentBlocksSafe]);
+                // ★ [중복 방지] Map으로 ID 기준 병합 (새 블록이 우선)
+                const blockMap = new Map();
+                currentBlocksSafe.forEach(b => blockMap.set(b.id, b));
+                blockMap.set(newBlock.id, newBlock); // 새 블록 추가/덮어쓰기
+                const mergedBlocks = Array.from(blockMap.values()).sort((a, b) => b.startTime - a.startTime);
+
+                saveData(newLife, newEnergy, mergedBlocks);
+                
                 if (!toast) triggerToast(msg); 
                 setShowModal(false);
                 sendToNotion(true); 
