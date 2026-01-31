@@ -746,16 +746,21 @@
                 const saved = JSON.parse(currentDataStr || '{}');
                 const base = saved.initialLifeEnergy !== undefined ? saved.initialLifeEnergy : 50;
 
+                // ★ [수정] introDone 판정: 기상시간이 있거나, 이미 introDone이 true면 유지
+                const finalIntroDone = (finalWakeUpTime && finalWakeUpTime !== "-") 
+                    || saved.introDone === true 
+                    || (saved.initialFocusEnergy !== undefined); // 컨디션 선택했으면 introDone
+
                 localStorage.setItem('fortressData', JSON.stringify({
                     date: new Date().toDateString(),
                     initialLifeEnergy: base,
-                    initialFocusEnergy: saved.initialFocusEnergy, // ★ [추가] 시작값 보존
+                    initialFocusEnergy: saved.initialFocusEnergy,
                     lifeEnergy: newLife,
                     energy: newEnergy,
                     blocks: newBlocks,
                     wakeUpTime: finalWakeUpTime,
                     bedTime: finalBedTime,
-                    introDone: (finalWakeUpTime && finalWakeUpTime !== "-") ? true : (saved.introDone || false)
+                    introDone: finalIntroDone
                 }));
             };
 
