@@ -1299,6 +1299,7 @@
 
                     // [수정] Flow 위젯을 위해 12시, 18시 경계에서 블록을 가상으로 쪼개기
                     const processedBlocks = [];
+                    let splitIndex = 0; // 쪼개진 블록에 고유 ID 부여용
                     
                     rawBlocks.forEach(b => {
                         // 유효성 체크
@@ -1315,24 +1316,26 @@
                         // 1. 12시(정오)를 가로지르는 경우 쪼개기
                         if (start < noon && end > noon) {
                             const dur = (noon - start) / 60000;
-                            processedBlocks.push({ ...b, startTime: start, endTime: noon, duration: dur });
-                            start = noon; // 시작점을 12시로 이동
+                            processedBlocks.push({ ...b, id: `${b.id}_split_${splitIndex++}`, startTime: start, endTime: noon, duration: dur });
+                            start = noon;
                         }
 
-                        // 2. 18시(저녁)를 가로지르는 경우 쪼개기 (예: 17~19시 -> 17~18 / 18~19)
+                        // 2. 18시(저녁)를 가로지르는 경우 쪼개기
                         if (start < evening && end > evening) {
                             const dur = (evening - start) / 60000;
-                            processedBlocks.push({ ...b, startTime: start, endTime: evening, duration: dur });
-                            start = evening; // 시작점을 18시로 이동
+                            processedBlocks.push({ ...b, id: `${b.id}_split_${splitIndex++}`, startTime: start, endTime: evening, duration: dur });
+                            start = evening;
                         }
 
                         // 3. 나머지 조각 (혹은 쪼개지지 않은 온전한 블록)
                         const remainingDur = (end - start) / 60000;
                         if (remainingDur > 0) {
-                            processedBlocks.push({ ...b, startTime: start, endTime: end, duration: remainingDur });
+                            // 쪼개지지 않은 원본이면 원래 ID 유지, 쪼개진 조각이면 새 ID
+                            const finalId = (start === b.startTime && end === b.endTime) ? b.id : `${b.id}_split_${splitIndex++}`;
+                            processedBlocks.push({ ...b, id: finalId, startTime: start, endTime: end, duration: remainingDur });
                         }
                     });
-
+                    
                     // 이제 통계 계산은 쪼개진 블록(processedBlocks)을 기준으로 수행
                     const targetBlocks = processedBlocks;
 
