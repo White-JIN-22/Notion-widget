@@ -1599,10 +1599,9 @@
                                             )}
                                         </button>
 
-                                        {/* [임시] 오늘 로컬 데이터 초기화 버튼 */}
+                                        {/* [임시] 오늘 로컬 데이터 초기화 버튼 (더블클릭) */}
                                         <button 
-                                            onClick={() => {
-                                                if (!confirm("⚠️ 오늘 로컬 데이터를 모두 삭제할까요?\n(노션 데이터는 유지됨)")) return;
+                                            onDoubleClick={() => {
                                                 const today = new Date().toDateString();
                                                 const resetData = {
                                                     date: today,
@@ -1627,6 +1626,7 @@
                                                 triggerToast("🗑️ 로컬 데이터 초기화 완료");
                                             }}
                                             className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-400/30 flex items-center justify-center text-red-300 hover:text-white hover:bg-red-500/40 transition-all shadow-sm"
+                                            title="더블클릭: 오늘 로컬 데이터 초기화"
                                         >
                                             <Icons.Trash />
                                         </button>
