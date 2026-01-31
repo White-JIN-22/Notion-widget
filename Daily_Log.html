@@ -441,7 +441,14 @@
             const durationHours = [0, 1, 2, 3, 4, 5];
             
             // [Zombie Fix] 삭제된 ID를 추적하는 블랙리스트 로드
-            const getDeletedIds = () => JSON.parse(localStorage.getItem('fortressDeletedIds') || '[]');
+            // fortressData 내부에 저장하여 동기화 문제 방지
+            const getDeletedIds = () => {
+                const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const today = new Date().toDateString();
+                // 오늘 데이터가 아니면 빈 배열 (날짜 바뀌면 블랙리스트 리셋)
+                if (saved.date !== today) return [];
+                return saved.deletedIds || [];
+            };
 
             const syncFromServer = async () => {
                 if (!WORKER_URL || WORKER_URL.includes("your-worker")) return;
@@ -1225,12 +1232,14 @@
                     newEnergy = Math.min(100, newEnergy + consumption);
                 }
 
-                const deletedIds = JSON.parse(localStorage.getItem('fortressDeletedIds') || '[]');
+                // [수정] fortressData 내부에 deletedIds 저장
+                const saved = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                const deletedIds = saved.deletedIds || [];
                 const targetIdStr = String(deleteTargetId);
                 if (!deletedIds.some(id => String(id) === targetIdStr)) {
-                    deletedIds.push(targetIdStr); // 문자열로 통일
-                    localStorage.setItem('fortressDeletedIds', JSON.stringify(deletedIds));
+                    deletedIds.push(targetIdStr);
                 }
+                // saveData에서 함께 저장되도록 아래에서 처리
 
                 // 2. 블록 리스트에서 제거
                 const newBlocks = blocks.filter(b => b.id !== deleteTargetId);
@@ -1242,8 +1251,11 @@
                 setShowModal(false);
                 triggerToast("🗑️ 기록 영구 삭제 완료");
                 
-                // 4. 즉시 서버 동기화하여 서버 쪽 데이터도 날려버림
-                setTimeout(() => sendToNotion(true), 100);
+                // 삭제 후 즉시 서버 동기화 + 로컬 데이터 강제 갱신
+                sendToNotion(true).then(() => {
+                    // 서버 동기화 완료 후에도 블랙리스트 유지 확인
+                    console.log("Delete synced. Blacklist:", getDeletedIds());
+                });
             };
 
             const extendDuration = (id) => {
