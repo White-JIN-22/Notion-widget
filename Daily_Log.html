@@ -1076,7 +1076,7 @@
                 saveData(lifeEnergy, energy, blocks, timeStr); 
                 setShowModal(false);
                 triggerToast(`☀️ 알찬 하루 되세요! ${timeStr}`);
-                setTimeout(() => sendToNotion(true), 100); 
+                setTimeout(() => sendToNotion(true), 300); 
             };
 
             const handleBedTimeSave = () => {
@@ -1085,7 +1085,7 @@
                     saveData(lifeEnergy, energy, blocks, undefined, timeStr); // bedTime 갱신
                     setShowModal(false);
                     triggerToast(`🌙 하루를 마무리합니다! ${timeStr}`);
-                    setTimeout(() => sendToNotion(true), 100);
+                    setTimeout(() => sendToNotion(true), 300);
                 };
             
             const renderBlockIcon = (block) => {
