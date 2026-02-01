@@ -51,6 +51,14 @@
             flex-shrink: 0;
         }
 
+        .glass-footer {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            flex-shrink: 0;
+        }
+
         .glass-section {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -117,9 +125,7 @@
         };
 
         const GOALS = {
-            keywords: ["신체와 환경의 주도권 회복"],
-            monthly_text: "체중 -4kg, 독서 2권, 어학(영~D15/일~103p), 일기 15회, 대시보드 완성",
-            weekly_text: "주간 체중 관리, 독서, 어학 분량 소화, 시스템 구축 집중"
+            keywords: ["신체와 환경의 주도권 회복"]
         };
 
         // ========================================
@@ -174,7 +180,7 @@
         };
 
         // ========================================
-        // 규칙 기반 피드백 생성
+        // 규칙 기반 피드백 생성 (간략화)
         // ========================================
         const generateFeedback = (stats, percents) => {
             const avgPercent = Math.round(
@@ -194,30 +200,26 @@
             const worst = items.reduce((a, b) => a.p < b.p ? a : b);
 
             if (avgPercent === 0) {
-                const starters = [
-                    "아직 시작 전이야. 의지 문제가 아니라 시스템 문제야. 오늘은 딱 5분만 책상에 앉아보자.",
-                    "0%는 게으름이 아니야. 환경 세팅부터 해보자. 공기청정기 켜고, 물 한 잔 마시고.",
-                ];
-                return starters[Math.floor(Math.random() * starters.length)];
+                return "시작 전. 오늘 딱 5분만 투자해보자.";
             }
 
             if (worst.p === 0 && avgPercent > 0) {
-                return `${worst.name}이 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐.`;
+                return `${worst.name} 0%. 오늘 10분만 시도해봐.`;
             }
             
             if (avgPercent < 40) {
-                return `${best.name}(${best.p}%)이 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자.`;
+                return `${best.name} ${best.p}% 진행 중. ${worst.name}도 조금씩.`;
             }
             
             if (avgPercent < 60) {
-                return `절반 가까이 왔어. ${best.name}에서 주도권을 잡고 있네. 꾸준함이 결국 이겨.`;
+                return `절반 왔어. ${best.name}에서 리드 중.`;
             }
             
             if (avgPercent < 80) {
-                return `평균 ${avgPercent}% 달성 중. 신체와 환경의 통제권을 확실히 되찾고 있어. 이대로 가자.`;
+                return `${avgPercent}% 달성. 주도권 회복 중.`;
             }
             
-            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 4평 공간 안에서도 네가 주도권을 쥐고 있다는 증거야.`;
+            return `목표 달성 눈앞! ${best.name} ${best.p}%.`;
         };
 
         // ========================================
@@ -351,10 +353,10 @@
             return (
                 <div className="widget-container">
                     
-                    {/* Header */}
-                    <div className="glass-header px-5 py-3 flex justify-between items-center">
+                    {/* Header - 축소 */}
+                    <div className="glass-header px-5 py-2 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <IconTrophy className="w-4 h-4" color="#fef08a" />
+                            <IconTrophy className="w-4 h-4" color="white" />
                             <h1 className="text-sm font-bold text-white tracking-tight">Monthly Goals</h1>
                         </div>
                         <div className="flex items-center gap-2">
@@ -389,16 +391,16 @@
                                 ))}
                             </div>
                         </div>
-
-                        {/* Feedback */}
-                        <div className="glass-section px-3 py-2.5 flex items-start gap-2.5" style={{ backgroundColor: 'rgba(125, 211, 252, 0.1)' }}>
-                            <IconMessage className="w-4 h-4 shrink-0 mt-0.5" color="#7dd3fc" />
-                            <p className="text-[11px] text-white/80 leading-relaxed">
-                                {feedback}
-                            </p>
-                        </div>
-
                     </div>
+
+                    {/* Footer - 헤더 스타일 */}
+                    <div className="glass-footer px-4 py-2 flex items-center gap-2">
+                        <IconMessage className="w-3.5 h-3.5 shrink-0" color="rgba(255,255,255,0.7)" />
+                        <p className="text-[11px] text-white/70">
+                            {feedback}
+                        </p>
+                    </div>
+
                 </div>
             );
         };
