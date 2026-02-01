@@ -404,11 +404,11 @@
                     Icon: IconSparkle
                 },
                 { 
-                    label: "독서", 
-                    percent: percents.reading, 
+                    label: "코딩", 
+                    percent: percents.coding, 
                     color: colors.sky, 
-                    display: `${formatMinutes(stats.reading)} / ${formatTarget(TARGETS.reading)}`,
-                    Icon: IconBook
+                    display: `${formatMinutes(stats.coding)} / ${formatTarget(TARGETS.coding)}`,
+                    Icon: IconFlame
                 },
                 { 
                     label: "영어", 
@@ -425,18 +425,18 @@
                     Icon: IconFlame
                 },
                 { 
+                    label: "독서", 
+                    percent: percents.reading, 
+                    color: colors.sky, 
+                    display: `${formatMinutes(stats.reading)} / ${formatTarget(TARGETS.reading)}`,
+                    Icon: IconBook
+                },
+                { 
                     label: "기록", 
                     percent: percents.record, 
                     color: colors.sky, 
                     display: `${stats.record}/${TARGETS.record}회`,
                     Icon: IconPen
-                },
-                { 
-                    label: "코딩", 
-                    percent: percents.coding, 
-                    color: colors.sky, 
-                    display: `${formatMinutes(stats.coding)} / ${formatTarget(TARGETS.coding)}`,
-                    Icon: IconFlame
                 }
             ];
 
