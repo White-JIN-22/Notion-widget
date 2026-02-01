@@ -223,35 +223,30 @@
                 ]
             };
 
-            // 데이터 fetch (에러 조용히 처리)
+            // 데이터 fetch (월별 일괄 조회)
             const fetchMonthData = async () => {
                 setIsLoading(true);
                 const newData = {};
                 
                 try {
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                        
-                        try {
-                            const res = await fetch(`${WORKER_URL}?date=${dateStr}`);
-                            if (res.ok) {
-                                const data = await res.json();
-                                if (data.blocks && Array.isArray(data.blocks)) {
-                                    newData[day] = analyzeBlocks(data.blocks);
+                    const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    const res = await fetch(`${WORKER_URL}?month=${monthStr}`);
+                    
+                    if (res.ok) {
+                        const result = await res.json();
+                        if (result.data) {
+                            Object.keys(result.data).forEach(day => {
+                                const dayData = result.data[day];
+                                if (dayData.blocks && Array.isArray(dayData.blocks)) {
+                                    newData[parseInt(day)] = analyzeBlocks(dayData.blocks);
                                 }
-                            }
-                        } catch (e) {
-                            // CORS 에러 등 조용히 무시
-                        }
-                        
-                        if (day % 5 === 0) {
-                            await new Promise(r => setTimeout(r, 200));
+                            });
                         }
                     }
                     
                     setMonthData(newData);
                 } catch (e) {
-                    // 전체 에러 조용히 무시
+                    // 에러 조용히 무시
                 } finally {
                     setIsLoading(false);
                 }
