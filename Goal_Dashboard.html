@@ -57,17 +57,21 @@
             border-radius: 12px;
         }
 
-        .progress-bar-bg {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            overflow: hidden;
+        .block-bar {
+            display: flex;
+            gap: 3px;
         }
 
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.5s ease;
+        .block {
+            width: 14px;
+            height: 8px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .block.filled {
+            box-shadow: 0 0 6px currentColor;
         }
 
         .font-mono { font-family: 'Roboto Mono', monospace; }
@@ -159,6 +163,16 @@
 
         const getPercent = (current, target) => Math.min(100, Math.round((current / target) * 100));
 
+        // 분 → 시간 분 변환
+        const formatMinutes = (mins) => {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (h > 0) {
+                return `${h}시간 ${m}분`;
+            }
+            return `${m}분`;
+        };
+
         // ========================================
         // 규칙 기반 피드백 생성
         // ========================================
@@ -188,22 +202,22 @@
             }
 
             if (worst.p === 0 && avgPercent > 0) {
-                return `${worst.name}, 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐.`;
+                return `${worst.name}이 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐.`;
             }
             
             if (avgPercent < 40) {
-                return `${best.name}(${best.p}%), 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자.`;
+                return `${best.name}(${best.p}%)이 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자.`;
             }
             
             if (avgPercent < 60) {
-                return `절반 가까이 왔어. ${best.name}, 주도권을 잡고 있네. 꾸준함이 결국 이겨.`;
+                return `절반 가까이 왔어. ${best.name}에서 주도권을 잡고 있네. 꾸준함이 결국 이겨.`;
             }
             
             if (avgPercent < 80) {
                 return `평균 ${avgPercent}% 달성 중. 신체와 환경의 통제권을 확실히 되찾고 있어. 이대로 가자.`;
             }
             
-            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 네가 시간의 주도권을 쥐고 있다는 증거야.`;
+            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 4평 공간 안에서도 네가 주도권을 쥐고 있다는 증거야.`;
         };
 
         // ========================================
@@ -219,11 +233,14 @@
         // ========================================
         // 아이콘
         // ========================================
-        const IconTarget = ({ className, color }) => (
+        const IconTrophy = ({ className, color }) => (
             <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <circle cx="12" cy="12" r="6"></circle>
-                <circle cx="12" cy="12" r="2"></circle>
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
             </svg>
         );
 
@@ -234,20 +251,26 @@
         );
 
         // ========================================
-        // 프로그래스 바 컴포넌트
+        // 블럭 프로그래스 바 컴포넌트
         // ========================================
-        const ProgressBar = ({ percent, color }) => (
-            <div className="progress-bar-bg">
-                <div 
-                    className="progress-bar-fill"
-                    style={{ 
-                        width: `${percent}%`, 
-                        backgroundColor: color,
-                        boxShadow: `0 0 8px ${color}40`
-                    }}
-                />
-            </div>
-        );
+        const BlockBar = ({ percent, color, blockCount = 10 }) => {
+            const filledCount = Math.round((percent / 100) * blockCount);
+            
+            return (
+                <div className="block-bar">
+                    {[...Array(blockCount)].map((_, i) => (
+                        <div 
+                            key={i} 
+                            className={`block ${i < filledCount ? 'filled' : ''}`}
+                            style={{ 
+                                backgroundColor: i < filledCount ? color : undefined,
+                                color: color
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        };
 
         // ========================================
         // 메인 컴포넌트
@@ -306,13 +329,14 @@
                  percents.japanese + percents.record + percents.coding) / 6
             );
 
+            // 시간 기반은 formatMinutes 사용
             const goals = [
-                { label: "운동", percent: percents.exercise, color: "#d8b4fe", value: stats.exercise, target: TARGETS.exercise, unit: "회" },
-                { label: "독서", percent: percents.reading, color: "#7dd3fc", value: stats.reading, target: TARGETS.reading, unit: "분" },
-                { label: "영어", percent: percents.english, color: "#d8b4fe", value: stats.english, target: TARGETS.english, unit: "회" },
-                { label: "일어", percent: percents.japanese, color: "#7dd3fc", value: stats.japanese, target: TARGETS.japanese, unit: "회" },
-                { label: "기록", percent: percents.record, color: "#d8b4fe", value: stats.record, target: TARGETS.record, unit: "회" },
-                { label: "코딩", percent: percents.coding, color: "#7dd3fc", value: stats.coding, target: TARGETS.coding, unit: "분" }
+                { label: "운동", percent: percents.exercise, color: "#d8b4fe", display: `${stats.exercise}/${TARGETS.exercise}회` },
+                { label: "독서", percent: percents.reading, color: "#7dd3fc", display: `${formatMinutes(stats.reading)}` },
+                { label: "영어", percent: percents.english, color: "#d8b4fe", display: `${stats.english}/${TARGETS.english}회` },
+                { label: "일어", percent: percents.japanese, color: "#7dd3fc", display: `${stats.japanese}/${TARGETS.japanese}회` },
+                { label: "기록", percent: percents.record, color: "#d8b4fe", display: `${stats.record}/${TARGETS.record}회` },
+                { label: "코딩", percent: percents.coding, color: "#7dd3fc", display: `${formatMinutes(stats.coding)}` }
             ];
 
             if (loading) {
@@ -330,26 +354,21 @@
                     {/* Header */}
                     <div className="glass-header px-5 py-3 flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <IconTarget className="w-4 h-4" color="#7dd3fc" />
+                            <IconTrophy className="w-4 h-4" color="#fef08a" />
                             <h1 className="text-sm font-bold text-white tracking-tight">Monthly Goals</h1>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-mono text-white/70">{avgPercent}%</span>
-                            <div className="w-16 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                <div 
-                                    className="h-full bg-sky-300 rounded-full transition-all"
-                                    style={{ width: `${avgPercent}%`, boxShadow: '0 0 8px rgba(125,211,252,0.5)' }}
-                                />
-                            </div>
+                            <BlockBar percent={avgPercent} color="#7dd3fc" blockCount={10} />
                         </div>
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 p-4 flex flex-col gap-3">
                         
-                        {/* Keyword Banner */}
-                        <div className="glass-section px-4 py-2 flex items-center justify-center" style={{ backgroundColor: 'rgba(216, 180, 254, 0.15)' }}>
-                            <span className="text-xs font-bold text-purple-300 tracking-wide">
+                        {/* Keyword Banner - 모노톤 */}
+                        <div className="glass-section px-4 py-2 flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}>
+                            <span className="text-xs font-bold text-white/60 tracking-wide">
                                 ✦ {GOALS.keywords[0]} ✦
                             </span>
                         </div>
@@ -358,14 +377,14 @@
                         <div className="glass-section p-3 flex-1">
                             <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 h-full">
                                 {goals.map((item, i) => (
-                                    <div key={i} className="flex flex-col gap-1">
+                                    <div key={i} className="flex flex-col gap-1.5">
                                         <div className="flex justify-between items-baseline">
                                             <span className="text-[11px] font-medium text-white/80">{item.label}</span>
                                             <span className="text-[10px] font-mono text-white/50">
-                                                {item.value}/{item.target}{item.unit}
+                                                {item.display}
                                             </span>
                                         </div>
-                                        <ProgressBar percent={item.percent} color={item.color} />
+                                        <BlockBar percent={item.percent} color={item.color} blockCount={10} />
                                     </div>
                                 ))}
                             </div>
