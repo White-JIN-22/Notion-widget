@@ -467,7 +467,7 @@
                             return; 
                         }
 
-                        // 1. 블록 데이터 병합 (서버 + 로컬)
+                        // 1. 블록 데이터 처리 (로컬 우선, 로컬 없으면 서버)
                         if (data.blocks && Array.isArray(data.blocks)) {
                             const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                             const serverBlocks = data.blocks;
@@ -475,34 +475,20 @@
                             // 로컬 데이터 준비
                             let localBlocks = (savedData.date === dateStr) ? (savedData.blocks || []) : [];
                             
-                            // 병합 (ID 기준 중복 제거)
-                            const blockMap = new Map();
-                            
-                            // ★ [핵심] 좀비 방지: 로컬에서 삭제했던 ID는 서버에서 와도 무시함
-                            const deletedIds = getDeletedIds();
-
-                            // 서버 데이터 중 오늘 날짜이면서 + 블랙리스트에 없는 것만 통과
-                            // ★ [수정] _split_ ID도 원본 ID 기준으로 필터링
-                            const cleanServerBlocks = serverBlocks.filter(b => {
-                                if (new Date(b.startTime).toDateString() !== dateStr) return false;
-                                
-                                // ID가 _split_ 형태면 원본 ID 추출해서 비교
-                                const baseId = String(b.id).includes('_split_') 
-                                    ? String(b.id).split('_split_')[0] 
-                                    : b.id;
-                                
-                                // 원본 ID가 블랙리스트에 있으면 제외
-                                return !deletedIds.some(delId => String(delId) === String(baseId));
-                            });
-                            
-                            cleanServerBlocks.forEach(b => blockMap.set(b.id, b));
-                            localBlocks.forEach(b => blockMap.set(b.id, b));
-                            blocks.forEach(b => {
-                                const isDeleted = deletedIds.some(delId => String(delId) === String(b.id));
-                                if (!isDeleted) blockMap.set(b.id, b);
-                            });
-                            
-                            const mergedBlocks = Array.from(blockMap.values());
+                            // ★ [단순화] 로컬에 데이터가 있으면 로컬 사용, 없으면 서버 사용
+                            let mergedBlocks;
+                            if (localBlocks.length > 0 || blocks.length > 0) {
+                                // 로컬 데이터가 있으면 로컬 우선 (삭제 반영)
+                                const blockMap = new Map();
+                                localBlocks.forEach(b => blockMap.set(b.id, b));
+                                blocks.forEach(b => blockMap.set(b.id, b));
+                                mergedBlocks = Array.from(blockMap.values());
+                            } else {
+                                // 로컬이 완전히 비어있으면 서버 데이터 사용 (복구용)
+                                mergedBlocks = serverBlocks.filter(b => 
+                                    new Date(b.startTime).toDateString() === dateStr
+                                );
+                            }
                             mergedBlocks.sort((a, b) => b.startTime - a.startTime); // 최신순 정렬
 
                             // ---------------------------------------------------------
