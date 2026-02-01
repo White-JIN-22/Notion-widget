@@ -49,8 +49,6 @@
             -webkit-backdrop-filter: blur(5px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.8);
             flex-shrink: 0;
-            position: relative;
-            z-index: 1;
         }
 
         .glass-sidebar {
@@ -68,11 +66,12 @@
             position: relative;
         }
 
+        /* 툴팁 기본 (위로 표시) */
         .tooltip {
             position: absolute;
             bottom: 16px;
             left: 50%;
-            transform: translateX(-50%) translateZ(0);
+            transform: translateX(-50%);
             padding: 3px 6px;
             border-radius: 6px;
             font-size: 9px;
@@ -80,11 +79,17 @@
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.15s;
-            z-index: 50;
+            z-index: 100;
             display: flex;
             align-items: center;
             gap: 3px;
             border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* 첫 줄 툴팁 (아래로 표시) */
+        .tooltip-bottom {
+            bottom: auto;
+            top: 16px;
         }
 
         .day-cell:hover .tooltip { opacity: 1; }
@@ -218,7 +223,7 @@
                 ]
             };
 
-            // 데이터 fetch
+            // 데이터 fetch (에러 조용히 처리)
             const fetchMonthData = async () => {
                 setIsLoading(true);
                 const newData = {};
@@ -236,7 +241,7 @@
                                 }
                             }
                         } catch (e) {
-                            console.error(`Error fetching ${dateStr}:`, e);
+                            // CORS 에러 등 조용히 무시
                         }
                         
                         if (day % 5 === 0) {
@@ -246,7 +251,7 @@
                     
                     setMonthData(newData);
                 } catch (e) {
-                    console.error('Fetch error:', e);
+                    // 전체 에러 조용히 무시
                 } finally {
                     setIsLoading(false);
                 }
@@ -346,6 +351,9 @@
                                     const isToday = cell.day === new Date().getDate() && 
                                                    month === new Date().getMonth() && 
                                                    year === new Date().getFullYear();
+                                    
+                                    // 첫 줄(idx < 6)은 툴팁을 아래로 표시
+                                    const isFirstRow = idx < 6;
 
                                     return (
                                         <div
@@ -356,7 +364,10 @@
                                                 boxShadow: cell.completed === cell.total ? `0 0 4px ${color.hex}` : 'none'
                                             }}
                                         >
-                                            <div className="tooltip" style={{ backgroundColor: color.hex }}>
+                                            <div 
+                                                className={`tooltip ${isFirstRow ? 'tooltip-bottom' : ''}`} 
+                                                style={{ backgroundColor: color.hex }}
+                                            >
                                                 <span className="font-bold text-slate-700">{cell.day}</span>
                                                 {icons.map((item, i) => {
                                                     const { Icon } = item;
