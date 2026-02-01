@@ -242,11 +242,13 @@
                                 }
                             });
                         }
+                    } else {
+                        console.error('Fetch failed:', res.status);
                     }
                     
                     setMonthData(newData);
                 } catch (e) {
-                    // 에러 조용히 무시
+                    console.error('Fetch error:', e);
                 } finally {
                     setIsLoading(false);
                 }
