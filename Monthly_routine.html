@@ -30,7 +30,7 @@
         .widget-container {
             position: relative;
             width: 120px;
-            height: 280px;
+            height: 290px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -59,8 +59,8 @@
         .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.3); }
 
         .day-cell {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 2px;
             transition: all 0.2s ease;
         }
@@ -132,18 +132,6 @@
             </svg>
         );
 
-        const IconChevronLeft = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6"></path>
-            </svg>
-        );
-
-        const IconChevronRight = ({ className }) => (
-            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6"></path>
-            </svg>
-        );
-
         // --- Main Component ---
         const MonthlyRoutine = () => {
             const [currentDate, setCurrentDate] = useState(new Date());
@@ -153,6 +141,7 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=일요일
             const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
             // 루틴 정의
@@ -182,9 +171,9 @@
             };
 
             const colors = {
-                morning: { hex: '#d8b4fe', label: '아침' },
-                afternoon: { hex: '#7dd3fc', label: '점심' },
-                night: { hex: '#fef08a', label: '저녁' }
+                morning: { hex: '#d8b4fe' },
+                afternoon: { hex: '#7dd3fc' },
+                night: { hex: '#fef08a' }
             };
 
             const sidebarIcons = {
@@ -271,7 +260,7 @@
                 return result;
             };
 
-            // 불투명도 계산 (1개=10%, 전체 완료=100%)
+            // 불투명도 계산 (0개=8%, 전체 완료=100%)
             const getOpacity = (completed, total) => {
                 if (completed === 0) return 0.08;
                 return 0.1 + (completed / total) * 0.9;
@@ -281,50 +270,71 @@
                 fetchMonthData();
             }, [year, month]);
 
-            const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-            const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+            // 달력 그리드 생성 (빈 칸 포함)
+            const generateCalendarGrid = (period) => {
+                const grid = [];
+                const totalRoutines = routines[period].length;
+                
+                // 첫째 날 앞의 빈 칸
+                for (let i = 0; i < firstDayOfMonth; i++) {
+                    grid.push({ day: null, isEmpty: true });
+                }
+                
+                // 실제 날짜들
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayData = monthData[day];
+                    const completed = dayData?.[period]?.completed || 0;
+                    grid.push({ 
+                        day, 
+                        isEmpty: false, 
+                        completed,
+                        total: totalRoutines,
+                        opacity: getOpacity(completed, totalRoutines)
+                    });
+                }
+                
+                return grid;
+            };
 
             // 섹션 렌더링
             const renderSection = (period) => {
                 const color = colors[period];
                 const icons = sidebarIcons[period];
+                const grid = generateCalendarGrid(period);
                 const totalRoutines = routines[period].length;
 
                 return (
                     <div key={period} className={`flex-1 flex flex-row ${period !== 'morning' ? 'border-t-glass' : ''}`}>
-                        {/* 왼쪽: 시간대 라벨 + 아이콘들 */}
-                        <div className="w-[26px] glass-sidebar py-1.5 px-1 flex flex-col items-center gap-0.5"
+                        {/* 왼쪽: 아이콘들만 */}
+                        <div className="w-[18px] glass-sidebar py-2 px-0.5 flex flex-col items-center justify-center gap-1"
                              style={{ backgroundColor: `${color.hex}15` }}>
-                            <span className="text-[7px] font-bold text-white/70 mb-0.5">
-                                {color.label}
-                            </span>
                             {icons.map((item, idx) => {
                                 const { Icon, color: iconColor } = item;
                                 return <Icon key={idx} className="w-2.5 h-2.5" color={iconColor} />;
                             })}
                         </div>
 
-                        {/* 오른쪽: 한 달 그리드 */}
-                        <div className="flex-1 p-1.5" style={{ backgroundColor: `${color.hex}10` }}>
-                            <div className="flex flex-wrap gap-[2px] justify-start">
-                                {Array.from({ length: daysInMonth }, (_, i) => {
-                                    const day = i + 1;
-                                    const dayData = monthData[day];
-                                    const completed = dayData?.[period]?.completed || 0;
-                                    const opacity = getOpacity(completed, totalRoutines);
-                                    const isToday = day === new Date().getDate() && 
+                        {/* 오른쪽: 7열 달력 그리드 */}
+                        <div className="flex-1 p-1" style={{ backgroundColor: `${color.hex}10` }}>
+                            <div className="grid grid-cols-7 gap-[2px]">
+                                {grid.map((cell, idx) => {
+                                    if (cell.isEmpty) {
+                                        return <div key={idx} className="day-cell" style={{ opacity: 0 }} />;
+                                    }
+                                    
+                                    const isToday = cell.day === new Date().getDate() && 
                                                    month === new Date().getMonth() && 
                                                    year === new Date().getFullYear();
                                     
                                     return (
                                         <div
-                                            key={day}
+                                            key={idx}
                                             className={`day-cell ${isToday ? 'ring-1 ring-white' : ''}`}
-                                            title={`${month + 1}/${day}: ${completed}/${totalRoutines}`}
+                                            title={`${month + 1}/${cell.day}: ${cell.completed}/${cell.total}`}
                                             style={{
                                                 backgroundColor: color.hex,
-                                                opacity: opacity,
-                                                boxShadow: completed === totalRoutines ? `0 0 4px ${color.hex}` : 'none'
+                                                opacity: cell.opacity,
+                                                boxShadow: cell.completed === cell.total ? `0 0 4px ${color.hex}` : 'none'
                                             }}
                                         />
                                     );
@@ -337,34 +347,14 @@
 
             return (
                 <div className="widget-container">
-                    {/* Header */}
-                    <div className="glass-header px-2 py-2 flex justify-between items-center">
-                        <div>
-                            <div className="text-sky-300 text-[8px] font-bold tracking-wider">
-                                {year}
-                            </div>
-                            <h1 className="text-sm font-bold text-white tracking-tight">
-                                {monthNames[month]}
-                            </h1>
-                        </div>
-                        
-                        <div className="flex items-center gap-0.5">
-                            {isLoading && (
-                                <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin mr-1"></div>
-                            )}
-                            <button 
-                                onClick={prevMonth}
-                                className="w-5 h-5 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
-                            >
-                                <IconChevronLeft className="w-3 h-3" />
-                            </button>
-                            <button 
-                                onClick={nextMonth}
-                                className="w-5 h-5 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
-                            >
-                                <IconChevronRight className="w-3 h-3" />
-                            </button>
-                        </div>
+                    {/* Header - 월만 표시 */}
+                    <div className="glass-header px-3 py-1.5 flex justify-between items-center">
+                        <h1 className="text-sm font-bold text-white tracking-tight">
+                            {monthNames[month]}
+                        </h1>
+                        {isLoading && (
+                            <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin"></div>
+                        )}
                     </div>
 
                     {/* Body: 3 Sections */}
