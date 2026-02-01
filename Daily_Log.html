@@ -808,7 +808,7 @@
                         setStartTime(null);
                         return; 
                     }
-                    setTempSession({ startTime: startTime, endTime: Date.now(), duration: Math.ceil(elapsed / 60) });
+                    setTempSession({ startTime: startTime, endTime: Date.now(), duration: Math.floor(elapsed / 60) });
                     setModalType('check'); setShowModal(true);
                 }
             };
