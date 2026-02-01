@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta name="color-scheme" content="dark light">
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Routine</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        .widget-container {
+            position: relative;
+            width: 120px;
+            height: 280px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #334155;
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+            flex-shrink: 0;
+        }
+
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.3); }
+
+        .day-cell {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .font-mono-nums { 
+            font-family: 'Roboto Mono', monospace; 
+            letter-spacing: -0.5px; 
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        purple: { 100: '#f3e8ff', 300: '#d8b4fe' },
+                        sky: { 100: '#e0f2fe', 300: '#7dd3fc' },
+                        yellow: { 100: '#fef9c3', 200: '#fef08a' },
+                        slate: { 400: '#94a3b8', 600: '#475569' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', '-apple-system', 'sans-serif'],
+                        mono: ['"Roboto Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+
+        // --- Icons ---
+        const IconSparkle = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
+            </svg>
+        );
+
+        const IconPen = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            </svg>
+        );
+
+        const IconUtensils = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path>
+            </svg>
+        );
+
+        const IconDroplets = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+        );
+
+        const IconBook = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+        );
+
+        const IconChevronLeft = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+        );
+
+        const IconChevronRight = ({ className }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6"></path>
+            </svg>
+        );
+
+        // --- Main Component ---
+        const MonthlyRoutine = () => {
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [monthData, setMonthData] = useState({});
+            const [isLoading, setIsLoading] = useState(false);
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // 루틴 정의
+            const routines = {
+                morning: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'walk', keywords: ['산책'] },
+                    { id: 'hygiene', keywords: ['위생관리'] }
+                ],
+                afternoon: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'walk', keywords: ['산책'] },
+                    { id: 'reading', keywords: ['독서'] }
+                ],
+                night: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'walk', keywords: ['산책'] },
+                    { id: 'hygiene', keywords: ['위생관리'] },
+                    { id: 'record', keywords: ['기록'] }
+                ]
+            };
+
+            const timeRanges = {
+                morning: { start: 0, end: 12 },
+                afternoon: { start: 12, end: 18 },
+                night: { start: 18, end: 24 }
+            };
+
+            const colors = {
+                morning: { hex: '#d8b4fe', label: '아침' },
+                afternoon: { hex: '#7dd3fc', label: '점심' },
+                night: { hex: '#fef08a', label: '저녁' }
+            };
+
+            const sidebarIcons = {
+                morning: [
+                    { Icon: IconUtensils, color: '#d8b4fe' },
+                    { Icon: IconSparkle, color: '#d8b4fe' },
+                    { Icon: IconDroplets, color: '#d8b4fe' }
+                ],
+                afternoon: [
+                    { Icon: IconUtensils, color: '#7dd3fc' },
+                    { Icon: IconSparkle, color: '#7dd3fc' },
+                    { Icon: IconBook, color: '#7dd3fc' }
+                ],
+                night: [
+                    { Icon: IconUtensils, color: '#fef08a' },
+                    { Icon: IconSparkle, color: '#fef08a' },
+                    { Icon: IconDroplets, color: '#fef08a' },
+                    { Icon: IconPen, color: '#fef08a' }
+                ]
+            };
+
+            // 데이터 fetch
+            const fetchMonthData = async () => {
+                setIsLoading(true);
+                const newData = {};
+                
+                try {
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        
+                        try {
+                            const res = await fetch(`${WORKER_URL}?date=${dateStr}`);
+                            if (res.ok) {
+                                const data = await res.json();
+                                if (data.blocks && Array.isArray(data.blocks)) {
+                                    newData[day] = analyzeBlocks(data.blocks);
+                                }
+                            }
+                        } catch (e) {
+                            console.error(`Error fetching ${dateStr}:`, e);
+                        }
+                        
+                        if (day % 5 === 0) {
+                            await new Promise(r => setTimeout(r, 100));
+                        }
+                    }
+                    
+                    setMonthData(newData);
+                } catch (e) {
+                    console.error('Fetch error:', e);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // 블록 분석 - 완료 개수 반환
+            const analyzeBlocks = (blocks) => {
+                const result = {
+                    morning: { completed: 0, total: 3 },
+                    afternoon: { completed: 0, total: 3 },
+                    night: { completed: 0, total: 4 }
+                };
+
+                Object.keys(routines).forEach(period => {
+                    const { start, end } = timeRanges[period];
+                    let completedCount = 0;
+                    
+                    routines[period].forEach(routine => {
+                        const found = blocks.some(b => {
+                            const bTime = new Date(b.startTime);
+                            const h = bTime.getHours();
+                            if (h >= start && h < end && b.duration >= 10) {
+                                const content = b.name || b.memo || "";
+                                return routine.keywords.some(k => content.includes(k));
+                            }
+                            return false;
+                        });
+                        if (found) completedCount++;
+                    });
+
+                    result[period].completed = completedCount;
+                });
+
+                return result;
+            };
+
+            // 불투명도 계산 (1개=10%, 전체 완료=100%)
+            const getOpacity = (completed, total) => {
+                if (completed === 0) return 0.08;
+                return 0.1 + (completed / total) * 0.9;
+            };
+
+            useEffect(() => {
+                fetchMonthData();
+            }, [year, month]);
+
+            const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+            const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+            // 섹션 렌더링
+            const renderSection = (period) => {
+                const color = colors[period];
+                const icons = sidebarIcons[period];
+                const totalRoutines = routines[period].length;
+
+                return (
+                    <div key={period} className={`flex-1 flex flex-row ${period !== 'morning' ? 'border-t-glass' : ''}`}>
+                        {/* 왼쪽: 시간대 라벨 + 아이콘들 */}
+                        <div className="w-[26px] glass-sidebar py-1.5 px-1 flex flex-col items-center gap-0.5"
+                             style={{ backgroundColor: `${color.hex}15` }}>
+                            <span className="text-[7px] font-bold text-white/70 mb-0.5">
+                                {color.label}
+                            </span>
+                            {icons.map((item, idx) => {
+                                const { Icon, color: iconColor } = item;
+                                return <Icon key={idx} className="w-2.5 h-2.5" color={iconColor} />;
+                            })}
+                        </div>
+
+                        {/* 오른쪽: 한 달 그리드 */}
+                        <div className="flex-1 p-1.5" style={{ backgroundColor: `${color.hex}10` }}>
+                            <div className="flex flex-wrap gap-[2px] justify-start">
+                                {Array.from({ length: daysInMonth }, (_, i) => {
+                                    const day = i + 1;
+                                    const dayData = monthData[day];
+                                    const completed = dayData?.[period]?.completed || 0;
+                                    const opacity = getOpacity(completed, totalRoutines);
+                                    const isToday = day === new Date().getDate() && 
+                                                   month === new Date().getMonth() && 
+                                                   year === new Date().getFullYear();
+                                    
+                                    return (
+                                        <div
+                                            key={day}
+                                            className={`day-cell ${isToday ? 'ring-1 ring-white' : ''}`}
+                                            title={`${month + 1}/${day}: ${completed}/${totalRoutines}`}
+                                            style={{
+                                                backgroundColor: color.hex,
+                                                opacity: opacity,
+                                                boxShadow: completed === totalRoutines ? `0 0 4px ${color.hex}` : 'none'
+                                            }}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="widget-container">
+                    {/* Header */}
+                    <div className="glass-header px-2 py-2 flex justify-between items-center">
+                        <div>
+                            <div className="text-sky-300 text-[8px] font-bold tracking-wider">
+                                {year}
+                            </div>
+                            <h1 className="text-sm font-bold text-white tracking-tight">
+                                {monthNames[month]}
+                            </h1>
+                        </div>
+                        
+                        <div className="flex items-center gap-0.5">
+                            {isLoading && (
+                                <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin mr-1"></div>
+                            )}
+                            <button 
+                                onClick={prevMonth}
+                                className="w-5 h-5 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
+                            >
+                                <IconChevronLeft className="w-3 h-3" />
+                            </button>
+                            <button 
+                                onClick={nextMonth}
+                                className="w-5 h-5 rounded bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
+                            >
+                                <IconChevronRight className="w-3 h-3" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Body: 3 Sections */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        {renderSection('morning')}
+                        {renderSection('afternoon')}
+                        {renderSection('night')}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MonthlyRoutine />);
+    </script>
+</body>
+</html>
