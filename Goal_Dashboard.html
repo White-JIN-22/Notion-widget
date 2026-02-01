@@ -188,22 +188,22 @@
             }
 
             if (worst.p === 0 && avgPercent > 0) {
-                return `${worst.name}이 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐.`;
+                return `${worst.name}, 아직 0%네. 괜찮아, 작은 환경 변화부터 시작해보자. 오늘 딱 10분만 투자해봐.`;
             }
             
             if (avgPercent < 40) {
-                return `${best.name}(${best.p}%)이 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자.`;
+                return `${best.name}(${best.p}%), 잘 진행되고 있어. 이 리듬 유지하면서 ${worst.name}도 조금씩 신경 써보자.`;
             }
             
             if (avgPercent < 60) {
-                return `절반 가까이 왔어. ${best.name}에서 주도권을 잡고 있네. 꾸준함이 결국 이겨.`;
+                return `절반 가까이 왔어. ${best.name}, 주도권을 잡고 있네. 꾸준함이 결국 이겨.`;
             }
             
             if (avgPercent < 80) {
                 return `평균 ${avgPercent}% 달성 중. 신체와 환경의 통제권을 확실히 되찾고 있어. 이대로 가자.`;
             }
             
-            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 4평 공간 안에서도 네가 주도권을 쥐고 있다는 증거야.`;
+            return `목표 달성이 눈앞이야! ${best.name} ${best.p}% 대단해. 네가 시간의 주도권을 쥐고 있다는 증거야.`;
         };
 
         // ========================================
