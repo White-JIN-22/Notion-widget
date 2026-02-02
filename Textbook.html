@@ -57,6 +57,42 @@
             letter-spacing: 0.02em;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 과목 탭 */
+        .subject-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .subject-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .subject-tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .subject-tab.active {
+            background: rgba(125, 211, 252, 0.25);
+            border-color: rgba(125, 211, 252, 0.5);
+            color: #7dd3fc;
+        }
+
         .clear-btn {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -169,7 +205,14 @@
 
         <div class="header">
             <h1>교재분석 입력</h1>
-            <button class="clear-btn" onclick="clearInput()">지우기</button>
+            <div class="header-right">
+                <div class="subject-tabs">
+                    <button class="subject-tab active" data-subject="korean" onclick="setSubject('korean')">국어</button>
+                    <button class="subject-tab" data-subject="english" onclick="setSubject('english')">영어</button>
+                    <button class="subject-tab" data-subject="japanese" onclick="setSubject('japanese')">일본어</button>
+                </div>
+                <button class="clear-btn" onclick="clearInput()">지우기</button>
+            </div>
         </div>
 
         <div class="content">
@@ -187,6 +230,15 @@
 
     <script>
         const WORKER_URL = 'https://dixeg-worker.moonkelly601.workers.dev/';
+        
+        let currentSubject = 'korean';
+
+        function setSubject(subject) {
+            currentSubject = subject;
+            document.querySelectorAll('.subject-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.subject === subject);
+            });
+        }
 
         function clearInput() {
             document.getElementById('jsonInput').value = '';
@@ -230,7 +282,10 @@
                 const res = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
+                    body: JSON.stringify({
+                        subject: currentSubject,
+                        items: data
+                    }),
                 });
 
                 const results = await res.json();
