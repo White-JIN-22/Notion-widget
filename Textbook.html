@@ -14,7 +14,7 @@
         }
 
         body {
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: transparent;
             display: flex;
             justify-content: center;
@@ -24,23 +24,26 @@
 
         .widget {
             width: 440px;
-            height: 310px;
-            background: rgba(30, 32, 40, 0.55);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-            padding: 18px 20px;
+            height: 280px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            color: #cbd5e1;
             overflow: hidden;
+            color: white;
         }
 
         /* 헤더 */
         .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -49,26 +52,36 @@
 
         .header h1 {
             font-size: 13px;
-            font-weight: 600;
-            color: #e2e8f0;
+            font-weight: 700;
+            color: white;
             letter-spacing: 0.02em;
         }
 
         .clear-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 6px;
-            padding: 3px 9px;
-            font-size: 10px;
-            color: #64748b;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 500;
+            color: white;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 0.2s;
             font-family: inherit;
         }
 
         .clear-btn:hover {
-            background: rgba(255,255,255,0.1);
-            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 콘텐츠 영역 */
+        .content {
+            flex: 1;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
         }
 
         /* 입력 영역 */
@@ -81,26 +94,26 @@
             width: 100%;
             height: 100%;
             padding: 10px 12px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             font-size: 11px;
             font-family: 'SF Mono', 'Fira Code', monospace;
-            color: #94a3b8;
+            color: white;
             resize: none;
             outline: none;
             transition: border-color 0.2s;
         }
 
         textarea:focus {
-            border-color: rgba(125, 211, 252, 0.4);
+            border-color: rgba(125, 211, 252, 0.6);
         }
 
         textarea::placeholder {
-            color: rgba(148, 163, 184, 0.4);
+            color: rgba(255, 255, 255, 0.4);
         }
 
-        /* 하단 영역: 버튼 + 결과 */
+        /* 하단 영역 */
         .bottom {
             flex-shrink: 0;
             display: flex;
@@ -110,9 +123,9 @@
 
         .send-btn {
             width: 100%;
-            padding: 8px;
-            background: rgba(125, 211, 252, 0.15);
-            border: 1px solid rgba(125, 211, 252, 0.25);
+            padding: 10px;
+            background: rgba(125, 211, 252, 0.2);
+            border: 1px solid rgba(125, 211, 252, 0.4);
             border-radius: 10px;
             font-size: 12px;
             font-weight: 600;
@@ -123,7 +136,7 @@
         }
 
         .send-btn:hover {
-            background: rgba(125, 211, 252, 0.25);
+            background: rgba(125, 211, 252, 0.3);
         }
 
         .send-btn:disabled {
@@ -133,16 +146,17 @@
 
         /* 결과 메시지 */
         .result {
-            font-size: 10px;
-            height: 14px;
+            font-size: 11px;
+            height: 16px;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
             flex-shrink: 0;
         }
 
         .result .icon {
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .result.success { color: #6ee7b7; }
@@ -155,25 +169,26 @@
 
         <div class="header">
             <h1>교재분석 입력</h1>
-            <button class="clear-btn" onclick="clear()">지우기</button>
+            <button class="clear-btn" onclick="clearInput()">지우기</button>
         </div>
 
-        <div class="input-wrap">
-            <textarea id="jsonInput" placeholder="JSON 붙여넣기"></textarea>
-        </div>
+        <div class="content">
+            <div class="input-wrap">
+                <textarea id="jsonInput" placeholder="JSON 붙여넣기"></textarea>
+            </div>
 
-        <div class="bottom">
-            <button class="send-btn" id="sendBtn" onclick="send()">노션에 입력</button>
-            <div class="result idle" id="result"></div>
+            <div class="bottom">
+                <button class="send-btn" id="sendBtn" onclick="send()">노션에 입력</button>
+                <div class="result idle" id="result"></div>
+            </div>
         </div>
 
     </div>
 
     <script>
-        // ⚠️ 워커 URL 교체 필요
         const WORKER_URL = 'https://dixeg-worker.moonkelly601.workers.dev/';
 
-        function clear() {
+        function clearInput() {
             document.getElementById('jsonInput').value = '';
             setResult('idle', '');
         }
