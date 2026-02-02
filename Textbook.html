@@ -14,298 +14,201 @@
 
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
+            background: transparent;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 32px 16px;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        .container {
-            width: 100%;
-            max-width: 640px;
-            background: #fff;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            padding: 28px;
+        .widget {
+            width: 440px;
+            height: 310px;
+            background: rgba(30, 32, 40, 0.55);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            padding: 18px 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 10px;
+            color: #cbd5e1;
+            overflow: hidden;
         }
 
+        /* 헤더 */
         .header {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
         }
 
         .header h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e293b;
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+            letter-spacing: 0.02em;
         }
 
-        .header p {
-            font-size: 12px;
+        .clear-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 3px 9px;
+            font-size: 10px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .clear-btn:hover {
+            background: rgba(255,255,255,0.1);
             color: #94a3b8;
         }
 
-        /* 템플릿 섹션 */
-        .template-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .template-section label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .template-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px 14px;
-            position: relative;
-        }
-
-        .template-box pre {
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-all;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #e2e8f0;
-            border: none;
-            border-radius: 6px;
-            padding: 4px 10px;
-            font-size: 10px;
-            color: #475569;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .copy-btn:hover {
-            background: #cbd5e1;
-        }
-
-        .copy-btn.copied {
-            background: #bbf7d0;
-            color: #166534;
-        }
-
-        /* JSON 입력 섹션 */
-        .input-section {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-section label {
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        /* 입력 영역 */
+        .input-wrap {
+            flex: 1;
+            min-height: 0;
         }
 
         textarea {
             width: 100%;
-            min-height: 180px;
-            padding: 12px 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 12px;
+            height: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-size: 11px;
             font-family: 'SF Mono', 'Fira Code', monospace;
-            color: #334155;
-            background: #fff;
-            resize: vertical;
+            color: #94a3b8;
+            resize: none;
             outline: none;
             transition: border-color 0.2s;
         }
 
         textarea:focus {
-            border-color: #7dd3fc;
+            border-color: rgba(125, 211, 252, 0.4);
         }
 
         textarea::placeholder {
-            color: #cbd5e1;
+            color: rgba(148, 163, 184, 0.4);
         }
 
-        /* 전송 버튼 */
+        /* 하단 영역: 버튼 + 결과 */
+        .bottom {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
         .send-btn {
             width: 100%;
-            padding: 12px;
-            background: #1e293b;
-            color: #fff;
-            border: none;
+            padding: 8px;
+            background: rgba(125, 211, 252, 0.15);
+            border: 1px solid rgba(125, 211, 252, 0.25);
             border-radius: 10px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
+            color: #7dd3fc;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
             font-family: inherit;
         }
 
         .send-btn:hover {
-            background: #334155;
+            background: rgba(125, 211, 252, 0.25);
         }
 
         .send-btn:disabled {
-            background: #cbd5e1;
+            opacity: 0.4;
             cursor: not-allowed;
         }
 
-        /* 결과 섹션 */
-        .result-section {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .result-section.visible {
-            display: flex;
-        }
-
-        .result-item {
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 12px;
+        /* 결과 메시지 */
+        .result {
+            font-size: 10px;
+            height: 14px;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .result-item.success {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #166534;
-        }
-
-        .result-item.fail {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-        }
-
-        .result-item .icon {
-            font-size: 14px;
+            gap: 5px;
             flex-shrink: 0;
         }
 
-        .result-item .text {
-            flex: 1;
-        }
-
-        .result-item .title {
-            font-weight: 600;
-            margin-bottom: 1px;
-        }
-
-        .result-item .detail {
+        .result .icon {
             font-size: 10px;
-            opacity: 0.7;
         }
+
+        .result.success { color: #6ee7b7; }
+        .result.fail { color: #f87171; }
+        .result.idle { color: transparent; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="widget">
 
-        <!-- 헤더 -->
         <div class="header">
-            <h1>교재분석 → 노션 입력</h1>
-            <p>아래 템플릿 복사 후 내용 수정하여 붙여넣기</p>
+            <h1>교재분석 입력</h1>
+            <button class="clear-btn" onclick="clear()">지우기</button>
         </div>
 
-        <!-- 템플릿 -->
-        <div class="template-section">
-            <label>템플릿 (복사용)</label>
-            <div class="template-box">
-                <pre id="templateText">[
-  {
-    "title": "교재명 - 챕터명",
-    "chapter": 1,
-    "diagnostic": false,
-    "grade": "중등",
-    "difficulty": "기본",
-    "type": "암기",
-    "weaknesses": ["어휘력", "독해"],
-    "memo": "메모 내용"
-  }
-]</pre>
-                <button class="copy-btn" onclick="copyTemplate()">복사</button>
-            </div>
+        <div class="input-wrap">
+            <textarea id="jsonInput" placeholder="JSON 붙여넣기"></textarea>
         </div>
 
-        <!-- JSON 입력 -->
-        <div class="input-section">
-            <label>JSON 입력</label>
-            <textarea id="jsonInput" placeholder="JSON을 여기에 붙여넣기"></textarea>
+        <div class="bottom">
+            <button class="send-btn" id="sendBtn" onclick="send()">노션에 입력</button>
+            <div class="result idle" id="result"></div>
         </div>
-
-        <!-- 전송 버튼 -->
-        <button class="send-btn" id="sendBtn" onclick="send()">노션에 입력</button>
-
-        <!-- 결과 -->
-        <div class="result-section" id="resultSection"></div>
 
     </div>
 
     <script>
         // ⚠️ 워커 URL 교체 필요
-        const WORKER_URL = 'https://dixeg-worker.moonkelly601.workers.dev';
+        const WORKER_URL = 'https://dixeg-worker.moonkelly601.workers.dev/';
 
-        function copyTemplate() {
-            const text = document.getElementById('templateText').textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                btn.textContent = '복사됨';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = '복사';
-                    btn.classList.remove('copied');
-                }, 1200);
-            });
+        function clear() {
+            document.getElementById('jsonInput').value = '';
+            setResult('idle', '');
+        }
+
+        function setResult(type, msg) {
+            const el = document.getElementById('result');
+            el.className = 'result ' + type;
+            if (type === 'success') {
+                el.innerHTML = '<span class="icon">✓</span> ' + msg;
+            } else if (type === 'fail') {
+                el.innerHTML = '<span class="icon">✕</span> ' + msg;
+            } else {
+                el.innerHTML = '';
+            }
         }
 
         async function send() {
             const input = document.getElementById('jsonInput').value.trim();
             const btn = document.getElementById('sendBtn');
-            const resultSection = document.getElementById('resultSection');
-
-            // 결과 초기화
-            resultSection.innerHTML = '';
-            resultSection.classList.remove('visible');
 
             if (!input) {
-                alert('JSON을 붙여넣기해주세요.');
+                setResult('fail', 'JSON이 비어있습니다.');
                 return;
             }
 
-            // JSON 파싱 검증
             let data;
             try {
                 data = JSON.parse(input);
             } catch (e) {
-                alert('JSON 형식이 올바르지 않습니다.\n' + e.message);
+                setResult('fail', 'JSON 형식 오류');
                 return;
             }
 
             btn.disabled = true;
             btn.textContent = '전송 중...';
+            setResult('idle', '');
 
             try {
                 const res = await fetch(WORKER_URL, {
@@ -315,45 +218,20 @@
                 });
 
                 const results = await res.json();
+                const successCount = results.filter(r => r.success).length;
+                const failCount = results.filter(r => !r.success).length;
 
-                // 결과 렌더링
-                results.forEach(r => {
-                    const item = document.createElement('div');
-                    if (r.success) {
-                        item.className = 'result-item success';
-                        item.innerHTML = `
-                            <span class="icon">✓</span>
-                            <div class="text">
-                                <div class="title">${r.title}</div>
-                                <div class="detail">노션에 입력 완료</div>
-                            </div>
-                        `;
-                    } else {
-                        item.className = 'result-item fail';
-                        item.innerHTML = `
-                            <span class="icon">✕</span>
-                            <div class="text">
-                                <div class="title">${r.title || '제목 없음'}</div>
-                                <div class="detail">${r.error}</div>
-                            </div>
-                        `;
-                    }
-                    resultSection.appendChild(item);
-                });
-
-                resultSection.classList.add('visible');
+                if (failCount === 0) {
+                    setResult('success', `${successCount}개 입력 완료`);
+                    document.getElementById('jsonInput').value = '';
+                } else if (successCount > 0) {
+                    setResult('fail', `${successCount}개 완료 / ${failCount}개 실패`);
+                } else {
+                    setResult('fail', results[0]?.error || '입력 실패');
+                }
 
             } catch (e) {
-                resultSection.innerHTML = `
-                    <div class="result-item fail">
-                        <span class="icon">✕</span>
-                        <div class="text">
-                            <div class="title">연결 오류</div>
-                            <div class="detail">${e.message}</div>
-                        </div>
-                    </div>
-                `;
-                resultSection.classList.add('visible');
+                setResult('fail', '연결 오류');
             }
 
             btn.disabled = false;
