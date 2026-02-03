@@ -290,9 +290,8 @@
                 setTotalDuration(total);
             }, [blocks]);
 
-            // 일일 피드백 가져오기 (임시 비활성화)
+            // 일일 피드백 가져오기
             useEffect(() => {
-                return; // 임시 비활성화
                 if (!isToday(viewDate) || totalDuration === 0) return;
 
                 const fetchDailyFeedback = async () => {
@@ -496,7 +495,7 @@
                                 showIcon = true;
                             } else if (matchedBlock.duration > 10) {
                                 const roundedStart = roundTime(matchedBlock.startTime);
-                                const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
+                                const totalSlots = Math.ceil(matchedBlock.duration / 10);
                                 const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
                                 const iconIndex = Math.floor((totalSlots - 1) / 2);
                                 showIcon = currentIndex === iconIndex;
