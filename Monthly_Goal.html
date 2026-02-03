@@ -30,7 +30,7 @@
         .widget-container {
             position: relative;
             width: 180px;
-            height: 140px;
+            height: 120px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
@@ -251,15 +251,22 @@
                         </div>
                     </div>
 
-                    {/* Content - 7개 항목 */}
+                    {/* Content - 6개 항목 (2열) + 코딩 */}
                     <div className="flex-1 p-2 flex flex-col gap-1">
-                        {goals.map((item, i) => (
-                            <div key={i} className="flex items-center gap-1.5">
-                                <item.Icon className="w-2.5 h-2.5 shrink-0" color={item.color} />
-                                <span className="text-[9px] font-medium shrink-0 w-6" style={{ color: item.color }}>{item.label}</span>
-                                <ProgressBar percent={item.percent} color={item.color} />
-                            </div>
-                        ))}
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                            {goals.slice(0, 6).map((item, i) => (
+                                <div key={i} className="flex items-center gap-1">
+                                    <item.Icon className="w-2.5 h-2.5 shrink-0" color={item.color} />
+                                    <span className="text-[9px] font-medium shrink-0 w-5" style={{ color: item.color }}>{item.label}</span>
+                                    <ProgressBar percent={item.percent} color={item.color} />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <goals[6].Icon className="w-2.5 h-2.5 shrink-0" color={goals[6].color} />
+                            <span className="text-[9px] font-medium shrink-0 w-5" style={{ color: goals[6].color }}>{goals[6].label}</span>
+                            <ProgressBar percent={goals[6].percent} color={goals[6].color} />
+                        </div>
                     </div>
                 </div>
             );
