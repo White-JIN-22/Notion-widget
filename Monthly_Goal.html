@@ -147,10 +147,10 @@
                 const content = ((b.name || "") + " " + (b.memo || "")).toLowerCase();
                 const duration = b.duration || 0;
 
-                if (content.includes("산책") || content.includes("운동") || content.includes("러닝")) stats.exercise += 1;
-                if (content.includes("영어") || content.includes("보카")) stats.english += 1;
-                if (content.includes("일어") || content.includes("일본어") || content.includes("상용한자")) stats.japanese += 1;
-                if (content.includes("기록") || content.includes("일기") || content.includes("상담")) stats.record += 1;
+                if ((content.includes("산책") || content.includes("운동") || content.includes("러닝")) && duration >= 10) stats.exercise += 1;
+                if ((content.includes("영어") || content.includes("보카")) && duration >= 15) stats.english += 1;
+                if ((content.includes("일어") || content.includes("일본어") || content.includes("상용한자")) && duration >= 15) stats.japanese += 1;
+                if ((content.includes("기록") || content.includes("일기") || content.includes("상담")) && duration >= 10) stats.record += 1;
                 if (content.includes("독서") || content.includes("책")) stats.reading += duration;
                 if (content.includes("위젯") || content.includes("개발") || content.includes("디버깅") || content.includes("개선")) stats.coding += duration;
                 if (content.includes("수업") || content.includes("교안") || content.includes("강의") || content.includes("바인")) stats.lesson += duration;
