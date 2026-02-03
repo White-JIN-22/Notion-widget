@@ -262,11 +262,16 @@
                                 </div>
                             ))}
                         </div>
-                        <div className="flex items-center gap-1">
-                            <goals[6].Icon className="w-2.5 h-2.5 shrink-0" color={goals[6].color} />
-                            <span className="text-[9px] font-medium shrink-0 w-5" style={{ color: goals[6].color }}>{goals[6].label}</span>
-                            <ProgressBar percent={goals[6].percent} color={goals[6].color} />
-                        </div>
+                        {(() => {
+                            const coding = goals[6];
+                            return (
+                                <div className="flex items-center gap-1">
+                                    <coding.Icon className="w-2.5 h-2.5 shrink-0" color={coding.color} />
+                                    <span className="text-[9px] font-medium shrink-0 w-5" style={{ color: coding.color }}>{coding.label}</span>
+                                    <ProgressBar percent={coding.percent} color={coding.color} />
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
             );
