@@ -447,16 +447,21 @@
                                 ))}
                             </div>
                             {/* 코딩 - 전체 너비 */}
-                            <div className="mt-2 flex flex-col gap-1">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-1">
-                                        <goals[6].Icon className="w-3 h-3" color={goals[6].color} />
-                                        <span className="text-[11px] font-medium" style={{ color: goals[6].color }}>{goals[6].label}</span>
+                            {(() => {
+                                const coding = goals[6];
+                                return (
+                                    <div className="mt-2 flex flex-col gap-1">
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center gap-1">
+                                                <coding.Icon className="w-3 h-3" color={coding.color} />
+                                                <span className="text-[11px] font-medium" style={{ color: coding.color }}>{coding.label}</span>
+                                            </div>
+                                            <span className="text-[9px] font-mono text-white/50">{coding.display}</span>
+                                        </div>
+                                        <BlockBar percent={coding.percent} color={coding.color} blockCount={10} />
                                     </div>
-                                    <span className="text-[9px] font-mono text-white/50">{goals[6].display}</span>
-                                </div>
-                                <BlockBar percent={goals[6].percent} color={goals[6].color} blockCount={10} />
-                            </div>
+                                );
+                            })()}
                         </div>
                     </div>
 
