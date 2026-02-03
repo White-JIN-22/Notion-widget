@@ -290,8 +290,9 @@
                 setTotalDuration(total);
             }, [blocks]);
 
-            // 일일 피드백 가져오기
+            // 일일 피드백 가져오기 (임시 비활성화)
             useEffect(() => {
+                return; // 임시 비활성화
                 if (!isToday(viewDate) || totalDuration === 0) return;
 
                 const fetchDailyFeedback = async () => {
