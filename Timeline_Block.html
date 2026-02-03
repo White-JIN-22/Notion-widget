@@ -216,7 +216,13 @@
             
             const loadLocalData = () => {
                 if (!isToday(viewDate)) return;
-                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                let savedData = {};
+                try {
+                    savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                } catch (e) {
+                    console.error('localStorage 접근 불가:', e);
+                    return;
+                }
                 const today = new Date().toDateString();
                 
                 if (savedData.date === today && savedData.blocks) {
