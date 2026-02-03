@@ -570,14 +570,14 @@ const formatDuration = (totalMin) => {
                 <div className="widget-container">
                     {/* [좌측 패널 수정] TOTAL 삭제, H M 상단 배치, 글자 크기 축소 */}
                     <div className="left-panel">
-                        <div className="mt-1 text-center">
+                        <div className="mt-0 text-center">
                              {formatDuration(totalDuration)}
                         </div>
-                        <div className="mb-1 text-center">
+                        <div className="mb-0 text-center">
                             {feedbackLoading ? (
                                 <p className="text-[10px] text-white/60">피드백 생성 중...</p>
                             ) : dailyFeedback ? (
-                                <p className="text-[9px] text-sky-200 leading-tight opacity-90 break-keep">{dailyFeedback}</p>
+                    <p className="text-[11px] text-white leading-tight break-keep">{dailyFeedback}</p>
                             ) : (
                                 <>
                                     <p className="text-[12px] font-bold text-white leading-snug drop-shadow-md mb-0.5">{msg.main}</p>
