@@ -435,14 +435,14 @@
                             <div className="grid grid-cols-2 gap-x-5 gap-y-2">
                                 {goals.slice(0, 6).map((item, i) => (
                                     <div key={i} className="flex flex-col gap-1">
-                                        <div className="flex items-baseline">
+                                        <div className="flex items-baseline w-[170px]">
                                             <div className="flex items-center gap-1">
                                                 <item.Icon className="w-3 h-3" color={item.color} />
                                                 <span className="text-[11px] font-medium" style={{ color: item.color }}>{item.label}</span>
                                             </div>
                                             <span className="text-[9px] font-mono text-white/50 ml-auto">{item.display}</span>
                                         </div>
-                                        <div className="w-[170px]"><BlockBar percent={item.percent} color={item.color} blockCount={10} /></div>
+                                        <BlockBar percent={item.percent} color={item.color} blockCount={10} />
                                     </div>
                                 ))}
                             </div>
@@ -451,14 +451,14 @@
                                 const coding = goals[6];
                                 return (
                                     <div className="mt-2 flex flex-col gap-1">
-                                        <div className="flex items-baseline">
+                                        <div className="flex items-baseline w-[170px]">
                                             <div className="flex items-center gap-1">
                                                 <coding.Icon className="w-3 h-3" color={coding.color} />
                                                 <span className="text-[11px] font-medium" style={{ color: coding.color }}>{coding.label}</span>
                                             </div>
                                             <span className="text-[9px] font-mono text-white/50 ml-auto">{coding.display}</span>
                                         </div>
-                                        <div className="w-[370px]"><BlockBar percent={coding.percent} color={coding.color} blockCount={10} /></div>
+                                        <BlockBar percent={coding.percent} color={coding.color} blockCount={10} />
                                     </div>
                                 );
                             })()}
