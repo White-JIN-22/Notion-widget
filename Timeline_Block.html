@@ -25,28 +25,31 @@
             min-height: 100vh;
         }
 
-        .minute-scale-col {
-            display: flex;
-            flex-direction: column;
-            padding: 22px 0 12px 0; 
-            width: 14px;
-            margin-right: 2px;
-            flex-shrink: 0;
-            margin-left: 1px;
-            gap: 1px;
-        }
+        /* [추가] 분 단위(세로) 컨테이너 */
+.minute-scale-col {
+    display: flex;
+    flex-direction: column;
+    padding: 22px 0 12px 0; 
+    width: 14px;
+    margin-right: 2px;
+    flex-shrink: 0;
+    margin-left: 1px;
+    gap: 1px; /* [핵심 수정] 시간표 블록 사이 간격과 통일 */
+}
 
-        .minute-label-item {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.4);
-            font-family: 'Roboto Mono', monospace;
-            line-height: 1;
-        }
+/* [추가] 개별 분 라벨 (블록과 높이 1:1 매칭) */
+.minute-label-item {
+    flex: 1; /* 중요: time-block과 똑같이 높이 균등 분할 */
+    display: flex;
+    align-items: center; /* 수직 중앙 정렬 */
+    justify-content: flex-end; /* 우측 정렬 */
+    font-size: 8px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Roboto Mono', monospace;
+    line-height: 1;
+}
         
+        /* [가로형 위젯 컨테이너] */
         .widget-container {
             position: relative;
             width: 440px;
@@ -64,7 +67,7 @@
 
         .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
         
-        /* [수정] 왼쪽 패널 - Weekly Goal 헤더와 동일한 스타일 */
+        /* [좌측 패널] - 더 밝게 */
         .left-panel {
             width: 115px;
             flex-shrink: 0;
@@ -78,8 +81,10 @@
             -webkit-backdrop-filter: blur(5px);
         }
 
+        /* [우측 타임라인 영역] */
         .timeline-area {
             flex: 1;
+            /* 상단 여백(pt)을 22px로 늘려 시간 라벨이 잘리지 않게 확보 */
             padding: 22px 16px 12px 2px;
             display: flex;
             flex-direction: column;
@@ -87,34 +92,39 @@
         }
 
         .grid-container {
-            display: flex;
-            flex-direction: row;
-            height: 100%;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 0px;
-        }
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    justify-content: space-between;
+    align-items: flex-start; /* [수정] flex-end -> flex-start */
+    gap: 0px;
+}
 
-        .hour-column {
-            flex: 1;
-            display: grid;
-            grid-template-rows: repeat(6, 1fr);
-            height: 100%;
-            min-width: 0;
-            gap: 1px;
-            position: relative;
-            border-right: 1px dashed rgba(255, 255, 255, 0.15); 
-            padding-right: 1px; 
-            padding-left: 1px; 
-        }
+        /* [수정] flex -> grid로 변경하여 절대위치 요소(라벨)가 gap에 영향 주는 것 방지 */
+.hour-column {
+    flex: 1;
+    display: grid; /* flex 대신 grid 사용 */
+    grid-template-rows: repeat(6, 1fr); /* 6개의 균등한 행(10분 단위) 강제 분할 */
+    height: 100%;
+    min-width: 0;
+    gap: 1px;
+    position: relative;
+    
+    /* 오른쪽 점선 구분선 */
+    border-right: 1px dashed rgba(255, 255, 255, 0.15); 
+    padding-right: 1px; 
+    padding-left: 1px; 
+}
 
-        .hour-column:last-child {
-            border-right: none;
-            padding-right: 0;
-        }
+/* [추가] 마지막 시간대(23시) 오른쪽에는 선 없애기 */
+.hour-column:last-child {
+    border-right: none;
+    padding-right: 0;
+}
 
         .time-label {
             position: absolute;
+            /* 그리드 상단 기준 위로 올림. 부모 패딩 덕분에 잘리지 않음 */
             top: -14px; 
             left: 50%;
             transform: translateX(-50%);
@@ -125,26 +135,28 @@
         }
 
         .time-block {
-            flex: 1;
-            min-height: 0;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative; 
-            overflow: hidden; 
-        }
+    flex: 1;
+    min-height: 0; /* [핵심 수정] 내부 아이콘 크기 무시하고 강제 분할 */
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; 
+    overflow: hidden; 
+}
         
+        /* 블록 스타일 */
         .block-sun { background: rgba(216, 180, 254, 0.7); border: 1px solid rgba(216, 180, 254, 0.9); }
         .block-cloud { background: rgba(125, 211, 252, 0.6); border: 1px solid rgba(125, 211, 252, 0.8); }
         .block-rain { background: rgba(148, 163, 184, 0.5); border: 1px solid rgba(148, 163, 184, 0.6); }
         .block-empty { background: rgba(255, 255, 255, 0.04); }
         .block-action-bg { 
-            background: transparent; 
-            border: 1px solid transparent;
-        }
+    background: transparent; 
+    border: 1px solid transparent; /* [핵심 수정] none -> transparent */
+}
 
+        /* [수정] 네온 효과 제거 (색깔만 남김) */
         .text-sky-custom { color: #7dd3fc; } 
         .text-purple-custom { color: #d8b4fe; }
         .text-white { color: #ffffff; }
@@ -160,7 +172,6 @@
 
         const CALENDAR_API = "https://log-cal.moonkelly601.workers.dev/";
         const FEEDBACK_WORKER_URL = "https://feedback-worker.moonkelly601.workers.dev";
-
         const categoryColors = {
             '업무': 'bg-[#7dd3fc]',      
             '자기계발': 'bg-[#d8b4fe]', 
@@ -204,6 +215,7 @@
             const [dailyFeedback, setDailyFeedback] = useState('');
             const [feedbackLoading, setFeedbackLoading] = useState(false);
 
+            // [수정] 최신 blocks 상태를 추적하기 위한 Ref (깜빡임 방지용)
             const blocksRef = useRef(blocks);
             useEffect(() => { blocksRef.current = blocks; }, [blocks]);
 
@@ -216,16 +228,11 @@
             
             const loadLocalData = () => {
                 if (!isToday(viewDate)) return;
-                let savedData = {};
-                try {
-                    savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
-                } catch (e) {
-                    console.error('localStorage 접근 불가:', e);
-                    return;
-                }
+                const savedData = JSON.parse(localStorage.getItem('fortressData') || '{}');
                 const today = new Date().toDateString();
                 
                 if (savedData.date === today && savedData.blocks) {
+                    // 깜빡임 방지: 블록 개수나 내용이 실제로 변경됐을 때만 업데이트
                     const currentBlocksJson = JSON.stringify(blocksRef.current);
                     const newBlocksJson = JSON.stringify(savedData.blocks);
                     
@@ -235,6 +242,7 @@
                     setWakeUpTime(savedData.wakeUpTime || null);
                     setBedTime(savedData.bedTime || null);
                 } else if (blocksRef.current.length > 0) {
+                    // 데이터가 없을 때만 비우기 (불필요한 빈 배열 set 방지)
                     setBlocks([]);
                     setWakeUpTime(null);
                 }
@@ -246,6 +254,7 @@
                     if (calRes.ok) {
                         const calData = await calRes.json();
                         if (Array.isArray(calData)) {
+                            // 오늘 날짜 이벤트만 필터링
                             const todayStr = viewDate.toDateString();
                             const filtered = calData.filter(ev => {
                                 if (!ev.startTime) return false;
@@ -263,6 +272,7 @@
             }, [viewDate]);
 
             useEffect(() => {
+                // 다른 탭에서 변경 시 즉시 반영
                 const handleStorage = (e) => {
                     if (e.key === 'fortressData' && isToday(viewDate)) {
                         loadLocalData();
@@ -299,18 +309,19 @@
                     const cacheKey = `dailyFeedback_${today}_${totalDuration}`;
                     
                     // localStorage 캐시 확인
-                    const cached = localStorage.getItem(cacheKey);
-                    if (cached) {
-                        setDailyFeedback(cached);
-                        return;
-                    }
+                    try {
+                        const cached = localStorage.getItem(cacheKey);
+                        if (cached) {
+                            setDailyFeedback(cached);
+                            return;
+                        }
+                    } catch (e) {}
 
                     // 30분 이상일 때만 API 호출 (비용 절약)
                     if (totalDuration < 30) return;
 
                     setFeedbackLoading(true);
                     try {
-                        // 활동 내역 요약
                         const activities = blocks
                             .filter(b => b.name)
                             .map(b => `${b.name}(${b.duration}분)`)
@@ -330,14 +341,9 @@
                         if (res.ok) {
                             const data = await res.json();
                             setDailyFeedback(data.feedback);
-                            localStorage.setItem(cacheKey, data.feedback);
-
-                            // 오래된 캐시 정리
-                            Object.keys(localStorage).forEach(key => {
-                                if (key.startsWith('dailyFeedback_') && !key.includes(today)) {
-                                    localStorage.removeItem(key);
-                                }
-                            });
+                            try {
+                                localStorage.setItem(cacheKey, data.feedback);
+                            } catch (e) {}
                         }
                     } catch (e) {
                         console.error('Daily feedback fetch error:', e);
@@ -346,34 +352,39 @@
                     }
                 };
 
-                // 10초 딜레이 (데이터 안정화 후 호출)
                 const timer = setTimeout(fetchDailyFeedback, 10000);
                 return () => clearTimeout(timer);
             }, [totalDuration, viewDate, blocks]);
 
             const getTotalColorClass = (min) => {
-                if (!min || min <= 30) return "text-white";
-                if (min < 120) return "text-slate-400";
-                if (min < 240) return "text-yellow-200";
-                if (min <= 360) return "text-sky-300";
-                return "text-purple-300";
+                if (!min || min <= 30) return "text-white";        // 30분 이하
+                if (min < 120) return "text-slate-400";            // 31분 ~ 2시간 미만 (회색)
+                if (min < 240) return "text-yellow-200";           // 2시간 ~ 4시간 미만 (연노랑)
+                if (min <= 360) return "text-sky-300";             // 4시간 ~ 6시간 (스카이블루)
+                return "text-purple-300";                          // 6시간 초과 (연보라)
             };
 
-            const formatDuration = (totalMin) => {
-                const roundedTotal = Math.round(totalMin);
-                const h = Math.floor(roundedTotal / 60);
-                const m = roundedTotal % 60;
-                const colorClass = getTotalColorClass(roundedTotal);
+            // [수정] 소수점 제거 및 반올림 적용
+const formatDuration = (totalMin) => {
+    // 1. 여기서 전체 시간을 반올림하여 정수로 만듭니다.
+    const roundedTotal = Math.round(totalMin);
 
-                return (
-                    <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
-                        <span className="text-2xl font-bold">{h}</span>
-                        <span className="text-[12px] mx-0.5 opacity-60 font-bold">H</span>
-                        <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span>
-                        <span className="text-[12px] ml-0.5 opacity-60 font-bold">M</span>
-                    </span>
-                );
-            };
+    const h = Math.floor(roundedTotal / 60);
+    const m = roundedTotal % 60;
+    
+    // 색상 계산도 정수 기준으로 변경
+    const colorClass = getTotalColorClass(roundedTotal);
+
+    return (
+        <span className={`font-mono-nums ${colorClass} transition-colors duration-500`}>
+            <span className="text-2xl font-bold">{h}</span>
+            <span className="text-[12px] mx-0.5 opacity-60 font-bold">H</span>
+            {/* 문자열 변환 시 정수가 보장됨 */}
+            <span className="text-2xl font-bold">{String(m).padStart(2, '0')}</span>
+            <span className="text-[12px] ml-0.5 opacity-60 font-bold">M</span>
+        </span>
+    );
+};
 
             const getMessage = (min) => {
                 const now = new Date();
@@ -427,14 +438,17 @@
                         let isWakeUpSlot = false;
                         let isAfterBedTime = false;
 
+                        // 1. 기상 시간 체크
                         if (wakeUpTime) {
                             const [wH, wM] = wakeUpTime.split(':').map(Number);
                             const wakeUpDate = new Date(viewDate); 
                             wakeUpDate.setHours(wH, wM, 0, 0);
                             const wakeUpTs = wakeUpDate.getTime();
                             
+                            // 기상 시간 이전인지 체크
                             if (slotStartTs < wakeUpTs) isBeforeWakeUp = true;
                             
+                            // [중요] 기상한 딱 그 시간대 블록은 투명화 방지 (네가 찾은 코드)
                             const slotEndTimeTmp = slotStartTs + 10 * 60 * 1000;
                             if (wakeUpTs > slotStartTs && wakeUpTs <= slotEndTimeTmp) { 
                                 isWakeUpSlot = true; 
@@ -442,6 +456,7 @@
                             }
                         }
 
+                        // 2. 취침 시간 체크 (이제 기상 시간과 상관없이 독립적으로 작동)
                         if (bedTime) {
                             const [bH, bM] = bedTime.split(':').map(Number);
                             const bedDate = new Date(viewDate); 
@@ -453,109 +468,96 @@
                         const slotEndTime = new Date(viewDate);
                         slotEndTime.setHours(hour, slotEndMin, 0, 0);
                         const slotEndTs = slotEndTime.getTime();
+                        
+                        const bgBlock = blocks.find(b => {
+                            if (b.type !== 'focus' && b.type) return false; 
+                            const roundedStart = roundTime(b.startTime);
+                            const roundedEnd = roundTime(b.endTime);
+                            const finalEnd = (roundedStart === roundedEnd) ? roundedEnd + (10 * 60 * 1000) : roundedEnd;
+                            return slotStartTs >= roundedStart && slotStartTs < finalEnd;
+                        });
 
-                        const matchedBlock = blocks.find(b => {
-                            if (!b.startTime) return false;
+                        const rangeIconBlock = blocks.find(b => {
+                            if (b.type === 'focus' || !b.type) return false;
+                            if (!b.duration || b.duration <= 10) return false;
                             const roundedStart = roundTime(b.startTime);
                             const roundedEnd = roundedStart + (b.duration * 60 * 1000); 
                             return slotStartTs >= roundedStart && slotStartTs < roundedEnd;
                         });
-                        
-                        let rangeIconBlock = null;
-                        if (matchedBlock && (!matchedBlock.duration || matchedBlock.duration <= 10)) {
-                            rangeIconBlock = matchedBlock;
-                        } else {
-                            rangeIconBlock = blocks.find(b => {
-                                if (!b.startTime) return false;
-                                const roundedStart = roundTime(b.startTime);
-                                const roundedEnd = roundedStart + (b.duration * 60 * 1000); 
-                                if (slotStartTs >= roundedStart && slotStartTs < roundedEnd) {
-                                    if (b.duration > 10) return false; 
-                                    return true;
-                                }
-                                return false;
-                            });
-                        }
 
-                        const matchedEvent = events.find(ev => {
-                            if (!ev.startTime || !ev.endTime) return false;
-                            const evStart = new Date(ev.startTime).getTime();
-                            const evEnd = new Date(ev.endTime).getTime();
-                            return slotStartTs >= evStart && slotStartTs < evEnd;
+                        const pointIconBlock = blocks.find(b => {
+                            if (b.type === 'focus' || !b.type) return false;
+                            if (b.duration > 10) return false; 
+                            return b.endTime > slotStartTs && b.endTime <= slotEndTs;
                         });
 
-                        let blockType = 'empty';
-                        let iconElement = null;
-                        let showIcon = false;
+                        const slotCenter = slotStartTs + (5 * 60 * 1000); 
+                        const calendarEvent = events.find(ev => ev.startTime <= slotCenter && ev.endTime >= slotCenter);
 
-                        if (matchedBlock) {
-                            blockType = matchedBlock.type === 'rest' ? 'rain' : (matchedBlock.quality === 'good' ? 'sun' : 'cloud');
+                        let cellClass = 'block-empty';
+                        let content = null;
+                        let lineOverlay = null;
 
-                            if (rangeIconBlock && rangeIconBlock.duration <= 10) {
-                                showIcon = true;
-                            } else if (matchedBlock.duration > 10) {
-                                const roundedStart = roundTime(matchedBlock.startTime);
-                                const totalSlots = Math.ceil(matchedBlock.duration / 10);
-                                const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
-                                const iconIndex = Math.floor((totalSlots - 1) / 2);
-                                showIcon = currentIndex === iconIndex;
+                        if ((isBeforeWakeUp || isAfterBedTime) && !bgBlock && !isWakeUpSlot && !rangeIconBlock) {
+                            cellClass = 'opacity-0';
+                        }
+                        else if (bgBlock) {
+                            if (bgBlock.quality === 'Sun') cellClass = 'block-sun';
+                            else if (bgBlock.quality === 'Cloud') cellClass = 'block-cloud';
+                            else cellClass = 'block-rain';
+                        } 
+                        else if (rangeIconBlock) {
+                            cellClass = 'block-action-bg'; 
+                            const roundedStart = roundTime(rangeIconBlock.startTime);
+                            const totalSlots = Math.ceil(rangeIconBlock.duration / 10);
+                            const currentIndex = Math.floor((slotStartTs - roundedStart) / (10 * 60 * 1000));
+                            const iconIndex = Math.floor((totalSlots - 1) / 2);
+                            const color = rangeIconBlock.color || 'text-white';
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+
+                            if (currentIndex === iconIndex) {
+                                const IconComp = Icons[rangeIconBlock.icon] || (rangeIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                                content = <IconComp className={`w-3.5 h-3.5 ${color} relative z-10 drop-shadow-md`} />;
+                            } else {
+                                content = <span className={`text-[10px] leading-none ${color} opacity-60 relative z-10 pb-[1px]`}>⊹</span>;
                             }
                         }
-                        
-                        if (matchedEvent && !matchedBlock) {
-                            blockType = 'action-bg';
-                            const evStart = new Date(matchedEvent.startTime).getTime();
-                            if (slotStartTs === evStart) {
-                                showIcon = true;
-                                const catColor = categoryColors[matchedEvent.category] || categoryColors['default'];
-                                iconElement = <span className={`text-[7px] font-bold text-white px-1 py-0.5 rounded ${catColor} leading-none`}>{matchedEvent.title?.slice(0, 2)}</span>;
-                            }
+                        else if (pointIconBlock) {
+                            cellClass = 'block-action-bg';
+                            const IconComp = Icons[pointIconBlock.icon] || (pointIconBlock.type === 'switch' ? Icons.Zap : Icons.Zzz);
+                            const iconColor = pointIconBlock.color || 'text-white';
+                            if (!cellClass.includes('flex')) cellClass += ' relative flex items-center justify-center';
+                            content = <IconComp className={`w-4 h-4 ${iconColor} relative z-10 drop-shadow-md`} />;
                         }
 
-                        const blockClass = blockType === 'empty' ? 'block-empty' 
-                            : blockType === 'sun' ? 'block-sun' 
-                            : blockType === 'cloud' ? 'block-cloud'
-                            : blockType === 'rain' ? 'block-rain'
-                            : 'block-action-bg';
-                        
-                        let fadeClass = '';
-                        if (isBeforeWakeUp) fadeClass = 'opacity-30';
-                        if (isAfterBedTime) fadeClass = 'opacity-30';
+                        if (calendarEvent) {
+                            const category = calendarEvent.category || 'default';
+                            const colorClass = categoryColors[category] || categoryColors['default'];
+                            
+                            // [수정] 가로선 -> 중앙 정렬된 세로선으로 변경
+                            // h-full: 높이를 꽉 채움
+                            // w-[3px]: 두께 설정 (취향에 따라 2px~4px 조절)
+                            // left-1/2 -translate-x-1/2: 정확히 중앙에 위치
+                            lineOverlay = (
+                                <div className={`absolute h-full w-[3px] left-1/2 -translate-x-1/2 top-0 z-20 ${colorClass}`} title={calendarEvent.title} />
+                            );
 
-                        const ICON_MAP = {
-                            '산책': 'Sparkle', '운동': 'Sparkle', '러닝': 'Sparkle', '수영': 'Droplets',
-                            '식사': 'Utensils', '밥': 'Utensils', '점심': 'Utensils', '저녁': 'Utensils', '아침': 'Utensils', '야식': 'Moon',
-                            '정리': 'Recycle', '청소': 'Recycle', '환기': 'Wind', '빨래': 'Shirt', '설거지': 'Droplets',
-                            '수면': 'Moon', '취침': 'Moon', '낮잠': 'Zzz', '휴식': 'Leaf', '명상': 'Leaf', '스트레칭': 'Stretch',
-                            '독서': 'Book', '책': 'Book', '일기': 'Pen', '기록': 'Pen', '상담': 'Message',
-                            '개발': 'Flame', '코딩': 'Flame', '위젯': 'Flame', '디버깅': 'Flame', '업무': 'Flame', '작업': 'Flame',
-                            '영어': 'Flame', '일어': 'Flame', '일본어': 'Flame', '상용한자': 'Book', '보카': 'Flame',
-                            '커피': 'Cup', '차': 'Cup', '음료': 'Cup',
-                            '약': 'Pill', '영양제': 'Pill',
-                            '요리': 'Pot',
-                            '바인': 'Book', '수업': 'Book', '강의': 'Book', '교안': 'Pen',
-                        };
-
-                        if (showIcon && matchedBlock && !iconElement) {
-                            const name = matchedBlock.name || '';
-                            let iconKey = Object.keys(ICON_MAP).find(k => name.includes(k));
-                            if (iconKey && Icons[ICON_MAP[iconKey]]) {
-                                const IconComp = Icons[ICON_MAP[iconKey]];
-                                const colorClass = blockType === 'sun' ? 'text-purple-custom' : blockType === 'cloud' ? 'text-sky-custom' : 'text-white';
-                                iconElement = <IconComp className={`w-3 h-3 ${colorClass}`} />;
+                            if (!content && !bgBlock && !rangeIconBlock) {
+                                cellClass += ' relative'; 
                             }
                         }
 
                         return (
-                            <div key={i} className={`time-block ${blockClass} ${fadeClass}`}>
-                                {showIcon && iconElement}
+                            <div key={i} className={`time-block ${cellClass}`}>
+                                {lineOverlay}
+                                {content}
                             </div>
-                        );
+                        )
                     });
 
                     return (
-                        <div key={hour} className="hour-column">
-                            <span className="time-label">{hour}</span>
+                        <div key={hour} className="hour-column group">
+                            <div className="time-label group-hover:text-white transition-colors">{String(hour).padStart(2,'0')}</div>
                             {slots}
                         </div>
                     );
@@ -566,6 +568,7 @@
 
             return (
                 <div className="widget-container">
+                    {/* [좌측 패널 수정] TOTAL 삭제, H M 상단 배치, 글자 크기 축소 */}
                     <div className="left-panel">
                         <div className="mt-1 text-center">
                              {formatDuration(totalDuration)}
@@ -584,13 +587,14 @@
                         </div>
                     </div>
 
-                    <div className="minute-scale-col">
-                        {['00', '10', '20', '30', '40', '50'].map((min, idx) => (
-                            <div key={idx} className="minute-label-item">
-                                {min}
-                            </div>
-                        ))}
-                    </div>
+                    {/* [여기 추가] 2. 세로 분 단위 라벨 */}
+        <div className="minute-scale-col">
+            {['00', '10', '20', '30', '40', '50'].map((min, idx) => (
+                <div key={idx} className="minute-label-item">
+                    {min}
+                </div>
+            ))}
+        </div>
 
                     <div className="timeline-area">
                         <div className="grid-container">{renderGrid()}</div>
