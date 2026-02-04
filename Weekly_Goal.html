@@ -332,6 +332,15 @@
                     const today = getTodayStr();
                     const cacheKey = `weeklyFeedback_${today}_${JSON.stringify(percents)}`;
                     
+                    // 오래된 캐시 정리 (오늘 + 현재 퍼센트 아닌 것들)
+                    try {
+                        Object.keys(localStorage).forEach(key => {
+                            if (key.startsWith('weeklyFeedback_') && key !== cacheKey) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+                    } catch (e) {}
+                    
                     // localStorage 캐시 확인
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) {
