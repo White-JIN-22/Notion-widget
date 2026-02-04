@@ -166,6 +166,7 @@
             const [loading, setLoading] = useState(false);
             const [result, setResult] = useState(null);
             const [error, setError] = useState('');
+            const [success, setSuccess] = useState('');
 
             const handleSubmit = async (e) => {
                 e.preventDefault();
@@ -187,6 +188,8 @@
                     if (data.success) {
                         setResult(data);
                         setTitle('');
+                        setSuccess('노션에 등록 완료!');
+                        setTimeout(() => setSuccess(''), 3000);
                     } else {
                         setError(data.error || '등록 실패');
                         setTimeout(() => setError(''), 3000);
@@ -226,9 +229,12 @@
                         </button>
                     </form>
 
-                    {/* 토스트 에러 */}
+                    {/* 토스트 */}
                     {error && (
                         <div className="toast">{error}</div>
+                    )}
+                    {success && (
+                        <div className="toast" style={{ background: 'rgba(34, 197, 94, 0.9)' }}>{success}</div>
                     )}
 
                     {/* 결과 */}
