@@ -302,10 +302,22 @@
 
             // 일일 피드백 가져오기
             useEffect(() => {
-                if (!isToday(viewDate) || totalDuration === 0) return;
+                // 오래된 캐시 정리 + 피드백 초기화
+                const today = getTodayStr();
+                try {
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('dailyFeedback_') && !key.includes(today)) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                } catch (e) {}
+
+                if (!isToday(viewDate) || totalDuration === 0) {
+                    setDailyFeedback('');
+                    return;
+                }
 
                 const fetchDailyFeedback = async () => {
-                    const today = getTodayStr();
                     const cacheKey = `dailyFeedback_${today}_${totalDuration}`;
                     
                     // localStorage 캐시 확인
