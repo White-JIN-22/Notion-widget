@@ -161,6 +161,12 @@
             </svg>
         );
 
+        const IconFlame = ({ className, color, fill }) => (
+    <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3"></path>
+    </svg>
+        );
+
         // --- Main Component ---
         const MonthlyRoutine = () => {
             const [currentDate, setCurrentDate] = useState(new Date());
@@ -181,12 +187,11 @@
                 ],
                 afternoon: [
                     { id: 'meal', keywords: ['식사'] },
-                    { id: 'walk', keywords: ['운동'] },
+                    { id: 'language', keywords: ['영어', '일어'] },
                     { id: 'reading', keywords: ['독서'] }
                 ],
                 night: [
                     { id: 'meal', keywords: ['식사'] },
-                    { id: 'walk', keywords: ['운동'] },
                     { id: 'hygiene', keywords: ['위생관리'] },
                     { id: 'record', keywords: ['기록'] }
                 ]
@@ -212,12 +217,11 @@
                 ],
                 afternoon: [
                     { Icon: IconUtensils, color: '#7dd3fc' },
-                    { Icon: IconSparkle, color: '#7dd3fc' },
+                    { Icon: IconFlame, color: '#7dd3fc' },
                     { Icon: IconBook, color: '#7dd3fc' }
                 ],
                 night: [
                     { Icon: IconUtensils, color: '#fef08a' },
-                    { Icon: IconSparkle, color: '#fef08a' },
                     { Icon: IconDroplets, color: '#fef08a' },
                     { Icon: IconPen, color: '#fef08a' }
                 ]
