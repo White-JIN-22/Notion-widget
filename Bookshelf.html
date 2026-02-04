@@ -46,7 +46,7 @@
             display: flex;
             align-items: flex-end;
             padding: 16px 12px 6px 12px;
-            min-height: 110px;
+            min-height: 120px;
             gap: 3px;
             flex-wrap: nowrap;
             position: relative;
@@ -233,9 +233,9 @@
 
             // 페이지 수 → 높이 (px)
             const getBookHeight = (pages) => {
-                if (pages >= 300) return 88;
-                if (pages >= 200) return 82;
-                return 76;
+                if (pages >= 300) return 96;
+                if (pages >= 200) return 90;
+                return 84;
             };
 
             // 분류에 따른 색상 결정
