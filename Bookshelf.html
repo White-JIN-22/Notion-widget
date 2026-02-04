@@ -52,7 +52,6 @@
             position: relative;
         }
 
-        /* 책장 선반 */
         .shelf-row::after {
             content: '';
             position: absolute;
@@ -75,7 +74,7 @@
             flex-shrink: 0;
             box-shadow: 
                 1px 0 3px rgba(0, 0, 0, 0.15),
-                inset -1px 0 2px rgba(255, 255, 255, 0.25),
+                inset -1px 0 2px rgba(255, 255, 255, 0.2),
                 inset 1px 0 1px rgba(0, 0, 0, 0.05);
         }
 
@@ -83,7 +82,7 @@
             transform: translateY(-6px);
             box-shadow: 
                 2px 4px 8px rgba(0, 0, 0, 0.2),
-                inset -1px 0 2px rgba(255, 255, 255, 0.3);
+                inset -1px 0 2px rgba(255, 255, 255, 0.25);
             z-index: 10;
         }
 
@@ -105,8 +104,6 @@
         .tooltip {
             position: absolute;
             bottom: calc(100% + 10px);
-            left: 50%;
-            transform: translateX(-50%);
             background: rgba(15, 23, 42, 0.95);
             color: white;
             padding: 8px 12px;
@@ -120,6 +117,22 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
+        .tooltip-center {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .tooltip-left {
+            left: 0;
+            transform: translateX(0);
+        }
+
+        .tooltip-right {
+            right: 0;
+            left: auto;
+            transform: translateX(0);
+        }
+
         .book:hover .tooltip {
             opacity: 1;
         }
@@ -128,10 +141,22 @@
             content: '';
             position: absolute;
             top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
             border: 6px solid transparent;
             border-top-color: rgba(15, 23, 42, 0.95);
+        }
+
+        .tooltip-center::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .tooltip-left::after {
+            left: 12px;
+        }
+
+        .tooltip-right::after {
+            right: 12px;
+            left: auto;
         }
 
         .loading {
@@ -160,9 +185,12 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // TODO: 워커 배포 후 URL 변경
         const WORKER_URL = "https://bookshelf-worker.moonkelly601.workers.dev";
-        const SHELF_MAX_WIDTH = 436; // 책장 한 칸 최대 너비 (컨테이너 460 - 패딩 24)
+        const SHELF_MAX_WIDTH = 436;
+        const CURRENT_YEAR = new Date().getFullYear();
+
+        // 분류 우선순위
+        const CATEGORY_PRIORITY = ['문학', '에세이', '인문', '사회', '과학', '철학', '교육', '뇌과학', '사회생활', '심리학', '자기계발'];
 
         // 아이콘
         const IconBook = ({ className, color }) => (
@@ -175,14 +203,16 @@
         const App = () => {
             const [books, setBooks] = useState([]);
             const [loading, setLoading] = useState(true);
+            const [year, setYear] = useState(CURRENT_YEAR);
 
             useEffect(() => {
                 const fetchBooks = async () => {
                     try {
-                        const res = await fetch(`${WORKER_URL}?status=completed&t=${Date.now()}`);
+                        const res = await fetch(`${WORKER_URL}?year=${CURRENT_YEAR}&t=${Date.now()}`);
                         if (res.ok) {
                             const data = await res.json();
                             setBooks(data.books || []);
+                            setYear(data.year || CURRENT_YEAR);
                         }
                     } catch (e) {
                         console.error('책 데이터 로드 실패:', e);
@@ -197,24 +227,41 @@
             const getBookWidth = (pages) => {
                 if (pages >= 300) return 28;
                 if (pages >= 200) return 22;
-                if (pages >= 100) return 16;
-                return 12;
+                return 16; // 1~199p
             };
 
             // 페이지 수 → 높이 (px)
             const getBookHeight = (pages) => {
                 if (pages >= 300) return 88;
                 if (pages >= 200) return 82;
-                if (pages >= 100) return 76;
-                return 70;
+                return 76;
             };
 
-            // 페이지 수 → 색상 (진할수록 많은 페이지)
-            const getBookColor = (pages) => {
-                if (pages >= 300) return '#0ea5e9'; // sky-500
-                if (pages >= 200) return '#38bdf8'; // sky-400
-                if (pages >= 100) return '#7dd3fc'; // sky-300
-                return '#bae6fd'; // sky-200
+            // 분류에 따른 색상 결정
+            const getBookColor = (categories) => {
+                // 우선순위에 따라 첫 번째 매칭되는 분류 찾기
+                for (const cat of CATEGORY_PRIORITY) {
+                    if (categories.includes(cat)) {
+                        // 문학/에세이: 검정에 가까운 회색
+                        if (cat === '문학' || cat === '에세이') {
+                            return 'rgba(51, 65, 85, 0.9)'; // slate-700
+                        }
+                        // 인문/사회/과학: 연한 회색
+                        if (cat === '인문' || cat === '사회' || cat === '과학') {
+                            return 'rgba(148, 163, 184, 0.85)'; // slate-400
+                        }
+                        // 철학/교육/뇌과학/사회생활: 스카이블루
+                        if (cat === '철학' || cat === '교육' || cat === '뇌과학' || cat === '사회생활') {
+                            return 'rgba(125, 211, 252, 0.8)'; // sky-300
+                        }
+                        // 심리학/자기계발: 연보라
+                        if (cat === '심리학' || cat === '자기계발') {
+                            return 'rgba(216, 180, 254, 0.85)'; // purple-300
+                        }
+                    }
+                }
+                // 기본값: 연한 스카이블루
+                return 'rgba(186, 230, 253, 0.75)'; // sky-200
             };
 
             // 책들을 선반별로 분배
@@ -225,7 +272,7 @@
                 let currentShelf = [];
                 let currentWidth = 0;
 
-                books.forEach((book, idx) => {
+                books.forEach((book) => {
                     const width = getBookWidth(book.totalPages);
                     const gap = currentShelf.length > 0 ? 3 : 0;
                     
@@ -246,6 +293,13 @@
                 return shelves;
             };
 
+            // 툴팁 위치 결정
+            const getTooltipClass = (bookIdx, shelfLength) => {
+                if (bookIdx === 0) return 'tooltip tooltip-left';
+                if (bookIdx === shelfLength - 1) return 'tooltip tooltip-right';
+                return 'tooltip tooltip-center';
+            };
+
             const shelves = distributeToShelves(books);
 
             return (
@@ -255,6 +309,7 @@
                         <div className="flex items-center gap-2">
                             <IconBook className="w-4 h-4" color="#7dd3fc" />
                             <span className="text-[13px] font-bold text-white">Bookshelf</span>
+                            <span className="text-[12px] font-medium text-white/60">{year}</span>
                         </div>
                         {books.length > 0 && (
                             <span className="text-[11px] font-medium text-sky-300 bg-sky-400/20 px-2 py-0.5 rounded-full">
@@ -267,7 +322,7 @@
                     {loading ? (
                         <div className="loading">불러오는 중...</div>
                     ) : books.length === 0 ? (
-                        <div className="empty-shelf">아직 완독한 책이 없어요</div>
+                        <div className="empty-shelf">올해 완독한 책이 없어요</div>
                     ) : (
                         shelves.map((shelf, shelfIdx) => (
                             <div key={shelfIdx} className="shelf-row">
@@ -278,18 +333,18 @@
                                         style={{
                                             width: `${getBookWidth(book.totalPages)}px`,
                                             height: `${getBookHeight(book.totalPages)}px`,
-                                            backgroundColor: getBookColor(book.totalPages),
+                                            backgroundColor: getBookColor(book.categories || []),
                                         }}
                                     >
                                         <span className="book-spine">{book.title}</span>
-                                        <div className="tooltip">
+                                        <div className={getTooltipClass(bookIdx, shelf.length)}>
                                             <div className="font-semibold mb-1">{book.title}</div>
                                             {book.author && (
                                                 <div className="text-white/70 text-[10px]">{book.author}</div>
                                             )}
-                                            <div className="text-white/50 text-[10px] mt-1">
-                                                {book.totalPages}p
-                                            </div>
+                                            {book.publisher && (
+                                                <div className="text-white/50 text-[10px]">{book.publisher}</div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
