@@ -95,10 +95,13 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
             padding: 6px 1px;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
             max-height: calc(100% - 12px);
             letter-spacing: 0.5px;
+            word-spacing: 3px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            text-align: center;
         }
 
         .tooltip {
@@ -293,11 +296,34 @@
                 return shelves;
             };
 
-            // 툴팁 위치 결정
+            // 툴팁 위치 결정 (앞쪽 3개는 왼쪽, 뒤쪽 3개는 오른쪽)
             const getTooltipClass = (bookIdx, shelfLength) => {
-                if (bookIdx === 0) return 'tooltip tooltip-left';
-                if (bookIdx === shelfLength - 1) return 'tooltip tooltip-right';
+                if (bookIdx <= 2) return 'tooltip tooltip-left';
+                if (bookIdx >= shelfLength - 3) return 'tooltip tooltip-right';
                 return 'tooltip tooltip-center';
+            };
+
+            // 제목 자르기 (단어 단위)
+            const truncateTitle = (title, pages) => {
+                const height = getBookHeight(pages);
+                const maxChars = Math.floor((height - 24) / 11); // 대략적인 글자 수 계산
+                
+                if (title.length <= maxChars) return title;
+                
+                // 단어 단위로 자르기
+                const words = title.split(' ');
+                let result = '';
+                for (const word of words) {
+                    if ((result + ' ' + word).trim().length > maxChars - 2) break;
+                    result = (result + ' ' + word).trim();
+                }
+                
+                // 결과가 너무 짧으면 첫 단어만
+                if (result.length < 2 && words[0]) {
+                    result = words[0].slice(0, maxChars - 1);
+                }
+                
+                return result ? <>{result}<span style={{ display: 'block', textAlign: 'center', marginTop: '2px' }}>⋯</span></> : title.slice(0, maxChars - 1) + '⋯';
             };
 
             const shelves = distributeToShelves(books);
@@ -336,7 +362,7 @@
                                             backgroundColor: getBookColor(book.categories || []),
                                         }}
                                     >
-                                        <span className="book-spine">{book.title}</span>
+                                        <span className="book-spine">{truncateTitle(book.title, book.totalPages)}</span>
                                         <div className={getTooltipClass(bookIdx, shelf.length)}>
                                             <div className="font-semibold mb-1">{book.title}</div>
                                             {book.author && (
