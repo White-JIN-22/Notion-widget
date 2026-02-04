@@ -332,10 +332,10 @@
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                stats: { totalMinutes: totalDuration, activities },
-                                date: today,
-                                type: 'daily'
-                            })
+    stats: { totalMinutes: totalDuration, activities, currentHour: new Date().getHours() },
+    date: today,
+    type: 'daily'
+})
                         });
 
                         if (res.ok) {
