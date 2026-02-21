@@ -243,11 +243,9 @@
         const App = () => {
             const [todos, setTodos] = useState([]);
             const [calendarEvents, setCalendarEvents] = useState([]);
-            const [viewDate, setViewDate] = useState(new Date());
             const [isLoading, setIsLoading] = useState(false);
 
             const [activeInputZone, setActiveInputZone] = useState(null);
-            const [isTomorrowMode, setIsTomorrowMode] = useState(false); // [NEW] 내일 모드 상태
             const [inputText, setInputText] = useState('');
             
             // [NEW] 소일거리 모달 상태
@@ -274,8 +272,6 @@
             ];
             
             const [toast, setToast] = useState(null);
-            const [showNewDayModal, setShowNewDayModal] = useState(false);
-            const [currentDateDisplay, setCurrentDateDisplay] = useState('');
             const [isSending, setIsSending] = useState(false);
             const [pendingLog, setPendingLog] = useState(null);
 
@@ -324,127 +320,30 @@
                 return `${y}-${m}-${day}`;
             };
 
-            const changeDate = (days) => {
-                const newDate = new Date(viewDate);
-                newDate.setDate(newDate.getDate() + days);
-                setViewDate(newDate);
-            };
-
-            const returnToday = () => setViewDate(new Date());
-
-            // 1. 날짜 변경 시 데이터를 불러오는 로직
+            // 1. 앱 시작 시 오늘 데이터 로드
             useEffect(() => {
-                setCurrentDateDisplay(viewDate.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
+                const today = new Date();
+                setCurrentDateDisplay(today.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
                 
-                if (isToday(viewDate)) {
-                    // 오늘일 때만 로컬 스토리지에서 데이터 로드
-                    const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
-    
-                    // [수정] 저장된 데이터 꺼낼 때도 '느낌표 세탁' 한번 돌리기
-                    const localOnly = savedTodos
-                        .filter(t => !t.isRemote)
-                        .map(t => {
-                            // 혹시 텍스트에 느낌표가 남아있다면?
-                            const hasMark = t.text.includes('❗') || t.text.includes('❗️');
-                            return {
-                                ...t,
-                                // 긴급 버튼(isUrgent)이 안 켜져 있으면, 텍스트의 느낌표를 보고 켜주기
-                                isUrgent: t.isUrgent || hasMark,
-                                // 텍스트에서는 느낌표 박멸
-                                text: t.text.replace(/❗|❗️/g, '').trim()
-                            };
-                        });
+                const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
+                const localOnly = savedTodos.filter(t => !t.isRemote);
+                setTodos(localOnly);
 
-                    // 로컬 데이터가 텅 비었으면 서버에서 가져오기 시도
-                    if (localOnly.length === 0) {
-                        fetchRemoteTodos(viewDate);
-                    } else {
-                        setTodos(localOnly);
-                    }
-    
-                    const lastDate = localStorage.getItem('lastDate');
-                    if (lastDate && lastDate !== viewDate.toDateString()) {
-                        handleNewDayReset(viewDate.toDateString(), localOnly);
-                    } else {
-                        localStorage.setItem('lastDate', viewDate.toDateString());
-                    }
+                const lastDate = localStorage.getItem('lastDate');
+                if (lastDate && lastDate !== today.toDateString()) {
+                    handleNewDayReset(today.toDateString(), localOnly);
                 } else {
-                    // 과거 날짜는 서버(Worker) 데이터만 표시 (로컬 저장소 보호)
-                    fetchRemoteTodos(viewDate);
+                    localStorage.setItem('lastDate', today.toDateString());
                 }
 
-                fetchCalendarData(viewDate);
-            }, [viewDate]);
+                fetchCalendarData(today);
+            }, []);
 
-            // 2. 할 일이 변경될 때 로컬 저장소에 저장하는 로직
+            // 2. 할 일이 변경될 때 로컬 저장소에 저장
             useEffect(() => {
-                // '오늘' 날짜를 보고 있을 때만 로컬 스토리지 업데이트
-                if (isToday(viewDate)) {
-                    // 리모트 데이터(과거 기록)는 제외하고 순수 오늘 할 일만 저장
-                    const toSave = todos.filter(t => !t.isRemote);
-                    localStorage.setItem('jinsolTodos', JSON.stringify(toSave));
-                }
-            }, [todos, viewDate]);
-
-            const fetchRemoteTodos = async (date) => {
-                setIsLoading(true);
-                setTodos([]); 
-                try {
-                    const dateStr = formatLocalYMD(date);
-                    const res = await fetch(`${WORKER_URL}?date=${dateStr}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.taskLog) {
-                            const parsed = parseTaskLog(data.taskLog);
-                            setTodos(parsed);
-                        } else {
-                            setTodos([]);
-                        }
-                    }
-                } catch (e) {
-                    console.error("Remote todo fetch error:", e);
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-            const parseTaskLog = (logText) => {
-    if (!logText) return [];
-    return logText.split('\n').map((line, idx) => {
-        const done = line.includes('✅');
-        const isImportant = line.includes('⭐');
-        
-        // [1] 수정: 두 가지 종류의 느낌표를 모두 감지 (일반형 ❗ / 이모지형 ❗️)
-        const isUrgent = line.includes('❗') || line.includes('❗️'); 
-        
-        let zone = 'morning';
-        if (line.includes('[AFTERNOON]')) zone = 'afternoon';
-        if (line.includes('[NIGHT]')) zone = 'night';
-        
-        // [2] 수정: 두 가지 느낌표를 모두 제거하는 강력한 청소기
-        // (정규식에 ❗️를 추가했습니다)
-        let text = line.replace(/✅|⬜|⭐|❗|❗️/g, '').replace(/\[.*?\]/, '').trim();
-        
-        const timeMatch = text.match(/\((.*?)\)$/);
-        let timeDisplay = null;
-        if (timeMatch) {
-            timeDisplay = timeMatch[1].toUpperCase();
-            text = text.replace(timeMatch[0], '').trim();
-        }
-
-        return {
-            id: `remote-${idx}`,
-            text: text,
-            zone: zone,
-            done: done,
-            isImportant: isImportant,
-            isUrgent: isUrgent, 
-            elapsed: 0, 
-            timeDisplay: timeDisplay, 
-            isRemote: !isToday(viewDate) 
-        };
-    });
-};
+                const toSave = todos.filter(t => !t.isRemote);
+                localStorage.setItem('jinsolTodos', JSON.stringify(toSave));
+            }, [todos]);
 
             const fetchCalendarData = async (targetDate) => {
                 try {
@@ -484,7 +383,7 @@
                                 
                                 return {
                                     id: `cal-${idx}-${e.startTime}`,
-                                    title: e.title,
+                                    title: (e.title || '').replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\'),
                                     time: timeStr,
                                     startTime: e.startTime, 
                                     endTime: e.endTime,
@@ -509,12 +408,6 @@
                 localStorage.setItem('lastDate', todayStr);
                 triggerToast("☀️ 좋은 아침! 새로운 하루가 시작됐어요");
             };
-
-            useEffect(() => {
-                if (isToday(viewDate)) {
-                    localStorage.setItem('jinsolTodos', JSON.stringify(todos));
-                }
-            }, [todos, viewDate]);
 
             useEffect(() => { if (activeInputZone && inputRef.current) inputRef.current.focus(); }, [activeInputZone]);
             useEffect(() => { if (editingId && editInputRef.current) editInputRef.current.focus(); }, [editingId]);
@@ -551,18 +444,10 @@
                 }
             };
             
-            // [MODIFIED] 일반 추가 (오늘)
+            // 일반 추가
             const startAdding = (zone) => { 
-                if (!isToday(viewDate)) return; 
-                if (activeInputZone === zone && !isTomorrowMode) { setActiveInputZone(null); } 
-                else { setActiveInputZone(zone); setIsTomorrowMode(false); setInputText(''); } 
-            };
-
-            // [NEW] 내일 할 일 추가
-            const startAddingTomorrow = (zone) => {
-                if (!isToday(viewDate)) return;
-                if (activeInputZone === zone && isTomorrowMode) { setActiveInputZone(null); setIsTomorrowMode(false); }
-                else { setActiveInputZone(zone); setIsTomorrowMode(true); setInputText(''); }
+                if (activeInputZone === zone) { setActiveInputZone(null); } 
+                else { setActiveInputZone(zone); setInputText(''); } 
             };
             
             const confirmAdd = () => {
@@ -574,7 +459,6 @@
                     done: false, 
                     isImportant: false,
                     isUrgent: false,
-                    isTomorrow: isTomorrowMode, // [NEW] 내일 할 일 플래그
                     date: new Date().toDateString(),
                     elapsed: 0, 
                     isRunning: false,
@@ -582,7 +466,7 @@
                     type: 'todo'
                 };
                 setTodos([...todos, newTodo]); setInputText(''); 
-                triggerToast(isTomorrowMode ? "🌙 내일 할 일 예약됨" : "✨ 저장됨!");
+                triggerToast("✨ 저장됨!");
             };
 
             const startEditing = (todo) => { 
@@ -942,67 +826,63 @@
 
             useEffect(() => {
                 const handleStorageChange = (e) => {
-                    // [1] FortressData(로그 위젯) 변경 감지
+                    // FortressData(로그 위젯) 변경 감지
                     if (e.key === 'fortressData' && e.newValue) {
                         try {
                             const newData = JSON.parse(e.newValue);
                             const todayStr = new Date().toDateString();
 
-                            // 데이터가 유효하고 오늘 날짜인 경우
                             if (newData.date === todayStr && newData.blocks) {
+                                const currentBlockIds = new Set(newData.blocks.map(b => String(b.id)));
                                 
-                                // (A) 기존 항목 업데이트 (시간 수정 반영)
-                                // 이미 연동된 투두(linkedBlockId 보유)가 있다면, 최신 로그 데이터와 비교하여 업데이트
                                 setTodos(prevTodos => {
-                                    return prevTodos.map(todo => {
+                                    let updated = prevTodos.map(todo => {
                                         if (todo.linkedBlockId) {
+                                            // 연동된 블록이 삭제되었으면 해당 투두도 삭제 대상
+                                            if (!currentBlockIds.has(String(todo.linkedBlockId))) {
+                                                return null; // 삭제 마킹
+                                            }
+                                            // 블록이 남아있으면 시간/이름 업데이트
                                             const targetBlock = newData.blocks.find(b => String(b.id) === String(todo.linkedBlockId));
                                             if (targetBlock) {
-                                                // 시간이나 이름이 변경되었다면 반영
                                                 const newDurationMs = (targetBlock.endTime - targetBlock.startTime);
                                                 const newName = targetBlock.memo || targetBlock.name || "집중 기록";
-                                                
                                                 if (todo.elapsed !== newDurationMs || todo.text !== newName) {
-                                                    // 토스트 알림 없이 조용히 업데이트 (너무 자주 뜨면 방해됨)
                                                     return { ...todo, text: newName, elapsed: newDurationMs };
                                                 }
                                             }
                                         }
                                         return todo;
-                                    });
-                                });
+                                    }).filter(Boolean); // null 제거 (삭제된 항목)
 
-                                // (B) 신규 항목 추가 (기존 로직 개선)
-                                if (newData.blocks.length > 0) {
-                                    const latestBlock = newData.blocks[0];
-                                    
-                                    // 이미 처리한 블록이면 패스 (단, 위에서 업데이트는 처리됨)
-                                    if (lastProcessedBlockId.current === latestBlock.id) return;
-                                    if (Date.now() - latestBlock.id > 5000) return; // 너무 오래된 신호 무시
+                                    // 신규 항목 추가
+                                    if (newData.blocks.length > 0) {
+                                        const latestBlock = newData.blocks[0];
+                                        if (lastProcessedBlockId.current === latestBlock.id) return updated;
+                                        if (Date.now() - latestBlock.id > 5000) return updated;
 
-                                    lastProcessedBlockId.current = latestBlock.id;
-                                    if (latestBlock.type === 'rest' || latestBlock.type === 'switch') return;
+                                        lastProcessedBlockId.current = latestBlock.id;
+                                        if (latestBlock.type === 'rest' || latestBlock.type === 'switch') return updated;
 
-                                    const start = new Date(latestBlock.startTime);
-                                    const end = new Date(latestBlock.endTime);
-                                    const blockName = latestBlock.memo || latestBlock.name || "집중 기록"; 
+                                        // 중복 방지
+                                        if (updated.some(t => t.linkedBlockId === latestBlock.id)) return updated;
 
-                                    const newTodos = [];
-                                    const ranges = [
-                                        { zone: 'morning', startH: 0, endH: 12 },
-                                        { zone: 'afternoon', startH: 12, endH: 18 },
-                                        { zone: 'night', startH: 18, endH: 24 }
-                                    ];
+                                        const start = new Date(latestBlock.startTime);
+                                        const end = new Date(latestBlock.endTime);
+                                        const blockName = latestBlock.memo || latestBlock.name || "집중 기록";
+                                        const ranges = [
+                                            { zone: 'morning', startH: 0, endH: 12 },
+                                            { zone: 'afternoon', startH: 12, endH: 18 },
+                                            { zone: 'night', startH: 18, endH: 24 }
+                                        ];
 
-                                    ranges.forEach(range => {
-                                        const zoneStart = new Date(start); zoneStart.setHours(range.startH, 0, 0, 0);
-                                        const zoneEnd = new Date(start); zoneEnd.setHours(range.endH, 0, 0, 0);
-                                        const overlapStart = Math.max(start.getTime(), zoneStart.getTime());
-                                        const overlapEnd = Math.min(end.getTime(), zoneEnd.getTime());
-                                        
-                                        if (overlapEnd > overlapStart) {
-                                            const durationMs = overlapEnd - overlapStart;
-                                            if (durationMs >= 60000) {
+                                        const newTodos = [];
+                                        ranges.forEach(range => {
+                                            const zoneStart = new Date(start); zoneStart.setHours(range.startH, 0, 0, 0);
+                                            const zoneEnd = new Date(start); zoneEnd.setHours(range.endH, 0, 0, 0);
+                                            const overlapStart = Math.max(start.getTime(), zoneStart.getTime());
+                                            const overlapEnd = Math.min(end.getTime(), zoneEnd.getTime());
+                                            if (overlapEnd > overlapStart && (overlapEnd - overlapStart) >= 60000) {
                                                 newTodos.push({
                                                     id: Date.now() + Math.random(),
                                                     text: blockName,
@@ -1011,27 +891,24 @@
                                                     isImportant: false,
                                                     isUrgent: false,
                                                     date: todayStr,
-                                                    elapsed: durationMs, 
+                                                    elapsed: overlapEnd - overlapStart,
                                                     isRunning: false,
                                                     lastStartTime: null,
                                                     type: 'todo',
                                                     isAutoGenerated: true,
-                                                    linkedBlockId: latestBlock.id // [핵심] 로그 위젯의 ID를 저장해둠 (추후 동기화용)
+                                                    linkedBlockId: latestBlock.id
                                                 });
                                             }
-                                        }
-                                    });
-
-                                    if (newTodos.length > 0) {
-                                        setTodos(prev => {
-                                            // 중복 방지 체크 (ID 기반)
-                                            const isDuplicate = prev.some(t => t.linkedBlockId === latestBlock.id);
-                                            if (isDuplicate) return prev;
-                                            return [...prev, ...newTodos];
                                         });
-                                        triggerToast(`🔄 Log 연동: ${newTodos.length}건 등록됨`);
+
+                                        if (newTodos.length > 0) {
+                                            updated = [...updated, ...newTodos];
+                                            triggerToast(`🔄 Log 연동: ${newTodos.length}건`);
+                                        }
                                     }
-                                }
+
+                                    return updated;
+                                });
                             }
                         } catch (err) { console.error("Sync error:", err); }
                     }
@@ -1039,16 +916,39 @@
                     if (e.key === 'jinsolTodos' && e.newValue) {
                         try {
                             const newTodos = JSON.parse(e.newValue);
-                            if (isToday(viewDate)) {
-                                setTodos(newTodos);
-                            }
+                            setTodos(newTodos);
                         } catch (err) { console.error("Todo Sync error:", err); }
                     }
                 };
 
                 window.addEventListener('storage', handleStorageChange);
-                return () => window.removeEventListener('storage', handleStorageChange);
-            }, [viewDate]);
+                
+                // 같은 탭 내 fortressData 변경 감지 (삭제 동기화)
+                const syncInterval = setInterval(() => {
+                    try {
+                        const rawData = localStorage.getItem('fortressData');
+                        if (!rawData) return;
+                        const data = JSON.parse(rawData);
+                        const todayStr = new Date().toDateString();
+                        if (data.date !== todayStr || !data.blocks) return;
+                        
+                        const currentBlockIds = new Set(data.blocks.map(b => String(b.id)));
+                        setTodos(prev => {
+                            const filtered = prev.filter(t => {
+                                if (t.linkedBlockId && !currentBlockIds.has(String(t.linkedBlockId))) return false;
+                                return true;
+                            });
+                            if (filtered.length !== prev.length) return filtered;
+                            return prev;
+                        });
+                    } catch (e) {}
+                }, 3000);
+
+                return () => {
+                    window.removeEventListener('storage', handleStorageChange);
+                    clearInterval(syncInterval);
+                };
+            }, []);
 
             const renderSection = (zone) => {
                 const config = zoneConfig[zone];
@@ -1062,7 +962,6 @@
                 const sortedTodos = [...zoneTodos].sort((a, b) => {
                     if (a.done !== b.done) return a.done ? 1 : -1; 
                     if (!!a.isChore !== !!b.isChore) return a.isChore ? 1 : -1;
-                    if (!!a.isTomorrow !== !!b.isTomorrow) return a.isTomorrow ? 1 : -1; // [NEW] 내일 할 일은 아래로
 
                     const getScore = (item) => {
                         let score = 0;
@@ -1092,27 +991,23 @@
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
                             <div className="section-line" style={{ background: config.checkboxColor }}></div>
                             
-                            {isToday(viewDate) && (
+                            {(
                                 <div className="flex gap-1">
-                                    {/* [NEW] 내일 할 일 추가 버튼 (우측 화살표) */}
-                                    <button onClick={() => startAddingTomorrow(zone)} className={`add-btn ${config.colorClass}`} title="내일 할 일 추가">
-                                        {activeInputZone === zone && isTomorrowMode ? <Icons.X /> : <Icons.ArrowRight className="w-3 h-3" />}
-                                    </button>
                                     <button onClick={() => openQuestModal(zone)} className={`add-btn ${config.colorClass}`} title="소일거리 추가">
                                         <Icons.ListPlus />
                                     </button>
                                     <button onClick={() => startAdding(zone)} className={`add-btn ${config.colorClass}`} title="할 일 추가">
-                                        {activeInputZone === zone && !isTomorrowMode ? <Icons.X /> : <Icons.Plus />}
+                                        {activeInputZone === zone ? <Icons.X /> : <Icons.Plus />}
                                     </button>
                                 </div>
                             )}
                         </div>
                         
-                        {activeInputZone === zone && isToday(viewDate) && (
+                        {activeInputZone === zone && (
                             <div className="px-1 mb-2 animate-slideIn">
                                 <input ref={inputRef} type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={handleKeyDown} onBlur={() => { if(!inputText) setActiveInputZone(null); }} 
-                                    placeholder={isTomorrowMode ? `내일 ${config.label}에 할 일...` : `${config.label} 할 일 입력...`} 
-                                    className={`w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-medium ${isTomorrowMode ? 'italic' : ''}`} />
+                                    placeholder={`${config.label} 할 일 입력...`} 
+                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:bg-white/20 transition-all font-medium" />
                             </div>
                         )}
                         
@@ -1139,11 +1034,7 @@
                                 const timeDisplay = todo.isRemote ? todo.timeDisplay : formatTime(currentMs);
                                 const QuestIcon = todo.isChore ? (Icons[todo.choreIcon] || Icons.Zap) : null;
 
-                                // [STYLE] 내일 할 일 스타일 정의
-                                const isTomorrowItem = todo.isTomorrow;
-                                const textStyle = isTomorrowItem 
-                                    ? `italic font-bold ${config.textClass}` // 내일: 기울임 + 시간대 컬러
-                                    : (todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50 font-medium' : `font-medium ${config.textClass}`);
+                                const textStyle = todo.done ? 'text-slate-400/60 line-through decoration-slate-400/50 font-medium' : `font-medium ${config.textClass}`;
 
                                 return (
                                 <div key={todo.id} className={`todo-item flex items-center gap-2 ${todo.done ? 'todo-done' : ''}`}>
@@ -1155,15 +1046,7 @@
                                         <button onClick={(e) => { e.stopPropagation(); toggleUrgent(todo.id); }} disabled={todo.isRemote} className={`shrink-0 transition-transform active:scale-95 ${todo.isUrgent ? config.colorClass : 'text-slate-400/50 hover:text-white'} ${todo.isRemote ? 'cursor-default' : ''}`}>
                                             <Icons.Alert filled={todo.isUrgent} className="w-3.5 h-3.5" />
                                         </button>
-                                        
-                                        {/* [MODIFIED] 내일 할 일은 체크박스 대신 화살표 아이콘 */}
-                                        {isTomorrowItem ? (
-                                            <div className={`shrink-0 ml-0.5 w-[14px] flex justify-center ${config.colorClass}`}>
-                                                <Icons.ArrowRight className="w-3 h-3" />
-                                            </div>
-                                        ) : (
-                                            <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} disabled={todo.isRemote} className="custom-checkbox shrink-0 ml-0.5" style={{ color: config.checkboxColor }} />
-                                        )}
+                                        <input type="checkbox" checked={todo.done} onChange={() => toggleTodo(todo.id)} disabled={todo.isRemote} className="custom-checkbox shrink-0 ml-0.5" style={{ color: config.checkboxColor }} />
                                     </div>
                                     
                                     <div className="flex-1 min-w-0" onDoubleClick={() => startEditing(todo)}>
@@ -1185,8 +1068,8 @@
                                         
                                         {timeDisplay && <span className="text-[10px] text-slate-400 font-medium">{timeDisplay}</span>}
                                         
-                                        {/* [MODIFIED] 내일 할 일은 타이머 숨김 */}
-                                        {!todo.done && !todo.isRemote && !todo.isChore && !isTomorrowItem && (
+                                        {/* 타이머 버튼 */}
+                                        {!todo.done && !todo.isRemote && !todo.isChore && (
                                             <button onClick={(e) => handleTimerClick(e, todo)} className={`timer-btn ${todo.isRunning ? 'timer-active' : ''}`} style={{ color: todo.isRunning ? '#fff' : config.checkboxColor, backgroundColor: todo.isRunning ? config.checkboxColor : 'rgba(255,255,255,0.4)', borderColor: config.checkboxColor }}>
                                                 {todo.isRunning ? <Icons.Pause /> : <Icons.Play />}
                                             </button>
