@@ -139,10 +139,12 @@
 
         .custom-select {
             width: 100%; border-radius: 10px; padding: 5px;
-            font-weight: 700; outline: none; text-align: center; appearance: none;
+            font-weight: 700; outline: none; text-align: center; text-align-last: center; appearance: none;
             cursor: pointer; background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.6); color: #334155; font-size: 0.9rem;
+            -webkit-appearance: none; -moz-appearance: none;
         }
+        .custom-select option { text-align: center; }
         
         .toast-message {
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
@@ -1021,13 +1023,13 @@
                         {activeTab === 'rest' && (
                             <div className="flex flex-col items-center pt-4 gap-4">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <Icons.NapIcon className="w-5 h-5" style={{color:'#fef08a'}} />
-                                    <span className="text-sm font-bold" style={{color:'#fef08a'}}>낮잠</span>
+                                    <Icons.NapIcon className="w-5 h-5" style={{color:'#eab308'}} />
+                                    <span className="text-sm font-bold" style={{color:'#eab308'}}>낮잠</span>
                                 </div>
 
                                 {/* 시작 시간 */}
                                 <div className="flex items-center gap-2 w-full px-2">
-                                    <label className="text-xs font-bold w-10" style={{color:'#fef08a'}}>시작</label>
+                                    <label className="text-xs font-bold w-10" style={{color:'#eab308'}}>시작</label>
                                     <select value={napStartHour} onChange={e=>setNapStartHour(Number(e.target.value))} className="custom-select text-sm flex-1" style={{background:'rgba(254,240,138,0.1)', borderColor:'rgba(254,240,138,0.3)', color:'#fef9c3'}}>
                                         {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}
                                     </select>
@@ -1038,7 +1040,7 @@
 
                                 {/* 종료 시간 */}
                                 <div className="flex items-center gap-2 w-full px-2">
-                                    <label className="text-xs font-bold w-10" style={{color:'#fef08a'}}>종료</label>
+                                    <label className="text-xs font-bold w-10" style={{color:'#eab308'}}>종료</label>
                                     <select value={napEndHour} onChange={e=>setNapEndHour(Number(e.target.value))} className="custom-select text-sm flex-1" style={{background:'rgba(254,240,138,0.1)', borderColor:'rgba(254,240,138,0.3)', color:'#fef9c3'}}>
                                         {Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}
                                     </select>
@@ -1055,12 +1057,15 @@
                                 {/* 오늘 낮잠 기록 */}
                                 <div className="w-full mt-2">
                                     {blocks.filter(b => b.name === '낮잠').map(b => (
-                                        <div key={b.id} className="flex items-center justify-between px-3 py-1.5 rounded-lg mb-1" style={{background:'rgba(254,240,138,0.08)', border:'1px dashed rgba(254,240,138,0.2)'}}>
+                                        <div key={b.id} className="flex items-center justify-between px-3 py-1.5 rounded-lg mb-1 relative" style={{background:'rgba(254,240,138,0.08)', border:'1px dashed rgba(254,240,138,0.2)'}}>
                                             <div className="flex items-center gap-2">
-                                                <Icons.NapIcon className="w-3 h-3" style={{color:'#fef08a'}} />
+                                                <Icons.NapIcon className="w-3 h-3" style={{color:'#eab308'}} />
                                                 <span className="text-[11px] font-bold" style={{color:'#fef9c3'}}>{formatTimeStr(b.startTime)} ~ {formatTimeStr(b.endTime)}</span>
                                             </div>
-                                            <span className="text-[10px] font-bold" style={{color:'#fef08a'}}>{formatDuration(b.duration)}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold" style={{color:'#eab308'}}>{formatDuration(b.duration)}</span>
+                                                <button onClick={() => confirmDelete(b.id)} className="text-white/30 hover:text-white/70 transition-colors p-0.5"><Icons.Trash /></button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -1173,9 +1178,9 @@
                                     <>
                                     <h3 className="text-base font-bold mb-1 text-center text-slate-700 font-serif">｡✧ Add Log ✧｡</h3>
                                     <div className="flex gap-4 justify-center mb-1">
-                                        <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>Focus</button>
                                         <button onClick={() => { setManualTab('switch'); setTimeRef('start'); setOptDurHour(0); setOptDurMin(0); }} className={`manual-tab ${manualTab === 'switch' ? '!text-purple-300 !border-purple-300' : ''}`}>Switch</button>
-                                        <button onClick={() => { setManualTab('rest'); setTimeRef('start'); setOptDurHour(0); setOptDurMin(0); }} className={`manual-tab ${manualTab === 'rest' ? 'active' : ''}`}>Rest</button>
+                                        <button onClick={() => { setManualTab('focus'); setTimeRef('end'); }} className={`manual-tab ${manualTab === 'focus' ? 'active' : ''}`}>Focus</button>
+                                        <button onClick={() => { setManualTab('rest'); setTimeRef('start'); setOptDurHour(0); setOptDurMin(0); }} className={`manual-tab ${manualTab === 'rest' ? '!border-b-2' : ''}`} style={manualTab === 'rest' ? {color:'#ca8a04', borderColor:'#ca8a04'} : {}}>Rest</button>
                                     </div>
 
                                     {/* Focus 탭 시간 설정 */}
@@ -1269,20 +1274,20 @@
                                         {manualTab === 'rest' && (
                                             <div className="flex flex-col gap-3 px-0.5 pb-2">
                                                 <div className="flex items-center justify-center gap-2">
-                                                    <Icons.NapIcon className="w-5 h-5" style={{color:'#fef08a'}} />
-                                                    <span className="text-sm font-bold" style={{color:'#fef08a'}}>낮잠</span>
+                                                    <Icons.NapIcon className="w-5 h-5" style={{color:'#ca8a04'}} />
+                                                    <span className="text-sm font-bold" style={{color:'#ca8a04'}}>낮잠</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <label className="text-xs font-bold w-8" style={{color:'#fef08a'}}>시작</label>
+                                                    <label className="text-xs font-bold w-8" style={{color:'#ca8a04'}}>시작</label>
                                                     <select value={napStartHour} onChange={e=>setNapStartHour(Number(e.target.value))} className="custom-select text-sm flex-1">{Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}</select>
                                                     <select value={napStartMin} onChange={e=>setNapStartMin(Number(e.target.value))} className="custom-select text-sm flex-1">{Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <label className="text-xs font-bold w-8" style={{color:'#fef08a'}}>종료</label>
+                                                    <label className="text-xs font-bold w-8" style={{color:'#ca8a04'}}>종료</label>
                                                     <select value={napEndHour} onChange={e=>setNapEndHour(Number(e.target.value))} className="custom-select text-sm flex-1">{Array.from({length:24},(_,i)=>i).map(h => <option key={h} value={h}>{h}시</option>)}</select>
                                                     <select value={napEndMin} onChange={e=>setNapEndMin(Number(e.target.value))} className="custom-select text-sm flex-1">{Array.from({length:12},(_,i)=>i*5).map(m => <option key={m} value={m}>{String(m).padStart(2,'0')}분</option>)}</select>
                                                 </div>
-                                                <button onClick={() => { recordNap(); setShowModal(false); }} className="w-full py-2.5 rounded-xl font-bold text-sm transition-all" style={{background:'rgba(254,240,138,0.15)', border:'1px solid rgba(254,240,138,0.3)', color:'#fef08a'}}>
+                                                <button onClick={() => { recordNap(); setShowModal(false); }} className="w-full py-2.5 rounded-xl font-bold text-sm transition-all" style={{background:'rgba(234,179,8,0.12)', border:'1px solid rgba(234,179,8,0.3)', color:'#ca8a04'}}>
                                                     낮잠 기록
                                                 </button>
                                             </div>
