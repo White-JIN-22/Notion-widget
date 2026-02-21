@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta name="color-scheme" content="dark light">
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@400;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: transparent;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        .widget-container {
+            position: relative;
+            width: 440px;
+            height: 360px;
+            background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(186, 230, 253, 0.15), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #334155;
+        }
+
+        /* ─── Tab Bar ─── */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 6px 0;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: all 0.25s;
+            position: relative;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.65); }
+        .tab-btn.active {
+            color: white;
+            font-weight: 700;
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            width: 60%;
+            height: 2px;
+            background: white;
+            border-radius: 1px;
+            box-shadow: 0 0 6px rgba(255,255,255,0.5);
+        }
+
+        /* ─── Tab Content ─── */
+        .tab-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ─── Weekly Goal ─── */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
+            flex-shrink: 0;
+        }
+
+        .glass-footer {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            flex-shrink: 0;
+        }
+
+        .glass-section {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+        }
+
+        .block-bar {
+            display: flex;
+            gap: 3px;
+        }
+
+        .block {
+            width: 14px;
+            height: 8px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .block.filled {
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        /* ─── Monthly Goal ─── */
+        .progress-bar-bg {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        /* ─── Focus Heatmap ─── */
+        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            text-align: center;
+        }
+        
+        .heatmap-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: 9px;
+            font-family: 'Roboto Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .heat-0 { background: rgba(255, 255, 255, 0.03); color: #64748b; }
+        .heat-start { background: rgba(148, 163, 184, 0.3); border: 0.5px solid rgba(148, 163, 184, 0.2); }
+        .heat-1 { background: rgba(254, 240, 138, 0.45); border: 0.5px solid rgba(254, 240, 138, 0.2); }
+        .heat-2 { background: rgba(125, 211, 252, 0.6); border: 0.5px solid rgba(125, 211, 252, 0.4); }
+        .heat-3 { background: rgba(216, 180, 254, 0.7); font-weight: 700; border: 0.5px solid rgba(216, 180, 254, 0.4); }
+        
+        .day-today-heatmap {
+            border: 1.5px solid #ffffff !important;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+            z-index: 10;
+        }
+
+        .heatmap-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 4px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.1s;
+            z-index: 20;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .heatmap-cell:hover .heatmap-tooltip { opacity: 1; }
+
+        .nav-btn { 
+            width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 4px; color: rgba(255, 255, 255, 0.4); transition: all 0.2s; 
+            background: transparent; border: none; cursor: pointer;
+        }
+        .nav-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+
+        /* ─── Monthly Routine ─── */
+        .glass-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            border-right: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .border-t-glass { border-top: 1px solid rgba(255, 255, 255, 0.3); }
+
+        .routine-cell {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .routine-tooltip {
+            position: absolute;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 9px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .routine-tooltip-bottom {
+            bottom: auto;
+            top: 18px;
+        }
+
+        .routine-cell:hover .routine-tooltip { opacity: 1; }
+
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        .font-mono-nums { font-family: 'Roboto Mono', monospace; letter-spacing: -0.5px; }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        purple: { 100: '#f3e8ff', 300: '#d8b4fe' },
+                        sky: { 100: '#e0f2fe', 300: '#7dd3fc', 400: '#38bdf8' },
+                        yellow: { 100: '#fef9c3', 200: '#fef08a', 300: '#fde047', 400: '#facc15' },
+                        slate: { 400: '#94a3b8', 600: '#475569' }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', '-apple-system', 'sans-serif'],
+                        mono: ['"Roboto Mono"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const LOG_WORKER_URL = "https://log-worker.moonkelly601.workers.dev";
+        const FEEDBACK_WORKER_URL = "https://feedback-worker.moonkelly601.workers.dev";
+
+        // ═══════════════════════════════════════
+        //  Shared Icons
+        // ═══════════════════════════════════════
+        const IconSparkle = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"></path>
+            </svg>
+        );
+        const IconClipboard = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+        );
+        const IconBook = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+        );
+        const IconPen = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+            </svg>
+        );
+        const IconFlame = ({ className, color, fill }) => (
+            <svg className={className} viewBox="0 0 24 24" fill={fill ? color : "none"} stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"></path>
+            </svg>
+        );
+        const IconTrophy = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+            </svg>
+        );
+        const IconMessage = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        );
+        const IconUtensils = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path>
+            </svg>
+        );
+        const IconDroplets = ({ className, color }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            </svg>
+        );
+        const IconChevronLeft = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>;
+        const IconChevronRight = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>;
+
+        // ═══════════════════════════════════════
+        //  Shared Utilities
+        // ═══════════════════════════════════════
+        const COLORS = { purple: '#d8b4fe', sky: '#7dd3fc', yellow: '#fef08a' };
+
+        const getPercent = (current, target) => Math.min(100, Math.round((current / target) * 100));
+
+        const formatMinutes = (mins) => {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (h > 0 && m > 0) return `${h}시간 ${m}분`;
+            if (h > 0) return `${h}시간`;
+            return `${m}분`;
+        };
+
+        const formatTarget = (mins) => {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (m > 0) return `${h}시간 ${m}분`;
+            return `${h}시간`;
+        };
+
+        const getTodayStr = () => {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        };
+
+        const getMonthStr = () => {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const getWeekDates = () => {
+            const now = new Date();
+            const day = now.getDay();
+            const sunday = new Date(now);
+            sunday.setDate(now.getDate() - day);
+            sunday.setHours(0, 0, 0, 0);
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(sunday);
+                d.setDate(sunday.getDate() + i);
+                if (d <= now) {
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    dates.push(`${y}-${m}-${dd}`);
+                }
+            }
+            return dates;
+        };
+
+        // Goal analysis (shared by weekly & monthly)
+        const analyzeGoalBlocks = (blocks) => {
+            const stats = { exercise: 0, lesson: 0, english: 0, japanese: 0, reading: 0, record: 0, coding: 0 };
+            blocks.forEach(b => {
+                const content = ((b.name || "") + " " + (b.memo || "")).toLowerCase();
+                const duration = b.duration || 0;
+                if ((content.includes("산책") || content.includes("운동") || content.includes("러닝")) && duration >= 10) stats.exercise += 1;
+                if ((content.includes("영어") || content.includes("보카")) && duration >= 15) stats.english += 1;
+                if ((content.includes("일어") || content.includes("일본어") || content.includes("상용한자")) && duration >= 15) stats.japanese += 1;
+                if ((content.includes("기록") || content.includes("일기") || content.includes("상담")) && duration >= 10) stats.record += 1;
+                if (content.includes("독서") || content.includes("책")) stats.reading += duration;
+                if (content.includes("위젯") || content.includes("개발") || content.includes("디버깅") || content.includes("개선")) stats.coding += duration;
+                if (content.includes("수업") || content.includes("교안") || content.includes("행정") || content.includes("강의") || content.includes("상상코칭") || content.includes("바인")) stats.lesson += duration;
+            });
+            return stats;
+        };
+
+        // ═══════════════════════════════════════
+        //  Shared Components
+        // ═══════════════════════════════════════
+        const BlockBar = ({ percent, color, blockCount = 10 }) => {
+            const filledCount = Math.round((percent / 100) * blockCount);
+            return (
+                <div className="block-bar">
+                    {[...Array(blockCount)].map((_, i) => (
+                        <div key={i} className={`block ${i < filledCount ? 'filled' : ''}`}
+                            style={{ backgroundColor: i < filledCount ? color : undefined, color }} />
+                    ))}
+                </div>
+            );
+        };
+
+        const ProgressBar = ({ percent, color }) => (
+            <div className="progress-bar-bg">
+                <div className="progress-bar-fill"
+                    style={{ width: `${percent}%`, backgroundColor: color, boxShadow: `0 0 6px ${color}40` }} />
+            </div>
+        );
+
+        // ═══════════════════════════════════════
+        //  TAB 1: Weekly Goal
+        // ═══════════════════════════════════════
+        const WEEKLY_TARGETS = {
+            exercise: 5, lesson: 600, english: 2, japanese: 3, reading: 300, record: 5, coding: 480
+        };
+
+        const generateFallbackFeedback = (percents) => {
+            const avg = Math.round(Object.values(percents).reduce((a, b) => a + b, 0) / 7);
+            const items = Object.entries(percents).map(([k, v]) => ({ name: k, p: v }));
+            const best = items.reduce((a, b) => a.p > b.p ? a : b);
+            const worst = items.reduce((a, b) => a.p < b.p ? a : b);
+            const labels = { exercise: '운동', lesson: '수업준비', english: '영어', japanese: '일어', reading: '독서', record: '기록', coding: '코딩' };
+            if (avg === 0) return "아직 시작 전이야. 오늘 딱 하나만 해보자.";
+            if (worst.p === 0) return `${labels[worst.name]}이 아직 0%야. 오늘 10분만 시도해봐.`;
+            if (avg < 40) return `${labels[best.name]} ${best.p}% 진행 중! ${labels[worst.name]}도 조금씩 해보자.`;
+            if (avg < 60) return `절반 가까이 왔어. ${labels[best.name]}에서 리드 중이야.`;
+            if (avg < 80) return `${avg}% 달성! 주도권 회복 중이야.`;
+            return `목표 달성이 눈앞! ${labels[best.name]} ${best.p}% 대단해.`;
+        };
+
+        const WeeklyGoalTab = () => {
+            const [stats, setStats] = useState({ exercise: 0, lesson: 0, english: 0, japanese: 0, reading: 0, record: 0, coding: 0 });
+            const [loading, setLoading] = useState(true);
+            const [feedback, setFeedback] = useState('');
+            const [feedbackLoading, setFeedbackLoading] = useState(false);
+
+            useEffect(() => {
+                const fetchWeekData = async () => {
+                    try {
+                        const dates = getWeekDates();
+                        const allBlocks = [];
+                        for (const dateStr of dates) {
+                            try {
+                                const res = await fetch(`${LOG_WORKER_URL}?date=${dateStr}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    if (data.blocks && Array.isArray(data.blocks)) allBlocks.push(...data.blocks);
+                                }
+                            } catch (e) {}
+                        }
+                        setStats(analyzeGoalBlocks(allBlocks));
+                    } catch (e) {} finally { setLoading(false); }
+                };
+                fetchWeekData();
+            }, []);
+
+            useEffect(() => {
+                if (loading) return;
+                const percents = {
+                    exercise: getPercent(stats.exercise, WEEKLY_TARGETS.exercise),
+                    lesson: getPercent(stats.lesson, WEEKLY_TARGETS.lesson),
+                    english: getPercent(stats.english, WEEKLY_TARGETS.english),
+                    japanese: getPercent(stats.japanese, WEEKLY_TARGETS.japanese),
+                    reading: getPercent(stats.reading, WEEKLY_TARGETS.reading),
+                    record: getPercent(stats.record, WEEKLY_TARGETS.record),
+                    coding: getPercent(stats.coding, WEEKLY_TARGETS.coding)
+                };
+
+                const fetchFeedback = async () => {
+                    const today = getTodayStr();
+                    const cacheKey = `weeklyFeedback_${today}_${JSON.stringify(percents)}`;
+                    try {
+                        Object.keys(localStorage).forEach(key => {
+                            if (key.startsWith('weeklyFeedback_') && key !== cacheKey) localStorage.removeItem(key);
+                        });
+                    } catch (e) {}
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) { setFeedback(cached); return; }
+
+                    setFeedbackLoading(true);
+                    try {
+                        const res = await fetch(FEEDBACK_WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ stats: percents, date: today, type: 'weekly' })
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            setFeedback(data.feedback);
+                            localStorage.setItem(cacheKey, data.feedback);
+                        } else {
+                            setFeedback(generateFallbackFeedback(percents));
+                        }
+                    } catch (e) {
+                        setFeedback(generateFallbackFeedback(percents));
+                    } finally { setFeedbackLoading(false); }
+                };
+                fetchFeedback();
+            }, [loading, stats]);
+
+            const percents = {
+                exercise: getPercent(stats.exercise, WEEKLY_TARGETS.exercise),
+                lesson: getPercent(stats.lesson, WEEKLY_TARGETS.lesson),
+                english: getPercent(stats.english, WEEKLY_TARGETS.english),
+                japanese: getPercent(stats.japanese, WEEKLY_TARGETS.japanese),
+                reading: getPercent(stats.reading, WEEKLY_TARGETS.reading),
+                record: getPercent(stats.record, WEEKLY_TARGETS.record),
+                coding: getPercent(stats.coding, WEEKLY_TARGETS.coding)
+            };
+            const avgPercent = Math.round(Object.values(percents).reduce((a, b) => a + b, 0) / 7);
+
+            const goals = [
+                { label: "운동", percent: percents.exercise, color: COLORS.purple, display: `${stats.exercise}/${WEEKLY_TARGETS.exercise}회`, Icon: IconSparkle },
+                { label: "수업", percent: percents.lesson, color: COLORS.purple, display: `${formatMinutes(stats.lesson)} / ${formatTarget(WEEKLY_TARGETS.lesson)}`, Icon: IconClipboard },
+                { label: "영어", percent: percents.english, color: COLORS.yellow, display: `${stats.english}/${WEEKLY_TARGETS.english}회`, Icon: IconFlame },
+                { label: "일어", percent: percents.japanese, color: COLORS.yellow, display: `${stats.japanese}/${WEEKLY_TARGETS.japanese}회`, Icon: IconFlame },
+                { label: "독서", percent: percents.reading, color: COLORS.sky, display: `${formatMinutes(stats.reading)} / ${formatTarget(WEEKLY_TARGETS.reading)}`, Icon: IconBook },
+                { label: "기록", percent: percents.record, color: COLORS.sky, display: `${stats.record}/${WEEKLY_TARGETS.record}회`, Icon: IconPen },
+                { label: "코딩", percent: percents.coding, color: COLORS.sky, display: `${formatMinutes(stats.coding)} / ${formatTarget(WEEKLY_TARGETS.coding)}`, Icon: IconFlame }
+            ];
+
+            if (loading) return <div className="tab-content items-center justify-center"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div></div>;
+
+            return (
+                <div className="tab-content">
+                    <div className="glass-header px-5 py-1.5 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <IconTrophy className="w-4 h-4" color="white" />
+                            <h1 className="text-[13px] font-bold text-white tracking-tight">신체와 환경의 주도권 회복</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-white/70">{avgPercent}%</span>
+                            <BlockBar percent={avgPercent} color="white" blockCount={10} />
+                        </div>
+                    </div>
+                    <div className="flex-1 p-3 flex flex-col gap-2">
+                        <div className="glass-section p-3 flex-1">
+                            <div className="grid grid-cols-2 gap-x-5 gap-y-2">
+                                {goals.slice(0, 6).map((item, i) => (
+                                    <div key={i} className="flex flex-col gap-1">
+                                        <div className="flex items-baseline w-[170px]">
+                                            <div className="flex items-center gap-1">
+                                                <item.Icon className="w-3 h-3" color={item.color} />
+                                                <span className="text-[11px] font-medium" style={{ color: item.color }}>{item.label}</span>
+                                            </div>
+                                            <span className="text-[9px] font-mono text-white/50 ml-auto">{item.display}</span>
+                                        </div>
+                                        <BlockBar percent={item.percent} color={item.color} blockCount={10} />
+                                    </div>
+                                ))}
+                            </div>
+                            {(() => {
+                                const coding = goals[6];
+                                return (
+                                    <div className="mt-2 flex flex-col gap-1">
+                                        <div className="flex items-baseline w-[170px]">
+                                            <div className="flex items-center gap-1">
+                                                <coding.Icon className="w-3 h-3" color={coding.color} />
+                                                <span className="text-[11px] font-medium" style={{ color: coding.color }}>{coding.label}</span>
+                                            </div>
+                                            <span className="text-[9px] font-mono text-white/50 ml-auto">{coding.display}</span>
+                                        </div>
+                                        <BlockBar percent={coding.percent} color={coding.color} blockCount={10} />
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                    <div className="glass-footer px-4 py-2 flex items-start gap-2.5" style={{ minHeight: '56px' }}>
+                        <IconMessage className="w-4 h-4 shrink-0 mt-0.5" color="rgba(255,255,255,0.7)" />
+                        <p className="text-[11px] text-white leading-relaxed">
+                            {feedbackLoading ? '피드백 생성 중...' : feedback}
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════
+        //  TAB 2: Monthly Goal
+        // ═══════════════════════════════════════
+        const MONTHLY_TARGETS = {
+            exercise: 20, lesson: 2400, english: 8, japanese: 10, reading: 1200, record: 20, coding: 1900
+        };
+
+        const MonthlyGoalTab = () => {
+            const [stats, setStats] = useState({ exercise: 0, lesson: 0, english: 0, japanese: 0, reading: 0, record: 0, coding: 0 });
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchData = async () => {
+                    try {
+                        const res = await fetch(`${LOG_WORKER_URL}?month=${getMonthStr()}`);
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.data) {
+                                const allBlocks = [];
+                                Object.values(result.data).forEach(d => {
+                                    if (d.blocks && Array.isArray(d.blocks)) allBlocks.push(...d.blocks);
+                                });
+                                setStats(analyzeGoalBlocks(allBlocks));
+                            }
+                        }
+                    } catch (e) {} finally { setLoading(false); }
+                };
+                fetchData();
+            }, []);
+
+            const percents = {
+                exercise: getPercent(stats.exercise, MONTHLY_TARGETS.exercise),
+                lesson: getPercent(stats.lesson, MONTHLY_TARGETS.lesson),
+                english: getPercent(stats.english, MONTHLY_TARGETS.english),
+                japanese: getPercent(stats.japanese, MONTHLY_TARGETS.japanese),
+                reading: getPercent(stats.reading, MONTHLY_TARGETS.reading),
+                record: getPercent(stats.record, MONTHLY_TARGETS.record),
+                coding: getPercent(stats.coding, MONTHLY_TARGETS.coding)
+            };
+            const avgPercent = Math.round(Object.values(percents).reduce((a, b) => a + b, 0) / 7);
+
+            const goals = [
+                { label: "운동", percent: percents.exercise, color: COLORS.purple, display: `${stats.exercise}/${MONTHLY_TARGETS.exercise}회`, Icon: IconSparkle },
+                { label: "수업", percent: percents.lesson, color: COLORS.purple, display: `${formatMinutes(stats.lesson)} / ${formatTarget(MONTHLY_TARGETS.lesson)}`, Icon: IconClipboard },
+                { label: "영어", percent: percents.english, color: COLORS.yellow, display: `${stats.english}/${MONTHLY_TARGETS.english}회`, Icon: IconFlame },
+                { label: "일어", percent: percents.japanese, color: COLORS.yellow, display: `${stats.japanese}/${MONTHLY_TARGETS.japanese}회`, Icon: IconFlame },
+                { label: "독서", percent: percents.reading, color: COLORS.sky, display: `${formatMinutes(stats.reading)} / ${formatTarget(MONTHLY_TARGETS.reading)}`, Icon: IconBook },
+                { label: "기록", percent: percents.record, color: COLORS.sky, display: `${stats.record}/${MONTHLY_TARGETS.record}회`, Icon: IconPen },
+                { label: "코딩", percent: percents.coding, color: COLORS.sky, display: `${formatMinutes(stats.coding)} / ${formatTarget(MONTHLY_TARGETS.coding)}`, Icon: IconFlame }
+            ];
+
+            if (loading) return <div className="tab-content items-center justify-center"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div></div>;
+
+            return (
+                <div className="tab-content">
+                    <div className="glass-header px-5 py-1.5 flex justify-between items-center">
+                        <span className="text-[13px] font-bold text-white">Monthly</span>
+                        <div className="flex items-center gap-2">
+                            <ProgressBar percent={avgPercent} color="white" />
+                            <span className="text-[11px] font-mono text-white/70">{avgPercent}%</span>
+                        </div>
+                    </div>
+                    <div className="flex-1 p-4 flex flex-col gap-2">
+                        <div className="glass-section p-4 flex-1">
+                            <div className="grid grid-cols-2 gap-x-5 gap-y-3">
+                                {goals.slice(0, 6).map((item, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                        <item.Icon className="w-3.5 h-3.5 shrink-0" color={item.color} />
+                                        <span className="text-[11px] font-medium shrink-0 w-6" style={{ color: item.color }}>{item.label}</span>
+                                        <ProgressBar percent={item.percent} color={item.color} />
+                                        <span className="text-[9px] font-mono text-white/40 shrink-0 ml-1">{item.display}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            {(() => {
+                                const coding = goals[6];
+                                return (
+                                    <div className="flex items-center gap-2 mt-3">
+                                        <coding.Icon className="w-3.5 h-3.5 shrink-0" color={coding.color} />
+                                        <span className="text-[11px] font-medium shrink-0 w-6" style={{ color: coding.color }}>{coding.label}</span>
+                                        <ProgressBar percent={coding.percent} color={coding.color} />
+                                        <span className="text-[9px] font-mono text-white/40 shrink-0 ml-1">{coding.display}</span>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════
+        //  TAB 3: Focus Heatmap
+        // ═══════════════════════════════════════
+        const FocusHeatmapTab = () => {
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [focusData, setFocusData] = useState({});
+
+            const parseTimeStr = (str) => {
+                if (!str) return 0;
+                let total = 0;
+                const hMatch = str.match(/(\d+)\s*H/i);
+                const mMatch = str.match(/(\d+)\s*M/i);
+                if (hMatch) total += parseInt(hMatch[1]) * 60;
+                if (mMatch) total += parseInt(mMatch[1]);
+                return total;
+            };
+
+            const extractMinutes = (data) => {
+                if (!data) return 0;
+                if (typeof data.Total === 'number') return data.Total;
+                if (typeof data.total === 'number') return data.total;
+                if (data.Total && !isNaN(data.Total)) return Number(data.Total);
+                if (data.properties?.Total?.number) return data.properties.Total.number;
+                let total = 0;
+                const blocks = Array.isArray(data) ? data : (data.blocks || []);
+                if (blocks.length > 0) {
+                    total += blocks.filter(b => b.type === 'focus' || !b.type).reduce((acc, cur) => acc + (cur.duration || 0), 0);
+                }
+                if (data.taskLog && typeof data.taskLog === 'string') {
+                    let logMinutes = 0;
+                    data.taskLog.split('\n').forEach(line => {
+                        const timeMatch = line.match(/\(([^)]+)\)\s*$/);
+                        if (timeMatch) logMinutes += parseTimeStr(timeMatch[1]);
+                    });
+                    if (logMinutes > total) total = logMinutes;
+                }
+                return total;
+            };
+
+            const currentMonthTotal = useMemo(() => {
+                let total = 0;
+                const y = currentDate.getFullYear();
+                const m = currentDate.getMonth() + 1;
+                Object.keys(focusData).forEach(key => {
+                    const [dy, dm] = key.split('-').map(Number);
+                    if (dy === y && dm === m) total += focusData[key];
+                });
+                return total;
+            }, [focusData, currentDate]);
+
+            const formatTotalTime = (min) => `${Math.floor(min / 60)}H`;
+
+            const loadData = async () => {
+                const map = {};
+                const formatYMD = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                try {
+                    const history = JSON.parse(localStorage.getItem('fortressHistory') || '[]');
+                    history.forEach(day => {
+                        if (day.date) {
+                            const d = new Date(day.date);
+                            map[formatYMD(d.getFullYear(), d.getMonth() + 1, d.getDate())] = extractMinutes(day);
+                        }
+                    });
+                    const todayData = JSON.parse(localStorage.getItem('fortressData') || '{}');
+                    if (todayData.date) {
+                        const d = new Date(todayData.date);
+                        map[formatYMD(d.getFullYear(), d.getMonth() + 1, d.getDate())] = extractMinutes(todayData);
+                    }
+                } catch (e) {}
+
+                try {
+                    const year = currentDate.getFullYear();
+                    const month = currentDate.getMonth() + 1;
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    const datesToFetch = [];
+                    for (let d = 1; d <= daysInMonth; d++) datesToFetch.push(formatYMD(year, month, d));
+                    const BATCH_SIZE = 10;
+                    for (let i = 0; i < datesToFetch.length; i += BATCH_SIZE) {
+                        const batch = datesToFetch.slice(i, i + BATCH_SIZE);
+                        await Promise.all(batch.map(async (dateKey) => {
+                            try {
+                                const res = await fetch(`${LOG_WORKER_URL}?date=${dateKey}`);
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    const minutes = extractMinutes(data);
+                                    if (minutes > 0) map[dateKey] = minutes;
+                                }
+                            } catch (err) {}
+                        }));
+                        setFocusData(prev => {
+                            const merged = { ...prev };
+                            Object.keys(map).forEach(key => { if (map[key] > 0) merged[key] = map[key]; });
+                            return merged;
+                        });
+                    }
+                } catch (e) {}
+            };
+
+            useEffect(() => {
+                loadData();
+                const interval = setInterval(loadData, 30000);
+                return () => clearInterval(interval);
+            }, [currentDate]);
+
+            const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+            const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+            const year = currentDate.getFullYear();
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthStr = monthNames[currentDate.getMonth()];
+            const firstDayOfMonth = new Date(year, currentDate.getMonth(), 1);
+            const daysInMonth = new Date(year, currentDate.getMonth() + 1, 0).getDate();
+            const startDay = firstDayOfMonth.getDay();
+            const prevMonthLastDate = new Date(year, currentDate.getMonth(), 0).getDate();
+
+            const getHeatClass = (minutes) => {
+                if (!minutes || minutes <= 30) return 'heat-0';
+                if (minutes < 120) return 'heat-start';
+                if (minutes <= 240) return 'heat-1';
+                if (minutes <= 360) return 'heat-2';
+                return 'heat-3';
+            };
+
+            const formatTime = (min) => {
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                return h > 0 ? `${h}H ${m}M` : `${m}M`;
+            };
+
+            // 6줄 고정
+            const totalCells = 42;
+
+            return (
+                <div className="tab-content">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-2 border-b border-white/10">
+                        <button onClick={prevMonth} className="nav-btn"><IconChevronLeft /></button>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-sm font-bold text-white">{monthStr} {year}</span>
+                            <span className="text-xs font-mono text-white/50">Total {formatTotalTime(currentMonthTotal)}</span>
+                        </div>
+                        <button onClick={nextMonth} className="nav-btn"><IconChevronRight /></button>
+                    </div>
+                    {/* Legend */}
+                    <div className="flex items-center justify-center gap-3 py-1.5 px-5">
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-sm heat-start"></div>
+                            <span className="text-[8px] text-white/40 font-mono">~2h</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-sm heat-1"></div>
+                            <span className="text-[8px] text-white/40 font-mono">2-4h</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-sm heat-2"></div>
+                            <span className="text-[8px] text-white/40 font-mono">4-6h</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <div className="w-2.5 h-2.5 rounded-sm heat-3"></div>
+                            <span className="text-[8px] text-white/40 font-mono">6h+</span>
+                        </div>
+                    </div>
+                    {/* Calendar */}
+                    <div className="flex-1 px-5 pb-3 flex flex-col">
+                        <div className="calendar-grid mb-1">
+                            {['S','M','T','W','T','F','S'].map((d, i) => (
+                                <div key={i} className={`text-[9px] font-bold py-0.5 ${i === 0 ? 'text-rose-300' : (i === 6 ? 'text-blue-300' : 'text-slate-500')}`}>{d}</div>
+                            ))}
+                        </div>
+                        <div className="calendar-grid flex-1">
+                            {Array.from({length: totalCells}).map((_, i) => {
+                                const dayNumber = i - startDay + 1;
+                                const isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+                                const displayDay = isCurrentMonth ? dayNumber : (dayNumber <= 0 ? prevMonthLastDate + dayNumber : dayNumber - daysInMonth);
+                                
+                                if (!isCurrentMonth) return <div key={i} className="heatmap-cell opacity-0 pointer-events-none"></div>;
+
+                                const targetDate = new Date(year, currentDate.getMonth(), displayDay);
+                                const dateKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+                                const minutes = focusData[dateKey] || 0;
+                                const heatClass = getHeatClass(minutes);
+                                const today = new Date();
+                                const isToday = today.toDateString() === targetDate.toDateString();
+
+                                return (
+                                    <div key={i} className={`heatmap-cell ${heatClass} ${isToday ? 'day-today-heatmap' : ''}`}>
+                                        <span className="text-[8px] font-mono" style={{ opacity: 0.6 }}>{dayNumber}</span>
+                                        {minutes > 0 && (
+                                            <div className="heatmap-tooltip">{formatTime(minutes)}</div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════
+        //  TAB 4: Monthly Routine
+        // ═══════════════════════════════════════
+        const MonthlyRoutineTab = () => {
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [monthData, setMonthData] = useState({});
+            const [isLoading, setIsLoading] = useState(false);
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            const routines = {
+                morning: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'walk', keywords: ['운동'] },
+                    { id: 'hygiene', keywords: ['위생관리'] }
+                ],
+                afternoon: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'language', keywords: ['영어', '일어', '보카', '상용한자'] },
+                    { id: 'reading', keywords: ['독서'] }
+                ],
+                night: [
+                    { id: 'meal', keywords: ['식사'] },
+                    { id: 'hygiene', keywords: ['위생관리'] },
+                    { id: 'record', keywords: ['기록'] }
+                ]
+            };
+
+            const timeRanges = {
+                morning: { start: 0, end: 12 },
+                afternoon: { start: 12, end: 18 },
+                night: { start: 18, end: 24 }
+            };
+
+            const rColors = {
+                morning: { hex: '#d8b4fe' },
+                afternoon: { hex: '#7dd3fc' },
+                night: { hex: '#fef08a' }
+            };
+
+            const sidebarIcons = {
+                morning: [
+                    { Icon: IconUtensils, color: '#d8b4fe' },
+                    { Icon: IconSparkle, color: '#d8b4fe' },
+                    { Icon: IconDroplets, color: '#d8b4fe' }
+                ],
+                afternoon: [
+                    { Icon: IconUtensils, color: '#7dd3fc' },
+                    { Icon: IconFlame, color: '#7dd3fc' },
+                    { Icon: IconBook, color: '#7dd3fc' }
+                ],
+                night: [
+                    { Icon: IconUtensils, color: '#fef08a' },
+                    { Icon: IconDroplets, color: '#fef08a' },
+                    { Icon: IconPen, color: '#fef08a' }
+                ]
+            };
+
+            const analyzeRoutineBlocks = (blocks) => {
+                const result = {
+                    morning: { completed: 0, total: 3, details: {} },
+                    afternoon: { completed: 0, total: 3, details: {} },
+                    night: { completed: 0, total: 3, details: {} }
+                };
+                Object.keys(routines).forEach(period => {
+                    const { start, end } = timeRanges[period];
+                    let completedCount = 0;
+                    routines[period].forEach(routine => {
+                        const found = blocks.some(b => {
+                            const bTime = new Date(b.startTime);
+                            const h = bTime.getHours();
+                            if (h >= start && h < end && b.duration >= 10) {
+                                const content = b.name || b.memo || "";
+                                return routine.keywords.some(k => content.includes(k));
+                            }
+                            return false;
+                        });
+                        result[period].details[routine.id] = found;
+                        if (found) completedCount++;
+                    });
+                    result[period].completed = completedCount;
+                });
+                return result;
+            };
+
+            const fetchMonthData = async () => {
+                setIsLoading(true);
+                const newData = {};
+                try {
+                    const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    const res = await fetch(`${LOG_WORKER_URL}?month=${monthStr}`);
+                    if (res.ok) {
+                        const result = await res.json();
+                        if (result.data) {
+                            Object.keys(result.data).forEach(day => {
+                                const dayData = result.data[day];
+                                if (dayData.blocks && Array.isArray(dayData.blocks)) {
+                                    newData[parseInt(day)] = analyzeRoutineBlocks(dayData.blocks);
+                                }
+                            });
+                        }
+                    }
+                    setMonthData(newData);
+                } catch (e) {} finally { setIsLoading(false); }
+            };
+
+            useEffect(() => { fetchMonthData(); }, [year, month]);
+
+            const getOpacity = (completed, total) => {
+                if (completed === 0) return 0.08;
+                return 0.1 + (completed / total) * 0.9;
+            };
+
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+
+            const generateGrid = (period) => {
+                const grid = [];
+                const totalRoutines = routines[period].length;
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayData = monthData[day];
+                    const completed = dayData?.[period]?.completed || 0;
+                    const details = dayData?.[period]?.details || {};
+                    grid.push({ day, completed, total: totalRoutines, opacity: getOpacity(completed, totalRoutines), details });
+                }
+                return grid;
+            };
+
+            const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+            const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+            const renderSection = (period) => {
+                const color = rColors[period];
+                const icons = sidebarIcons[period];
+                const grid = generateGrid(period);
+                const periodLabels = { morning: '오전', afternoon: '오후', night: '밤' };
+
+                return (
+                    <div key={period} className={`flex-1 flex flex-row ${period !== 'morning' ? 'border-t-glass' : ''}`}>
+                        <div className="w-[28px] glass-sidebar py-2 px-1 flex flex-col items-center justify-center gap-1.5">
+                            {icons.map((item, idx) => {
+                                const { Icon, color: iconColor } = item;
+                                return <Icon key={idx} className="w-3 h-3" color={iconColor} />;
+                            })}
+                        </div>
+                        <div className="flex-1 p-2 flex items-center" style={{ backgroundColor: `${color.hex}10` }}>
+                            <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.min(11, daysInMonth)}, 1fr)` }}>
+                                {grid.map((cell, idx) => {
+                                    const isToday = cell.day === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
+                                    const isFirstRow = idx < Math.min(11, daysInMonth);
+                                    return (
+                                        <div key={idx} className={`routine-cell ${isToday ? 'ring-1 ring-white' : ''}`}
+                                            style={{
+                                                backgroundColor: hexToRgba(color.hex, cell.opacity),
+                                                boxShadow: cell.completed === cell.total ? `0 0 4px ${color.hex}` : 'none'
+                                            }}>
+                                            <div className={`routine-tooltip ${isFirstRow ? 'routine-tooltip-bottom' : ''}`} style={{ backgroundColor: color.hex }}>
+                                                <span className="font-bold text-slate-700">{cell.day}</span>
+                                                {icons.map((item, i) => {
+                                                    const { Icon } = item;
+                                                    const routineId = routines[period][i]?.id;
+                                                    const done = cell.details[routineId];
+                                                    return <Icon key={i} className="w-2.5 h-2.5" color={done ? '#334155' : 'rgba(51,65,85,0.3)'} />;
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="tab-content">
+                    <div className="flex items-center justify-between px-5 py-2 border-b border-white/10">
+                        <button onClick={prevMonth} className="nav-btn"><IconChevronLeft /></button>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-white">{monthNames[month]} {year}</span>
+                            {isLoading && <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin"></div>}
+                        </div>
+                        <button onClick={nextMonth} className="nav-btn"><IconChevronRight /></button>
+                    </div>
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        {renderSection('morning')}
+                        {renderSection('afternoon')}
+                        {renderSection('night')}
+                    </div>
+                </div>
+            );
+        };
+
+        // ═══════════════════════════════════════
+        //  Main Dashboard
+        // ═══════════════════════════════════════
+        const TABS = [
+            { id: 'weekly', label: '주간 성취도' },
+            { id: 'monthly', label: '월간 성취도' },
+            { id: 'heatmap', label: '집중시간' },
+            { id: 'routine', label: '습관체크' }
+        ];
+
+        const Dashboard = () => {
+            const [activeTab, setActiveTab] = useState('weekly');
+
+            return (
+                <div className="widget-container">
+                    {/* Tab Bar */}
+                    <div className="tab-bar">
+                        {TABS.map(tab => (
+                            <button key={tab.id}
+                                className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                                onClick={() => setActiveTab(tab.id)}>
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    {activeTab === 'weekly' && <WeeklyGoalTab />}
+                    {activeTab === 'monthly' && <MonthlyGoalTab />}
+                    {activeTab === 'heatmap' && <FocusHeatmapTab />}
+                    {activeTab === 'routine' && <MonthlyRoutineTab />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Dashboard />);
+    </script>
+</body>
+</html>
