@@ -181,6 +181,102 @@
             } catch (e) { return null; }
         };
 
+        // ═══ RRULE 반복 이벤트 확장 ═══
+        const BYDAY_MAP = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+        const expandRRule = (rruleStr, dtStart, dtEnd, exDates = []) => {
+            if (!rruleStr || !dtStart) return [];
+            const params = {};
+            rruleStr.replace('RRULE:', '').split(';').forEach(p => {
+                const [k, v] = p.split('=');
+                params[k] = v;
+            });
+
+            const freq = params.FREQ;
+            const until = params.UNTIL ? safeParseDate(params.UNTIL) : null;
+            const count = params.COUNT ? parseInt(params.COUNT) : null;
+            const interval = params.INTERVAL ? parseInt(params.INTERVAL) : 1;
+            const byDay = params.BYDAY ? params.BYDAY.split(',') : null;
+            const byMonthDay = params.BYMONTHDAY ? params.BYMONTHDAY.split(',').map(Number) : null;
+
+            // 확장 범위: 현재 기준 ±6개월
+            const now = new Date();
+            const rangeStart = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+            const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 7, 0);
+            const hardLimit = until && until < rangeEnd ? until : rangeEnd;
+            const maxInstances = count || 500;
+
+            const duration = dtEnd ? (dtEnd.getTime() - dtStart.getTime()) : 3600000;
+            const instances = [];
+            const exDateSet = new Set(exDates.map(d => {
+                const p = safeParseDate(d);
+                return p ? `${p.getFullYear()}-${p.getMonth()}-${p.getDate()}` : '';
+            }));
+
+            const isExcluded = (d) => exDateSet.has(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+
+            if (freq === 'DAILY') {
+                let cur = new Date(dtStart);
+                while (cur <= hardLimit && instances.length < maxInstances) {
+                    if (cur >= rangeStart && !isExcluded(cur)) {
+                        instances.push({ start: new Date(cur), end: new Date(cur.getTime() + duration) });
+                    }
+                    cur.setDate(cur.getDate() + interval);
+                }
+            } else if (freq === 'WEEKLY') {
+                if (byDay) {
+                    const targetDays = byDay.map(d => BYDAY_MAP[d]).filter(d => d !== undefined);
+                    let weekStart = new Date(dtStart);
+                    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                    while (weekStart <= hardLimit && instances.length < maxInstances) {
+                        for (const dow of targetDays) {
+                            const candidate = new Date(weekStart);
+                            candidate.setDate(candidate.getDate() + dow);
+                            candidate.setHours(dtStart.getHours(), dtStart.getMinutes(), 0, 0);
+                            if (candidate >= dtStart && candidate <= hardLimit && candidate >= rangeStart && !isExcluded(candidate)) {
+                                instances.push({ start: new Date(candidate), end: new Date(candidate.getTime() + duration) });
+                            }
+                        }
+                        weekStart.setDate(weekStart.getDate() + 7 * interval);
+                    }
+                } else {
+                    let cur = new Date(dtStart);
+                    while (cur <= hardLimit && instances.length < maxInstances) {
+                        if (cur >= rangeStart && !isExcluded(cur)) {
+                            instances.push({ start: new Date(cur), end: new Date(cur.getTime() + duration) });
+                        }
+                        cur.setDate(cur.getDate() + 7 * interval);
+                    }
+                }
+            } else if (freq === 'MONTHLY') {
+                let cur = new Date(dtStart);
+                while (cur <= hardLimit && instances.length < maxInstances) {
+                    if (byMonthDay) {
+                        for (const md of byMonthDay) {
+                            const candidate = new Date(cur.getFullYear(), cur.getMonth(), md, dtStart.getHours(), dtStart.getMinutes());
+                            if (candidate >= dtStart && candidate <= hardLimit && candidate >= rangeStart && !isExcluded(candidate)) {
+                                instances.push({ start: new Date(candidate), end: new Date(candidate.getTime() + duration) });
+                            }
+                        }
+                    } else {
+                        if (cur >= rangeStart && !isExcluded(cur)) {
+                            instances.push({ start: new Date(cur), end: new Date(cur.getTime() + duration) });
+                        }
+                    }
+                    cur = new Date(cur.getFullYear(), cur.getMonth() + interval, cur.getDate(), cur.getHours(), cur.getMinutes());
+                }
+            } else if (freq === 'YEARLY') {
+                let cur = new Date(dtStart);
+                while (cur <= hardLimit && instances.length < maxInstances) {
+                    if (cur >= rangeStart && !isExcluded(cur)) {
+                        instances.push({ start: new Date(cur), end: new Date(cur.getTime() + duration) });
+                    }
+                    cur = new Date(cur.getFullYear() + interval, cur.getMonth(), cur.getDate(), cur.getHours(), cur.getMinutes());
+                }
+            }
+            return instances;
+        };
+
         const App = () => {
             const [currentDate, setCurrentDate] = useState(new Date()); 
             const [selectedDate, setSelectedDate] = useState(new Date()); 
@@ -283,14 +379,29 @@
                             clearTimeout(timeoutId);
                             if (!response.ok) throw new Error('Net Error');
                             const text = await response.text();
-                            const lines = text.split("\n");
+                            // ICS line unfolding: 공백/탭으로 시작하는 줄은 이전 줄의 연속
+                            const rawLines = text.split(/\r?\n/);
+                            const lines = [];
+                            for (const rl of rawLines) {
+                                if ((rl.startsWith(' ') || rl.startsWith('\t')) && lines.length > 0) {
+                                    lines[lines.length - 1] += rl.substring(1);
+                                } else {
+                                    lines.push(rl);
+                                }
+                            }
                             let event = {};
+                            let exDates = [];
                             
                             for (const line of lines) {
                                 const cleanLine = line.trim();
-                                if (cleanLine.startsWith("BEGIN:VEVENT")) event = {};
-                                else if (cleanLine.startsWith("DTSTART")) event.start = cleanLine.split(":")[1];
-                                else if (cleanLine.startsWith("DTEND")) event.end = cleanLine.split(":")[1];
+                                if (cleanLine.startsWith("BEGIN:VEVENT")) { event = {}; exDates = []; }
+                                else if (cleanLine.startsWith("DTSTART")) event.start = cleanLine.split(":").pop();
+                                else if (cleanLine.startsWith("DTEND")) event.end = cleanLine.split(":").pop();
+                                else if (cleanLine.startsWith("RRULE:")) event.rrule = cleanLine;
+                                else if (cleanLine.startsWith("EXDATE")) {
+                                    const val = cleanLine.split(":").pop();
+                                    if (val) val.split(",").forEach(d => exDates.push(d.trim()));
+                                }
                                 else if (cleanLine.startsWith("SUMMARY")) {
                                     let rawTitle = cleanLine.substring(cleanLine.indexOf(':') + 1);
                                     event.title = rawTitle.replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\').trim();
@@ -309,18 +420,26 @@
                                             let endDateObj = event.end ? safeParseDate(event.end) : null;
                                             if (!endDateObj && startDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
 
-                                            const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
                                             const formatTime = (date) => `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
-                                            
-                                            const eventObj = {
-                                                title: event.title || "No Title",
-                                                type: COLOR_MAP[colorKey],
-                                                startTime: formatTime(startDateObj),
-                                                endTime: endDateObj ? formatTime(endDateObj) : "00:00",
-                                                dateObj: startDateObj
-                                            };
-                                            if (!newEvents[dateKey]) newEvents[dateKey] = [];
-                                            newEvents[dateKey].push(eventObj);
+                                            const title = event.title || "No Title";
+                                            const type = COLOR_MAP[colorKey];
+
+                                            // 반복 이벤트 확장
+                                            if (event.rrule) {
+                                                const instances = expandRRule(event.rrule, startDateObj, endDateObj, exDates);
+                                                instances.forEach(inst => {
+                                                    const dateKey = `${inst.start.getFullYear()}${String(inst.start.getMonth()+1).padStart(2,'0')}${String(inst.start.getDate()).padStart(2,'0')}`;
+                                                    const eventObj = { title, type, startTime: formatTime(inst.start), endTime: formatTime(inst.end), dateObj: inst.start };
+                                                    if (!newEvents[dateKey]) newEvents[dateKey] = [];
+                                                    newEvents[dateKey].push(eventObj);
+                                                });
+                                            } else {
+                                                // 단일 이벤트
+                                                const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
+                                                const eventObj = { title, type, startTime: formatTime(startDateObj), endTime: endDateObj ? formatTime(endDateObj) : "00:00", dateObj: startDateObj };
+                                                if (!newEvents[dateKey]) newEvents[dateKey] = [];
+                                                newEvents[dateKey].push(eventObj);
+                                            }
                                         }
                                     }
                                 }
@@ -386,15 +505,12 @@
             return (
                 <div className="widget-container">
                     {/* Header */}
-                    <div className="px-5 pt-5 pb-3 flex justify-between items-end border-b border-white/20 bg-white/15 backdrop-blur-sm z-10 shrink-0">
-                        <div>
-                            <div className="text-sky-point text-sm font-bold tracking-widest uppercase mb-0.5">
-                             {year}
-                            </div>
-                            <h1 className="text-xl title-text font-serif tracking-tight text-white font-bold">{monthStr}</h1>
-                        </div>
-                        <div className="flex gap-1 items-center pb-0.5">
-                            <button onClick={goToday} className="nav-btn mr-1" title="Go Today"><Icons.RotateCcw /></button>
+                    <div className="px-4 pt-4 pb-2.5 flex justify-between items-center border-b border-white/20 bg-white/15 backdrop-blur-sm z-10 shrink-0">
+                        <h1 className="font-serif tracking-tight text-white font-bold text-lg">
+                            <span className="text-sky-point">{year}</span> {monthStr}
+                        </h1>
+                        <div className="flex gap-1 items-center">
+                            <button onClick={goToday} className="nav-btn mr-0.5" title="Go Today"><Icons.RotateCcw /></button>
                             <button onClick={prevMonth} className="nav-btn"><Icons.ChevronLeft /></button>
                             <button onClick={nextMonth} className="nav-btn"><Icons.ChevronRight /></button>
                         </div>
