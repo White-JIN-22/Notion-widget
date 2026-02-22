@@ -33,7 +33,7 @@
         .widget-container {
             position: relative;
             width: 440px;
-            height: 520px;
+            height: 420px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             border-radius: 24px;
@@ -323,8 +323,6 @@
             // 1. 앱 시작 시 오늘 데이터 로드
             useEffect(() => {
                 const today = new Date();
-                setCurrentDateDisplay(today.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }));
-                
                 const savedTodos = JSON.parse(localStorage.getItem('jinsolTodos') || '[]');
                 const localOnly = savedTodos.filter(t => !t.isRemote);
                 setTodos(localOnly);
@@ -985,8 +983,8 @@
                 ];
                 
                 return (
-                    <div className="mb-2">
-                        <div className="section-header">
+                    <div className="h-full flex flex-col">
+                        <div className="section-header shrink-0">
                             <Icon className={`w-4 h-4 ${config.colorClass}`} />
                             <span className={`section-title ${config.colorClass}`}>{config.label}</span>
                             <div className="section-line" style={{ background: config.checkboxColor }}></div>
@@ -1011,7 +1009,7 @@
                             </div>
                         )}
                         
-                        <div className="space-y-2 px-1">
+                        <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar space-y-2 px-1">
                             {mixedItems.length === 0 && !activeInputZone && ( <div className="text-[10px] text-slate-400 opacity-30 italic pl-6 py-1">Empty</div> )}
                             {mixedItems.map(item => {
                                 if (item.type === 'calendar') {
@@ -1255,10 +1253,10 @@
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-6 pt-2">
-                        {renderSection('morning')}
-                        {renderSection('afternoon')}
-                        {renderSection('night')}
+                    <div className="flex-1 min-h-0 px-3 pb-2 pt-2 flex flex-col gap-1">
+                        <div className="flex-1 min-h-0">{renderSection('morning')}</div>
+                        <div className="flex-1 min-h-0">{renderSection('afternoon')}</div>
+                        <div className="flex-1 min-h-0">{renderSection('night')}</div>
                     </div>
 
                     {/* 체중 입력 모달 */}
