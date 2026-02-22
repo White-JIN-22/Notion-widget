@@ -270,11 +270,13 @@
             const [bedHour, setBedHour] = useState(23);
             const [bedMin, setBedMin] = useState(0);
 
-            // 낮잠 상태
-            const [napStartHour, setNapStartHour] = useState(14);
-            const [napStartMin, setNapStartMin] = useState(0);
-            const [napEndHour, setNapEndHour] = useState(14);
-            const [napEndMin, setNapEndMin] = useState(30);
+            // 낮잠 상태 (종료=현재시각, 시작=2시간 전)
+            const _napNow = new Date();
+            const _napStart = new Date(_napNow.getTime() - 2 * 60 * 60 * 1000);
+            const [napStartHour, setNapStartHour] = useState(_napStart.getHours());
+            const [napStartMin, setNapStartMin] = useState(Math.floor(_napStart.getMinutes() / 10) * 10);
+            const [napEndHour, setNapEndHour] = useState(_napNow.getHours());
+            const [napEndMin, setNapEndMin] = useState(Math.floor(_napNow.getMinutes() / 10) * 10);
 
             const formatLocalYMD = (d) => {
                 if (typeof d === 'string') d = new Date(d);
@@ -818,7 +820,7 @@
             const renderBlockIcon = (block) => {
                 if (block.type === 'focus' || !block.type) {
                     if (block.quality === 'Sun') return <Icons.Sun className="w-8 h-8 text-purple-300" />;
-                    if (block.quality === 'Cloud') return <Icons.Cloud className="w-8 h-8 text-sky-300" />;
+                    if (block.quality === 'Cloud') return <Icons.Flame className="w-8 h-8 text-sky-300" />;
                     return <Icons.Rain className="w-8 h-8 text-slate-400" />;
                 }
                 const IC = Icons[block.icon] || Icons.Zap;
