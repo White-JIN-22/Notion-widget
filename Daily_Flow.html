@@ -238,11 +238,19 @@
             Zzz: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 4h20"></path><path d="M2 20h20"></path><path d="M6 12h12"></path></svg>,
             ArrowRight: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>,
             Scale: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>,
+            Dumbbell: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11"></path><path d="M3 10V7a1 1 0 0 1 1-1h2.5v12H4a1 1 0 0 1-1-1v-3"></path><path d="M21 10V7a1 1 0 0 0-1-1h-2.5v12H20a1 1 0 0 0 1-1v-3"></path><rect x="5.5" y="4" width="2" height="16" rx="1"></rect><rect x="16.5" y="4" width="2" height="16" rx="1"></rect></svg>,
+            Droplets: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>,
+            Utensils: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>,
+            Message: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+            Leaf: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.5 2 6 0 5.5-4.5 10-10 10z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></svg>,
+            Monitor: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>,
+            Headphones: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>,
         };
 
         const App = () => {
             const [todos, setTodos] = useState([]);
             const [calendarEvents, setCalendarEvents] = useState([]);
+            const [todayIsHoliday, setTodayIsHoliday] = useState(false);
             const [isLoading, setIsLoading] = useState(false);
 
             const [activeInputZone, setActiveInputZone] = useState(null);
@@ -255,20 +263,18 @@
             const [selectedQuest, setSelectedQuest] = useState(null);
 
             const QUEST_OPTIONS = [
-                // 1행: 운동(보라), 요리(보라), 독서(보라)
-                { id: 'q_walk', name: '운동', icon: 'Sparkle', color: 'text-purple-300' }, 
-                { id: 'q_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' }, 
-                { id: 'q_read', name: '독서', icon: 'Book', color: 'text-purple-300' },
-
-                // 2행: 설거지(하늘), 빨래(하늘), 약 소분(하늘)
-                { id: 'q3', name: '설거지', icon: 'Waves', color: 'text-sky-300' }, 
-                { id: 'q4', name: '빨래', icon: 'Shirt', color: 'text-sky-300' }, 
-                { id: 'q_pill', name: '약 소분', icon: 'Pill', color: 'text-sky-300' },
-                
-                // 3행: 분리수거(회색), 방 쓸기(회색), 집안일(회색)
-                { id: 'q5', name: '분리수거', icon: 'Recycle', color: 'text-slate-400' }, 
-                { id: 'q6', name: '방 쓸기', icon: 'Wind', color: 'text-slate-400' }, 
-                { id: 'q7', name: '집안일', icon: 'Home', color: 'text-slate-400' }, 
+                { id: 'sw_clean', name: '집청소', icon: 'Home', color: 'text-purple-300' },
+                { id: 'sw_cook', name: '요리', icon: 'Pot', color: 'text-purple-300' },
+                { id: 'sw_meal', name: '식사', icon: 'Utensils', color: 'text-purple-300' },
+                { id: 'sw_tea', name: '티타임', icon: 'Cup', color: 'text-purple-300' },
+                { id: 'sw_stretch', name: '스트레칭', icon: 'Stretch', color: 'text-purple-300' },
+                { id: 'sw_walk', name: '운동', icon: 'Dumbbell', color: 'text-purple-300' },
+                { id: 'sw_shower', name: '샤워·세면', icon: 'Droplets', color: 'text-purple-300' },
+                { id: 'sw_social', name: '사교', icon: 'Message', color: 'text-purple-300' },
+                { id: 'sw_counsel', name: '상담', icon: 'Leaf', color: 'text-purple-300' },
+                { id: 'sw_record', name: '기록', icon: 'Pen', color: 'text-purple-300' },
+                { id: 'sw_video', name: '영상', icon: 'Monitor', color: 'text-purple-300' },
+                { id: 'sw_music', name: '음악', icon: 'Headphones', color: 'text-purple-300' },
             ];
             
             const [toast, setToast] = useState(null);
@@ -345,7 +351,6 @@
 
             const fetchCalendarData = async (targetDate) => {
                 try {
-                    // [수정] log-worker를 거치지 않고 log-cal에서 직접 수신 (오류 차단)
                     const res = await fetch(`https://log-cal.moonkelly601.workers.dev?type=calendar&t=${Date.now()}`);
                     if (res.ok) {
                         const data = await res.json();
@@ -360,12 +365,8 @@
                         const processedEvents = data
                     .filter(e => {
                         if (!e || !e.startTime) return false;
-                        
-                        // 날짜 객체 변환 (문자열/숫자 모두 대응)
                         const eDate = new Date(e.startTime);
                         if (isNaN(eDate.getTime())) return false; 
-                        
-                        // [수정] 시차 문제 방지를 위해 로컬 날짜 문자열로 단순 비교
                         const eventYMD = formatLocalYMD(eDate);
                         return eventYMD === targetYMD;
                     })
@@ -391,12 +392,33 @@
                                 };
                             });
                         setCalendarEvents(processedEvents);
-                        console.log(`✅ Loaded ${processedEvents.length} events for ${targetYMD}`);
                     }
                 } catch (e) {
                     console.error("Calendar fetch failed:", e);
                     setCalendarEvents([]);
                 }
+
+                // 공휴일 체크
+                try {
+                    const holUrl = "https://calendar.google.com/calendar/ical/ko.south_korea%23holiday%40group.v.calendar.google.com/public/basic.ics";
+                    const res = await fetch(`https://log-cal.moonkelly601.workers.dev?url=${encodeURIComponent(holUrl)}`);
+                    if (res.ok) {
+                        const text = await res.text();
+                        const targetYMD = formatLocalYMD(targetDate).replace(/-/g, '');
+                        const lines = text.split(/\r?\n/);
+                        let inEvent = false, dtstart = '';
+                        for (const line of lines) {
+                            const cl = line.trim();
+                            if (cl === 'BEGIN:VEVENT') { inEvent = true; dtstart = ''; }
+                            else if (cl.startsWith('DTSTART') && inEvent) { dtstart = cl.split(':').pop(); }
+                            else if (cl === 'END:VEVENT' && inEvent) {
+                                if (dtstart.startsWith(targetYMD)) { setTodayIsHoliday(true); return; }
+                                inEvent = false;
+                            }
+                        }
+                        setTodayIsHoliday(false);
+                    }
+                } catch (e) { /* 공휴일 실패해도 무시 */ }
             };
 
             const handleNewDayReset = (todayStr, currentTodos) => {
@@ -1163,22 +1185,18 @@
                     {showQuestModal && (
                         <div className="modal-overlay" onClick={() => setShowQuestModal(false)}>
                             <div className="log-link-modal-content" onClick={e => e.stopPropagation()}>
-                                <div className="mb-3 text-center">
-                                    <h3 className="text-sm font-bold text-slate-700 font-serif">｡✧ Add Routine ✧｡</h3>
-                                </div>
-                                
                                 <div className="px-1 mb-3">
                                     <input 
                                         type="text" 
                                         value={questName}
                                         onChange={(e) => setQuestName(e.target.value)}
                                         placeholder="소일거리 이름 (예: 빨래 개기)" 
-                                        className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold focus:outline-none focus:border-sky-300 focus:bg-white transition-all placeholder:font-medium"
+                                        className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-bold focus:outline-none focus:border-purple-300 focus:bg-white transition-all placeholder:font-medium"
                                     />
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto custom-scroll px-1">
-                                    <div className="grid grid-cols-3 gap-2 pb-2">
+                                    <div className="grid grid-cols-4 gap-1.5 pb-2">
                                         {QUEST_OPTIONS.map(opt => {
                                             const IconComp = Icons[opt.icon] || Icons.Zap;
                                             const isSelected = selectedQuest?.id === opt.id;
@@ -1189,10 +1207,10 @@
                                                         setSelectedQuest(opt);
                                                         if (!questName) setQuestName(opt.name);
                                                     }}
-                                                    className={`flex flex-col items-center justify-center p-2 rounded-xl border transition-all ${isSelected ? 'bg-sky-50 border-sky-300 shadow-sm' : 'bg-white border-slate-100 hover:bg-slate-50'}`}
+                                                    className={`flex flex-col items-center justify-center p-1.5 rounded-xl border transition-all ${isSelected ? 'bg-purple-50 border-purple-300 shadow-sm' : 'bg-white border-slate-100 hover:bg-purple-50/50'}`}
                                                 >
-                                                    <IconComp className={`w-5 h-5 mb-1 ${isSelected ? 'text-sky-500' : opt.color}`} />
-                                                    <span className={`text-[10px] font-bold ${isSelected ? 'text-sky-600' : 'text-slate-500'}`}>{opt.name}</span>
+                                                    <IconComp className={`w-4 h-4 mb-0.5 text-purple-300`} />
+                                                    <span className={`text-[9px] font-bold ${isSelected ? 'text-purple-600' : 'text-slate-500'}`}>{opt.name}</span>
                                                 </button>
                                             )
                                         })}
@@ -1201,7 +1219,7 @@
                                 
                                 <div className="mt-3 flex gap-2">
                                     <button onClick={() => setShowQuestModal(false)} className="flex-1 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50">취소</button>
-                                    <button onClick={confirmAddQuest} className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold border border-slate-200 transition-all text-xs">추가하기</button>
+                                    <button onClick={confirmAddQuest} className="flex-1 py-2 rounded-xl bg-purple-100/50 hover:bg-purple-200/80 text-purple-500 font-bold border border-purple-200/50 transition-all text-xs">추가하기</button>
                                 </div>
                             </div>
                         </div>
@@ -1231,13 +1249,15 @@
                             <div className="w-full">
                                 {/* 1. 상단: 제목 + 구름 버튼 (index 구조와 동일) */}
                                 <div className="flex justify-between items-center">
-                                    <h1 className="text-lg font-bold text-white tracking-tight">
+                                    <h1 className="text-lg font-bold tracking-tight">
                                         {(() => {
                                             const n = new Date();
                                             const mm = String(n.getMonth() + 1).padStart(2, '0');
                                             const dd = String(n.getDate()).padStart(2, '0');
                                             const wd = n.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
-                                            return `${mm}/${dd} ${wd}`;
+                                            const dow = n.getDay();
+                                            const dateColor = (dow === 0 || todayIsHoliday) ? '#fda4af' : dow === 6 ? '#93c5fd' : 'white';
+                                            return <span style={{ color: dateColor }}>{mm}/{dd} {wd}</span>;
                                         })()}
                                     </h1>
                                     
