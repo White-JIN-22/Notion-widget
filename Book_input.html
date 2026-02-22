@@ -110,7 +110,7 @@
 
         .toast {
             position: fixed;
-            top: 20px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(40, 40, 40, 0.9);
@@ -124,10 +124,10 @@
         }
 
         @keyframes fadeInOut {
-            0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
             15% { opacity: 1; transform: translateX(-50%) translateY(0); }
             85% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(10px); }
         }
         
     </style>
@@ -160,6 +160,14 @@
                 <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m0-10.14l2.83 2.83m4.48 4.48l2.83 2.83" strokeLinecap="round"/>
             </svg>
         );
+
+        const CATEGORY_COLORS = {
+            '문학': 'rgba(148,163,184,0.5)', '에세이': 'rgba(148,163,184,0.5)',
+            '인문': 'rgba(148,163,184,0.3)', '사회': 'rgba(148,163,184,0.3)', '과학': 'rgba(148,163,184,0.3)',
+            '철학': 'rgba(125,211,252,0.4)', '교육': 'rgba(125,211,252,0.4)', '뇌과학': 'rgba(125,211,252,0.4)', '사회생활': 'rgba(125,211,252,0.4)',
+            '심리학': 'rgba(216,180,254,0.4)', '자기계발': 'rgba(216,180,254,0.4)',
+        };
+        const getCategoryColor = (cat) => CATEGORY_COLORS[cat] || 'rgba(125,211,252,0.3)';
 
         const App = () => {
             const [title, setTitle] = useState('');
@@ -270,7 +278,7 @@
                                     {result.book.categories?.length > 0 && (
                                         <div className="mt-2">
                                             {result.book.categories.map((cat, i) => (
-                                                <span key={i} className="category-tag">{cat}</span>
+                                                <span key={i} className="category-tag" style={{background: getCategoryColor(cat)}}>{cat}</span>
                                             ))}
                                         </div>
                                     )}
