@@ -45,10 +45,6 @@
         .progress-bar-bg { height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; flex: 1; }
         .progress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
 
-        .font-serif { font-family: 'Playfair Display', serif; font-weight: 700; }
-
-        /* Heatmap */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
         .compact-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
         .heatmap-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 3px; font-size: 9px; font-family: 'Roboto Mono', monospace; cursor: pointer; transition: all 0.2s; position: relative; }
         .heat-0 { background: rgba(255,255,255,0.03); color: #64748b; }
@@ -60,9 +56,11 @@
         .heatmap-tooltip { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 4px; background: rgba(0,0,0,0.9); padding: 2px 6px; border-radius: 4px; font-size: 9px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.1s; z-index: 20; border: 1px solid rgba(255,255,255,0.1); color: white; }
         .heatmap-cell:hover .heatmap-tooltip { opacity: 1; }
 
-        .tri-cell { display: flex; flex-direction: column; gap: 1px; border-radius: 2px; overflow: hidden; aspect-ratio: 1; cursor: pointer; position: relative; }
-        .tri-cell:hover .heatmap-tooltip { opacity: 1; }
-        .tri-bar { flex: 1; }
+        /* Routine cells */
+        .routine-heat-0 { background: rgba(255,255,255,0.03); }
+        .routine-heat-1 { background: rgba(254,240,138,0.5); border: 0.5px solid rgba(254,240,138,0.3); }
+        .routine-heat-2 { background: rgba(125,211,252,0.6); border: 0.5px solid rgba(125,211,252,0.4); }
+        .routine-heat-3 { background: rgba(216,180,254,0.7); border: 0.5px solid rgba(216,180,254,0.4); }
 
         .nav-btn { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: rgba(255,255,255,0.4); transition: all 0.2s; background: transparent; border: none; cursor: pointer; }
         .nav-btn:hover { color: white; background: rgba(255,255,255,0.1); }
@@ -92,8 +90,6 @@
         const IconFlame = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"/></svg>);
         const IconTrophy = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>);
         const IconMessage = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>);
-        const IconUtensils = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>);
-        const IconDroplets = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>);
         const IconPalette = ({ className, color }) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill={color}/><circle cx="17.5" cy="10.5" r=".5" fill={color}/><circle cx="8.5" cy="7.5" r=".5" fill={color}/><circle cx="6.5" cy="12" r=".5" fill={color}/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>);
         const IconChevronLeft = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>;
         const IconChevronRight = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>;
@@ -112,8 +108,6 @@
             for(let i=0;i<7;i++){ const d=new Date(sun); d.setDate(sun.getDate()+i); if(d<=now) dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); }
             return dates;
         };
-
-        // 06시 기준 morning, 21시 기준 evening
         const getFeedbackPeriod = () => {
             const h = new Date().getHours();
             if (h < 6) return { period: 'evening', dateStr: (() => { const y=new Date(); y.setDate(y.getDate()-1); return `${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`; })() };
@@ -141,7 +135,18 @@
             const filled = Math.round((percent/100)*blockCount);
             return (<div className="block-bar">{[...Array(blockCount)].map((_,i)=>(<div key={i} className={`block ${i<filled?'filled':''}`} style={{backgroundColor:i<filled?color:undefined, color}}/>))}</div>);
         };
-        const ProgressBar = ({ percent, color }) => (<div className="progress-bar-bg"><div className="progress-bar-fill" style={{width:`${percent}%`,backgroundColor:color,boxShadow:`0 0 6px ${color}40`}}/></div>);
+
+        // ═══ Goal definitions (shared order & colors) ═══
+        // 운동 purple, 수업 sky, 독서 yellow, 영어 yellow, 기록 yellow, 그림 yellow, 코딩 yellow
+        const makeGoals = (stats, targets) => [
+            {label:"운동",percent:getPercent(stats.exercise,targets.exercise),color:COLORS.purple,display:targets.exercise>=10?`${formatMinutes(stats.exercise)} / ${formatTarget(targets.exercise)}`:`${stats.exercise}/${targets.exercise}회`,Icon:IconSparkle},
+            {label:"수업",percent:getPercent(stats.lesson,targets.lesson),color:COLORS.sky,display:`${formatMinutes(stats.lesson)} / ${formatTarget(targets.lesson)}`,Icon:IconClipboard},
+            {label:"독서",percent:getPercent(stats.reading,targets.reading),color:COLORS.yellow,display:`${formatMinutes(stats.reading)} / ${formatTarget(targets.reading)}`,Icon:IconBook},
+            {label:"영어",percent:getPercent(stats.english,targets.english),color:COLORS.yellow,display:`${stats.english}/${targets.english}회`,Icon:IconFlame},
+            {label:"기록",percent:getPercent(stats.record,targets.record),color:COLORS.yellow,display:`${stats.record}/${targets.record}회`,Icon:IconPen},
+            {label:"그림",percent:getPercent(stats.drawing,targets.drawing),color:COLORS.yellow,display:`${stats.drawing}/${targets.drawing}회`,Icon:IconPalette},
+            {label:"코딩",percent:getPercent(stats.coding,targets.coding),color:COLORS.yellow,display:`${formatMinutes(stats.coding)} / ${formatTarget(targets.coding)}`,Icon:IconFlame}
+        ];
 
         // ═══════════════════════════════════════
         //  TAB 1: Weekly Goal
@@ -150,11 +155,7 @@
 
         const generateFallbackFeedback = (percents) => {
             const vals=Object.values(percents), avg=Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
-            const labels={exercise:'운동',lesson:'수업준비',english:'영어',reading:'독서',record:'기록',coding:'코딩',drawing:'그림'};
-            const items=Object.entries(percents).map(([k,v])=>({name:k,p:v}));
-            const worst=items.reduce((a,b)=>a.p<b.p?a:b);
             if (avg===0) return "아직 시작 전이야. 오늘 딱 하나만 해보자.";
-            if (worst.p===0) return `${labels[worst.name]}을 아직 시작 안 했네. 10분만 해봐도 괜찮아.`;
             return `${avg}% 달성 중! 이 페이스 괜찮아.`;
         };
 
@@ -176,44 +177,33 @@
 
             useEffect(() => {
                 if (loading) return;
-                const percents = {
-                    exercise:getPercent(stats.exercise,WEEKLY_TARGETS.exercise), lesson:getPercent(stats.lesson,WEEKLY_TARGETS.lesson),
-                    english:getPercent(stats.english,WEEKLY_TARGETS.english), reading:getPercent(stats.reading,WEEKLY_TARGETS.reading),
-                    record:getPercent(stats.record,WEEKLY_TARGETS.record), coding:getPercent(stats.coding,WEEKLY_TARGETS.coding),
-                    drawing:getPercent(stats.drawing,WEEKLY_TARGETS.drawing)
-                };
+                const percents = {};
+                const goals = makeGoals(stats, WEEKLY_TARGETS);
+                goals.forEach(g => { percents[g.label] = g.percent; });
                 (async () => {
                     const {period, dateStr} = getFeedbackPeriod();
-                    const cacheKey = `weeklyFb_${dateStr}_${period}_${JSON.stringify(percents)}`;
+                    const pKey = JSON.stringify(percents);
+                    const cacheKey = `weeklyFb_${dateStr}_${period}_${pKey}`;
                     try{ Object.keys(localStorage).forEach(k=>{if(k.startsWith('weeklyFb_')&&k!==cacheKey) localStorage.removeItem(k);}); }catch(e){}
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) { setFeedback(cached); return; }
                     setFeedbackLoading(true);
                     try {
-                        const res = await fetch(FEEDBACK_WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stats:percents,date:dateStr,type:'weekly',period})});
+                        const apiPercents = {
+                            exercise:getPercent(stats.exercise,WEEKLY_TARGETS.exercise), lesson:getPercent(stats.lesson,WEEKLY_TARGETS.lesson),
+                            english:getPercent(stats.english,WEEKLY_TARGETS.english), reading:getPercent(stats.reading,WEEKLY_TARGETS.reading),
+                            record:getPercent(stats.record,WEEKLY_TARGETS.record), coding:getPercent(stats.coding,WEEKLY_TARGETS.coding),
+                            drawing:getPercent(stats.drawing,WEEKLY_TARGETS.drawing)
+                        };
+                        const res = await fetch(FEEDBACK_WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stats:apiPercents,date:dateStr,type:'weekly',period})});
                         if(res.ok){const data=await res.json(); setFeedback(data.feedback); localStorage.setItem(cacheKey,data.feedback);}
                         else setFeedback(generateFallbackFeedback(percents));
                     }catch(e){setFeedback(generateFallbackFeedback(percents));} finally{setFeedbackLoading(false);}
                 })();
             }, [loading, stats]);
 
-            const percents = {
-                exercise:getPercent(stats.exercise,WEEKLY_TARGETS.exercise), lesson:getPercent(stats.lesson,WEEKLY_TARGETS.lesson),
-                english:getPercent(stats.english,WEEKLY_TARGETS.english), reading:getPercent(stats.reading,WEEKLY_TARGETS.reading),
-                record:getPercent(stats.record,WEEKLY_TARGETS.record), coding:getPercent(stats.coding,WEEKLY_TARGETS.coding),
-                drawing:getPercent(stats.drawing,WEEKLY_TARGETS.drawing)
-            };
-            const avgPercent = Math.round(Object.values(percents).reduce((a,b)=>a+b,0)/7);
-
-            const goals = [
-                {label:"운동",percent:percents.exercise,color:COLORS.purple,display:`${stats.exercise}/${WEEKLY_TARGETS.exercise}회`,Icon:IconSparkle},
-                {label:"수업",percent:percents.lesson,color:COLORS.purple,display:`${formatMinutes(stats.lesson)} / ${formatTarget(WEEKLY_TARGETS.lesson)}`,Icon:IconClipboard},
-                {label:"영어",percent:percents.english,color:COLORS.yellow,display:`${stats.english}/${WEEKLY_TARGETS.english}회`,Icon:IconFlame},
-                {label:"독서",percent:percents.reading,color:COLORS.sky,display:`${formatMinutes(stats.reading)} / ${formatTarget(WEEKLY_TARGETS.reading)}`,Icon:IconBook},
-                {label:"기록",percent:percents.record,color:COLORS.sky,display:`${stats.record}/${WEEKLY_TARGETS.record}회`,Icon:IconPen},
-                {label:"코딩",percent:percents.coding,color:COLORS.sky,display:`${formatMinutes(stats.coding)} / ${formatTarget(WEEKLY_TARGETS.coding)}`,Icon:IconFlame},
-                {label:"그림",percent:percents.drawing,color:COLORS.yellow,display:`${stats.drawing}/${WEEKLY_TARGETS.drawing}회`,Icon:IconPalette}
-            ];
+            const goals = makeGoals(stats, WEEKLY_TARGETS);
+            const avgPercent = Math.round(goals.reduce((a,g)=>a+g.percent,0)/goals.length);
 
             if (loading) return <div className="tab-content items-center justify-center"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div></div>;
 
@@ -245,11 +235,12 @@
                                     </div>
                                 ))}
                             </div>
+                            {/* 코딩 (7th) */}
                             <div className="mt-1.5 flex flex-col gap-1">
                                 <div className="flex items-baseline w-[170px]">
                                     <div className="flex items-center gap-1">
-                                        <IconPalette className="w-3 h-3" color={COLORS.yellow} />
-                                        <span className="text-[11px] font-medium" style={{color:COLORS.yellow}}>그림</span>
+                                        <IconFlame className="w-3 h-3" color={COLORS.yellow} />
+                                        <span className="text-[11px] font-medium" style={{color:COLORS.yellow}}>코딩</span>
                                     </div>
                                     <span className="text-[9px] font-mono text-white/50 ml-auto">{goals[6].display}</span>
                                 </div>
@@ -266,7 +257,7 @@
         };
 
         // ═══════════════════════════════════════
-        //  TAB 2: Monthly Goal (+ feedback)
+        //  TAB 2: Monthly Goal (BlockBar design)
         // ═══════════════════════════════════════
         const MONTHLY_TARGETS = { exercise:12, lesson:1200, english:16, reading:480, record:12, coding:480, drawing:2 };
 
@@ -285,10 +276,9 @@
                 })();
             }, []);
 
-            // Monthly feedback
             useEffect(() => {
                 if (loading) return;
-                const percents = {
+                const apiPercents = {
                     exercise:getPercent(stats.exercise,MONTHLY_TARGETS.exercise), lesson:getPercent(stats.lesson,MONTHLY_TARGETS.lesson),
                     english:getPercent(stats.english,MONTHLY_TARGETS.english), reading:getPercent(stats.reading,MONTHLY_TARGETS.reading),
                     record:getPercent(stats.record,MONTHLY_TARGETS.record), coding:getPercent(stats.coding,MONTHLY_TARGETS.coding),
@@ -296,65 +286,61 @@
                 };
                 (async () => {
                     const today = getTodayStr();
-                    const cacheKey = `monthlyFb_${today}_${JSON.stringify(percents)}`;
+                    const cacheKey = `monthlyFb_${today}_${JSON.stringify(apiPercents)}`;
                     try{ Object.keys(localStorage).forEach(k=>{if(k.startsWith('monthlyFb_')&&k!==cacheKey)localStorage.removeItem(k);}); }catch(e){}
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) { setFeedback(cached); return; }
                     setFeedbackLoading(true);
                     try {
-                        const res = await fetch(FEEDBACK_WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stats:percents,date:today,type:'monthly'})});
+                        const res = await fetch(FEEDBACK_WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stats:apiPercents,date:today,type:'monthly'})});
                         if(res.ok){const data=await res.json(); setFeedback(data.feedback); localStorage.setItem(cacheKey,data.feedback);}
                         else setFeedback('');
                     }catch(e){setFeedback('');} finally{setFeedbackLoading(false);}
                 })();
             }, [loading, stats]);
 
-            const percents = {
-                exercise:getPercent(stats.exercise,MONTHLY_TARGETS.exercise), lesson:getPercent(stats.lesson,MONTHLY_TARGETS.lesson),
-                english:getPercent(stats.english,MONTHLY_TARGETS.english), reading:getPercent(stats.reading,MONTHLY_TARGETS.reading),
-                record:getPercent(stats.record,MONTHLY_TARGETS.record), coding:getPercent(stats.coding,MONTHLY_TARGETS.coding),
-                drawing:getPercent(stats.drawing,MONTHLY_TARGETS.drawing)
-            };
-            const avgPercent = Math.round(Object.values(percents).reduce((a,b)=>a+b,0)/7);
-
-            const goals = [
-                {label:"운동",percent:percents.exercise,color:COLORS.purple,display:`${stats.exercise}/${MONTHLY_TARGETS.exercise}회`,Icon:IconSparkle},
-                {label:"수업",percent:percents.lesson,color:COLORS.purple,display:`${formatMinutes(stats.lesson)} / ${formatTarget(MONTHLY_TARGETS.lesson)}`,Icon:IconClipboard},
-                {label:"영어",percent:percents.english,color:COLORS.yellow,display:`${stats.english}/${MONTHLY_TARGETS.english}회`,Icon:IconFlame},
-                {label:"독서",percent:percents.reading,color:COLORS.sky,display:`${formatMinutes(stats.reading)} / ${formatTarget(MONTHLY_TARGETS.reading)}`,Icon:IconBook},
-                {label:"기록",percent:percents.record,color:COLORS.sky,display:`${stats.record}/${MONTHLY_TARGETS.record}회`,Icon:IconPen},
-                {label:"코딩",percent:percents.coding,color:COLORS.sky,display:`${formatMinutes(stats.coding)} / ${formatTarget(MONTHLY_TARGETS.coding)}`,Icon:IconFlame},
-                {label:"그림",percent:percents.drawing,color:COLORS.yellow,display:`${stats.drawing}/${MONTHLY_TARGETS.drawing}회`,Icon:IconPalette}
-            ];
+            const goals = makeGoals(stats, MONTHLY_TARGETS);
+            const avgPercent = Math.round(goals.reduce((a,g)=>a+g.percent,0)/goals.length);
 
             if (loading) return <div className="tab-content items-center justify-center"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div></div>;
 
             return (
                 <div className="tab-content">
                     <div className="glass-header px-5 py-1.5 flex justify-between items-center">
-                        <span className="text-[13px] font-bold text-white">Monthly</span>
                         <div className="flex items-center gap-2">
-                            <ProgressBar percent={avgPercent} color="white" />
-                            <span className="text-[11px] font-mono text-white/70">{avgPercent}%</span>
+                            <IconTrophy className="w-4 h-4" color="white" />
+                            <h1 className="text-[13px] font-bold text-white tracking-tight">Monthly</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-white/70">{avgPercent}%</span>
+                            <BlockBar percent={avgPercent} color="white" blockCount={10} />
                         </div>
                     </div>
                     <div className="flex-1 p-3 flex flex-col gap-1">
                         <div className="glass-section p-3 flex-1">
-                            <div className="grid grid-cols-2 gap-x-5 gap-y-2">
+                            <div className="grid grid-cols-2 gap-x-5 gap-y-1.5">
                                 {goals.slice(0,6).map((item,i) => (
-                                    <div key={i} className="flex items-center gap-2">
-                                        <item.Icon className="w-3.5 h-3.5 shrink-0" color={item.color} />
-                                        <span className="text-[11px] font-medium shrink-0 w-6" style={{color:item.color}}>{item.label}</span>
-                                        <ProgressBar percent={item.percent} color={item.color} />
-                                        <span className="text-[9px] font-mono text-white/40 shrink-0 ml-1">{item.display}</span>
+                                    <div key={i} className="flex flex-col gap-1">
+                                        <div className="flex items-baseline w-[170px]">
+                                            <div className="flex items-center gap-1">
+                                                <item.Icon className="w-3 h-3" color={item.color} />
+                                                <span className="text-[11px] font-medium" style={{color:item.color}}>{item.label}</span>
+                                            </div>
+                                            <span className="text-[9px] font-mono text-white/50 ml-auto">{item.display}</span>
+                                        </div>
+                                        <BlockBar percent={item.percent} color={item.color} blockCount={10} />
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex items-center gap-2 mt-2">
-                                <IconPalette className="w-3.5 h-3.5 shrink-0" color={COLORS.yellow} />
-                                <span className="text-[11px] font-medium shrink-0 w-6" style={{color:COLORS.yellow}}>그림</span>
-                                <ProgressBar percent={goals[6].percent} color={COLORS.yellow} />
-                                <span className="text-[9px] font-mono text-white/40 shrink-0 ml-1">{goals[6].display}</span>
+                            <div className="mt-1.5 flex flex-col gap-1">
+                                <div className="flex items-baseline w-[170px]">
+                                    <div className="flex items-center gap-1">
+                                        <IconFlame className="w-3 h-3" color={COLORS.yellow} />
+                                        <span className="text-[11px] font-medium" style={{color:COLORS.yellow}}>코딩</span>
+                                    </div>
+                                    <span className="text-[9px] font-mono text-white/50 ml-auto">{goals[6].display}</span>
+                                </div>
+                                <BlockBar percent={goals[6].percent} color={COLORS.yellow} blockCount={10} />
                             </div>
                         </div>
                     </div>
@@ -367,12 +353,20 @@
         };
 
         // ═══════════════════════════════════════
-        //  TAB 3: Focus Heatmap + Routine (combined)
+        //  TAB 3: Focus + Routine Combined
         // ═══════════════════════════════════════
+        const ROUTINE_ITEMS = [
+            { id:'exercise', keywords:['산책','운동','러닝'], Icon: IconSparkle, color: COLORS.purple },
+            { id:'reading', keywords:['독서','책'], Icon: IconBook, color: COLORS.yellow },
+            { id:'english', keywords:['영어','보카','천일문'], Icon: IconFlame, color: COLORS.yellow },
+            { id:'record', keywords:['기록','일기','상담','글쓰기'], Icon: IconPen, color: COLORS.yellow },
+            { id:'drawing', keywords:['그림','드로잉','스케치','일러'], Icon: IconPalette, color: COLORS.yellow }
+        ];
+
         const FocusRoutineTab = () => {
             const [currentDate, setCurrentDate] = useState(new Date());
             const [focusData, setFocusData] = useState({});
-            const [monthData, setMonthData] = useState({});
+            const [routineData, setRoutineData] = useState({});
 
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -381,22 +375,14 @@
             const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
             const totalCells = 42;
 
-            const routines = {
-                morning: [{id:'meal',keywords:['식사']},{id:'walk',keywords:['운동']},{id:'hygiene',keywords:['위생관리']}],
-                afternoon: [{id:'meal',keywords:['식사']},{id:'language',keywords:['영어','보카','천일문']},{id:'reading',keywords:['독서']}],
-                night: [{id:'meal',keywords:['식사']},{id:'hygiene',keywords:['위생관리']},{id:'record',keywords:['기록']}]
-            };
-            const timeRanges = {morning:{start:0,end:12},afternoon:{start:12,end:18},night:{start:18,end:24}};
-
-            const analyzeRoutineBlocks = (blocks) => {
-                const result = {morning:{completed:0},afternoon:{completed:0},night:{completed:0}};
-                Object.keys(routines).forEach(period => {
-                    const {start,end} = timeRanges[period]; let count=0;
-                    routines[period].forEach(r => {
-                        const found = blocks.some(b => { const h=new Date(b.startTime).getHours(); if(h>=start&&h<end&&b.duration>=10) return r.keywords.some(k=>(b.name||b.memo||"").includes(k)); return false; });
-                        if(found)count++;
+            const analyzeRoutineDay = (blocks) => {
+                const result = {};
+                ROUTINE_ITEMS.forEach(r => {
+                    result[r.id] = blocks.some(b => {
+                        const c = ((b.name||"")+" "+(b.memo||"")).toLowerCase();
+                        const d = b.duration || 0;
+                        return d >= 10 && r.keywords.some(k => c.includes(k));
                     });
-                    result[period].completed = count;
                 });
                 return result;
             };
@@ -440,10 +426,10 @@
                                     const dd=result.data[day], dk=fmtYMD(year,month+1,parseInt(day));
                                     if(dd.blocks&&Array.isArray(dd.blocks)){
                                         const mins=extractMinutes(dd); if(mins>0) fMap[dk]=mins;
-                                        newR[parseInt(day)]=analyzeRoutineBlocks(dd.blocks);
+                                        newR[parseInt(day)]=analyzeRoutineDay(dd.blocks);
                                     }
                                 });
-                                setMonthData(newR);
+                                setRoutineData(newR);
                             }
                         }
                     }catch(e){}
@@ -458,8 +444,15 @@
             const nextMonth = ()=>setCurrentDate(new Date(year,month+1,1));
             const getHeatClass = (m)=>{ if(!m||m<=30)return 'heat-0'; if(m<120)return 'heat-start'; if(m<=240)return 'heat-1'; if(m<=360)return 'heat-2'; return 'heat-3'; };
             const formatTime = (m)=>{const h=Math.floor(m/60),mn=m%60; return h>0?`${h}H ${mn}M`:`${mn}M`;};
-            const hexToRgba = (hex,a)=>{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`;};
-            const getOp = (c,t)=>c===0?0.06:0.15+(c/t)*0.85;
+
+            const getRoutineHeatClass = (done, total) => {
+                if (done === 0) return 'routine-heat-0';
+                const pct = (done / total) * 100;
+                if (pct < 30) return 'routine-heat-0';
+                if (pct < 60) return 'routine-heat-1';
+                if (pct < 90) return 'routine-heat-2';
+                return 'routine-heat-3';
+            };
 
             const renderCells = (renderFn) => {
                 return Array.from({length:totalCells}).map((_,i)=>{
@@ -475,10 +468,7 @@
                 <div className="tab-content">
                     <div className="flex items-center justify-between px-4 py-1.5 border-b border-white/10">
                         <button onClick={prevMonth} className="nav-btn"><IconChevronLeft/></button>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-sm font-bold text-white">{monthNames[month]} {year}</span>
-                            <span className="text-[10px] font-mono text-white/50">Total {Math.floor(currentMonthTotal/60)}H</span>
-                        </div>
+                        <span className="text-sm font-bold text-white">{monthNames[month]} {year}</span>
                         <button onClick={nextMonth} className="nav-btn"><IconChevronRight/></button>
                     </div>
 
@@ -500,13 +490,17 @@
                                     </div>);
                                 })}
                             </div>
-                            <div className="flex items-center justify-center gap-2 mt-1">
-                                {[{cls:'heat-start',l:'~2h'},{cls:'heat-1',l:'2-4h'},{cls:'heat-2',l:'4-6h'},{cls:'heat-3',l:'6h+'}].map((x,i)=>(
-                                    <div key={i} className="flex items-center gap-0.5">
-                                        <div className={`w-2 h-2 rounded-sm ${x.cls}`}></div>
-                                        <span className="text-[7px] text-white/30 font-mono">{x.l}</span>
-                                    </div>
-                                ))}
+                            {/* Legend + Total */}
+                            <div className="flex items-center justify-between mt-1 px-0.5">
+                                <div className="flex items-center gap-1.5">
+                                    {[{cls:'heat-start',l:'~2h'},{cls:'heat-1',l:'2-4h'},{cls:'heat-2',l:'4-6h'},{cls:'heat-3',l:'6h+'}].map((x,i)=>(
+                                        <div key={i} className="flex items-center gap-0.5">
+                                            <div className={`w-2 h-2 rounded-sm ${x.cls}`}></div>
+                                            <span className="text-[7px] text-white/30 font-mono">{x.l}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <span className="text-[9px] font-mono text-white/50 font-bold">{Math.floor(currentMonthTotal/60)}H</span>
                             </div>
                         </div>
 
@@ -522,23 +516,27 @@
                             </div>
                             <div className="compact-grid flex-1" style={{alignContent:'start'}}>
                                 {renderCells((i,dn,dk,isToday)=>{
-                                    const dd=monthData[dn];
-                                    const mc=dd?.morning?.completed||0, ac=dd?.afternoon?.completed||0, nc=dd?.night?.completed||0;
-                                    const total=mc+ac+nc;
-                                    return (<div key={i} className={`tri-cell ${isToday?'ring-1 ring-white':''}`}>
-                                        <div className="tri-bar" style={{background:hexToRgba('#d8b4fe',getOp(mc,3))}}></div>
-                                        <div className="tri-bar" style={{background:hexToRgba('#7dd3fc',getOp(ac,3))}}></div>
-                                        <div className="tri-bar" style={{background:hexToRgba('#fef08a',getOp(nc,3))}}></div>
-                                        <div className="heatmap-tooltip"><span className="font-bold">{dn}일</span> {total}/9</div>
+                                    const dayR = routineData[dn] || {};
+                                    const doneCount = ROUTINE_ITEMS.filter(r => dayR[r.id]).length;
+                                    const heatClass = getRoutineHeatClass(doneCount, ROUTINE_ITEMS.length);
+                                    return (<div key={i} className={`heatmap-cell ${heatClass} ${isToday?'day-today-heatmap':''}`} style={{fontSize:'7px'}}>
+                                        <span style={{opacity:0.5}}>{dn}</span>
+                                        {doneCount > 0 && (
+                                            <div className="heatmap-tooltip">
+                                                <span className="font-bold mr-1">{dn}일</span>
+                                                {ROUTINE_ITEMS.map((r,ri)=>{
+                                                    const done = dayR[r.id];
+                                                    return <r.Icon key={ri} className="w-2.5 h-2.5 inline-block mx-px" color={done ? r.color : 'rgba(255,255,255,0.2)'} />;
+                                                })}
+                                            </div>
+                                        )}
                                     </div>);
                                 })}
                             </div>
+                            {/* Routine icons legend */}
                             <div className="flex items-center justify-center gap-2 mt-1">
-                                {[{c:'#d8b4fe',l:'오전'},{c:'#7dd3fc',l:'오후'},{c:'#fef08a',l:'밤'}].map((x,i)=>(
-                                    <div key={i} className="flex items-center gap-0.5">
-                                        <div className="w-2 h-2 rounded-sm" style={{background:x.c,opacity:0.7}}></div>
-                                        <span className="text-[7px] text-white/30 font-mono">{x.l}</span>
-                                    </div>
+                                {ROUTINE_ITEMS.map((r,i)=>(
+                                    <r.Icon key={i} className="w-3 h-3" color={r.color} />
                                 ))}
                             </div>
                         </div>
