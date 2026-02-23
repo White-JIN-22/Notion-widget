@@ -22,7 +22,7 @@
     }
 
     .widget-container {
-      width: 260px;
+      width: 280px;
       background: linear-gradient(135deg, rgba(224, 242, 254, 0.25) 0%, rgba(186, 230, 253, 0.15) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
@@ -32,7 +32,7 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .title {
@@ -48,6 +48,12 @@
       width: 15px;
       height: 15px;
       stroke: rgba(125, 211, 252, 0.9);
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
     }
 
     .input-field {
@@ -69,15 +75,34 @@
     }
 
     .input-field::placeholder {
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.35);
       font-family: 'Noto Sans KR', sans-serif;
     }
 
-    .hint {
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.45);
-      line-height: 1.4;
-      margin-top: -4px;
+    .memo-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 12px;
+      font-family: 'Noto Sans KR', sans-serif;
+      line-height: 1.6;
+      outline: none;
+      transition: all 0.2s;
+      resize: vertical;
+      min-height: 80px;
+      max-height: 200px;
+    }
+
+    .memo-field:focus {
+      border-color: rgba(125, 211, 252, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .memo-field::placeholder {
+      color: rgba(255, 255, 255, 0.35);
     }
 
     .submit-btn {
@@ -139,6 +164,12 @@
       height: 13px;
       flex-shrink: 0;
     }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -153,15 +184,26 @@
       리포트 생성
     </div>
 
-    <input
-      type="text"
-      id="pageIdInput"
-      class="input-field"
-      placeholder="페이지 URL 붙여넣기"
-      spellcheck="false"
-      autocomplete="off"
-    />
-    <div class="hint">노션 페이지 URL 전체 또는 ID만</div>
+    <div class="input-group">
+      <label>페이지 URL</label>
+      <input
+        type="text"
+        id="pageIdInput"
+        class="input-field"
+        placeholder="노션 페이지 URL 붙여넣기"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="input-group">
+      <label>받아쓰기 메모</label>
+      <textarea
+        id="memoInput"
+        class="memo-field"
+        placeholder="받아쓰기 텍스트 전체 복사 후 붙여넣기"
+      ></textarea>
+    </div>
 
     <button class="submit-btn" id="generateBtn" onclick="generate()">생성</button>
 
@@ -176,13 +218,10 @@
 
     function extractPageId(input) {
       const cleaned = input.trim();
-      // URL에서 추출
       const urlMatch = cleaned.match(/notion\.so\/(?:[^/]*-)?([a-f0-9\-]{32,36})/i);
       if (urlMatch) return urlMatch[1].replace(/-/g, '');
-      // ?v= 앞의 ID 추출
       const paramMatch = cleaned.match(/([a-f0-9\-]{32,36})\?/i);
       if (paramMatch) return paramMatch[1].replace(/-/g, '');
-      // 순수 ID만 입력
       const idOnly = cleaned.replace(/-/g, '').match(/^[a-f0-9]{32}$/i);
       if (idOnly) return idOnly[0];
       return null;
@@ -190,12 +229,20 @@
 
     async function generate() {
       const input = document.getElementById('pageIdInput');
+      const memoEl = document.getElementById('memoInput');
       const btn = document.getElementById('generateBtn');
       const status = document.getElementById('status');
 
       const pageId = extractPageId(input.value);
       if (!pageId) {
-        status.innerHTML = ICON_X + ' 유효한 페이지 ID를 입력해줘';
+        status.innerHTML = ICON_X + ' 유효한 페이지 URL을 입력해줘';
+        status.className = 'status error';
+        return;
+      }
+
+      const memo = memoEl.value.trim();
+      if (!memo) {
+        status.innerHTML = ICON_X + ' 받아쓰기 메모를 붙여넣어줘';
         status.className = 'status error';
         return;
       }
@@ -209,7 +256,7 @@
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pageId }),
+          body: JSON.stringify({ pageId, memo }),
         });
 
         const data = await res.json();
@@ -217,6 +264,7 @@
         if (res.ok && data.success) {
           status.innerHTML = ICON_CHECK + ' 리포트 생성 완료';
           status.className = 'status success';
+          memoEl.value = '';
         } else {
           const errMsg = data.error || '요청 실패';
           const detail = data.detail ? ` (${data.detail})` : '';
@@ -231,10 +279,6 @@
       btn.innerHTML = '생성';
       btn.className = 'submit-btn';
     }
-
-    document.getElementById('pageIdInput').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') generate();
-    });
   </script>
 </body>
 </html>
