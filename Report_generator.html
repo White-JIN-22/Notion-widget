@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="googlebot" content="noindex, nofollow" />
+  <title>리포트 생성</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: transparent;
+      color: #37352f;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { color: rgba(255, 255, 255, 0.81); }
+      .widget-container { background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.08); }
+      input {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.81);
+      }
+      input::placeholder { color: rgba(255, 255, 255, 0.35); }
+      input:focus { border-color: rgba(255, 255, 255, 0.3); }
+      .btn { background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.81); }
+      .btn:hover { background: rgba(255, 255, 255, 0.12); }
+      .btn.loading { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); }
+      .status.success { color: #4ade80; }
+      .status.error { color: #f87171; }
+      .hint { color: rgba(255, 255, 255, 0.35); }
+    }
+
+    .widget-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 20px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 13px;
+      border: 1px solid rgba(55, 53, 47, 0.16);
+      border-radius: 6px;
+      background: rgba(55, 53, 47, 0.03);
+      color: #37352f;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: 'SF Mono', 'Menlo', monospace;
+    }
+
+    input::placeholder { color: rgba(55, 53, 47, 0.4); }
+    input:focus { border-color: rgba(55, 53, 47, 0.4); }
+
+    .btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      background: #37352f;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { background: #2f2d28; }
+
+    .btn.loading {
+      background: rgba(55, 53, 47, 0.08);
+      color: rgba(55, 53, 47, 0.4);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .status {
+      font-size: 12px;
+      min-height: 18px;
+      transition: opacity 0.2s;
+    }
+
+    .status.success { color: #2d8a4e; }
+    .status.error { color: #e03e3e; }
+
+    .hint {
+      font-size: 11px;
+      color: rgba(55, 53, 47, 0.5);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="title">리포트 생성</div>
+    <input
+      type="text"
+      id="pageIdInput"
+      placeholder="페이지 ID 붙여넣기"
+      spellcheck="false"
+      autocomplete="off"
+    />
+    <div class="hint">페이지 URL에서 notion.so/ 뒤의 32자리 복사</div>
+    <button class="btn" id="generateBtn" onclick="generate()">생성</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const WORKER_URL = 'https://coaching-report-worker.moonkelly601.workers.dev';
+
+    function extractPageId(input) {
+      const cleaned = input.trim();
+      // URL에서 추출: notion.so/ 뒤의 32자리 hex (하이픈 포함 가능)
+      const urlMatch = cleaned.match(/notion\.so\/(?:[^/]*-)?([a-f0-9\-]{32,36})/i);
+      if (urlMatch) return urlMatch[1].replace(/-/g, '');
+      // 순수 ID만 입력한 경우
+      const idMatch = cleaned.replace(/-/g, '').match(/^[a-f0-9]{32}$/i);
+      if (idMatch) return idMatch[0];
+      return null;
+    }
+
+    async function generate() {
+      const input = document.getElementById('pageIdInput');
+      const btn = document.getElementById('generateBtn');
+      const status = document.getElementById('status');
+
+      const pageId = extractPageId(input.value);
+      if (!pageId) {
+        status.textContent = '유효한 페이지 ID를 입력해줘.';
+        status.className = 'status error';
+        return;
+      }
+
+      btn.textContent = '생성 중...';
+      btn.className = 'btn loading';
+      status.textContent = '';
+      status.className = 'status';
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pageId }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          status.textContent = '리포트 생성 시작됨. 잠시 후 속성 확인.';
+          status.className = 'status success';
+        } else {
+          status.textContent = data.error || '요청 실패';
+          status.className = 'status error';
+        }
+      } catch (err) {
+        status.textContent = '네트워크 오류: Worker에 연결할 수 없음';
+        status.className = 'status error';
+      }
+
+      btn.textContent = '생성';
+      btn.className = 'btn';
+    }
+
+    // Enter 키로도 실행
+    document.getElementById('pageIdInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generate();
+    });
+  </script>
+</body>
+</html>
