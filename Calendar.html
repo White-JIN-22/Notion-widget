@@ -391,10 +391,14 @@
                             }
                             let event = {};
                             let exDates = [];
+                            const allVEvents = [];
                             
+                            // 1차: VEVENT 수집
                             for (const line of lines) {
                                 const cleanLine = line.trim();
                                 if (cleanLine.startsWith("BEGIN:VEVENT")) { event = {}; exDates = []; }
+                                else if (cleanLine.startsWith("UID")) event.uid = cleanLine.split(":").pop().trim();
+                                else if (cleanLine.startsWith("RECURRENCE-ID")) event.recurrenceId = cleanLine.split(":").pop().trim();
                                 else if (cleanLine.startsWith("DTSTART")) event.start = cleanLine.split(":").pop();
                                 else if (cleanLine.startsWith("DTEND")) event.end = cleanLine.split(":").pop();
                                 else if (cleanLine.startsWith("RRULE:")) event.rrule = cleanLine;
@@ -407,41 +411,56 @@
                                     event.title = rawTitle.replace(/\\,/g, ',').replace(/\\;/g, ';').replace(/\\\\/g, '\\').trim();
                                 }
                                 else if (cleanLine.startsWith("END:VEVENT")) {
-                                    if (event.start) {
-                                        const startDateObj = safeParseDate(event.start);
-                                        
-                                        if (startDateObj) {
-                                            if (colorKey === 'holiday') {
-                                                const holStr = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth()+1).padStart(2,'0')}-${String(startDateObj.getDate()).padStart(2,'0')}`;
-                                                tempHolidays.add(holStr);
-                                                continue; 
-                                            }
+                                    if (event.start) allVEvents.push({ ...event, exDates: [...exDates] });
+                                }
+                            }
 
-                                            let endDateObj = event.end ? safeParseDate(event.end) : null;
-                                            if (!endDateObj && startDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
+                            // 2차: UID별 RECURRENCE-ID 날짜 수집 (수정된 인스턴스)
+                            const recurrenceIdsByUid = {};
+                            allVEvents.forEach(ev => {
+                                if (ev.recurrenceId && ev.uid) {
+                                    if (!recurrenceIdsByUid[ev.uid]) recurrenceIdsByUid[ev.uid] = [];
+                                    recurrenceIdsByUid[ev.uid].push(ev.recurrenceId);
+                                }
+                            });
 
-                                            const formatTime = (date) => `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
-                                            const title = event.title || "No Title";
-                                            const type = COLOR_MAP[colorKey];
+                            // 3차: 이벤트 처리
+                            for (const ev of allVEvents) {
+                                const startDateObj = safeParseDate(ev.start);
+                                if (!startDateObj) continue;
 
-                                            // 반복 이벤트 확장
-                                            if (event.rrule) {
-                                                const instances = expandRRule(event.rrule, startDateObj, endDateObj, exDates);
-                                                instances.forEach(inst => {
-                                                    const dateKey = `${inst.start.getFullYear()}${String(inst.start.getMonth()+1).padStart(2,'0')}${String(inst.start.getDate()).padStart(2,'0')}`;
-                                                    const eventObj = { title, type, startTime: formatTime(inst.start), endTime: formatTime(inst.end), dateObj: inst.start };
-                                                    if (!newEvents[dateKey]) newEvents[dateKey] = [];
-                                                    newEvents[dateKey].push(eventObj);
-                                                });
-                                            } else {
-                                                // 단일 이벤트
-                                                const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
-                                                const eventObj = { title, type, startTime: formatTime(startDateObj), endTime: endDateObj ? formatTime(endDateObj) : "00:00", dateObj: startDateObj };
-                                                if (!newEvents[dateKey]) newEvents[dateKey] = [];
-                                                newEvents[dateKey].push(eventObj);
-                                            }
-                                        }
+                                if (colorKey === 'holiday') {
+                                    const holStr = `${startDateObj.getFullYear()}-${String(startDateObj.getMonth()+1).padStart(2,'0')}-${String(startDateObj.getDate()).padStart(2,'0')}`;
+                                    tempHolidays.add(holStr);
+                                    continue;
+                                }
+
+                                let endDateObj = ev.end ? safeParseDate(ev.end) : null;
+                                if (!endDateObj) endDateObj = new Date(startDateObj.getTime() + 60*60*1000);
+
+                                const formatTime = (date) => `${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+                                const title = ev.title || "No Title";
+                                const type = COLOR_MAP[colorKey];
+
+                                if (ev.rrule && !ev.recurrenceId) {
+                                    // 반복 이벤트: EXDATE + RECURRENCE-ID 날짜 모두 제외
+                                    const allExDates = [...(ev.exDates || [])];
+                                    if (ev.uid && recurrenceIdsByUid[ev.uid]) {
+                                        allExDates.push(...recurrenceIdsByUid[ev.uid]);
                                     }
+                                    const instances = expandRRule(ev.rrule, startDateObj, endDateObj, allExDates);
+                                    instances.forEach(inst => {
+                                        const dateKey = `${inst.start.getFullYear()}${String(inst.start.getMonth()+1).padStart(2,'0')}${String(inst.start.getDate()).padStart(2,'0')}`;
+                                        const eventObj = { title, type, startTime: formatTime(inst.start), endTime: formatTime(inst.end), dateObj: inst.start };
+                                        if (!newEvents[dateKey]) newEvents[dateKey] = [];
+                                        newEvents[dateKey].push(eventObj);
+                                    });
+                                } else {
+                                    // 단일 이벤트 또는 수정된 반복 인스턴스 (RECURRENCE-ID 있는 것)
+                                    const dateKey = `${startDateObj.getFullYear()}${String(startDateObj.getMonth()+1).padStart(2,'0')}${String(startDateObj.getDate()).padStart(2,'0')}`;
+                                    const eventObj = { title, type, startTime: formatTime(startDateObj), endTime: endDateObj ? formatTime(endDateObj) : "00:00", dateObj: startDateObj };
+                                    if (!newEvents[dateKey]) newEvents[dateKey] = [];
+                                    newEvents[dateKey].push(eventObj);
                                 }
                             }
                             successCount++;
