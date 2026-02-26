@@ -228,6 +228,49 @@
             Stretch: ({className}) => <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>,
         };
 
+        // ═══ ICS 파싱 (RECURRENCE-ID 지원) ═══
+        const TB_CALENDARS = {
+            red: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxInlf0nwQRwqVQaKN3oFgWzqLUfigKhteMNDAjQwkPlHzBe_ELV5RYcePFbCOI5H3TM",
+            orange: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIlkFT1ZEqbRVczq6PrGuVHb0Afa1EhpfGiSULTpK_tYur-eQz2Uqc74JIqfAKkjBP8",
+            blue: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxImfGB8G7hln8RI2A4WFBMN51g9wFHOsIhQgRFNSx9Dz4_f4s6w0S4RBWQw9Fgtt2mU",
+            green: "https://p151-caldav.icloud.com/published/2/MjAxNzA0NzQzNTEyMDE3MBESdZX6cJss130QKAIlxIks_Phe4DHFMcJQdGTXVekoe7DfsUtHGLCLydgauhnycV_BUoW1c_GcPu0dMkd_m9I"
+        };
+        const TB_CAT_MAP = { red:'업무', orange:'건강', blue:'자기계발', green:'휴식' };
+        const BYDAY_MAP = { SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6 };
+
+        const safeParseDate = (dateStr) => {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+            try {
+                const isUTC = dateStr.endsWith('Z');
+                const cs = dateStr.replace('Z','');
+                const y=parseInt(cs.substring(0,4)),mo=parseInt(cs.substring(4,6))-1,d=parseInt(cs.substring(6,8));
+                let h=0,mi=0;
+                if (cs.includes('T')) { h=parseInt(cs.substring(9,11)); mi=parseInt(cs.substring(11,13)); }
+                if (isUTC) { const dt=new Date(Date.UTC(y,mo,d,h,mi)); return isNaN(dt)?null:dt; }
+                return new Date(y,mo,d,h,mi);
+            } catch(e) { return null; }
+        };
+
+        const expandRRule = (rruleStr, dtStart, dtEnd, exDates=[]) => {
+            if (!rruleStr||!dtStart) return [];
+            const params={};
+            rruleStr.replace('RRULE:','').split(';').forEach(p=>{const[k,v]=p.split('=');params[k]=v;});
+            const freq=params.FREQ,until=params.UNTIL?safeParseDate(params.UNTIL):null,count=params.COUNT?parseInt(params.COUNT):null;
+            const interval=params.INTERVAL?parseInt(params.INTERVAL):1;
+            const byDay=params.BYDAY?params.BYDAY.split(','):null,byMonthDay=params.BYMONTHDAY?params.BYMONTHDAY.split(',').map(Number):null;
+            const now=new Date(),rangeStart=new Date(now.getFullYear(),now.getMonth()-6,1),rangeEnd=new Date(now.getFullYear(),now.getMonth()+7,0);
+            const hardLimit=until&&until<rangeEnd?until:rangeEnd,maxInst=count||500;
+            const duration=dtEnd?(dtEnd.getTime()-dtStart.getTime()):3600000;
+            const instances=[];
+            const exSet=new Set(exDates.map(d=>{const p=safeParseDate(d);return p?`${p.getFullYear()}-${p.getMonth()}-${p.getDate()}`:''}));
+            const isEx=(d)=>exSet.has(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+            if(freq==='DAILY'){let cur=new Date(dtStart);while(cur<=hardLimit&&instances.length<maxInst){if(cur>=rangeStart&&!isEx(cur))instances.push({start:new Date(cur),end:new Date(cur.getTime()+duration)});cur.setDate(cur.getDate()+interval);}}
+            else if(freq==='WEEKLY'){if(byDay){const tds=byDay.map(d=>BYDAY_MAP[d]).filter(d=>d!==undefined);let ws=new Date(dtStart);ws.setDate(ws.getDate()-ws.getDay());while(ws<=hardLimit&&instances.length<maxInst){for(const dow of tds){const c=new Date(ws);c.setDate(c.getDate()+dow);c.setHours(dtStart.getHours(),dtStart.getMinutes(),0,0);if(c>=dtStart&&c<=hardLimit&&c>=rangeStart&&!isEx(c))instances.push({start:new Date(c),end:new Date(c.getTime()+duration)});}ws.setDate(ws.getDate()+7*interval);}}else{let cur=new Date(dtStart);while(cur<=hardLimit&&instances.length<maxInst){if(cur>=rangeStart&&!isEx(cur))instances.push({start:new Date(cur),end:new Date(cur.getTime()+duration)});cur.setDate(cur.getDate()+7*interval);}}}
+            else if(freq==='MONTHLY'){let cur=new Date(dtStart);while(cur<=hardLimit&&instances.length<maxInst){if(byMonthDay){for(const md of byMonthDay){const c=new Date(cur.getFullYear(),cur.getMonth(),md,dtStart.getHours(),dtStart.getMinutes());if(c>=dtStart&&c<=hardLimit&&c>=rangeStart&&!isEx(c))instances.push({start:new Date(c),end:new Date(c.getTime()+duration)});}}else{if(cur>=rangeStart&&!isEx(cur))instances.push({start:new Date(cur),end:new Date(cur.getTime()+duration)});}cur.setMonth(cur.getMonth()+interval);}}
+            else if(freq==='YEARLY'){let cur=new Date(dtStart);while(cur<=hardLimit&&instances.length<maxInst){if(cur>=rangeStart&&!isEx(cur))instances.push({start:new Date(cur),end:new Date(cur.getTime()+duration)});cur.setFullYear(cur.getFullYear()+interval);}}
+            return instances;
+        };
+
         const App = () => {
             const [blocks, setBlocks] = useState([]);
             const [events, setEvents] = useState([]);
@@ -275,21 +318,66 @@
             };
 
             const fetchCalendar = async () => {
-                try {
-                    const calRes = await fetch(`${CALENDAR_API}?type=calendar&t=${Date.now()}`);
-                    if (calRes.ok) {
-                        const calData = await calRes.json();
-                        if (Array.isArray(calData)) {
-                            // 오늘 날짜 이벤트만 필터링
-                            const todayStr = viewDate.toDateString();
-                            const filtered = calData.filter(ev => {
-                                if (!ev.startTime) return false;
-                                return new Date(ev.startTime).toDateString() === todayStr;
-                            });
-                            setEvents(filtered);
+                const targetStr = viewDate.toDateString();
+                const y=viewDate.getFullYear(), m=String(viewDate.getMonth()+1).padStart(2,'0'), d=String(viewDate.getDate()).padStart(2,'0');
+                const targetKey = `${y}${m}${d}`;
+                const results = [];
+
+                for (const [colorKey, url] of Object.entries(TB_CALENDARS)) {
+                    try {
+                        const res = await fetch(`${CALENDAR_API}?url=${encodeURIComponent(url)}&t=${Date.now()}`);
+                        if (!res.ok) continue;
+                        const text = await res.text();
+
+                        const rawLines = text.split(/\r?\n/);
+                        const lines = [];
+                        for (const line of rawLines) {
+                            if ((line.startsWith(' ')||line.startsWith('\t'))&&lines.length>0) lines[lines.length-1]+=line.substring(1);
+                            else lines.push(line);
                         }
-                    }
-                } catch (e) { console.error("Calendar fetch error:", e); }
+
+                        let event={}, exDates=[];
+                        const allVEvents=[];
+                        for (const line of lines) {
+                            const cl=line.trim();
+                            if(cl.startsWith("BEGIN:VEVENT")){event={};exDates=[];}
+                            else if(cl.startsWith("UID"))event.uid=cl.split(":").pop().trim();
+                            else if(cl.startsWith("RECURRENCE-ID"))event.recurrenceId=cl.split(":").pop().trim();
+                            else if(cl.startsWith("DTSTART"))event.start=cl.split(":").pop();
+                            else if(cl.startsWith("DTEND"))event.end=cl.split(":").pop();
+                            else if(cl.startsWith("RRULE:"))event.rrule=cl;
+                            else if(cl.startsWith("EXDATE")){const v=cl.split(":").pop();if(v)v.split(",").forEach(dd=>exDates.push(dd.trim()));}
+                            else if(cl.startsWith("SUMMARY")){event.title=cl.substring(cl.indexOf(':')+1).replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').trim();}
+                            else if(cl.startsWith("END:VEVENT")){if(event.start)allVEvents.push({...event,exDates:[...exDates]});}
+                        }
+
+                        const recIdsByUid={};
+                        allVEvents.forEach(ev=>{if(ev.recurrenceId&&ev.uid){if(!recIdsByUid[ev.uid])recIdsByUid[ev.uid]=[];recIdsByUid[ev.uid].push(ev.recurrenceId);}});
+
+                        const category = TB_CAT_MAP[colorKey]||'기타';
+                        for (const ev of allVEvents) {
+                            const startObj=safeParseDate(ev.start);
+                            if(!startObj) continue;
+                            let endObj=ev.end?safeParseDate(ev.end):null;
+                            if(!endObj)endObj=new Date(startObj.getTime()+3600000);
+
+                            if(ev.rrule&&!ev.recurrenceId){
+                                const allEx=[...(ev.exDates||[])];
+                                if(ev.uid&&recIdsByUid[ev.uid])allEx.push(...recIdsByUid[ev.uid]);
+                                const instances=expandRRule(ev.rrule,startObj,endObj,allEx);
+                                instances.forEach(inst=>{
+                                    const dk=`${inst.start.getFullYear()}${String(inst.start.getMonth()+1).padStart(2,'0')}${String(inst.start.getDate()).padStart(2,'0')}`;
+                                    if(dk===targetKey) results.push({title:ev.title||"",startTime:inst.start.getTime(),endTime:inst.end.getTime(),category});
+                                });
+                            } else {
+                                const dk=`${startObj.getFullYear()}${String(startObj.getMonth()+1).padStart(2,'0')}${String(startObj.getDate()).padStart(2,'0')}`;
+                                if(dk===targetKey) results.push({title:ev.title||"",startTime:startObj.getTime(),endTime:endObj.getTime(),category});
+                            }
+                        }
+                    } catch(e){ console.warn(`Skip ${colorKey}:`,e); }
+                }
+                results.sort((a,b)=>a.startTime-b.startTime);
+                setEvents(results);
             };
 
             useEffect(() => {
