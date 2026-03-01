@@ -282,3 +282,250 @@
   </script>
 </body>
 </html>
+    .title {
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .title svg {
+      width: 15px;
+      height: 15px;
+      stroke: rgba(125, 211, 252, 0.9);
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Menlo', 'Noto Sans KR', monospace;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: rgba(125, 211, 252, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .memo-field {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 12px;
+      font-family: 'Noto Sans KR', sans-serif;
+      line-height: 1.6;
+      outline: none;
+      transition: all 0.2s;
+      resize: vertical;
+      min-height: 80px;
+      max-height: 200px;
+    }
+
+    .memo-field:focus {
+      border-color: rgba(125, 211, 252, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .memo-field::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(125, 211, 252, 0.4);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .submit-btn:hover:not(.loading) {
+      background: rgba(125, 211, 252, 0.6);
+    }
+
+    .submit-btn.loading {
+      background: rgba(125, 211, 252, 0.2);
+      color: rgba(255, 255, 255, 0.5);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .submit-btn .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status {
+      font-size: 11px;
+      min-height: 16px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      word-break: break-all;
+    }
+
+    .status.success { color: #86efac; }
+    .status.error { color: #fca5a5; }
+
+    .status svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+      리포트 생성
+    </div>
+
+    <div class="input-group">
+      <label>페이지 URL</label>
+      <input
+        type="text"
+        id="pageIdInput"
+        class="input-field"
+        placeholder="노션 페이지 URL 붙여넣기"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="input-group">
+      <label>받아쓰기 메모</label>
+      <textarea
+        id="memoInput"
+        class="memo-field"
+        placeholder="받아쓰기 텍스트 전체 복사 후 붙여넣기"
+      ></textarea>
+    </div>
+
+    <button class="submit-btn" id="generateBtn" onclick="generate()">생성</button>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    const WORKER_URL = 'https://coaching-report-worker.moonkelly601.workers.dev';
+
+    const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+    const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+    function extractPageId(input) {
+      const cleaned = input.trim();
+      const urlMatch = cleaned.match(/notion\.so\/(?:[^/]*-)?([a-f0-9\-]{32,36})/i);
+      if (urlMatch) return urlMatch[1].replace(/-/g, '');
+      const paramMatch = cleaned.match(/([a-f0-9\-]{32,36})\?/i);
+      if (paramMatch) return paramMatch[1].replace(/-/g, '');
+      const idOnly = cleaned.replace(/-/g, '').match(/^[a-f0-9]{32}$/i);
+      if (idOnly) return idOnly[0];
+      return null;
+    }
+
+    async function generate() {
+      const input = document.getElementById('pageIdInput');
+      const memoEl = document.getElementById('memoInput');
+      const btn = document.getElementById('generateBtn');
+      const status = document.getElementById('status');
+
+      const pageId = extractPageId(input.value);
+      if (!pageId) {
+        status.innerHTML = ICON_X + ' 유효한 페이지 URL을 입력해줘';
+        status.className = 'status error';
+        return;
+      }
+
+      const memo = memoEl.value.trim();
+      if (!memo) {
+        status.innerHTML = ICON_X + ' 받아쓰기 메모를 붙여넣어줘';
+        status.className = 'status error';
+        return;
+      }
+
+      btn.innerHTML = '<div class="spinner"></div> 생성 중...';
+      btn.className = 'submit-btn loading';
+      status.innerHTML = '';
+      status.className = 'status';
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pageId, memo }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          status.innerHTML = ICON_CHECK + ' 리포트 생성 완료';
+          status.className = 'status success';
+          memoEl.value = '';
+        } else {
+          const errMsg = data.error || '요청 실패';
+          const detail = data.detail ? ` (${data.detail})` : '';
+          status.innerHTML = ICON_X + ' ' + errMsg + detail;
+          status.className = 'status error';
+        }
+      } catch (err) {
+        status.innerHTML = ICON_X + ' Worker 연결 실패';
+        status.className = 'status error';
+      }
+
+      btn.innerHTML = '생성';
+      btn.className = 'submit-btn';
+    }
+  </script>
+</body>
+</html>
