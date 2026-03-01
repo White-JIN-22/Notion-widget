@@ -26,15 +26,14 @@
         }
 
         .font-serif { font-family: 'Playfair Display', serif; }
-        .font-sans-kr { font-family: 'Noto Sans KR', sans-serif; }
+        .font-kr { font-family: 'Noto Sans KR', sans-serif; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         .widget-container {
             position: relative;
-            width: 520px;
-            min-height: 600px;
-            max-height: 90vh;
+            width: 680px;
+            height: 480px;
             background: linear-gradient(180deg, rgba(224, 242, 254, 0.25) 0%, rgba(240, 249, 255, 0.15) 100%);
             backdrop-filter: blur(25px);
             border-radius: 24px;
@@ -49,7 +48,7 @@
         .header-section {
             background: rgba(255, 255, 255, 0.12);
             border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 14px 20px 12px;
+            padding: 12px 24px 10px;
             backdrop-filter: blur(5px);
             flex-shrink: 0;
         }
@@ -57,152 +56,146 @@
         .content-area {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 20px 20px;
+            padding: 20px 28px 24px;
         }
 
-        .section-card {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(186, 230, 253, 0.15);
-            border-radius: 14px;
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
+        /* 섹션 */
+        .section-block {
+            margin-bottom: 20px;
         }
-        .section-card:hover {
-            background: rgba(255, 255, 255, 0.09);
-            border-color: rgba(186, 230, 253, 0.3);
-        }
+        .section-block:last-child { margin-bottom: 0; }
 
-        .section-tag {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(186, 230, 253, 0.15);
+            cursor: pointer;
+            user-select: none;
+        }
+        .section-header:hover { border-bottom-color: rgba(186, 230, 253, 0.3); }
+
+        .section-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: rgba(226, 232, 240, 0.95);
+            letter-spacing: -0.3px;
+        }
+        .section-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 13px;
+            color: rgba(125, 211, 252, 0.6);
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
 
+        .section-content {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13.5px;
+            line-height: 1.9;
+            color: rgba(226, 232, 240, 0.8);
+            white-space: pre-wrap;
+            word-break: keep-all;
+            padding-left: 2px;
+        }
+
+        .collapsed .section-content { display: none; }
+        .collapsed .section-header { border-bottom-color: transparent; margin-bottom: 4px; padding-bottom: 4px; }
+        .collapse-icon { transition: transform 0.2s ease; font-size: 10px; color: rgba(148, 163, 184, 0.5); }
+        .collapsed .collapse-icon { transform: rotate(-90deg); }
+
+        /* 버튼/입력 */
         .generate-btn {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.4) 0%, rgba(125, 211, 252, 0.25) 100%);
-            border: 1px solid rgba(125, 211, 252, 0.5);
-            border-radius: 12px;
-            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.35) 0%, rgba(125, 211, 252, 0.2) 100%);
+            border: 1px solid rgba(125, 211, 252, 0.45);
+            border-radius: 10px;
+            padding: 7px 18px;
             color: #e0f2fe;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s;
             backdrop-filter: blur(8px);
         }
         .generate-btn:hover {
-            background: linear-gradient(135deg, rgba(56, 189, 248, 0.55) 0%, rgba(125, 211, 252, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.5) 0%, rgba(125, 211, 252, 0.35) 100%);
             border-color: rgba(125, 211, 252, 0.7);
             transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
+            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
         }
-        .generate-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .select-input {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(186, 230, 253, 0.25);
+            border: 1px solid rgba(186, 230, 253, 0.2);
             border-radius: 8px;
             color: #e2e8f0;
-            padding: 6px 10px;
-            font-size: 14px;
+            padding: 5px 8px;
+            font-size: 13px;
             outline: none;
             cursor: pointer;
             -webkit-appearance: none;
             text-align: center;
         }
-        .select-input:focus {
-            border-color: rgba(125, 211, 252, 0.6);
-        }
-        .select-input option {
-            background: #1e293b;
-            color: #e2e8f0;
-        }
+        .select-input:focus { border-color: rgba(125, 211, 252, 0.5); }
+        .select-input option { background: #1e293b; color: #e2e8f0; }
 
-        .toast-message {
-            position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(186, 230, 253, 0.5);
-            color: #0ea5e9;
-            padding: 8px 16px; border-radius: 20px;
-            font-size: 13px; font-weight: 500;
-            animation: toastIn 0.3s ease-out;
-            z-index: 50;
-            white-space: nowrap;
-        }
-        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        .loading-shimmer {
-            background: linear-gradient(90deg, rgba(125,211,252,0.05) 25%, rgba(125,211,252,0.15) 50%, rgba(125,211,252,0.05) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 2s ease-in-out infinite;
-            border-radius: 8px;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2.5px solid rgba(125, 211, 252, 0.2);
-            border-top-color: rgba(125, 211, 252, 0.8);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-        }
-
-        .progress-track {
-            width: 100%;
-            height: 3px;
-            background: rgba(125, 211, 252, 0.1);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, rgba(56, 189, 248, 0.6), rgba(125, 211, 252, 0.8));
-            border-radius: 2px;
-            transition: width 0.5s ease;
-        }
-
-        .section-content {
-            font-size: 13.5px;
-            line-height: 1.85;
-            color: rgba(226, 232, 240, 0.85);
-            white-space: pre-wrap;
-            word-break: keep-all;
-        }
-
+        /* stat pill */
         .stat-pill {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 10px;
+            padding: 2px 10px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 500;
-            background: rgba(125, 211, 252, 0.12);
-            border: 1px solid rgba(125, 211, 252, 0.2);
-            color: rgba(186, 230, 253, 0.9);
+            background: rgba(125, 211, 252, 0.1);
+            border: 1px solid rgba(125, 211, 252, 0.15);
+            color: rgba(186, 230, 253, 0.85);
         }
 
-        .collapsed .section-content { display: none; }
-        .collapsed .collapse-icon { transform: rotate(-90deg); }
-        .collapse-icon { transition: transform 0.2s ease; }
+        /* 프로그레스 */
+        .progress-track {
+            width: 100%; height: 2.5px;
+            background: rgba(125, 211, 252, 0.1);
+            border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(56, 189, 248, 0.6), rgba(125, 211, 252, 0.8));
+            border-radius: 2px; transition: width 0.5s ease;
+        }
+
+        /* 토스트 */
+        .toast-message {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(186, 230, 253, 0.5);
+            color: #0ea5e9;
+            padding: 6px 14px; border-radius: 20px;
+            font-size: 12px; font-weight: 500;
+            animation: toastIn 0.3s ease-out;
+            z-index: 50; white-space: nowrap;
+        }
+
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .loading-shimmer {
+            background: linear-gradient(90deg, rgba(125,211,252,0.05) 25%, rgba(125,211,252,0.12) 50%, rgba(125,211,252,0.05) 75%);
+            background-size: 200% 100%; animation: shimmer 2s ease-in-out infinite; border-radius: 8px;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(125, 211, 252, 0.2);
+            border-top-color: rgba(125, 211, 252, 0.8);
+            border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -213,21 +206,32 @@
 
         const WORKER_URL = "https://monthly-report-walker.moonkelly601.workers.dev";
 
-        const SECTION_CONFIG = {
-            A_StudyTime: { label: '공부시간', icon: '📊', color: 'rgba(125, 211, 252, 0.35)', textColor: '#7dd3fc' },
-            B_Pattern:   { label: '행동패턴', icon: '🔄', color: 'rgba(216, 180, 254, 0.3)', textColor: '#d8b4fe' },
-            C_Event:     { label: '이벤트',   icon: '📋', color: 'rgba(254, 240, 138, 0.3)', textColor: '#fef08a' },
-            D_Weekly:    { label: '주별성취', icon: '📈', color: 'rgba(134, 239, 172, 0.3)', textColor: '#86efac' },
-            E_Overall:   { label: '종합',     icon: '✨', color: 'rgba(125, 211, 252, 0.35)', textColor: '#7dd3fc' },
-            F_Emotion:   { label: '정서/체력', icon: '💙', color: 'rgba(196, 181, 253, 0.3)', textColor: '#c4b5fd' }
-        };
+        // 순서: 종합(E)이 맨 마지막
+        const SECTION_ORDER = [
+            { key: 'A_StudyTime', num: '01', label: '공부시간 분석' },
+            { key: 'B_Pattern',   num: '02', label: '행동패턴 분석' },
+            { key: 'C_Event',     num: '03', label: '이벤트 피드백' },
+            { key: 'D_Weekly',    num: '04', label: '주별 성취도' },
+            { key: 'F_Emotion',   num: '05', label: '정서 · 체력 흐름' },
+            { key: 'E_Overall',   num: '06', label: '종합 피드백' },
+        ];
 
         const Icons = {
-            ChevronDown: ({className}) => <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
-            Report: ({className}) => <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
-            Calendar: ({className}) => <svg className={className} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-            Clock: ({className}) => <svg className={className} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-            Flame: ({className}) => <svg className={className} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"/></svg>,
+            ChevronDown: ({className}) => <svg className={className} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+            Report: ({className}) => <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+            Flame: ({className}) => <svg className={className} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3a7 7 0 0 0 3 3.3z"/></svg>,
+            Calendar: ({className}) => <svg className={className} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+        };
+
+        // **텍스트** → <strong>텍스트</strong> 변환
+        const renderContent = (text) => {
+            if (!text) return null;
+            const parts = text.split(/\*\*(.*?)\*\*/g);
+            return parts.map((part, i) =>
+                i % 2 === 1
+                    ? <strong key={i} style={{ color: 'rgba(226,232,240,0.95)', fontWeight: 600 }}>{part}</strong>
+                    : <span key={i}>{part}</span>
+            );
         };
 
         const App = () => {
@@ -240,58 +244,38 @@
             const [progressLabel, setProgressLabel] = useState('');
             const [toast, setToast] = useState(null);
             const [collapsedSections, setCollapsedSections] = useState({});
-            const contentRef = useRef(null);
 
             const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
-
             const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
 
-            // 처음 로드 시 현재 달 조회 시도
             useEffect(() => { fetchExisting(monthStr); }, []);
 
             const fetchExisting = async (m) => {
                 try {
                     const res = await fetch(`${WORKER_URL}?month=${m}`);
                     const data = await res.json();
-                    if (data.status === 'OK') {
-                        setReport(data);
-                    } else {
-                        setReport(null);
-                    }
-                } catch (e) {
-                    setReport(null);
-                }
+                    setReport(data.status === 'OK' ? data : null);
+                } catch (e) { setReport(null); }
             };
 
             const handleMonthChange = (y, m) => {
-                setSelectedYear(y);
-                setSelectedMonth(m);
-                const ms = `${y}-${String(m).padStart(2, '0')}`;
+                setSelectedYear(y); setSelectedMonth(m);
                 setReport(null);
-                fetchExisting(ms);
+                fetchExisting(`${y}-${String(m).padStart(2, '0')}`);
             };
 
             const generateReport = async () => {
-                setLoading(true);
-                setProgress(0);
-                setProgressLabel('Fortress Log 수집 중...');
+                setLoading(true); setProgress(0);
+                setProgressLabel('데이터 수집 중...');
 
-                // 가짜 프로그레스 (실제 API 호출은 한 번에 처리됨)
-                const progressSteps = [
-                    { pct: 10, label: '로그 데이터 수집 중...', delay: 800 },
-                    { pct: 20, label: '일기장 데이터 수집 중...', delay: 1500 },
-                    { pct: 30, label: '통계 계산 중...', delay: 2000 },
-                    { pct: 40, label: 'A. 공부시간 분석 생성 중...', delay: 4000 },
-                    { pct: 50, label: 'B. 행동패턴 분석 생성 중...', delay: 8000 },
-                    { pct: 60, label: 'C. 이벤트 피드백 생성 중...', delay: 12000 },
-                    { pct: 70, label: 'D. 주별 성취도 생성 중...', delay: 16000 },
-                    { pct: 80, label: 'E. 종합 피드백 생성 중...', delay: 20000 },
-                    { pct: 90, label: 'F. 정서/체력 분석 생성 중...', delay: 24000 },
+                const steps = [
+                    { pct: 15, label: '로그 · 일기장 수집 중...', delay: 1000 },
+                    { pct: 30, label: '통계 계산 중...', delay: 2500 },
+                    { pct: 55, label: 'AI 분석 생성 중...', delay: 5000 },
+                    { pct: 75, label: '피드백 작성 중...', delay: 12000 },
+                    { pct: 90, label: '저장 중...', delay: 20000 },
                 ];
-
-                const timers = progressSteps.map(step =>
-                    setTimeout(() => { setProgress(step.pct); setProgressLabel(step.label); }, step.delay)
-                );
+                const timers = steps.map(s => setTimeout(() => { setProgress(s.pct); setProgressLabel(s.label); }, s.delay));
 
                 try {
                     const res = await fetch(WORKER_URL, {
@@ -303,28 +287,25 @@
                     timers.forEach(clearTimeout);
 
                     if (data.status === 'SUCCESS') {
-                        setProgress(100);
-                        setProgressLabel('완료!');
+                        setProgress(100); setProgressLabel('완료!');
                         triggerToast('✨ 월간 리포트 생성 완료!');
                         setTimeout(() => fetchExisting(monthStr), 500);
                     } else if (data.status === 'ALREADY_EXISTS') {
-                        triggerToast('📋 이미 존재하는 리포트입니다');
+                        triggerToast('이미 존재하는 리포트입니다');
                         fetchExisting(monthStr);
                     } else if (data.status === 'NO_DATA') {
-                        triggerToast('⚠️ 해당 월 기록이 없습니다');
+                        triggerToast('해당 월 기록이 없습니다');
                     } else {
-                        triggerToast('❌ 생성 실패: ' + (data.error || '알 수 없는 오류'));
+                        triggerToast('생성 실패: ' + (data.error || '알 수 없는 오류'));
                     }
                 } catch (e) {
                     timers.forEach(clearTimeout);
-                    triggerToast('⚠️ 네트워크 오류');
+                    triggerToast('네트워크 오류');
                 }
                 setTimeout(() => { setLoading(false); setProgress(0); }, 1000);
             };
 
-            const toggleSection = (key) => {
-                setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
-            };
+            const toggleSection = (key) => setCollapsedSections(prev => ({ ...prev, [key]: !prev[key] }));
 
             const years = [];
             for (let y = 2025; y <= now.getFullYear() + 1; y++) years.push(y);
@@ -334,118 +315,82 @@
 
             return (
                 <div className="widget-container no-scrollbar">
-                    {/* Header */}
                     <div className="header-section">
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <Icons.Report className="text-sky-300" />
-                                <span className="font-serif text-[17px] tracking-wide text-sky-200">Monthly Report</span>
+                                <Icons.Report className="text-sky-300/70" />
+                                <span className="font-serif text-[15px] tracking-wide text-sky-200/90">Monthly Report</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <select className="select-input w-[72px]" value={selectedYear}
+                                    onChange={(e) => handleMonthChange(Number(e.target.value), selectedMonth)}>
+                                    {years.map(y => <option key={y} value={y}>{y}</option>)}
+                                </select>
+                                <select className="select-input w-[52px]" value={selectedMonth}
+                                    onChange={(e) => handleMonthChange(selectedYear, Number(e.target.value))}>
+                                    {Array.from({length:12},(_,i)=>i+1).map(m =>
+                                        <option key={m} value={m}>{String(m).padStart(2,'0')}</option>)}
+                                </select>
+                                <button className="generate-btn flex items-center gap-1.5"
+                                    onClick={generateReport} disabled={loading}>
+                                    {loading ? <><span className="spinner"/>생성 중...</> : <>리포트 생성</>}
+                                </button>
                             </div>
                         </div>
 
-                        {/* Year/Month Selector + Button */}
-                        <div className="flex items-center gap-2">
-                            <select
-                                className="select-input w-[80px]"
-                                value={selectedYear}
-                                onChange={(e) => handleMonthChange(Number(e.target.value), selectedMonth)}
-                            >
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                            <select
-                                className="select-input w-[60px]"
-                                value={selectedMonth}
-                                onChange={(e) => handleMonthChange(selectedYear, Number(e.target.value))}
-                            >
-                                {Array.from({length: 12}, (_, i) => i + 1).map(m =>
-                                    <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                                )}
-                            </select>
-                            <button
-                                className="generate-btn flex-1 flex items-center justify-center gap-2"
-                                onClick={generateReport}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <><span className="spinner" /> 생성 중...</>
-                                ) : (
-                                    <>월간 리포트 생성</>
-                                )}
-                            </button>
-                        </div>
-
-                        {/* Progress Bar */}
                         {loading && (
-                            <div className="mt-3 fade-in">
+                            <div className="mt-2.5 fade-in">
                                 <div className="progress-track">
                                     <div className="progress-fill" style={{ width: `${progress}%` }} />
                                 </div>
-                                <div className="text-[11px] text-sky-300/70 mt-1.5 font-sans-kr">{progressLabel}</div>
+                                <div className="text-[10.5px] text-sky-300/60 mt-1 font-kr">{progressLabel}</div>
+                            </div>
+                        )}
+
+                        {report && !loading && (
+                            <div className="flex gap-2 mt-2.5">
+                                <span className="stat-pill"><Icons.Flame className="text-sky-300/80"/>{totalH}h {totalM}m</span>
+                                <span className="stat-pill"><Icons.Calendar className="text-sky-300/80"/>{report.studyDays||0}일 활동</span>
+                                <span className="stat-pill">
+                                    일평균 {report.studyDays > 0 ? `${Math.round((report.totalMinutes||0)/report.studyDays)}분` : '-'}
+                                </span>
                             </div>
                         )}
                     </div>
 
-                    {/* Content */}
-                    <div className="content-area no-scrollbar" ref={contentRef}>
+                    <div className="content-area no-scrollbar">
                         {!report && !loading && (
-                            <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-                                <div className="text-4xl opacity-40">📊</div>
-                                <div className="text-sm text-slate-400 font-sans-kr">
-                                    {monthStr} 리포트가 없습니다
-                                </div>
-                                <div className="text-xs text-slate-500 font-sans-kr">
-                                    위의 버튼을 눌러 생성해보세요
-                                </div>
+                            <div className="flex flex-col items-center justify-center h-full gap-2 text-center" style={{opacity:0.4}}>
+                                <div className="text-3xl">📊</div>
+                                <div className="text-sm font-kr text-slate-400">{monthStr} 리포트가 없습니다</div>
+                                <div className="text-xs font-kr text-slate-500">버튼을 눌러 생성해보세요</div>
                             </div>
                         )}
 
                         {loading && !report && (
                             <div className="flex flex-col gap-3 py-4">
-                                {[1,2,3].map(i => (
-                                    <div key={i} className="loading-shimmer h-[120px]" style={{ animationDelay: `${i * 0.2}s` }} />
-                                ))}
+                                {[1,2,3].map(i => <div key={i} className="loading-shimmer h-[100px]" style={{animationDelay:`${i*0.15}s`}}/>)}
                             </div>
                         )}
 
                         {report && (
                             <div className="fade-in">
-                                {/* Stats Pills */}
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    <span className="stat-pill">
-                                        <Icons.Flame className="text-sky-300" />
-                                        {totalH}h {totalM}m
-                                    </span>
-                                    <span className="stat-pill">
-                                        <Icons.Calendar className="text-sky-300" />
-                                        {report.studyDays || 0}일 활동
-                                    </span>
-                                    <span className="stat-pill">
-                                        <Icons.Clock className="text-sky-300" />
-                                        {report.studyDays > 0 ? `일평균 ${Math.round((report.totalMinutes || 0) / report.studyDays)}분` : '-'}
-                                    </span>
-                                </div>
-
-                                {/* Sections */}
-                                {Object.entries(SECTION_CONFIG).map(([key, cfg]) => {
+                                {SECTION_ORDER.map(({key, num, label}) => {
                                     const text = report[key];
                                     if (!text) return null;
                                     const isCollapsed = collapsedSections[key];
 
                                     return (
-                                        <div key={key} className={`section-card ${isCollapsed ? 'collapsed' : ''}`}>
-                                            <div
-                                                className="flex items-center justify-between cursor-pointer"
-                                                onClick={() => toggleSection(key)}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <span className="section-tag" style={{ background: cfg.color, color: cfg.textColor }}>
-                                                        {cfg.icon} {cfg.label}
-                                                    </span>
-                                                </div>
-                                                <Icons.ChevronDown className={`collapse-icon text-slate-400 ${isCollapsed ? '' : ''}`} />
+                                        <div key={key} className={`section-block ${isCollapsed ? 'collapsed' : ''}`}>
+                                            <div className="section-header" onClick={() => toggleSection(key)}>
+                                                <span className="section-num">{num}</span>
+                                                <span className="section-title">{label}</span>
+                                                <div style={{flex:1}}/>
+                                                <Icons.ChevronDown className="collapse-icon" />
                                             </div>
-                                            <div className="section-content mt-3 font-sans-kr">
-                                                {text}
+                                            <div className="section-content">
+                                                {renderContent(text)}
                                             </div>
                                         </div>
                                     );
@@ -454,8 +399,7 @@
                         )}
                     </div>
 
-                    {/* Toast */}
-                    {toast && <div className="toast-message font-sans-kr">{toast}</div>}
+                    {toast && <div className="toast-message font-kr">{toast}</div>}
                 </div>
             );
         };
