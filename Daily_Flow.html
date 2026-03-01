@@ -950,10 +950,18 @@
                                             if (!currentBlockIds.has(String(todo.linkedBlockId))) {
                                                 return null; // 삭제 마킹
                                             }
-                                            // 블록이 남아있으면 시간/이름 업데이트
+                                            // 블록이 남아있으면 시간/이름 업데이트 (zone별 overlap 재계산)
                                             const targetBlock = newData.blocks.find(b => String(b.id) === String(todo.linkedBlockId));
                                             if (targetBlock) {
-                                                const newDurationMs = (targetBlock.endTime - targetBlock.startTime);
+                                                const bStart = new Date(targetBlock.startTime);
+                                                const bEnd = new Date(targetBlock.endTime);
+                                                const zoneRanges = { morning: [0,12], afternoon: [12,18], night: [18,24] };
+                                                const [zH0, zH1] = zoneRanges[todo.zone] || [0,24];
+                                                const zoneStart = new Date(bStart); zoneStart.setHours(zH0, 0, 0, 0);
+                                                const zoneEnd = new Date(bStart); zoneEnd.setHours(zH1, 0, 0, 0);
+                                                const overlapStart = Math.max(bStart.getTime(), zoneStart.getTime());
+                                                const overlapEnd = Math.min(bEnd.getTime(), zoneEnd.getTime());
+                                                const newDurationMs = overlapEnd > overlapStart ? (overlapEnd - overlapStart) : 0;
                                                 const newName = targetBlock.memo || targetBlock.name || "집중 기록";
                                                 if (todo.elapsed !== newDurationMs || todo.text !== newName) {
                                                     return { ...todo, text: newName, elapsed: newDurationMs };
