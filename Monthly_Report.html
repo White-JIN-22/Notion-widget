@@ -266,11 +266,19 @@
                     continue;
                 }
 
-                // [소제목] 파싱
+                // [소제목] 형식: "[소제목] 전체 성과" 또는 "[전체 성과]" 스타일 모두 처리
                 const shMatch = trimmed.match(/^\[소제목\]\s*(.+)/);
                 if (shMatch) {
                     flushBody();
                     blocks.push({ type: 'subheading', text: shMatch[1].trim() });
+                    continue;
+                }
+
+                // [OOO] 스타일 소제목 (키워드/핵심이 아닌 나머지 대괄호)
+                const bracketMatch = trimmed.match(/^\[([^\]]{1,12})\]$/);
+                if (bracketMatch && !trimmed.startsWith('[키워드') && !trimmed.startsWith('[핵심')) {
+                    flushBody();
+                    blocks.push({ type: 'subheading', text: bracketMatch[1].trim() });
                     continue;
                 }
 
