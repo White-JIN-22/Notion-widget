@@ -791,7 +791,7 @@
                     const totalS = stats.morn.ss + stats.aft.ss + stats.night.ss;
                     const avgW = (d, s) => { if (!d) return null; const a = s/d; return a >= 2.5 ? "Sun" : a >= 1.5 ? "Cloud" : "Rain"; };
 
-                    await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" },
+                    const syncRes = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             date: formattedDate, blocks: processedBlocks, lifeEnergy, energy,
                             wakeUpTime: wakeUpTime || "-", bedTime: bedTime || "-", title: "Daily Log",
@@ -800,6 +800,7 @@
                             deletedIds: getDeletedIds()
                         })
                     });
+                    if (!syncRes.ok) { const errData = await syncRes.json().catch(() => ({})); throw new Error(errData.error || `HTTP ${syncRes.status}`); }
                     if (!silent) triggerToast("✅ 동기화 완료!");
                     localStorage.setItem('lastSyncTime', Date.now().toString());
                 } catch (e) { if (!silent) triggerToast("⚠️ 동기화 실패"); }
