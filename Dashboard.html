@@ -239,93 +239,95 @@
                         <span className="text-[11px] font-bold text-white tracking-tight">신체 주도권 회복</span>
                     </div>
 
-                    {/* Exercise progress bars */}
-                    <div className="px-4 py-1.5 flex flex-col gap-1" style={{background:'rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+                    {/* Exercise block-bar progress */}
+                    <div className="px-4 py-2 flex flex-col gap-1.5" style={{background:'rgba(255,255,255,0.05)', borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
                         {[
                             { label: '오늘', current: todayExMin, target: 30 },
                             { label: '주간', current: weeklyExMin, target: 150 },
                             { label: '월간', current: monthlyExMin, target: 600 },
                         ].map(({label, current, target}) => {
                             const pct = Math.min(100, Math.round((current / target) * 100));
-                            const fmtCur = current >= 60 ? `${Math.floor(current/60)}h${current%60 > 0 ? current%60+'m' : ''}` : `${current}m`;
-                            const fmtTgt = target >= 60 ? `${Math.floor(target/60)}h${target%60 > 0 ? target%60+'m' : ''}` : `${target}m`;
+                            const filled = Math.round((pct / 100) * 10);
+                            const fmtV = (m) => m >= 60 ? `${Math.floor(m/60)}H${m%60 > 0 ? ` ${m%60}M` : ''}` : `${m}M`;
                             return (
-                                <div key={label} className="prog-row">
-                                    <span className="prog-label">{label}</span>
-                                    <div className="prog-track"><div className="prog-fill" style={{width:`${pct}%`}}/></div>
-                                    <span className="prog-val">{fmtCur}/{fmtTgt}</span>
+                                <div key={label} className="flex items-center gap-2">
+                                    <span style={{fontSize:'9px',fontWeight:700,color:'rgba(255,255,255,0.5)',width:'24px',textAlign:'right',flexShrink:0}}>{label}</span>
+                                    <div style={{display:'flex',gap:'3px',flex:1}}>
+                                        {[...Array(10)].map((_,i) => (
+                                            <div key={i} style={{flex:1,height:'10px',borderRadius:'2.5px',background:i<filled?'rgba(192,132,252,0.7)':'rgba(255,255,255,0.08)',boxShadow:i<filled?'0 0 4px rgba(192,132,252,0.3)':'none',transition:'all 0.3s'}}/>
+                                        ))}
+                                    </div>
+                                    <span style={{fontSize:'9px',fontWeight:700,color:'white',width:'52px',textAlign:'right',flexShrink:0,fontFamily:'Roboto Mono,monospace'}}>{fmtV(current)}/{fmtV(target)}</span>
                                 </div>
                             );
                         })}
                     </div>
 
-                    {/* Two heatmaps side by side */}
-                    <div className="flex flex-1 min-h-0 overflow-hidden">
-                        {/* LEFT: Focus */}
-                        <div className="flex-1 flex flex-col px-2 pt-1 pb-2">
-                            <div className="text-center text-[9px] font-bold text-white/50 tracking-wider mb-1">집중시간</div>
-                            <div className="compact-grid mb-0.5">
-                                {['S','M','T','W','T','F','S'].map((d,i)=>(
-                                    <div key={i} className={`text-[8px] font-bold py-0.5 ${i===0?'text-rose-300':i===6?'text-blue-300':'text-slate-500'}`}>{d}</div>
-                                ))}
+                    {/* Two mini heatmaps */}
+                    <div className="flex min-h-0 px-3 pt-1.5 pb-1" style={{gap:'8px'}}>
+                        {/* Focus */}
+                        <div className="flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-1 px-0.5">
+                                <span style={{fontSize:'8px',fontWeight:700,color:'rgba(255,255,255,0.45)',letterSpacing:'0.5px'}}>집중시간</span>
+                                <span style={{fontSize:'8px',fontWeight:700,color:'white',fontFamily:'Roboto Mono,monospace'}}>{Math.floor(currentMonthTotal/60)}H {currentMonthTotal%60}M</span>
                             </div>
-                            <div className="compact-grid flex-1" style={{alignContent:'start'}}>
-                                {renderCells((i,dn,dk,isToday)=>{
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'1.5px'}}>
+                                {Array.from({length:totalCells}).map((_,i)=>{
+                                    const dn=i-startDay+1, isCur=dn>0&&dn<=daysInMonth;
+                                    if(!isCur) return <div key={i} style={{height:'11px'}}/>;
+                                    const dk=fmtYMD(year,month+1,dn);
+                                    const isToday=new Date().toDateString()===new Date(year,month,dn).toDateString();
                                     const mins=focusData[dk]||0;
-                                    return (<div key={i} className={`heatmap-cell ${getHeatClass(mins)} ${isToday?'day-today':''}`} style={{fontSize:'7px'}}>
-                                        <span style={{opacity:0.5}}>{dn}</span>
-                                        {mins>0 && <div className="heatmap-tooltip">{formatTime(mins)}</div>}
+                                    const cls=getHeatClass(mins);
+                                    return (<div key={i} className={`${cls} ${isToday?'day-today':''}`} style={{height:'11px',borderRadius:'2px',position:'relative',cursor:'pointer'}}>
+                                        {mins>0 && <div className="heatmap-tooltip">{dn}일 {formatTime(mins)}</div>}
                                     </div>);
                                 })}
                             </div>
-                            <div className="flex items-center justify-between mt-1 px-0.5">
-                                <div className="flex items-center gap-1.5">
-                                    {[{cls:'heat-start',l:'~2h'},{cls:'heat-1',l:'2-4h'},{cls:'heat-2',l:'4-6h'},{cls:'heat-3',l:'6h+'}].map((x,i)=>(
-                                        <div key={i} className="flex items-center gap-0.5">
-                                            <div className={`w-2 h-2 rounded-sm ${x.cls}`}></div>
-                                            <span className="text-[7px] text-white/30" style={{fontFamily:'Roboto Mono,monospace'}}>{x.l}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <span className="text-[9px] text-white/50 font-bold" style={{fontFamily:'Roboto Mono,monospace'}}>{Math.floor(currentMonthTotal/60)}H</span>
+                            <div className="flex items-center gap-1 mt-1 px-0.5">
+                                {[{cls:'heat-start',l:'~2H'},{cls:'heat-1',l:'2-4H'},{cls:'heat-2',l:'4-6H'},{cls:'heat-3',l:'6H+'}].map((x,i)=>(
+                                    <div key={i} className="flex items-center gap-0.5">
+                                        <div className={`${x.cls}`} style={{width:'6px',height:'6px',borderRadius:'1.5px'}}/>
+                                        <span style={{fontSize:'6px',color:'rgba(255,255,255,0.25)',fontFamily:'Roboto Mono,monospace'}}>{x.l}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        <div className="w-px bg-white/10"></div>
+                        <div style={{width:'1px',background:'rgba(255,255,255,0.08)'}}/>
 
-                        {/* RIGHT: Exercise */}
-                        <div className="flex-1 flex flex-col px-2 pt-1 pb-2">
-                            <div className="text-center text-[9px] font-bold text-white/50 tracking-wider mb-1">운동</div>
-                            <div className="compact-grid mb-0.5">
-                                {['S','M','T','W','T','F','S'].map((d,i)=>(
-                                    <div key={i} className={`text-[8px] font-bold py-0.5 ${i===0?'text-rose-300':i===6?'text-blue-300':'text-slate-500'}`}>{d}</div>
-                                ))}
+                        {/* Exercise */}
+                        <div className="flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-1 px-0.5">
+                                <span style={{fontSize:'8px',fontWeight:700,color:'rgba(255,255,255,0.45)',letterSpacing:'0.5px'}}>운동</span>
+                                <span style={{fontSize:'8px',fontWeight:700,color:'white',fontFamily:'Roboto Mono,monospace'}}>{monthlyExMin > 0 ? `${Math.floor(monthlyExMin/60)}H ${monthlyExMin%60}M` : '0M'}</span>
                             </div>
-                            <div className="compact-grid flex-1" style={{alignContent:'start'}}>
-                                {renderCells((i,dn,dk,isToday)=>{
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:'1.5px'}}>
+                                {Array.from({length:totalCells}).map((_,i)=>{
+                                    const dn=i-startDay+1, isCur=dn>0&&dn<=daysInMonth;
+                                    if(!isCur) return <div key={i} style={{height:'11px'}}/>;
+                                    const dk=fmtYMD(year,month+1,dn);
+                                    const isToday=new Date().toDateString()===new Date(year,month,dn).toDateString();
                                     const mins=exerciseData[dk]||0;
-                                    return (<div key={i} className={`heatmap-cell ${getExClass(mins)} ${isToday?'day-today':''}`} style={{fontSize:'7px'}}>
-                                        <span style={{opacity:0.5}}>{dn}</span>
-                                        {mins>=10 && <div className="heatmap-tooltip">{formatTime(mins)}</div>}
+                                    const cls=getExClass(mins);
+                                    return (<div key={i} className={`${cls} ${isToday?'day-today':''}`} style={{height:'11px',borderRadius:'2px',position:'relative',cursor:'pointer'}}>
+                                        {mins>=10 && <div className="heatmap-tooltip">{dn}일 {formatTime(mins)}</div>}
                                     </div>);
                                 })}
                             </div>
-                            <div className="flex items-center justify-between mt-1 px-0.5">
-                                <div className="flex items-center gap-1.5">
-                                    {[{cls:'ex-1',l:'~30m'},{cls:'ex-2',l:'31-60m'},{cls:'ex-3',l:'60m+'}].map((x,i)=>(
-                                        <div key={i} className="flex items-center gap-0.5">
-                                            <div className={`w-2 h-2 rounded-sm ${x.cls}`}></div>
-                                            <span className="text-[7px] text-white/30" style={{fontFamily:'Roboto Mono,monospace'}}>{x.l}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                                <span className="text-[9px] text-white/50 font-bold" style={{fontFamily:'Roboto Mono,monospace'}}>{monthlyExMin > 0 ? formatTime(monthlyExMin) : '0M'}</span>
+                            <div className="flex items-center gap-1 mt-1 px-0.5">
+                                {[{cls:'ex-1',l:'~30M'},{cls:'ex-2',l:'31-60M'},{cls:'ex-3',l:'60M+'}].map((x,i)=>(
+                                    <div key={i} className="flex items-center gap-0.5">
+                                        <div className={`${x.cls}`} style={{width:'6px',height:'6px',borderRadius:'1.5px'}}/>
+                                        <span style={{fontSize:'6px',color:'rgba(255,255,255,0.25)',fontFamily:'Roboto Mono,monospace'}}>{x.l}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* Feedback */}
-                    <div className="glass-footer px-4 py-2 flex items-start gap-2.5" style={{minHeight:'42px'}}>
+                    {/* Feedback - expanded */}
+                    <div className="glass-footer px-4 py-2.5 flex items-start gap-2.5" style={{flex:'1',minHeight:'60px'}}>
                         <IconMessage className="w-4 h-4 shrink-0 mt-0.5" />
                         <p className="text-[11px] text-white leading-relaxed">{feedbackLoading ? '피드백 생성 중...' : (feedback || '데이터 수집 중...')}</p>
                     </div>
