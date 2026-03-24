@@ -6,35 +6,32 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="googlebot" content="noindex, nofollow" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>월 평가서 생성</title>
+  <title>월 평가서 생성 v2</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
       background: transparent;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
       padding: 12px;
     }
-
     .widget-container {
-      width: 280px;
-      background: linear-gradient(135deg, rgba(224, 242, 254, 0.25) 0%, rgba(186, 230, 253, 0.15) 100%);
+      width: 320px;
+      background: linear-gradient(135deg, rgba(224,242,254,0.25) 0%, rgba(186,230,253,0.15) 100%);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 32px rgba(186, 230, 253, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 8px 32px rgba(186,230,253,0.2), inset 0 0 20px rgba(255,255,255,0.1);
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-
     .title {
       font-size: 13px;
       font-weight: 700;
@@ -43,50 +40,67 @@
       align-items: center;
       gap: 6px;
     }
-
-    .title svg { width: 15px; height: 15px; stroke: rgba(125, 211, 252, 0.9); }
-
-    label {
-      font-size: 11px;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
+    .title svg { width: 15px; height: 15px; stroke: rgba(125,211,252,0.9); }
+    label { font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); }
     .input-field, .select-field {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       color: white;
       font-size: 12px;
       font-family: 'Noto Sans KR', sans-serif;
       outline: none;
       transition: all 0.2s;
     }
-
     .input-field:focus, .select-field:focus {
-      border-color: rgba(125, 211, 252, 0.6);
-      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(125,211,252,0.6);
+      background: rgba(255,255,255,0.15);
     }
-
-    .input-field::placeholder { color: rgba(255, 255, 255, 0.35); }
-
+    .input-field::placeholder { color: rgba(255,255,255,0.35); }
     .select-field { -webkit-appearance: none; cursor: pointer; }
     .select-field option { background: #1e293b; color: #e2e8f0; }
-
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; }
+    .input-group { display: flex; flex-direction: column; gap: 4px; }
+    .help-text { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: -2px; }
 
+    /* Mode toggle */
+    .mode-toggle {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .mode-btn {
+      flex: 1;
+      padding: 6px 0;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Noto Sans KR', sans-serif;
+      text-align: center;
+      cursor: pointer;
+      border: none;
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.4);
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: rgba(125,211,252,0.3);
+      color: white;
+    }
+
+    /* URL area */
     .url-area {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       color: white;
       font-size: 11px;
-      font-family: 'SF Mono', 'Menlo', monospace;
+      font-family: 'SF Mono','Menlo',monospace;
       line-height: 1.7;
       outline: none;
       transition: all 0.2s;
@@ -94,24 +108,82 @@
       min-height: 80px;
       max-height: 160px;
     }
+    .url-area:focus { border-color: rgba(125,211,252,0.6); background: rgba(255,255,255,0.15); }
+    .url-area::placeholder { color: rgba(255,255,255,0.3); font-family: 'Noto Sans KR',sans-serif; }
 
-    .url-area:focus {
-      border-color: rgba(125, 211, 252, 0.6);
-      background: rgba(255, 255, 255, 0.15);
+    /* Paste entries */
+    .paste-entries { display: flex; flex-direction: column; gap: 8px; }
+    .paste-entry {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.15);
     }
+    .paste-entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .paste-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(125,211,252,0.8);
+    }
+    .remove-btn {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Noto Sans KR',sans-serif;
+    }
+    .remove-btn:hover { color: #fca5a5; }
+    .paste-area {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: white;
+      font-size: 11px;
+      font-family: 'Noto Sans KR',sans-serif;
+      line-height: 1.6;
+      outline: none;
+      resize: vertical;
+      min-height: 60px;
+      max-height: 200px;
+    }
+    .paste-area:focus { border-color: rgba(125,211,252,0.5); }
+    .paste-area::placeholder { color: rgba(255,255,255,0.25); }
 
-    .url-area::placeholder { color: rgba(255, 255, 255, 0.3); font-family: 'Noto Sans KR', sans-serif; }
+    .add-entry-btn {
+      width: 100%;
+      padding: 6px;
+      border: 1px dashed rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: transparent;
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      font-family: 'Noto Sans KR',sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .add-entry-btn:hover { border-color: rgba(125,211,252,0.5); color: rgba(125,211,252,0.8); }
 
+    /* Submit & status */
     .submit-btn {
       width: 100%;
       padding: 10px 14px;
       border: none;
       border-radius: 10px;
-      background: rgba(125, 211, 252, 0.4);
+      background: rgba(125,211,252,0.4);
       color: white;
       font-size: 13px;
       font-weight: 600;
-      font-family: 'Noto Sans KR', sans-serif;
+      font-family: 'Noto Sans KR',sans-serif;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
@@ -119,21 +191,16 @@
       justify-content: center;
       gap: 6px;
     }
-
-    .submit-btn:hover:not(.loading) { background: rgba(125, 211, 252, 0.6); }
-    .submit-btn.loading { background: rgba(125, 211, 252, 0.2); color: rgba(255,255,255,0.5); cursor: not-allowed; pointer-events: none; }
-
+    .submit-btn:hover:not(.loading) { background: rgba(125,211,252,0.6); }
+    .submit-btn.loading { background: rgba(125,211,252,0.2); color: rgba(255,255,255,0.5); cursor: not-allowed; pointer-events: none; }
     .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .status { font-size: 11px; min-height: 16px; display: flex; align-items: center; gap: 5px; word-break: break-all; }
     .status.success { color: #86efac; }
     .status.error { color: #fca5a5; }
     .status svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-    .input-group { display: flex; flex-direction: column; gap: 4px; }
-
-    .help-text { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: -2px; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -145,13 +212,14 @@
         <line x1="16" y1="13" x2="8" y2="13"></line>
         <line x1="16" y1="17" x2="8" y2="17"></line>
       </svg>
-      월 평가서 생성
+      월 평가서 생성 v2
     </div>
 
+    <!-- 기본 정보 -->
     <div class="row">
       <div class="input-group">
         <label>학생명</label>
-        <input type="text" id="studentName" class="input-field" placeholder="풀네임 입력" maxlength="3" />
+        <input type="text" id="studentName" class="input-field" placeholder="풀네임" maxlength="5" />
       </div>
       <div class="input-group">
         <label>과목</label>
@@ -168,41 +236,106 @@
       <input type="month" id="evalMonth" class="input-field" />
     </div>
 
-    <div class="input-group">
+    <!-- 모드 토글 -->
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="paste" onclick="setMode('paste')">붙여넣기</button>
+      <button class="mode-btn" data-mode="url" onclick="setMode('url')">URL 입력</button>
+    </div>
+
+    <!-- URL 모드 -->
+    <div id="urlSection" class="input-group hidden">
       <label>수업 리포트 URL (줄바꿈 구분)</label>
-      <textarea id="pageUrls" class="url-area" placeholder="1주차 페이지 URL&#10;2주차 페이지 URL&#10;3주차 페이지 URL&#10;4주차 페이지 URL"></textarea>
+      <textarea id="pageUrls" class="url-area" placeholder="1주차 페이지 URL&#10;2주차 페이지 URL&#10;..."></textarea>
       <div class="help-text">노션 수업리포트 페이지 URL을 한 줄에 하나씩</div>
     </div>
 
-    <button class="submit-btn" id="generateBtn" onclick="generate()">평가서 생성</button>
+    <!-- 붙여넣기 모드 -->
+    <div id="pasteSection" class="paste-entries">
+      <!-- 기본 4개 -->
+    </div>
+    <button id="addEntryBtn" class="add-entry-btn" onclick="addEntry()">+ 회기 추가</button>
 
+    <button class="submit-btn" id="generateBtn" onclick="generate()">평가서 생성</button>
     <div class="status" id="status"></div>
   </div>
 
   <script>
     const WORKER_URL = 'https://monthly-eval-worker.moonkelly601.workers.dev';
-
     const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
     const ICON_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
 
-    // 기본값: 현재 월
+    let currentMode = 'paste';
+    let entryCount = 0;
+
+    // 초기화
     const now = new Date();
-    document.getElementById('evalMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    document.getElementById('evalMonth').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+    // 기본 4회기 추가
+    for (let i = 0; i < 4; i++) addEntry();
+
+    function setMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+      });
+      document.getElementById('urlSection').classList.toggle('hidden', mode !== 'url');
+      document.getElementById('pasteSection').classList.toggle('hidden', mode !== 'paste');
+      document.getElementById('addEntryBtn').classList.toggle('hidden', mode !== 'paste');
+    }
+
+    function addEntry() {
+      entryCount++;
+      const container = document.getElementById('pasteSection');
+      const div = document.createElement('div');
+      div.className = 'paste-entry';
+      div.id = `entry-${entryCount}`;
+      div.innerHTML = `
+        <div class="paste-entry-header">
+          <span class="paste-label">${entryCount}회기</span>
+          <button class="remove-btn" onclick="removeEntry('entry-${entryCount}')">삭제</button>
+        </div>
+        <textarea class="paste-area" placeholder="수업 리포트 내용을 복사해서 붙여넣기"></textarea>
+      `;
+      container.appendChild(div);
+    }
+
+    function removeEntry(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+      // 번호 재정렬
+      const entries = document.querySelectorAll('.paste-entry');
+      entries.forEach((e, i) => {
+        e.querySelector('.paste-label').textContent = `${i+1}회기`;
+      });
+    }
 
     async function generate() {
       const studentName = document.getElementById('studentName').value.trim();
       const subject = document.getElementById('subject').value;
       const month = document.getElementById('evalMonth').value;
-      const urlsRaw = document.getElementById('pageUrls').value.trim();
       const btn = document.getElementById('generateBtn');
       const status = document.getElementById('status');
 
-      if (!studentName) { status.innerHTML = ICON_X + ' 학생명을 입력해줘'; status.className = 'status error'; return; }
-      if (!month) { status.innerHTML = ICON_X + ' 평가 월을 선택해줘'; status.className = 'status error'; return; }
-      if (!urlsRaw) { status.innerHTML = ICON_X + ' 리포트 URL을 붙여넣어줘'; status.className = 'status error'; return; }
+      if (!studentName) { showError('학생명을 입력해줘'); return; }
+      if (!month) { showError('평가 월을 선택해줘'); return; }
 
-      const pageUrls = urlsRaw.split('\n').map(u => u.trim()).filter(Boolean);
-      if (pageUrls.length === 0) { status.innerHTML = ICON_X + ' 유효한 URL이 없어'; status.className = 'status error'; return; }
+      let payload = { studentName, subject, month };
+
+      if (currentMode === 'paste') {
+        const entries = document.querySelectorAll('.paste-entry');
+        const pastedReports = [];
+        entries.forEach((e, i) => {
+          const content = e.querySelector('.paste-area').value.trim();
+          if (content) pastedReports.push({ label: `${i+1}회기`, content });
+        });
+        if (pastedReports.length === 0) { showError('최소 1개 회기의 내용을 붙여넣어줘'); return; }
+        payload.pastedReports = pastedReports;
+      } else {
+        const urlsRaw = document.getElementById('pageUrls').value.trim();
+        if (!urlsRaw) { showError('리포트 URL을 붙여넣어줘'); return; }
+        payload.pageUrls = urlsRaw.split('\n').map(u => u.trim()).filter(Boolean);
+      }
 
       btn.innerHTML = '<div class="spinner"></div> 생성 중...';
       btn.className = 'submit-btn loading';
@@ -213,26 +346,27 @@
         const res = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentName, subject, month, pageUrls }),
+          body: JSON.stringify(payload),
         });
-
         const data = await res.json();
-
         if (res.ok && data.success) {
-          status.innerHTML = ICON_CHECK + ' 평가서 생성 완료';
+          status.innerHTML = ICON_CHECK + ` 평가서 생성 완료 (${data.mode === 'paste' ? '붙여넣기' : 'URL'} 모드)`;
           status.className = 'status success';
         } else {
-          const errMsg = data.error || '요청 실패';
-          status.innerHTML = ICON_X + ' ' + errMsg;
-          status.className = 'status error';
+          showError(data.error || '요청 실패');
         }
       } catch (err) {
-        status.innerHTML = ICON_X + ' Worker 연결 실패';
-        status.className = 'status error';
+        showError('Worker 연결 실패');
       }
 
       btn.innerHTML = '평가서 생성';
       btn.className = 'submit-btn';
+    }
+
+    function showError(msg) {
+      const status = document.getElementById('status');
+      status.innerHTML = ICON_X + ' ' + msg;
+      status.className = 'status error';
     }
   </script>
 </body>
